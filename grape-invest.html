@@ -1,0 +1,1408 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grape Invest — Simulador de Investimentos</title>
+
+<!-- PWA -->
+<meta name="theme-color" content="#3B6D11">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Grape Invest">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --green-dark: #27500A;
+    --green-mid: #3B6D11;
+    --green-light: #EAF3DE;
+    --green-muted: #C0DD97;
+    --text: #1a1a18;
+    --text-muted: #5f5e5a;
+    --text-subtle: #888780;
+    --bg: #f9f8f4;
+    --card: #ffffff;
+    --border: rgba(0,0,0,0.08);
+    --radius: 14px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  header {
+    padding: 1.25rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid var(--border);
+    background: var(--card);
+  }
+
+  .logo-icon {
+    width: 34px; height: 34px;
+    background: var(--green-mid);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .logo-icon svg { width: 18px; height: 18px; }
+
+  .logo-name {
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px;
+    color: var(--green-dark);
+    letter-spacing: -0.02em;
+  }
+
+  .hero {
+    text-align: center;
+    padding: 3rem 1rem 2rem;
+  }
+
+  .hero-badge {
+    display: inline-block;
+    background: var(--green-light);
+    color: var(--green-dark);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 5px 14px;
+    border-radius: 99px;
+    margin-bottom: 1rem;
+    letter-spacing: 0.03em;
+  }
+
+  .hero h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(28px, 5vw, 42px);
+    color: var(--green-dark);
+    line-height: 1.2;
+    max-width: 560px;
+    margin: 0 auto 1rem;
+  }
+
+  .hero p {
+    font-size: 16px;
+    color: var(--text-muted);
+    max-width: 440px;
+    margin: 0 auto;
+    line-height: 1.7;
+  }
+
+  .container {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 1rem 1rem 4rem;
+  }
+
+  .card {
+    background: var(--card);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    padding: 1.75rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .card-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-subtle);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 1.25rem;
+  }
+
+  .input-group {
+    margin-bottom: 1.25rem;
+  }
+
+  .input-group label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  .input-group label span {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 4px;
+    border-radius: 99px;
+    background: var(--green-muted);
+    outline: none;
+    cursor: pointer;
+  }
+
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: var(--green-mid);
+    border: 3px solid var(--card);
+    box-shadow: 0 0 0 1.5px var(--green-mid);
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+
+  input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+
+  .metrics {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 1.25rem;
+  }
+
+  .metric {
+    background: var(--green-light);
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+  }
+
+  .metric-label {
+    font-size: 12px;
+    color: var(--green-dark);
+    opacity: 0.7;
+    margin-bottom: 4px;
+  }
+
+  .metric-value {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    color: var(--green-dark);
+    line-height: 1.1;
+  }
+
+  .metric-sub {
+    font-size: 11px;
+    color: var(--green-mid);
+    margin-top: 2px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  thead th {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-subtle);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0 0 10px;
+    text-align: left;
+  }
+
+  thead th:last-child { text-align: right; }
+
+  tbody tr {
+    border-top: 1px solid var(--border);
+  }
+
+  tbody td {
+    padding: 12px 0;
+    font-size: 14px;
+    color: var(--text);
+  }
+
+  tbody td:last-child {
+    text-align: right;
+    font-weight: 500;
+    color: var(--green-dark);
+    font-size: 15px;
+  }
+
+  .tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 99px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+
+  .tag-green { background: var(--green-light); color: var(--green-dark); }
+  .tag-blue { background: #E6F1FB; color: #0C447C; }
+  .tag-gray { background: #F1EFE8; color: #5F5E5A; }
+
+  .best-row td { background: var(--green-light); }
+  .best-row td:first-child { border-radius: 8px 0 0 8px; padding-left: 10px; }
+  .best-row td:last-child { border-radius: 0 8px 8px 0; padding-right: 10px; }
+
+  .chart-wrap {
+    position: relative;
+    width: 100%;
+    height: 220px;
+    margin-top: 0.5rem;
+  }
+
+  .nav-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0;
+  }
+
+  .nav-tab {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-subtle);
+    padding: 10px 16px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: color 0.15s;
+  }
+
+  .nav-tab.active {
+    color: var(--green-dark);
+    border-bottom-color: var(--green-mid);
+  }
+
+  .section-page { display: none; }
+  .section-page.active { display: block; }
+
+  .expense-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto auto;
+    gap: 10px;
+    align-items: end;
+    margin-bottom: 1.25rem;
+  }
+
+  .expense-form input, .expense-form select {
+    height: 40px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0 12px;
+    font-size: 14px;
+    font-family: 'DM Sans', sans-serif;
+    background: var(--card);
+    color: var(--text);
+    outline: none;
+    width: 100%;
+  }
+
+  .expense-form input:focus, .expense-form select:focus {
+    border-color: var(--green-mid);
+    box-shadow: 0 0 0 2px rgba(59,109,17,0.1);
+  }
+
+  .btn-add {
+    height: 40px;
+    padding: 0 16px;
+    background: var(--green-mid);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .btn-clear {
+    height: 40px;
+    padding: 0 14px;
+    background: none;
+    color: var(--text-subtle);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .expense-table { width: 100%; border-collapse: collapse; }
+  .expense-table th {
+    font-size: 12px; font-weight: 500;
+    color: var(--text-subtle);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0 0 10px;
+    text-align: left;
+  }
+  .expense-table th:last-child { text-align: right; }
+  .expense-table td {
+    padding: 11px 0;
+    font-size: 14px;
+    border-top: 1px solid var(--border);
+  }
+  .expense-table td:last-child { text-align: right; }
+
+  .cat-pill {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 10px;
+    border-radius: 99px;
+  }
+
+  .btn-del {
+    background: none; border: none;
+    color: var(--text-subtle);
+    cursor: pointer;
+    font-size: 16px;
+    padding: 0 4px;
+    line-height: 1;
+  }
+  .btn-del:hover { color: #c0392b; }
+
+  .expense-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 0 0;
+    border-top: 1px solid var(--border);
+    margin-top: 4px;
+  }
+
+  .expense-total span:first-child { font-size: 14px; font-weight: 500; color: var(--text-muted); }
+  .expense-total span:last-child { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--green-dark); }
+
+  .cat-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+    margin-top: 1.25rem;
+  }
+
+  .cat-card {
+    background: var(--bg);
+    border-radius: 10px;
+    padding: 12px;
+    border: 1px solid var(--border);
+  }
+
+  .cat-card-name { font-size: 12px; color: var(--text-subtle); margin-bottom: 4px; }
+  .cat-card-value { font-size: 16px; font-weight: 500; color: var(--text); }
+  .cat-card-pct { font-size: 11px; color: var(--text-subtle); margin-top: 2px; }
+
+  .empty-state {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: var(--text-subtle);
+    font-size: 14px;
+  }
+
+  @media (max-width: 520px) {
+    .expense-form { grid-template-columns: 1fr 1fr; }
+    .btn-add, .btn-clear { width: 100%; }
+  }
+
+  footer {
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-subtle);
+    padding: 2rem 1rem;
+    border-top: 1px solid var(--border);
+  }
+
+  @media (max-width: 480px) {
+    .metrics { grid-template-columns: 1fr 1fr; }
+    .card { padding: 1.25rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-icon">
+    <svg viewBox="0 0 20 20" fill="none">
+      <circle cx="7" cy="8" r="3" fill="#EAF3DE"/>
+      <circle cx="13" cy="8" r="3" fill="#EAF3DE"/>
+      <circle cx="10" cy="13" r="3" fill="#EAF3DE"/>
+      <rect x="9.5" y="3" width="1" height="3" rx="0.5" fill="#EAF3DE"/>
+    </svg>
+  </div>
+  <span class="logo-name">Grape Invest</span>
+</header>
+
+<div class="hero">
+  <div class="hero-badge">Simulador gratuito</div>
+  <h1>Descubra quanto seu dinheiro pode render</h1>
+  <p>Compare Tesouro Selic, CDB, LCI e Poupança com juros compostos reais.</p>
+</div>
+
+<div class="container">
+
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="setTab('simulador', this)">Simulador</button>
+    <button class="nav-tab" onclick="setTab('gastos', this)">Gastos mensais</button>
+    <button class="nav-tab" onclick="setTab('investimentos', this)">Investimentos</button>
+    <button class="nav-tab" onclick="setTab('patrimonio', this)">Patrimônio total</button>
+  </div>
+
+  <div id="tab-simulador" class="section-page active">
+
+  <div class="card">
+    <div class="card-title">Configure sua simulação</div>
+
+    <div class="input-group">
+      <label>Valor inicial <span id="lbl-inicial">R$ 1.000</span></label>
+      <input type="range" id="sl-inicial" min="100" max="50000" step="100" value="1000" oninput="atualizar()">
+    </div>
+
+    <div class="input-group">
+      <label>Aporte mensal <span id="lbl-aporte">R$ 300</span></label>
+      <input type="range" id="sl-aporte" min="0" max="5000" step="50" value="300" oninput="atualizar()">
+    </div>
+
+    <div class="input-group">
+      <label>Período <span id="lbl-anos">5 anos</span></label>
+      <input type="range" id="sl-anos" min="1" max="30" step="1" value="5" oninput="atualizar()">
+    </div>
+  </div>
+
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-label">Total investido</div>
+      <div class="metric-value" id="m-investido">—</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Melhor resultado</div>
+      <div class="metric-value" id="m-melhor">—</div>
+      <div class="metric-sub" id="m-melhor-nome">—</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Rendimento extra</div>
+      <div class="metric-value" id="m-rendimento">—</div>
+      <div class="metric-sub">vs poupança</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Ganho vs investido</div>
+      <div class="metric-value" id="m-ganho">—</div>
+      <div class="metric-sub">melhor opção</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Comparativo</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Investimento</th>
+          <th style="text-align:right;">Total final</th>
+        </tr>
+      </thead>
+      <tbody id="tabela-body"></tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Crescimento ao longo do tempo</div>
+    <div class="chart-wrap">
+      <canvas id="grafico" role="img" aria-label="Gráfico de crescimento dos investimentos ao longo do tempo"></canvas>
+    </div>
+    <div style="display:flex;gap:16px;margin-top:12px;flex-wrap:wrap;">
+      <span style="display:flex;align-items:center;gap:5px;font-size:12px;color:#5f5e5a;"><span style="width:10px;height:10px;border-radius:2px;background:#3B6D11;display:inline-block;"></span>Tesouro Selic</span>
+      <span style="display:flex;align-items:center;gap:5px;font-size:12px;color:#5f5e5a;"><span style="width:10px;height:10px;border-radius:2px;background:#378ADD;display:inline-block;"></span>CDB 110%</span>
+      <span style="display:flex;align-items:center;gap:5px;font-size:12px;color:#5f5e5a;"><span style="width:10px;height:3px;border-radius:2px;background:#888780;display:inline-block;"></span>Poupança</span>
+    </div>
+  </div>
+
+  </div>
+
+  <div id="tab-gastos" class="section-page">
+
+    <!-- Seletor de mês -->
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:1.25rem;flex-wrap:wrap;">
+      <button onclick="mudarMes(-1)" style="width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:var(--card);cursor:pointer;font-size:18px;color:var(--text-muted);">&#8249;</button>
+      <div id="mes-label" style="font-family:'DM Serif Display',serif;font-size:20px;color:var(--green-dark);flex:1;text-align:center;"></div>
+      <button onclick="mudarMes(1)" style="width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:var(--card);cursor:pointer;font-size:18px;color:var(--text-muted);">&#8250;</button>
+      <button onclick="irParaHoje()" style="height:36px;padding:0 14px;border-radius:8px;border:1px solid var(--border);background:var(--card);cursor:pointer;font-size:13px;color:var(--text-muted);font-family:'DM Sans',sans-serif;">Hoje</button>
+    </div>
+
+    <!-- Saldo do mês -->
+    <div id="saldo-box" style="border-radius:var(--radius);padding:1.5rem 1.75rem;margin-bottom:1.25rem;background:var(--green-light);border:1px solid var(--green-muted);">
+      <div style="font-size:12px;font-weight:500;color:var(--green-mid);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Saldo disponível</div>
+      <div style="display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;">
+        <div id="saldo-valor" style="font-family:'DM Serif Display',serif;font-size:36px;color:var(--green-dark);">R$ 0,00</div>
+        <div style="font-size:13px;color:var(--green-mid);">
+          <span id="saldo-salario-label">Salário: R$ 0,00</span> &nbsp;·&nbsp;
+          <span id="saldo-pago-label">Pago: R$ 0,00</span>
+        </div>
+      </div>
+      <div style="margin-top:12px;background:rgba(59,109,17,0.15);border-radius:99px;height:6px;">
+        <div id="saldo-barra" style="height:6px;border-radius:99px;background:var(--green-mid);width:100%;transition:width 0.3s;"></div>
+      </div>
+    </div>
+
+    <!-- Salário -->
+    <div class="card" style="margin-bottom:1.25rem;">
+      <div class="card-title">Meu salário</div>
+      <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
+        <div style="flex:1;min-width:160px;">
+          <label style="font-size:13px;color:var(--text-muted);display:block;margin-bottom:4px;">Valor do salário (R$)</label>
+          <input type="number" id="sal-valor" placeholder="Ex: 3000" min="0" step="0.01" oninput="salvarSalario()" style="height:40px;border:1px solid var(--border);border-radius:8px;padding:0 12px;font-size:14px;font-family:'DM Sans',sans-serif;background:var(--card);color:var(--text);outline:none;width:100%;">
+        </div>
+        <div>
+          <label style="font-size:13px;color:var(--text-muted);display:block;margin-bottom:4px;">Status</label>
+          <button id="sal-btn" onclick="toggleSalario()" style="height:40px;padding:0 20px;border-radius:8px;border:1px solid var(--border);font-size:14px;font-weight:500;cursor:pointer;background:var(--card);color:var(--text-muted);font-family:'DM Sans',sans-serif;">Marcar como recebido</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Adicionar gasto/dívida -->
+    <div class="card" style="margin-bottom:1.25rem;">
+      <div class="card-title">Adicionar gasto ou dívida</div>
+      <div class="expense-form">
+        <div>
+          <label style="font-size:13px;color:var(--text-muted);display:block;margin-bottom:4px;">Descrição</label>
+          <input type="text" id="exp-desc" placeholder="Ex: Aluguel, mercado...">
+        </div>
+        <div>
+          <label style="font-size:13px;color:var(--text-muted);display:block;margin-bottom:4px;">Valor (R$)</label>
+          <input type="number" id="exp-valor" placeholder="0,00" min="0" step="0.01">
+        </div>
+        <div>
+          <label style="font-size:13px;color:var(--text-muted);display:block;margin-bottom:4px;">Categoria</label>
+          <select id="exp-cat">
+            <option value="Moradia">Moradia</option>
+            <option value="Alimentação">Alimentação</option>
+            <option value="Transporte">Transporte</option>
+            <option value="Dívida">Dívida</option>
+            <option value="Saúde">Saúde</option>
+            <option value="Lazer">Lazer</option>
+            <option value="Educação">Educação</option>
+            <option value="Vestuário">Vestuário</option>
+            <option value="Outros">Outros</option>
+          </select>
+        </div>
+        <div style="display:flex;gap:8px;align-items:flex-end;">
+          <button class="btn-add" onclick="addExpense()">+ Adicionar</button>
+          <button class="btn-clear" onclick="clearExpenses()">Limpar mês</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lista de gastos -->
+    <div class="card">
+      <div class="card-title">Gastos e dívidas do mês</div>
+      <div id="expense-list">
+        <div class="empty-state">Nenhum gasto registrado ainda.<br>Adicione acima para começar.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ABA INVESTIMENTOS -->
+  <div id="tab-investimentos" class="section-page">
+
+    <!-- Seletor de mês -->
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:1.25rem;flex-wrap:wrap;">
+      <button onclick="mudarMesInv(-1)" style="width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:var(--card);cursor:pointer;font-size:18px;color:var(--text-muted);">&#8249;</button>
+      <div id="inv-mes-label" style="font-family:'DM Serif Display',serif;font-size:20px;color:var(--green-dark);flex:1;text-align:center;"></div>
+      <button onclick="mudarMesInv(1)" style="width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:var(--card);cursor:pointer;font-size:18px;color:var(--text-muted);">&#8250;</button>
+      <button onclick="irParaHojeInv()" style="height:36px;padding:0 14px;border-radius:8px;border:1px solid var(--border);background:var(--card);cursor:pointer;font-size:13px;color:var(--text-muted);font-family:'DM Sans',sans-serif;">Hoje</button>
+    </div>
+
+    <!-- Resumo de alocação -->
+    <div id="inv-saldo-box" style="border-radius:var(--radius);padding:1.5rem 1.75rem;margin-bottom:1.25rem;background:#EAF3DE;border:1px solid #C0DD97;">
+      <div style="font-size:12px;font-weight:500;color:#3B6D11;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Total alocado este mês</div>
+      <div style="display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;">
+        <div id="inv-total" style="font-family:'DM Serif Display',serif;font-size:36px;color:#27500A;">R$ 0,00</div>
+        <div style="font-size:13px;color:#3B6D11;">
+          <span id="inv-qtd-label">0 aportes planejados</span> &nbsp;·&nbsp;
+          <span id="inv-realizado-label">R$ 0,00 realizado</span>
+        </div>
+      </div>
+      <!-- barra de progresso realizado/total -->
+      <div style="margin-top:12px;background:rgba(59,109,17,0.15);border-radius:99px;height:6px;">
+        <div id="inv-barra" style="height:6px;border-radius:99px;background:#3B6D11;width:0%;transition:width 0.3s;"></div>
+      </div>
+    </div>
+
+    <!-- Adicionar aporte -->
+    <div class="card" style="margin-bottom:1.25rem;">
+      <div class="card-title">Planejar aporte</div>
+      <div class="expense-form">
+        <div>
+          <label style="font-size:13px;color:var(--text-muted);display:block;margin-bottom:4px;">Onde investir</label>
+          <select id="inv-onde" style="height:40px;border:1px solid var(--border);border-radius:8px;padding:0 12px;font-size:14px;font-family:'DM Sans',sans-serif;background:var(--card);color:var(--text);outline:none;width:100%;">
+            <option value="Tesouro Selic">Tesouro Selic</option>
+            <option value="Tesouro IPCA+">Tesouro IPCA+</option>
+            <option value="CDB">CDB</option>
+            <option value="LCI / LCA">LCI / LCA</option>
+            <option value="Fundo de investimento">Fundo de investimento</option>
+            <option value="Ações">Ações</option>
+            <option value="FIIs">FIIs</option>
+            <option value="Criptomoedas">Criptomoedas</option>
+            <option value="Poupança">Poupança</option>
+            <option value="Outro">Outro</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:13px;color:var(--text-muted);display:block;margin-bottom:4px;">Valor planejado (R$)</label>
+          <input type="number" id="inv-valor" placeholder="0,00" min="0" step="0.01" style="height:40px;border:1px solid var(--border);border-radius:8px;padding:0 12px;font-size:14px;font-family:'DM Sans',sans-serif;background:var(--card);color:var(--text);outline:none;width:100%;">
+        </div>
+        <div>
+          <label style="font-size:13px;color:var(--text-muted);display:block;margin-bottom:4px;">Observação (opcional)</label>
+          <input type="text" id="inv-obs" placeholder="Ex: Vencimento em dez" style="height:40px;border:1px solid var(--border);border-radius:8px;padding:0 12px;font-size:14px;font-family:'DM Sans',sans-serif;background:var(--card);color:var(--text);outline:none;width:100%;">
+        </div>
+        <div style="display:flex;gap:8px;align-items:flex-end;">
+          <button class="btn-add" onclick="addInvestimento()">+ Adicionar</button>
+          <button class="btn-clear" onclick="clearInvestimentos()">Limpar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lista de aportes -->
+    <div class="card" style="margin-bottom:1.25rem;">
+      <div class="card-title">Aportes do mês</div>
+      <div id="inv-list">
+        <div class="empty-state">Nenhum aporte planejado ainda.<br>Adicione acima para começar.</div>
+      </div>
+    </div>
+
+    <!-- Distribuição por tipo -->
+    <div class="card" id="inv-dist-card" style="display:none;">
+      <div class="card-title">Distribuição da carteira</div>
+      <div style="position:relative;width:100%;height:220px;">
+        <canvas id="inv-chart" role="img" aria-label="Gráfico de distribuição dos investimentos por tipo"></canvas>
+      </div>
+      <div id="inv-legenda" style="display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;"></div>
+    </div>
+
+  </div>
+
+  <!-- ABA PATRIMÔNIO TOTAL -->
+  <div id="tab-patrimonio" class="section-page">
+
+    <!-- Resumo geral -->
+    <div style="border-radius:var(--radius);padding:1.5rem 1.75rem;margin-bottom:1.25rem;background:#EAF3DE;border:1px solid #C0DD97;">
+      <div style="font-size:12px;font-weight:500;color:#3B6D11;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Patrimônio acumulado</div>
+      <div id="pat-total" style="font-family:'DM Serif Display',serif;font-size:40px;color:#27500A;margin-bottom:8px;">R$ 0,00</div>
+      <div style="display:flex;gap:20px;flex-wrap:wrap;font-size:13px;color:#3B6D11;">
+        <span id="pat-meses-label">0 meses com aportes</span>
+        <span id="pat-tipos-label">—</span>
+      </div>
+    </div>
+
+    <!-- Cards de métricas -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:1.25rem;">
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.25rem;">
+        <div style="font-size:12px;color:var(--text-subtle);margin-bottom:4px;">Maior tipo</div>
+        <div id="pat-maior-tipo" style="font-size:15px;font-weight:500;color:var(--text);">—</div>
+        <div id="pat-maior-tipo-val" style="font-size:12px;color:var(--text-muted);margin-top:2px;">—</div>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.25rem;">
+        <div style="font-size:12px;color:var(--text-subtle);margin-bottom:4px;">Último aporte</div>
+        <div id="pat-ultimo-mes" style="font-size:15px;font-weight:500;color:var(--text);">—</div>
+        <div id="pat-ultimo-val" style="font-size:12px;color:var(--text-muted);margin-top:2px;">—</div>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.25rem;">
+        <div style="font-size:12px;color:var(--text-subtle);margin-bottom:4px;">Tipos de ativos</div>
+        <div id="pat-tipos-qtd" style="font-size:15px;font-weight:500;color:var(--text);">—</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">na carteira</div>
+      </div>
+    </div>
+
+    <!-- Evolução mensal -->
+    <div class="card" style="margin-bottom:1.25rem;">
+      <div class="card-title">Evolução mensal dos aportes</div>
+      <div id="pat-evolucao-wrap" style="position:relative;width:100%;height:220px;">
+        <canvas id="pat-evolucao" role="img" aria-label="Gráfico de evolução mensal dos aportes realizados"></canvas>
+      </div>
+    </div>
+
+    <!-- Breakdown por tipo -->
+    <div class="card" style="margin-bottom:1.25rem;" id="pat-dist-card">
+      <div class="card-title">Distribuição por tipo de ativo</div>
+      <div id="pat-dist-list"></div>
+    </div>
+
+    <!-- Histórico por mês -->
+    <div class="card" id="pat-hist-card">
+      <div class="card-title">Histórico por mês</div>
+      <div id="pat-hist-list">
+        <div class="empty-state">Nenhum aporte realizado ainda.<br>Vá em Investimentos e marque aportes como realizados.</div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<footer>
+  Grape Invest &mdash; Os valores são simulações baseadas em taxas de mercado e não constituem recomendação de investimento.
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+let chart = null;
+
+const fmt = v => 'R$ ' + Math.round(v).toLocaleString('pt-BR');
+
+function simular(inicial, aporte, anos, taxaAnual) {
+  const meses = anos * 12;
+  const taxaMensal = Math.pow(1 + taxaAnual, 1/12) - 1;
+  let total = inicial;
+  for (let i = 0; i < meses; i++) total = total * (1 + taxaMensal) + aporte;
+  return total;
+}
+
+function serieAnual(inicial, aporte, anos, taxa) {
+  return Array.from({length: anos + 1}, (_, a) => Math.round(simular(inicial, aporte, a, taxa)));
+}
+
+function atualizar() {
+  const inicial = +document.getElementById('sl-inicial').value;
+  const aporte = +document.getElementById('sl-aporte').value;
+  const anos = +document.getElementById('sl-anos').value;
+
+  document.getElementById('lbl-inicial').textContent = fmt(inicial);
+  document.getElementById('lbl-aporte').textContent = fmt(aporte);
+  document.getElementById('lbl-anos').textContent = anos + (anos === 1 ? ' ano' : ' anos');
+
+  const investido = inicial + aporte * anos * 12;
+
+  const opcoes = [
+    { nome: 'CDB 110% CDI', taxa: 0.1172, tag: 'tag-blue', label: 'Popular' },
+    { nome: 'Tesouro Selic', taxa: 0.1065, tag: 'tag-green', label: 'Indicado' },
+    { nome: 'LCI / LCA', taxa: 0.095, tag: 'tag-green', label: 'Isento IR' },
+    { nome: 'Poupança', taxa: 0.062, tag: 'tag-gray', label: 'Básico' },
+  ];
+
+  opcoes.forEach(o => { o.total = simular(inicial, aporte, anos, o.taxa); });
+  opcoes.sort((a, b) => b.total - a.total);
+
+  document.getElementById('m-investido').textContent = fmt(investido);
+  document.getElementById('m-melhor').textContent = fmt(opcoes[0].total);
+  document.getElementById('m-melhor-nome').textContent = opcoes[0].nome;
+
+  const poup = opcoes.find(o => o.nome === 'Poupança').total;
+  document.getElementById('m-rendimento').textContent = fmt(opcoes[0].total - poup);
+
+  const pct = Math.round(((opcoes[0].total - investido) / investido) * 100);
+  document.getElementById('m-ganho').textContent = '+' + pct + '%';
+
+  const tbody = document.getElementById('tabela-body');
+  tbody.innerHTML = opcoes.map((o, i) => `
+    <tr ${i === 0 ? 'class="best-row"' : ''}>
+      <td>${o.nome} <span class="tag ${o.tag}">${o.label}</span></td>
+      <td>${fmt(o.total)}</td>
+    </tr>
+  `).join('');
+
+  const labels = Array.from({length: anos + 1}, (_, i) => i === 0 ? 'Hoje' : i + 'a');
+  const selic = serieAnual(inicial, aporte, anos, 0.1065);
+  const cdb = serieAnual(inicial, aporte, anos, 0.1172);
+  const poupanca = serieAnual(inicial, aporte, anos, 0.062);
+
+  if (chart) {
+    chart.data.labels = labels;
+    chart.data.datasets[0].data = selic;
+    chart.data.datasets[1].data = cdb;
+    chart.data.datasets[2].data = poupanca;
+    chart.update();
+  } else {
+    chart = new Chart(document.getElementById('grafico'), {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          { label: 'Tesouro Selic', data: selic, borderColor: '#3B6D11', backgroundColor: 'rgba(59,109,17,0.07)', tension: 0.35, pointRadius: 2, fill: true },
+          { label: 'CDB', data: cdb, borderColor: '#378ADD', backgroundColor: 'transparent', tension: 0.35, borderDash: [5,3], pointRadius: 2 },
+          { label: 'Poupança', data: poupanca, borderColor: '#888780', backgroundColor: 'transparent', tension: 0.35, borderDash: [2,4], pointRadius: 2 },
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: {
+            ticks: { callback: v => 'R$' + (v >= 1000 ? (v/1000).toFixed(0) + 'k' : v), font: { size: 11 }, color: '#888780' },
+            grid: { color: 'rgba(0,0,0,0.05)' },
+            border: { display: false }
+          },
+          x: {
+            ticks: { font: { size: 11 }, color: '#888780', autoSkip: true, maxTicksLimit: 10 },
+            grid: { display: false },
+            border: { display: false }
+          }
+        }
+      }
+    });
+  }
+}
+
+atualizar();
+
+const MESES_NOMES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+const CAT_COLORS = {
+  'Alimentação': { bg: '#EAF3DE', color: '#27500A' },
+  'Moradia':     { bg: '#E6F1FB', color: '#0C447C' },
+  'Transporte':  { bg: '#FAEEDA', color: '#633806' },
+  'Dívida':      { bg: '#FCEBEB', color: '#791F1F' },
+  'Saúde':       { bg: '#FCEBEB', color: '#791F1F' },
+  'Lazer':       { bg: '#EEEDFE', color: '#3C3489' },
+  'Educação':    { bg: '#E1F5EE', color: '#085041' },
+  'Vestuário':   { bg: '#FBEAF0', color: '#72243E' },
+  'Outros':      { bg: '#F1EFE8', color: '#444441' },
+};
+
+const fmtMoney = v => 'R$ ' + v.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+
+const now = new Date();
+let mesSel = now.getMonth();
+let anoSel = now.getFullYear();
+
+function chave() { return `gi_${anoSel}_${mesSel}`; }
+
+function getMesData() {
+  return JSON.parse(localStorage.getItem(chave()) || 'null') || { salario: 0, salarioRecebido: false, expenses: [] };
+}
+
+function saveMesData(data) {
+  localStorage.setItem(chave(), JSON.stringify(data));
+}
+
+function mudarMes(delta) {
+  mesSel += delta;
+  if (mesSel < 0) { mesSel = 11; anoSel--; }
+  if (mesSel > 11) { mesSel = 0; anoSel++; }
+  renderMes();
+}
+
+function irParaHoje() {
+  const n = new Date();
+  mesSel = n.getMonth();
+  anoSel = n.getFullYear();
+  renderMes();
+}
+
+function renderMes() {
+  const isHoje = mesSel === now.getMonth() && anoSel === now.getFullYear();
+  document.getElementById('mes-label').textContent = MESES_NOMES[mesSel] + ' ' + anoSel + (isHoje ? '  ·  mês atual' : '');
+  const data = getMesData();
+  document.getElementById('sal-valor').value = data.salario || '';
+  renderSalarioBtn(data);
+  renderSaldo(data);
+  renderExpenses(data);
+}
+
+function salvarSalario() {
+  const data = getMesData();
+  data.salario = parseFloat(document.getElementById('sal-valor').value) || 0;
+  saveMesData(data);
+  renderSaldo(data);
+}
+
+function toggleSalario() {
+  const data = getMesData();
+  data.salarioRecebido = !data.salarioRecebido;
+  saveMesData(data);
+  renderSalarioBtn(data);
+  renderSaldo(data);
+}
+
+function renderSalarioBtn(data) {
+  const btn = document.getElementById('sal-btn');
+  if (data.salarioRecebido) {
+    btn.textContent = '✓ Recebido';
+    btn.style.background = '#EAF3DE';
+    btn.style.color = '#27500A';
+    btn.style.borderColor = '#C0DD97';
+  } else {
+    btn.textContent = 'Marcar como recebido';
+    btn.style.background = 'var(--card)';
+    btn.style.color = 'var(--text-muted)';
+    btn.style.borderColor = 'var(--border)';
+  }
+}
+
+function renderSaldo(data) {
+  const salario = data.salarioRecebido ? data.salario : 0;
+  const pago = data.expenses.filter(e => e.pago).reduce((s,e) => s + e.valor, 0);
+  const saldo = salario - pago;
+  const pct = salario > 0 ? Math.max(0, Math.min(100, (saldo / salario) * 100)) : 100;
+
+  const box = document.getElementById('saldo-box');
+  const saldoEl = document.getElementById('saldo-valor');
+  saldoEl.textContent = fmtMoney(saldo);
+
+  if (saldo < 0) {
+    box.style.background = '#FCEBEB'; box.style.borderColor = '#F09595';
+    saldoEl.style.color = '#791F1F';
+    document.getElementById('saldo-barra').style.background = '#E24B4A';
+  } else {
+    box.style.background = '#EAF3DE'; box.style.borderColor = '#C0DD97';
+    saldoEl.style.color = '#27500A';
+    document.getElementById('saldo-barra').style.background = '#3B6D11';
+  }
+
+  document.getElementById('saldo-barra').style.width = pct + '%';
+  document.getElementById('saldo-salario-label').textContent = 'Salário: ' + fmtMoney(data.salario) + (data.salarioRecebido ? ' ✓' : ' (pendente)');
+  document.getElementById('saldo-pago-label').textContent = 'Pago: ' + fmtMoney(pago);
+}
+
+function addExpense() {
+  const desc = document.getElementById('exp-desc').value.trim();
+  const valor = parseFloat(document.getElementById('exp-valor').value);
+  const cat = document.getElementById('exp-cat').value;
+  if (!desc || isNaN(valor) || valor <= 0) { document.getElementById('exp-desc').focus(); return; }
+  const data = getMesData();
+  data.expenses.push({ id: Date.now(), desc, valor, cat, pago: false });
+  saveMesData(data);
+  document.getElementById('exp-desc').value = '';
+  document.getElementById('exp-valor').value = '';
+  renderExpenses(data);
+  renderSaldo(data);
+}
+
+function togglePago(id) {
+  const data = getMesData();
+  const e = data.expenses.find(e => e.id === id);
+  if (e) e.pago = !e.pago;
+  saveMesData(data);
+  renderExpenses(data);
+  renderSaldo(data);
+}
+
+function deleteExpense(id) {
+  const data = getMesData();
+  data.expenses = data.expenses.filter(e => e.id !== id);
+  saveMesData(data);
+  renderExpenses(data);
+  renderSaldo(data);
+}
+
+function clearExpenses() {
+  const data = getMesData();
+  if (data.expenses.length === 0) return;
+  if (confirm('Limpar todos os gastos de ' + MESES_NOMES[mesSel] + '?')) {
+    data.expenses = [];
+    saveMesData(data);
+    renderExpenses(data);
+    renderSaldo(data);
+  }
+}
+
+function renderExpenses(data) {
+  const list = document.getElementById('expense-list');
+  if (data.expenses.length === 0) {
+    list.innerHTML = '<div class="empty-state">Nenhum gasto em ' + MESES_NOMES[mesSel] + '.<br>Adicione acima para começar.</div>';
+    return;
+  }
+  const totalGeral = data.expenses.reduce((s,e) => s + e.valor, 0);
+  const totalPago = data.expenses.filter(e => e.pago).reduce((s,e) => s + e.valor, 0);
+  const totalPendente = totalGeral - totalPago;
+
+  const rows = data.expenses.map(e => {
+    const c = CAT_COLORS[e.cat] || CAT_COLORS['Outros'];
+    return `<tr style="${e.pago ? 'opacity:0.5;' : ''}">
+      <td style="padding-right:8px;">
+        <input type="checkbox" ${e.pago ? 'checked' : ''} onchange="togglePago(${e.id})"
+          style="width:18px;height:18px;cursor:pointer;accent-color:#3B6D11;">
+      </td>
+      <td style="${e.pago ? 'text-decoration:line-through;' : ''}">${e.desc}</td>
+      <td><span class="cat-pill" style="background:${c.bg};color:${c.color};">${e.cat}</span></td>
+      <td style="font-weight:500;">${fmtMoney(e.valor)}</td>
+      <td><button class="btn-del" onclick="deleteExpense(${e.id})" title="Remover">&times;</button></td>
+    </tr>`;
+  }).join('');
+
+  list.innerHTML = `
+    <table class="expense-table">
+      <thead><tr>
+        <th style="width:32px;"></th>
+        <th>Descrição</th>
+        <th>Categoria</th>
+        <th>Valor</th>
+        <th></th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:1.25rem;">
+      <div style="background:var(--bg);border-radius:10px;padding:12px;border:1px solid var(--border);">
+        <div style="font-size:11px;color:var(--text-subtle);margin-bottom:3px;">Total</div>
+        <div style="font-size:15px;font-weight:500;color:var(--text);">${fmtMoney(totalGeral)}</div>
+      </div>
+      <div style="background:#EAF3DE;border-radius:10px;padding:12px;">
+        <div style="font-size:11px;color:#27500A;margin-bottom:3px;">Pago</div>
+        <div style="font-size:15px;font-weight:500;color:#27500A;">${fmtMoney(totalPago)}</div>
+      </div>
+      <div style="background:#FAEEDA;border-radius:10px;padding:12px;">
+        <div style="font-size:11px;color:#633806;margin-bottom:3px;">Pendente</div>
+        <div style="font-size:15px;font-weight:500;color:#633806;">${fmtMoney(totalPendente)}</div>
+      </div>
+    </div>`;
+}
+
+function setTab(tab, btn) {
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.section-page').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-' + tab).classList.add('active');
+  if (tab === 'patrimonio') renderPatrimonio();
+}
+
+renderMes();
+
+// ---- INVESTIMENTOS ----
+
+const INV_COLORS = [
+  '#3B6D11','#378ADD','#BA7517','#993556','#534AB7',
+  '#0F6E56','#993C1D','#3B6D11','#5F5E5A','#639922'
+];
+
+let invMesSel = now.getMonth();
+let invAnoSel = now.getFullYear();
+let invChart = null;
+
+function invChave() { return `gi_inv_${invAnoSel}_${invMesSel}`; }
+
+function getInvData() {
+  return JSON.parse(localStorage.getItem(invChave()) || 'null') || { aportes: [] };
+}
+
+function saveInvData(data) {
+  localStorage.setItem(invChave(), JSON.stringify(data));
+}
+
+function mudarMesInv(delta) {
+  invMesSel += delta;
+  if (invMesSel < 0) { invMesSel = 11; invAnoSel--; }
+  if (invMesSel > 11) { invMesSel = 0; invAnoSel++; }
+  renderInvestimentos();
+}
+
+function irParaHojeInv() {
+  const n = new Date();
+  invMesSel = n.getMonth();
+  invAnoSel = n.getFullYear();
+  renderInvestimentos();
+}
+
+function addInvestimento() {
+  const onde = document.getElementById('inv-onde').value;
+  const valor = parseFloat(document.getElementById('inv-valor').value);
+  const obs = document.getElementById('inv-obs').value.trim();
+  if (isNaN(valor) || valor <= 0) { document.getElementById('inv-valor').focus(); return; }
+  const data = getInvData();
+  data.aportes.push({ id: Date.now(), onde, valor, obs, realizado: false });
+  saveInvData(data);
+  document.getElementById('inv-valor').value = '';
+  document.getElementById('inv-obs').value = '';
+  renderInvestimentos();
+}
+
+function toggleRealizado(id) {
+  const data = getInvData();
+  const a = data.aportes.find(a => a.id === id);
+  if (a) a.realizado = !a.realizado;
+  saveInvData(data);
+  renderInvestimentos();
+  if (document.getElementById('tab-patrimonio').classList.contains('active')) renderPatrimonio();
+}
+
+function deleteInvestimento(id) {
+  const data = getInvData();
+  data.aportes = data.aportes.filter(a => a.id !== id);
+  saveInvData(data);
+  renderInvestimentos();
+}
+
+function clearInvestimentos() {
+  const data = getInvData();
+  if (data.aportes.length === 0) return;
+  if (confirm('Limpar todos os aportes de ' + MESES_NOMES[invMesSel] + '?')) {
+    data.aportes = [];
+    saveInvData(data);
+    renderInvestimentos();
+  }
+}
+
+function renderInvestimentos() {
+  const isHoje = invMesSel === now.getMonth() && invAnoSel === now.getFullYear();
+  document.getElementById('inv-mes-label').textContent = MESES_NOMES[invMesSel] + ' ' + invAnoSel + (isHoje ? '  ·  mês atual' : '');
+
+  const data = getInvData();
+  const total = data.aportes.reduce((s,a) => s + a.valor, 0);
+  const realizado = data.aportes.filter(a => a.realizado).reduce((s,a) => s + a.valor, 0);
+  const pct = total > 0 ? Math.round((realizado / total) * 100) : 0;
+
+  document.getElementById('inv-total').textContent = fmtMoney(total);
+  document.getElementById('inv-qtd-label').textContent = data.aportes.length + (data.aportes.length === 1 ? ' aporte planejado' : ' aportes planejados');
+  document.getElementById('inv-realizado-label').textContent = fmtMoney(realizado) + ' realizado (' + pct + '%)';
+  document.getElementById('inv-barra').style.width = pct + '%';
+
+  const list = document.getElementById('inv-list');
+  if (data.aportes.length === 0) {
+    list.innerHTML = '<div class="empty-state">Nenhum aporte planejado em ' + MESES_NOMES[invMesSel] + '.<br>Adicione acima para começar.</div>';
+    document.getElementById('inv-dist-card').style.display = 'none';
+    if (invChart) { invChart.destroy(); invChart = null; }
+    return;
+  }
+
+  const rows = data.aportes.map((a, i) => {
+    const cor = INV_COLORS[i % INV_COLORS.length];
+    const pctItem = total > 0 ? Math.round((a.valor / total) * 100) : 0;
+    return `<tr style="${a.realizado ? 'opacity:0.55;' : ''}">
+      <td style="padding-right:8px;">
+        <input type="checkbox" ${a.realizado ? 'checked' : ''} onchange="toggleRealizado(${a.id})"
+          style="width:18px;height:18px;cursor:pointer;accent-color:#3B6D11;">
+      </td>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="width:10px;height:10px;border-radius:50%;background:${cor};flex-shrink:0;display:inline-block;"></span>
+          <span style="${a.realizado ? 'text-decoration:line-through;' : ''}">${a.onde}</span>
+        </div>
+        ${a.obs ? `<div style="font-size:12px;color:var(--text-subtle);margin-top:2px;padding-left:18px;">${a.obs}</div>` : ''}
+      </td>
+      <td style="font-size:12px;color:var(--text-subtle);text-align:center;">${pctItem}%</td>
+      <td style="font-weight:500;">${fmtMoney(a.valor)}</td>
+      <td><button class="btn-del" onclick="deleteInvestimento(${a.id})" title="Remover">&times;</button></td>
+    </tr>`;
+  }).join('');
+
+  list.innerHTML = `
+    <table class="expense-table">
+      <thead><tr>
+        <th style="width:32px;"></th>
+        <th>Onde</th>
+        <th style="text-align:center;">%</th>
+        <th>Valor</th>
+        <th></th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:1.25rem;">
+      <div style="background:var(--bg);border-radius:10px;padding:12px;border:1px solid var(--border);">
+        <div style="font-size:11px;color:var(--text-subtle);margin-bottom:3px;">Total planejado</div>
+        <div style="font-size:15px;font-weight:500;color:var(--text);">${fmtMoney(total)}</div>
+      </div>
+      <div style="background:#EAF3DE;border-radius:10px;padding:12px;">
+        <div style="font-size:11px;color:#27500A;margin-bottom:3px;">Realizado</div>
+        <div style="font-size:15px;font-weight:500;color:#27500A;">${fmtMoney(realizado)}</div>
+      </div>
+      <div style="background:#FAEEDA;border-radius:10px;padding:12px;">
+        <div style="font-size:11px;color:#633806;margin-bottom:3px;">Pendente</div>
+        <div style="font-size:15px;font-weight:500;color:#633806;">${fmtMoney(total - realizado)}</div>
+      </div>
+    </div>`;
+
+  // Gráfico de distribuição
+  document.getElementById('inv-dist-card').style.display = 'block';
+
+  const byTipo = {};
+  data.aportes.forEach(a => { byTipo[a.onde] = (byTipo[a.onde] || 0) + a.valor; });
+  const labels = Object.keys(byTipo);
+  const valores = Object.values(byTipo);
+  const cores = labels.map((_, i) => INV_COLORS[i % INV_COLORS.length]);
+
+  const legenda = labels.map((l, i) => {
+    const pctL = total > 0 ? Math.round((byTipo[l] / total) * 100) : 0;
+    return `<span style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text-muted);">
+      <span style="width:10px;height:10px;border-radius:2px;background:${cores[i]};display:inline-block;flex-shrink:0;"></span>
+      ${l} ${pctL}%
+    </span>`;
+  }).join('');
+  document.getElementById('inv-legenda').innerHTML = legenda;
+
+  if (invChart) { invChart.destroy(); invChart = null; }
+  invChart = new Chart(document.getElementById('inv-chart'), {
+    type: 'doughnut',
+    data: {
+      labels,
+      datasets: [{ data: valores, backgroundColor: cores, borderWidth: 2, borderColor: '#fff' }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '65%',
+      plugins: { legend: { display: false } }
+    }
+  });
+}
+
+renderInvestimentos();
+
+// ---- PATRIMÔNIO TOTAL ----
+
+const PAT_COLORS = [
+  '#3B6D11','#378ADD','#BA7517','#993556','#534AB7',
+  '#0F6E56','#993C1D','#639922','#5F5E5A','#0C447C'
+];
+
+let patChart = null;
+let patEvolucaoChart = null;
+
+function coletarPatrimonio() {
+  // Varre todos os meses salvos e consolida aportes realizados
+  const mesesComAportes = [];
+  const byTipo = {};
+  let totalGeral = 0;
+
+  for (let ano = 2020; ano <= 2035; ano++) {
+    for (let mes = 0; mes < 12; mes++) {
+      const chave = `gi_inv_${ano}_${mes}`;
+      const raw = localStorage.getItem(chave);
+      if (!raw) continue;
+      const data = JSON.parse(raw);
+      const realizados = (data.aportes || []).filter(a => a.realizado);
+      if (realizados.length === 0) continue;
+      const totalMes = realizados.reduce((s, a) => s + a.valor, 0);
+      totalGeral += totalMes;
+      realizados.forEach(a => { byTipo[a.onde] = (byTipo[a.onde] || 0) + a.valor; });
+      mesesComAportes.push({ ano, mes, total: totalMes, aportes: realizados });
+    }
+  }
+
+  mesesComAportes.sort((a, b) => a.ano !== b.ano ? a.ano - b.ano : a.mes - b.mes);
+  return { totalGeral, byTipo, mesesComAportes };
+}
+
+function renderPatrimonio() {
+  const { totalGeral, byTipo, mesesComAportes } = coletarPatrimonio();
+  const tipos = Object.keys(byTipo);
+  const maiorTipo = tipos.length ? tipos.reduce((m, t) => byTipo[t] > byTipo[m] ? t : m, tipos[0]) : null;
+  const ultimo = mesesComAportes.length ? mesesComAportes[mesesComAportes.length - 1] : null;
+
+  document.getElementById('pat-total').textContent = fmtMoney(totalGeral);
+  document.getElementById('pat-meses-label').textContent = mesesComAportes.length + (mesesComAportes.length === 1 ? ' mês com aportes' : ' meses com aportes');
+  document.getElementById('pat-tipos-label').textContent = tipos.length + ' tipos de ativos';
+  document.getElementById('pat-maior-tipo').textContent = maiorTipo || '—';
+  document.getElementById('pat-maior-tipo-val').textContent = maiorTipo ? fmtMoney(byTipo[maiorTipo]) + (totalGeral > 0 ? ' · ' + Math.round((byTipo[maiorTipo]/totalGeral)*100) + '%' : '') : '—';
+  document.getElementById('pat-ultimo-mes').textContent = ultimo ? MESES_NOMES[ultimo.mes] + ' ' + ultimo.ano : '—';
+  document.getElementById('pat-ultimo-val').textContent = ultimo ? fmtMoney(ultimo.total) : '—';
+  document.getElementById('pat-tipos-qtd').textContent = tipos.length || '—';
+
+  // Gráfico evolução mensal
+  if (mesesComAportes.length > 0) {
+    const labelsEv = mesesComAportes.map(m => MESES_NOMES[m.mes].slice(0,3) + '/' + String(m.ano).slice(2));
+    const acumulado = [];
+    let soma = 0;
+    mesesComAportes.forEach(m => { soma += m.total; acumulado.push(Math.round(soma)); });
+
+    if (patEvolucaoChart) { patEvolucaoChart.destroy(); patEvolucaoChart = null; }
+    patEvolucaoChart = new Chart(document.getElementById('pat-evolucao'), {
+      type: 'bar',
+      data: {
+        labels: labelsEv,
+        datasets: [
+          {
+            label: 'Aporte no mês',
+            data: mesesComAportes.map(m => Math.round(m.total)),
+            backgroundColor: 'rgba(59,109,17,0.25)',
+            borderColor: '#3B6D11',
+            borderWidth: 1.5,
+            borderRadius: 4,
+            order: 2
+          },
+          {
+            label: 'Acumulado',
+            data: acumulado,
+            type: 'line',
+            borderColor: '#378ADD',
+            backgroundColor: 'transparent',
+            pointRadius: 3,
+            tension: 0.3,
+            borderDash: [4,3],
+            order: 1
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { ticks: { callback: v => 'R$' + (v >= 1000 ? (v/1000).toFixed(0)+'k' : v), font:{size:11}, color:'#888780' }, grid:{color:'rgba(0,0,0,0.05)'}, border:{display:false} },
+          x: { ticks: { font:{size:11}, color:'#888780' }, grid:{display:false}, border:{display:false} }
+        }
+      }
+    });
+    document.getElementById('pat-evolucao-wrap').style.display = 'block';
+  } else {
+    document.getElementById('pat-evolucao-wrap').innerHTML = '<div class="empty-state">Nenhum aporte realizado ainda.<br>Vá em Investimentos e marque como realizados.</div>';
+  }
+
+  // Distribuição por tipo
+  if (tipos.length > 0) {
+    const sorted = Object.entries(byTipo).sort((a,b) => b[1]-a[1]);
+    document.getElementById('pat-dist-list').innerHTML = sorted.map(([tipo, val], i) => {
+      const cor = PAT_COLORS[i % PAT_COLORS.length];
+      const pct = totalGeral > 0 ? Math.round((val/totalGeral)*100) : 0;
+      return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--border);">
+        <span style="width:10px;height:10px;border-radius:50%;background:${cor};flex-shrink:0;"></span>
+        <span style="flex:1;font-size:14px;color:var(--text);">${tipo}</span>
+        <div style="flex:2;background:var(--bg);border-radius:99px;height:6px;overflow:hidden;">
+          <div style="height:6px;border-radius:99px;background:${cor};width:${pct}%;"></div>
+        </div>
+        <span style="font-size:13px;color:var(--text-subtle);min-width:32px;text-align:right;">${pct}%</span>
+        <span style="font-size:14px;font-weight:500;color:var(--text);min-width:90px;text-align:right;">${fmtMoney(val)}</span>
+      </div>`;
+    }).join('') + `<div style="display:flex;justify-content:space-between;padding:12px 0 0;border-top:1px solid var(--border);margin-top:4px;">
+      <span style="font-size:14px;font-weight:500;color:var(--text-muted);">Total investido</span>
+      <span style="font-family:'DM Serif Display',serif;font-size:20px;color:#27500A;">${fmtMoney(totalGeral)}</span>
+    </div>`;
+    document.getElementById('pat-dist-card').style.display = 'block';
+  } else {
+    document.getElementById('pat-dist-card').style.display = 'none';
+  }
+
+  // Histórico por mês
+  const hist = document.getElementById('pat-hist-list');
+  if (mesesComAportes.length === 0) {
+    hist.innerHTML = '<div class="empty-state">Nenhum aporte realizado ainda.<br>Vá em Investimentos e marque aportes como realizados.</div>';
+    return;
+  }
+
+  hist.innerHTML = [...mesesComAportes].reverse().map((m, i, arr) => {
+    const acumuladoAte = arr.slice(i).reduce((s, x) => s + x.total, 0);
+    const itens = m.aportes.map(a => `<div style="display:flex;justify-content:space-between;font-size:13px;color:var(--text-muted);padding:3px 0 3px 18px;">
+      <span>${a.onde}${a.obs ? ' · <em>' + a.obs + '</em>' : ''}</span>
+      <span style="font-weight:500;color:var(--text);">${fmtMoney(a.valor)}</span>
+    </div>`).join('');
+    return `<div style="border-top:1px solid var(--border);padding:12px 0;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+        <div>
+          <span style="font-size:14px;font-weight:500;color:var(--text);">${MESES_NOMES[m.mes]} ${m.ano}</span>
+          <div style="font-size:12px;color:var(--text-subtle);margin-top:2px;">Acumulado até aqui: ${fmtMoney(acumuladoAte)}</div>
+        </div>
+        <span style="font-size:14px;font-weight:500;color:#27500A;">+ ${fmtMoney(m.total)}</span>
+      </div>
+      ${itens}
+    </div>`;
+  }).join('');
+}
+
+renderPatrimonio();
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
