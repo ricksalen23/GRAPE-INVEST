@@ -1,11 +1,11 @@
 {
-  "name": "Grape Invest",
-  "short_name": "Grape Invest",
-  "description": "Simulador de investimentos, controle de gastos e patrimônio",
+  "name": "Warden Invest",
+  "short_name": "Warden",
+  "description": "Seu guardião financeiro pessoal — controle, invista e construa patrimônio",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f9f8f4",
-  "theme_color": "#3B6D11",
+  "background_color": "#0a0a0a",
+  "theme_color": "#0a0a0a",
   "orientation": "portrait-primary",
   "icons": [
     {
