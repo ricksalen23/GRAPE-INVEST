@@ -217,6 +217,49 @@ header {
   width: 32px; height: 32px; border-radius: 50%;
   background: var(--purple-light); display: flex; align-items: center; justify-content: center;
   font-size: 12px; font-weight: 700; color: var(--purple); cursor: pointer;
+  position: relative; user-select: none;
+}
+
+.profile-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 8px;
+  min-width: 200px;
+  box-shadow: 0 8px 24px rgba(124,58,237,0.12);
+  z-index: 999;
+  display: none;
+}
+
+.profile-menu.open { display: block; }
+
+.profile-menu-header {
+  padding: 8px 10px 12px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 6px;
+}
+
+.profile-menu-name { font-size: 14px; font-weight: 700; color: var(--text); }
+.profile-menu-email { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+.profile-menu-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px; border-radius: 10px; cursor: pointer;
+  font-size: 14px; color: var(--text); transition: background 0.15s;
+  border: none; background: none; width: 100%; text-align: left;
+  font-family: inherit;
+}
+
+.profile-menu-item:hover { background: var(--purple-light); color: var(--purple); }
+.profile-menu-item.danger:hover { background: #FEF2F2; color: #DC2626; }
+
+.profile-menu-icon {
+  width: 30px; height: 30px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--purple-light); flex-shrink: 0;
 }
 
 .container { max-width: 720px; margin: 0 auto; padding: 1rem 1rem 5rem; }
@@ -496,7 +539,32 @@ footer { text-align: center; font-size: 11px; color: var(--text-subtle); padding
     </svg>
   </div>
   <span class="logo-name">Grape Invest</span>
-  <div class="header-user" id="header-user" onclick="logout()">?</div>
+  <div class="header-user" id="header-user" onclick="toggleMenu(event)">?
+    <div class="profile-menu" id="profile-menu">
+      <div class="profile-menu-header">
+        <div class="profile-menu-name" id="menu-nome">—</div>
+        <div class="profile-menu-email" id="menu-email">—</div>
+      </div>
+      <button class="profile-menu-item" onclick="alterarSenha()">
+        <div class="profile-menu-icon">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="3.5" y="8" width="9" height="6" rx="1.5" stroke="#7C3AED" stroke-width="1.4"/><path d="M5 8V6a3 3 0 016 0v2" stroke="#7C3AED" stroke-width="1.4" stroke-linecap="round"/><circle cx="8" cy="11" r="1" fill="#7C3AED"/></svg>
+        </div>
+        Alterar senha
+      </button>
+      <button class="profile-menu-item" onclick="abrirSuporte()">
+        <div class="profile-menu-icon">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2a6 6 0 100 12A6 6 0 008 2z" stroke="#7C3AED" stroke-width="1.4"/><path d="M6.5 6a1.5 1.5 0 012.5 1.5c0 1-1 1.5-1 2" stroke="#7C3AED" stroke-width="1.4" stroke-linecap="round"/><circle cx="8" cy="11" r="0.8" fill="#7C3AED"/></svg>
+        </div>
+        Suporte
+      </button>
+      <button class="profile-menu-item danger" onclick="logout()">
+        <div class="profile-menu-icon" style="background:#FEF2F2;">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 14H3a1 1 0 01-1-1V3a1 1 0 011-1h3" stroke="#DC2626" stroke-width="1.4" stroke-linecap="round"/><path d="M11 11l3-3-3-3M14 8H6" stroke="#DC2626" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        Sair da conta
+      </button>
+    </div>
+  </div>
 </header>
 
 <div class="container">
@@ -1340,17 +1408,76 @@ async function fazerLogin() {
       localStorage.setItem('gi_email', email);
       localStorage.setItem('gi_nome', data.nome);
       document.getElementById('login-screen').classList.add('hidden');
-      document.getElementById('header-user').textContent = (data.nome||email).charAt(0).toUpperCase();
+      const inicial = (data.nome||email).charAt(0).toUpperCase();
+      document.getElementById('header-user').childNodes[0].textContent = inicial;
+      document.getElementById('menu-nome').textContent = data.nome || '—';
+      document.getElementById('menu-email').textContent = email;
       mostrarWelcome(data.nome);
     } else { erro.textContent = data.error || 'E-mail ou senha incorretos.'; erro.style.display = 'block'; }
   } catch(e) { erro.textContent = 'Erro de conexão. Tente novamente.'; erro.style.display = 'block'; }
   btn.textContent = 'Entrar no Grape Invest'; btn.disabled = false;
 }
 
+function toggleMenu(e) {
+  e.stopPropagation();
+  document.getElementById('profile-menu').classList.toggle('open');
+}
+
+document.addEventListener('click', () => {
+  document.getElementById('profile-menu').classList.remove('open');
+});
+
+function alterarSenha() {
+  document.getElementById('profile-menu').classList.remove('open');
+  const nova = prompt('Digite sua nova senha (mínimo 6 caracteres):');
+  if (!nova || nova.length < 6) { if (nova !== null) alert('Senha muito curta. Mínimo 6 caracteres.'); return; }
+  const confirma = prompt('Confirme a nova senha:');
+  if (nova !== confirma) { alert('As senhas não coincidem.'); return; }
+  const email = localStorage.getItem('gi_email');
+  fetch(`${BACKEND_URL}/auth/alterar-senha`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, senha: nova, token: localStorage.getItem('gi_token') })
+  }).then(r => r.json()).then(d => {
+    if (d.success) alert('✓ Senha alterada com sucesso!');
+    else alert('Erro ao alterar senha. Tente novamente.');
+  }).catch(() => alert('Erro de conexão. Tente novamente.'));
+}
+
+function abrirSuporte() {
+  document.getElementById('profile-menu').classList.remove('open');
+  const email = localStorage.getItem('gi_email') || '';
+  window.location.href = 'mailto:suporte@grapeinvest.com.br?subject=Suporte%20Grape%20Invest&body=E-mail%20da%20conta%3A%20' + encodeURIComponent(email);
+}
+
+function exportarDados() {
+  const dados = {
+    exportado_em: new Date().toLocaleDateString('pt-BR'),
+    gastos: {}, investimentos: {},
+    metas: getMetas(), dividas: getDividas(), alertas: getAlertas()
+  };
+  for (let ano = 2020; ano <= 2035; ano++) {
+    for (let mes = 0; mes < 12; mes++) {
+      const g = localStorage.getItem(`gi_${ano}_${mes}`);
+      const i = localStorage.getItem(`gi_inv_${ano}_${mes}`);
+      if (g) dados.gastos[`${MESES[mes]} ${ano}`] = JSON.parse(g);
+      if (i) dados.investimentos[`${MESES[mes]} ${ano}`] = JSON.parse(i);
+    }
+  }
+  const blob = new Blob([JSON.stringify(dados, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'grape-invest-dados.json';
+  a.click();
+}
+
 function logout() {
   if (confirm('Deseja sair da sua conta?')) {
-    localStorage.removeItem('gi_token'); localStorage.removeItem('gi_email'); localStorage.removeItem('gi_nome');
+    localStorage.removeItem('gi_token');
+    localStorage.removeItem('gi_email');
+    localStorage.removeItem('gi_nome');
     document.getElementById('login-screen').classList.remove('hidden');
+    document.getElementById('profile-menu').classList.remove('open');
   }
 }
 
@@ -1359,7 +1486,11 @@ function logout() {
   const email = localStorage.getItem('gi_email');
   const nome = localStorage.getItem('gi_nome');
   if (!token || !email) return;
-  if (nome) document.getElementById('header-user').textContent = nome.charAt(0).toUpperCase();
+  if (nome) {
+    document.getElementById('header-user').childNodes[0].textContent = nome.charAt(0).toUpperCase();
+    document.getElementById('menu-nome').textContent = nome;
+    document.getElementById('menu-email').textContent = email;
+  }
   try {
     const res = await fetch(`${BACKEND_URL}/auth/verificar`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({email, token}) });
     const data = await res.json();
