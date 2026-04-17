@@ -329,36 +329,36 @@ header {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
-  padding: 0 4px;
 }
 .nav-tabs::-webkit-scrollbar { display: none; }
 
 .nav-tab {
-  flex-shrink: 0;
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 4px;
-  padding: 12px 16px;
+  padding: 10px 4px;
   border: none;
   background: none;
   cursor: pointer;
   font-family: inherit;
   color: var(--text-subtle);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
   transition: color 0.15s;
   white-space: nowrap;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
+  min-width: 0;
 }
 
-.nav-tab svg { transition: transform 0.15s; opacity: 0.5; }
+.nav-tab svg { transition: transform 0.15s; opacity: 0.5; flex-shrink: 0; }
 .nav-tab.active { color: var(--purple); border-bottom-color: var(--purple); }
 .nav-tab.active svg { transform: scale(1.1); opacity: 1; }
-.nav-tab span { white-space: nowrap; }
+.nav-tab span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 
 .section-page { display: none; }
 .section-page.active { display: block; }
