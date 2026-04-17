@@ -29,11 +29,25 @@
   --radius: 16px;
 }
 
+[data-theme="dark"] {
+  --purple: #A78BFA;
+  --purple-dark: #7C3AED;
+  --purple-light: rgba(124,58,237,0.15);
+  --purple-mid: #8B5CF6;
+  --text: #F5F3FF;
+  --text-muted: #A78BFA;
+  --text-subtle: #6D28D9;
+  --bg: #0F0A1E;
+  --card: #1A1030;
+  --border: rgba(167,139,250,0.15);
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
+  transition: background 0.3s, color 0.3s;
 }
 
 /* ========== LOGIN ========== */
@@ -262,22 +276,42 @@ header {
   background: var(--purple-light); flex-shrink: 0;
 }
 
-.container { max-width: 720px; margin: 0 auto; padding: 1rem 1rem 5rem; }
+.container { max-width: 720px; margin: 0 auto; padding: 1rem 1rem 6rem; }
 
 /* ========== NAV TABS ========== */
 .nav-tabs {
-  display: flex; gap: 4px; margin-bottom: 1.25rem;
-  border-bottom: 1px solid var(--border);
-  overflow-x: auto; padding-bottom: 0;
+  display: flex;
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: var(--card);
+  border-top: 1px solid var(--border);
+  z-index: 200;
+  padding: 4px 0 env(safe-area-inset-bottom, 4px);
 }
+
 .nav-tab {
-  font-size: 13px; font-weight: 600; color: var(--text-muted);
-  padding: 10px 14px; border: none; background: none; cursor: pointer;
-  border-bottom: 2px solid transparent; margin-bottom: -1px;
-  white-space: nowrap; font-family: inherit;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 6px 2px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--text-subtle);
+  font-size: 10px;
+  font-weight: 500;
   transition: color 0.15s;
+  min-width: 0;
 }
-.nav-tab.active { color: var(--purple); border-bottom-color: var(--purple); }
+
+.nav-tab svg { transition: transform 0.15s; }
+.nav-tab.active { color: var(--purple); }
+.nav-tab.active svg { transform: scale(1.1); }
+.nav-tab span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 
 .section-page { display: none; }
 .section-page.active { display: block; }
@@ -539,6 +573,7 @@ footer { text-align: center; font-size: 11px; color: var(--text-subtle); padding
     </svg>
   </div>
   <span class="logo-name">Grape Invest</span>
+  <button onclick="toggleTheme()" id="theme-btn" style="background:none;border:none;cursor:pointer;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:16px;" title="Alternar tema">🌙</button>
   <div class="header-user" id="header-user" onclick="toggleMenu(event)">?
     <div class="profile-menu" id="profile-menu">
       <div class="profile-menu-header">
@@ -569,13 +604,34 @@ footer { text-align: center; font-size: 11px; color: var(--text-subtle); padding
 
 <div class="container">
   <div class="nav-tabs">
-    <button class="nav-tab active" onclick="setTab('simulador',this)">Simulador</button>
-    <button class="nav-tab" onclick="setTab('gastos',this)">Gastos</button>
-    <button class="nav-tab" onclick="setTab('investimentos',this)">Investimentos</button>
-    <button class="nav-tab" onclick="setTab('metas',this)">Metas</button>
-    <button class="nav-tab" onclick="setTab('dividas',this)">Dívidas</button>
-    <button class="nav-tab" onclick="setTab('alertas',this)">Alertas</button>
-    <button class="nav-tab" onclick="setTab('patrimonio',this)">Patrimônio</button>
+    <button class="nav-tab active" onclick="setTab('simulador',this)">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M3 17L7 11L10 13L13 7L19 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>Simulador</span>
+    </button>
+    <button class="nav-tab" onclick="setTab('gastos',this)">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="3" y="5" width="16" height="13" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M3 9h16" stroke="currentColor" stroke-width="1.8"/><path d="M7 13h2M13 13h2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <span>Gastos</span>
+    </button>
+    <button class="nav-tab" onclick="setTab('investimentos',this)">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M3 15L7 9L11 12L15 5L19 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="19" cy="8" r="2" fill="currentColor"/></svg>
+      <span>Investir</span>
+    </button>
+    <button class="nav-tab" onclick="setTab('metas',this)">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="1.8"/><circle cx="11" cy="11" r="4" stroke="currentColor" stroke-width="1.8"/><circle cx="11" cy="11" r="1.5" fill="currentColor"/></svg>
+      <span>Metas</span>
+    </button>
+    <button class="nav-tab" onclick="setTab('dividas',this)">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 3v2M11 17v2M5 11H3M19 11h-2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="11" cy="11" r="5" stroke="currentColor" stroke-width="1.8"/><path d="M9 9.5a2 2 0 113 1.7V13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="11" cy="14.5" r="0.8" fill="currentColor"/></svg>
+      <span>Dívidas</span>
+    </button>
+    <button class="nav-tab" onclick="setTab('alertas',this)">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 3C7.7 3 5 5.7 5 9v5l-2 2h16l-2-2V9c0-3.3-2.7-6-6-6z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 19a2 2 0 004 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <span>Alertas</span>
+    </button>
+    <button class="nav-tab" onclick="setTab('patrimonio',this)">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="3" y="13" width="4" height="6" rx="1" stroke="currentColor" stroke-width="1.8"/><rect x="9" y="9" width="4" height="10" rx="1" stroke="currentColor" stroke-width="1.8"/><rect x="15" y="5" width="4" height="14" rx="1" stroke="currentColor" stroke-width="1.8"/></svg>
+      <span>Patrimônio</span>
+    </button>
   </div>
 
   <!-- ===== SIMULADOR ===== -->
@@ -801,6 +857,22 @@ const CAT_COLORS = {
 };
 const INV_COLORS = ['#7C3AED','#2563EB','#D97706','#DC2626','#059669','#0891B2','#9333EA','#16A34A'];
 const now = new Date();
+
+// ===== TEMA =====
+function toggleTheme() {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  document.getElementById('theme-btn').textContent = isDark ? '🌙' : '☀️';
+  localStorage.setItem('gi_theme', isDark ? 'light' : 'dark');
+}
+
+// Aplicar tema salvo
+const savedTheme = localStorage.getItem('gi_theme') || 'light';
+document.documentElement.setAttribute('data-theme', savedTheme);
+document.addEventListener('DOMContentLoaded', () => {
+  const btn = document.getElementById('theme-btn');
+  if (btn) btn.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+});
 
 // ===== TABS =====
 function setTab(tab, btn) {
