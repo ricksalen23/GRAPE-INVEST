@@ -1429,18 +1429,36 @@ document.addEventListener('click', () => {
 
 function alterarSenha() {
   document.getElementById('profile-menu').classList.remove('open');
-  const nova = prompt('Digite sua nova senha (mínimo 6 caracteres):');
-  if (!nova || nova.length < 6) { if (nova !== null) alert('Senha muito curta. Mínimo 6 caracteres.'); return; }
-  const confirma = prompt('Confirme a nova senha:');
-  if (nova !== confirma) { alert('As senhas não coincidem.'); return; }
   const email = localStorage.getItem('gi_email');
-  fetch(`${BACKEND_URL}/auth/alterar-senha`, {
+  if (!email) return;
+
+  if (!confirm('Vamos enviar um código de verificação para:\n' + email + '\n\nDeseja continuar?')) return;
+
+  fetch(`${BACKEND_URL}/auth/solicitar-codigo`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, senha: nova, token: localStorage.getItem('gi_token') })
+    body: JSON.stringify({ email })
   }).then(r => r.json()).then(d => {
-    if (d.success) alert('✓ Senha alterada com sucesso!');
-    else alert('Erro ao alterar senha. Tente novamente.');
+    if (!d.success) { alert('Erro ao enviar código. Tente novamente.'); return; }
+    alert('✓ Código enviado para ' + email + '\nVerifique sua caixa de entrada.');
+
+    const codigo = prompt('Digite o código de 6 dígitos recebido no e-mail:');
+    if (!codigo) return;
+
+    const nova = prompt('Digite sua nova senha (mínimo 6 caracteres):');
+    if (!nova || nova.length < 6) { alert('Senha muito curta. Mínimo 6 caracteres.'); return; }
+
+    const confirma = prompt('Confirme a nova senha:');
+    if (nova !== confirma) { alert('As senhas não coincidem.'); return; }
+
+    fetch(`${BACKEND_URL}/auth/confirmar-senha`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, codigo, senha: nova })
+    }).then(r => r.json()).then(d => {
+      if (d.success) alert('✓ Senha alterada com sucesso! Faça login novamente.');
+      else alert('Código inválido ou expirado. Tente novamente.');
+    }).catch(() => alert('Erro de conexão.'));
   }).catch(() => alert('Erro de conexão. Tente novamente.'));
 }
 
