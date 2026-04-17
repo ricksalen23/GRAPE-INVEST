@@ -31,16 +31,41 @@
 
 [data-theme="dark"] {
   --purple: #A78BFA;
-  --purple-dark: #7C3AED;
-  --purple-light: rgba(124,58,237,0.15);
+  --purple-dark: #C4B5FD;
+  --purple-light: rgba(124,58,237,0.2);
   --purple-mid: #8B5CF6;
   --text: #F5F3FF;
-  --text-muted: #A78BFA;
-  --text-subtle: #6D28D9;
+  --text-muted: #C4B5FD;
+  --text-subtle: #A78BFA;
   --bg: #0F0A1E;
   --card: #1A1030;
-  --border: rgba(167,139,250,0.15);
+  --border: rgba(167,139,250,0.2);
 }
+
+[data-theme="dark"] .card { background: var(--card); border-color: var(--border); }
+[data-theme="dark"] .metric { background: rgba(124,58,237,0.2); }
+[data-theme="dark"] .metric-label { color: #C4B5FD; }
+[data-theme="dark"] .metric-value { color: #F5F3FF; }
+[data-theme="dark"] .card-title { color: #A78BFA; }
+[data-theme="dark"] .field input, [data-theme="dark"] .field select { background: #0F0A1E; border-color: rgba(167,139,250,0.2); color: #F5F3FF; }
+[data-theme="dark"] .field label { color: #A78BFA; }
+[data-theme="dark"] header { background: #1A1030; border-color: rgba(167,139,250,0.2); }
+[data-theme="dark"] .logo-name { color: #A78BFA; }
+[data-theme="dark"] .saldo-box { background: rgba(124,58,237,0.2); border-color: rgba(167,139,250,0.2); }
+[data-theme="dark"] .saldo-label { color: #C4B5FD; }
+[data-theme="dark"] .saldo-value { color: #F5F3FF; }
+[data-theme="dark"] .saldo-meta { color: #A78BFA; }
+[data-theme="dark"] .data-table th { color: #A78BFA; }
+[data-theme="dark"] .data-table td { color: #F5F3FF; border-color: rgba(167,139,250,0.15); }
+[data-theme="dark"] .nav-tabs { background: #1A1030; border-color: rgba(167,139,250,0.2); }
+[data-theme="dark"] .profile-menu { background: #1A1030; border-color: rgba(167,139,250,0.2); }
+[data-theme="dark"] .profile-menu-name { color: #F5F3FF; }
+[data-theme="dark"] .mes-nav-btn, [data-theme="dark"] .mes-nav-today { background: #1A1030; border-color: rgba(167,139,250,0.2); color: #C4B5FD; }
+[data-theme="dark"] .mes-nav-label { color: #F5F3FF; }
+[data-theme="dark"] .goal-card { border-color: rgba(167,139,250,0.2); background: #1A1030; }
+[data-theme="dark"] .debt-card { background: rgba(220,38,38,0.1); border-color: rgba(220,38,38,0.3); }
+[data-theme="dark"] .input-group label { color: #C4B5FD; }
+[data-theme="dark"] .best-row td { background: rgba(124,58,237,0.2); }
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -276,42 +301,46 @@ header {
   background: var(--purple-light); flex-shrink: 0;
 }
 
-.container { max-width: 720px; margin: 0 auto; padding: 1rem 1rem 6rem; }
+.container { max-width: 720px; margin: 0 auto; padding: 1rem 1rem 4rem; }
 
 /* ========== NAV TABS ========== */
 .nav-tabs {
   display: flex;
-  position: fixed;
-  bottom: 0; left: 0; right: 0;
+  gap: 0;
+  margin-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border);
   background: var(--card);
-  border-top: 1px solid var(--border);
-  z-index: 200;
-  padding: 4px 0 env(safe-area-inset-bottom, 4px);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
 }
+.nav-tabs::-webkit-scrollbar { display: none; }
 
 .nav-tab {
-  flex: 1;
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 3px;
-  padding: 6px 2px;
+  padding: 10px 14px;
   border: none;
   background: none;
   cursor: pointer;
   font-family: inherit;
-  color: var(--text-subtle);
-  font-size: 10px;
-  font-weight: 500;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
   transition: color 0.15s;
-  min-width: 0;
+  white-space: nowrap;
 }
 
 .nav-tab svg { transition: transform 0.15s; }
-.nav-tab.active { color: var(--purple); }
+.nav-tab.active { color: var(--purple); border-bottom-color: var(--purple); }
 .nav-tab.active svg { transform: scale(1.1); }
-.nav-tab span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.nav-tab span { white-space: nowrap; }
 
 .section-page { display: none; }
 .section-page.active { display: block; }
