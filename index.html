@@ -50,7 +50,6 @@
 [data-theme="dark"] .field input, [data-theme="dark"] .field select { background: #0F0A1E; border-color: rgba(167,139,250,0.2); color: #F5F3FF; }
 [data-theme="dark"] .field label { color: #A78BFA; }
 [data-theme="dark"] header { background: #1A1030; border-color: rgba(167,139,250,0.2); }
-[data-theme="dark"] .logo-name { color: #A78BFA; }
 [data-theme="dark"] .saldo-box { background: rgba(124,58,237,0.2); border-color: rgba(167,139,250,0.2); }
 [data-theme="dark"] .saldo-label { color: #C4B5FD; }
 [data-theme="dark"] .saldo-value { color: #F5F3FF; }
@@ -245,12 +244,29 @@ header {
 }
 
 .logo-icon {
-  width: 32px; height: 32px;
+  width: 36px; height: 36px;
   background: var(--purple); border-radius: 10px;
   display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
 }
 
-.logo-name { font-size: 17px; font-weight: 800; color: var(--purple); letter-spacing: -0.02em; flex: 1; }
+.logo-name {
+  font-size: 18px; font-weight: 800;
+  color: var(--purple);
+  letter-spacing: -0.02em; flex: 1;
+  background: linear-gradient(135deg, #7C3AED, #A78BFA);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+[data-theme="dark"] .logo-icon { background: #7C3AED; box-shadow: 0 0 12px rgba(124,58,237,0.4); }
+[data-theme="dark"] .logo-name {
+  background: linear-gradient(135deg, #C4B5FD, #A78BFA);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
 
 .header-user {
   width: 32px; height: 32px; border-radius: 50%;
@@ -595,10 +611,15 @@ footer { text-align: center; font-size: 11px; color: var(--text-subtle); padding
 <!-- APP -->
 <header>
   <div class="logo-icon">
-    <svg width="20" height="20" viewBox="0 0 30 30" fill="none">
+    <svg class="grape-svg" width="22" height="22" viewBox="0 0 30 30" fill="none">
       <rect x="14" y="2" width="2.5" height="6" rx="1.25" fill="white"/>
       <path d="M16.5 3.5 Q19 1 20.5 3" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-      <circle cx="10" cy="12" r="5" fill="white"/><circle cx="20" cy="12" r="5" fill="white"/><circle cx="15" cy="20" r="5" fill="white"/>
+      <circle cx="10" cy="12" r="5" fill="white"/>
+      <circle cx="20" cy="12" r="5" fill="white"/>
+      <circle cx="15" cy="20" r="5" fill="white"/>
+      <circle cx="8.5" cy="10.5" r="1.5" fill="rgba(124,58,237,0.25)"/>
+      <circle cx="18.5" cy="10.5" r="1.5" fill="rgba(124,58,237,0.25)"/>
+      <circle cx="13.5" cy="18.5" r="1.5" fill="rgba(124,58,237,0.25)"/>
     </svg>
   </div>
   <span class="logo-name">Grape Invest</span>
