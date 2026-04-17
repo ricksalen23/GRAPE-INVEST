@@ -344,7 +344,7 @@ header {
   background: none;
   cursor: pointer;
   font-family: inherit;
-  color: var(--text-subtle);
+  color: #6B7280;
   font-size: 10px;
   font-weight: 600;
   border-bottom: 2px solid transparent;
@@ -355,7 +355,10 @@ header {
   min-width: 0;
 }
 
-.nav-tab svg { transition: transform 0.15s; opacity: 0.5; flex-shrink: 0; }
+[data-theme="dark"] .nav-tab { color: #9CA3AF; }
+
+.nav-tab svg { transition: transform 0.15s; opacity: 0.65; flex-shrink: 0; }
+[data-theme="dark"] .nav-tab svg { opacity: 0.5; }
 .nav-tab.active { color: var(--purple); border-bottom-color: var(--purple); }
 .nav-tab.active svg { transform: scale(1.1); opacity: 1; }
 .nav-tab span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
