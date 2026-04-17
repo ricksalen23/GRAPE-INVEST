@@ -1464,8 +1464,8 @@ function alterarSenha() {
 
 function abrirSuporte() {
   document.getElementById('profile-menu').classList.remove('open');
-  const email = localStorage.getItem('gi_email') || '';
-  window.location.href = 'mailto:suporte@grapeinvest.com.br?subject=Suporte%20Grape%20Invest&body=E-mail%20da%20conta%3A%20' + encodeURIComponent(email);
+  const msg = encodeURIComponent('Olá! Preciso de suporte com o Grape Invest.\n\nE-mail da conta: ' + (localStorage.getItem('gi_email') || ''));
+  window.open('https://wa.me/5564993342646?text=' + msg, '_blank');
 }
 
 function exportarDados() {
