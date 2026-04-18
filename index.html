@@ -659,17 +659,13 @@ footer { text-align: center; font-size: 11px; color: var(--text-subtle); padding
 
 <div class="container">
   <div class="nav-tabs">
-    <button class="nav-tab active" onclick="setTab('simulador',this)">
-      <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M3 17L7 11L10 13L13 7L19 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <span>Simulador</span>
+    <button class="nav-tab active" onclick="setTab('dashboard',this)">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="3" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/><rect x="12" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/><rect x="3" y="12" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/><rect x="12" y="12" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/></svg>
+      <span>Início</span>
     </button>
     <button class="nav-tab" onclick="setTab('gastos',this)">
       <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="3" y="5" width="16" height="13" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M3 9h16" stroke="currentColor" stroke-width="1.8"/><path d="M7 13h2M13 13h2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
       <span>Gastos</span>
-    </button>
-    <button class="nav-tab" onclick="setTab('investimentos',this)">
-      <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M3 15L7 9L11 12L15 5L19 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="19" cy="8" r="2" fill="currentColor"/></svg>
-      <span>Investir</span>
     </button>
     <button class="nav-tab" onclick="setTab('metas',this)">
       <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="1.8"/><circle cx="11" cy="11" r="4" stroke="currentColor" stroke-width="1.8"/><circle cx="11" cy="11" r="1.5" fill="currentColor"/></svg>
@@ -679,14 +675,110 @@ footer { text-align: center; font-size: 11px; color: var(--text-subtle); padding
       <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 3v2M11 17v2M5 11H3M19 11h-2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="11" cy="11" r="5" stroke="currentColor" stroke-width="1.8"/><path d="M9 9.5a2 2 0 113 1.7V13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="11" cy="14.5" r="0.8" fill="currentColor"/></svg>
       <span>Dívidas</span>
     </button>
-    <button class="nav-tab" onclick="setTab('alertas',this)">
+    <button class="nav-tab" onclick="setTab('alertas',this)" style="position:relative;">
       <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 3C7.7 3 5 5.7 5 9v5l-2 2h16l-2-2V9c0-3.3-2.7-6-6-6z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 19a2 2 0 004 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <div id="alerta-badge" style="display:none;position:absolute;top:6px;right:14px;width:8px;height:8px;border-radius:50%;background:#DC2626;border:2px solid var(--card);"></div>
       <span>Alertas</span>
+    </button>
+    <button class="nav-tab" onclick="setTab('simulador',this)">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M3 17L7 11L10 13L13 7L19 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>Simular</span>
     </button>
     <button class="nav-tab" onclick="setTab('patrimonio',this)">
       <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="3" y="13" width="4" height="6" rx="1" stroke="currentColor" stroke-width="1.8"/><rect x="9" y="9" width="4" height="10" rx="1" stroke="currentColor" stroke-width="1.8"/><rect x="15" y="5" width="4" height="14" rx="1" stroke="currentColor" stroke-width="1.8"/></svg>
       <span>Patrimônio</span>
     </button>
+  </div>
+
+  <!-- ===== DASHBOARD ===== -->
+  <div id="tab-dashboard" class="section-page active">
+
+    <!-- Dica do dia -->
+    <div id="dica-do-dia" style="border-radius:14px;padding:14px 16px;margin-bottom:1rem;background:linear-gradient(135deg,#7C3AED,#6D28D9);display:flex;align-items:flex-start;gap:12px;">
+      <div style="font-size:20px;flex-shrink:0;">💡</div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.7);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">Dica do dia</div>
+        <div style="font-size:13px;color:white;line-height:1.5;" id="dica-texto"></div>
+      </div>
+    </div>
+
+    <!-- Resumo do mês -->
+    <div class="card" style="margin-bottom:1rem;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+        <div class="card-title" style="margin-bottom:0;">Resumo de <span id="dash-mes"></span></div>
+        <button onclick="setTabBtn('gastos')" style="font-size:12px;color:var(--purple);background:none;border:none;cursor:pointer;font-weight:600;font-family:inherit;">Ver detalhes →</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem;">
+        <div style="background:var(--purple-light);border-radius:12px;padding:1rem;">
+          <div style="font-size:11px;color:var(--purple);font-weight:700;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px;">Saldo disponível</div>
+          <div style="font-size:22px;font-weight:800;color:var(--purple-dark);" id="dash-saldo">R$ 0,00</div>
+        </div>
+        <div style="background:#F0FDF4;border-radius:12px;padding:1rem;">
+          <div style="font-size:11px;color:#16A34A;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px;">Total de rendas</div>
+          <div style="font-size:22px;font-weight:800;color:#16A34A;" id="dash-renda">R$ 0,00</div>
+        </div>
+        <div style="background:#FEF2F2;border-radius:12px;padding:1rem;">
+          <div style="font-size:11px;color:#DC2626;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px;">Total gasto</div>
+          <div style="font-size:22px;font-weight:800;color:#DC2626;" id="dash-gasto">R$ 0,00</div>
+        </div>
+        <div style="background:#EFF6FF;border-radius:12px;padding:1rem;">
+          <div style="font-size:11px;color:#1D4ED8;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px;">Investido</div>
+          <div style="font-size:22px;font-weight:800;color:#1D4ED8;" id="dash-investido">R$ 0,00</div>
+        </div>
+      </div>
+
+      <!-- Barra de gastos -->
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px;display:flex;justify-content:space-between;">
+        <span>Comprometimento da renda</span>
+        <span id="dash-pct-txt">0%</span>
+      </div>
+      <div style="background:var(--purple-light);border-radius:99px;height:8px;overflow:hidden;">
+        <div id="dash-pct-bar" style="height:8px;border-radius:99px;background:var(--purple);width:0%;transition:width 0.4s;"></div>
+      </div>
+    </div>
+
+    <!-- Alertas urgentes -->
+    <div id="dash-alertas-section" style="display:none;" class="card" style="margin-bottom:1rem;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+        <div class="card-title" style="margin-bottom:0;">⚠️ Vencimentos próximos</div>
+        <button onclick="setTabBtn('alertas')" style="font-size:12px;color:var(--purple);background:none;border:none;cursor:pointer;font-weight:600;font-family:inherit;">Ver todos →</button>
+      </div>
+      <div id="dash-alertas-list"></div>
+    </div>
+
+    <!-- Metas em andamento -->
+    <div id="dash-metas-section" style="display:none;" class="card" style="margin-bottom:1rem;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+        <div class="card-title" style="margin-bottom:0;">🎯 Suas metas</div>
+        <button onclick="setTabBtn('metas')" style="font-size:12px;color:var(--purple);background:none;border:none;cursor:pointer;font-weight:600;font-family:inherit;">Ver todas →</button>
+      </div>
+      <div id="dash-metas-list"></div>
+    </div>
+
+    <!-- Atalhos rápidos -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem;">
+      <button onclick="setTabBtn('gastos')" style="background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:1rem;cursor:pointer;text-align:left;font-family:inherit;">
+        <div style="font-size:20px;margin-bottom:6px;">💳</div>
+        <div style="font-size:13px;font-weight:700;color:var(--text);">Adicionar gasto</div>
+        <div style="font-size:11px;color:var(--text-muted);">Registrar uma despesa</div>
+      </button>
+      <button onclick="setTabBtn('investimentos')" style="background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:1rem;cursor:pointer;text-align:left;font-family:inherit;">
+        <div style="font-size:20px;margin-bottom:6px;">📈</div>
+        <div style="font-size:13px;font-weight:700;color:var(--text);">Planejar aporte</div>
+        <div style="font-size:11px;color:var(--text-muted);">Investir este mês</div>
+      </button>
+      <button onclick="setTabBtn('metas')" style="background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:1rem;cursor:pointer;text-align:left;font-family:inherit;">
+        <div style="font-size:20px;margin-bottom:6px;">🎯</div>
+        <div style="font-size:13px;font-weight:700;color:var(--text);">Minhas metas</div>
+        <div style="font-size:11px;color:var(--text-muted);">Acompanhar objetivos</div>
+      </button>
+      <button onclick="setTabBtn('simulador')" style="background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:1rem;cursor:pointer;text-align:left;font-family:inherit;">
+        <div style="font-size:20px;margin-bottom:6px;">🧮</div>
+        <div style="font-size:13px;font-weight:700;color:var(--text);">Simular investimento</div>
+        <div style="font-size:11px;color:var(--text-muted);">Ver quanto rende</div>
+      </button>
+    </div>
+
   </div>
 
   <!-- ===== SIMULADOR ===== -->
@@ -967,6 +1059,125 @@ document.addEventListener('DOMContentLoaded', () => {
   if (btn) btn.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
 });
 
+// ===== DICAS DO DIA =====
+const DICAS = [
+  'Guarde pelo menos 10% do seu salário antes de gastar qualquer coisa. Pague a si mesmo primeiro!',
+  'Evite parcelar compras com juros. Se não tem o dinheiro agora, espere juntar.',
+  'Pequenos gastos diários somam muito. R$ 15 por dia em delivery = R$ 450 por mês.',
+  'Fundo de emergência é prioridade. Tente ter 6 meses de gastos guardados.',
+  'Invista regularmente, mesmo que seja pouco. A consistência bate o valor alto esporádico.',
+  'Antes de comprar algo, espere 48 horas. Se ainda quiser, aí vale a pena.',
+  'Revise suas assinaturas mensais. Você usa tudo que paga?',
+  'Tesouro Selic é mais seguro e rende mais que a poupança. Migre seu dinheiro!',
+  'Defina um limite mensal para lazer e respeite. Diversão controlada não é pecado.',
+  'Anote tudo que gasta. Consciência financeira começa pelo registro.',
+  'Dívidas com juros altos primeiro. Quite cartão de crédito antes de investir.',
+  'Renda extra é acelerador de patrimônio. Cada real extra investido faz diferença.',
+  'Inflação corrói seu dinheiro parado. Deixe na renda fixa indexada ao IPCA.',
+  'Meta financeira sem prazo é só sonho. Coloque uma data e trabalhe por ela.',
+  'Compare preços antes de comprar. 5 minutos de pesquisa podem economizar muito.',
+  'Cartão de crédito usado com consciência é aliado. Sem controle, é inimigo.',
+  'FIIs permitem investir em imóveis com pouco dinheiro e recebendo aluguéis mensais.',
+  'Diversifique seus investimentos. Não coloque tudo em uma só aplicação.',
+  'Aprenda a diferença entre ativo e passivo. Ativos colocam dinheiro no bolso.',
+  'Comece a investir hoje, não amanhã. O tempo é o maior aliado dos juros compostos.',
+  'Setembro é o mês ideal para revisar seu orçamento anual e ajustar metas.',
+  'Negocie seus boletos. Muitas empresas aceitam desconto para pagamento à vista.',
+  'CDB de banco pequeno com FGC protegido pode render muito mais que os grandes.',
+  'Um orçamento não limita sua liberdade — ele cria liberdade financeira.',
+  'Automatize seus investimentos. O que sai automático não dá tentação de gastar.',
+  'LCI e LCA são isentos de imposto de renda. Ótima opção para renda fixa.',
+  'Seu maior patrimônio é sua capacidade de gerar renda. Invista em você também.',
+  'Evite comparar seu progresso financeiro com o dos outros. Foque na sua jornada.',
+  'Reserva de emergência não é investimento — é proteção. Mantenha separada.',
+  'Cada real guardado hoje é mais liberdade amanhã. Valha a pena o esforço.',
+];
+
+function getDicaDoDia() {
+  const dia = new Date().getDate() + new Date().getMonth() * 31;
+  return DICAS[dia % DICAS.length];
+}
+
+// ===== DASHBOARD =====
+function setTabBtn(tab) {
+  const btn = document.querySelector(`[onclick="setTab('${tab}',this)"]`);
+  if (btn) { document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active')); document.querySelectorAll('.section-page').forEach(p => p.classList.remove('active')); btn.classList.add('active'); document.getElementById('tab-' + tab).classList.add('active'); if (tab === 'patrimonio') renderPatrimonio(); if (tab === 'alertas') renderAlertas(); if (tab === 'metas') renderMetas(); if (tab === 'dividas') renderDividas(); }
+}
+
+function renderDashboard() {
+  const mesData = getMesData();
+  const extras = mesData.rendaExtra || [];
+  const totalRenda = mesData.salario + extras.reduce((s,r) => s + r.valor, 0);
+  const totalGasto = mesData.expenses.reduce((s,e) => s + e.valor, 0);
+  const totalPago = mesData.expenses.filter(e => e.pago).reduce((s,e) => s + e.valor, 0);
+  const rendaRecebida = (mesData.salarioRecebido ? mesData.salario : 0) + extras.filter(r => r.recebido).reduce((s,r) => s + r.valor, 0);
+  const saldo = rendaRecebida - totalPago;
+  const invData = getInvData();
+  const totalInv = invData.aportes.filter(a => a.realizado).reduce((s,a) => s + a.valor, 0);
+  const pct = totalRenda > 0 ? Math.min(100, Math.round((totalGasto / totalRenda) * 100)) : 0;
+
+  document.getElementById('dash-mes').textContent = MESES[now.getMonth()];
+  document.getElementById('dash-saldo').textContent = fmtMoney(saldo);
+  document.getElementById('dash-saldo').style.color = saldo < 0 ? '#DC2626' : '';
+  document.getElementById('dash-renda').textContent = fmtMoney(totalRenda);
+  document.getElementById('dash-gasto').textContent = fmtMoney(totalGasto);
+  document.getElementById('dash-investido').textContent = fmtMoney(totalInv);
+  document.getElementById('dash-pct-txt').textContent = pct + '%';
+  const bar = document.getElementById('dash-pct-bar');
+  bar.style.width = pct + '%';
+  bar.style.background = pct >= 90 ? '#DC2626' : pct >= 70 ? '#D97706' : '#7C3AED';
+
+  // Dica do dia
+  document.getElementById('dica-texto').textContent = getDicaDoDia();
+
+  // Alertas urgentes
+  const alertas = getAlertas();
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const urgentes = alertas.filter(a => {
+    const diff = Math.round((new Date(a.data + 'T00:00:00') - hoje) / (1000*60*60*24));
+    return diff <= 5;
+  }).sort((a,b) => new Date(a.data) - new Date(b.data));
+
+  const alertaSection = document.getElementById('dash-alertas-section');
+  const alertaBadge = document.getElementById('alerta-badge');
+  if (urgentes.length > 0) {
+    alertaSection.style.display = 'block';
+    alertaBadge.style.display = 'block';
+    document.getElementById('dash-alertas-list').innerHTML = urgentes.slice(0,3).map(a => {
+      const diff = Math.round((new Date(a.data + 'T00:00:00') - hoje) / (1000*60*60*24));
+      const cor = diff < 0 ? '#DC2626' : diff <= 2 ? '#DC2626' : '#D97706';
+      const label = diff < 0 ? 'Vencido' : diff === 0 ? 'Hoje!' : 'Em ' + diff + ' dias';
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-top:1px solid var(--border);font-size:14px;">
+        <div><span style="font-weight:600;">${a.nome}</span> <span style="font-size:12px;color:${cor};font-weight:700;">${label}</span></div>
+        ${a.valor > 0 ? `<span style="font-weight:700;color:${cor};">${fmtMoney(a.valor)}</span>` : ''}
+      </div>`;
+    }).join('');
+  } else {
+    alertaSection.style.display = 'none';
+    alertaBadge.style.display = 'none';
+  }
+
+  // Metas em andamento
+  const metas = getMetas();
+  const metasSection = document.getElementById('dash-metas-section');
+  if (metas.length > 0) {
+    metasSection.style.display = 'block';
+    document.getElementById('dash-metas-list').innerHTML = metas.slice(0,3).map(m => {
+      const pctM = Math.min(100, Math.round((m.atual / m.alvo) * 100));
+      return `<div style="margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px;">
+          <span style="font-weight:600;">${m.nome}</span>
+          <span style="color:var(--purple);font-weight:700;">${pctM}%</span>
+        </div>
+        <div style="background:var(--purple-light);border-radius:99px;height:6px;"><div style="height:6px;border-radius:99px;background:${pctM >= 100 ? '#16A34A' : 'var(--purple)'};width:${pctM}%;"></div></div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:3px;">Falta ${fmtMoney(Math.max(0, m.alvo - m.atual))}</div>
+      </div>`;
+    }).join('');
+  } else {
+    metasSection.style.display = 'none';
+  }
+}
+
 // ===== TABS =====
 function setTab(tab, btn) {
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
@@ -977,6 +1188,7 @@ function setTab(tab, btn) {
   if (tab === 'alertas') renderAlertas();
   if (tab === 'metas') renderMetas();
   if (tab === 'dividas') renderDividas();
+  if (tab === 'dashboard') renderDashboard();
 }
 
 // ===== SIMULADOR =====
@@ -1771,6 +1983,7 @@ function logout() {
 atualizar();
 renderMes();
 renderInvestimentos();
+renderDashboard();
 
 </script>
 
