@@ -585,24 +585,17 @@ footer { text-align: center; font-size: 11px; color: var(--text-subtle); padding
     </div>
     <div class="login-card">
       <div class="login-card-title">Bem-vindo ao Grape Invest</div>
-      <div class="login-card-sub">Acesse sua conta para continuar</div>
+      <div class="login-card-sub">Digite seu e-mail e receba um link de acesso instantâneo</div>
       <div class="login-field">
         <label>E-mail</label>
         <div class="login-input-wrap">
           <svg class="login-input-icon" width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="1.5" y="3.5" width="15" height="11" rx="2" stroke="#7C3AED" stroke-width="1.4"/><path d="M1.5 7l7.5 5 7.5-5" stroke="#7C3AED" stroke-width="1.4" stroke-linecap="round"/></svg>
-          <input type="email" id="login-email" placeholder="seu@email.com" style="letter-spacing:normal;">
+          <input type="email" id="login-email" placeholder="seu@email.com" style="letter-spacing:normal;" onkeydown="if(event.key==='Enter') fazerLogin()">
         </div>
       </div>
-      <div class="login-field">
-        <label>Senha</label>
-        <div class="login-input-wrap">
-          <svg class="login-input-icon" width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="3.5" y="8" width="11" height="8" rx="2" stroke="#7C3AED" stroke-width="1.4"/><path d="M6 8V6a3 3 0 016 0v2" stroke="#7C3AED" stroke-width="1.4" stroke-linecap="round"/><circle cx="9" cy="12" r="1.2" fill="#7C3AED"/></svg>
-          <input type="password" id="login-input" placeholder="••••••••" onkeydown="if(event.key==='Enter') fazerLogin()">
-        </div>
-      </div>
-      <div class="login-forgot"><a href="#">Esqueci a senha</a></div>
-      <button class="login-btn" id="login-btn-el" onclick="fazerLogin()">Entrar no Grape Invest</button>
+      <button class="login-btn" id="login-btn-el" onclick="fazerLogin()">Enviar link de acesso ✉️</button>
       <div class="login-error" id="login-error"></div>
+      <div id="login-success" style="font-size:13px;color:#16A34A;margin-top:10px;display:none;text-align:center;background:#F0FDF4;border-radius:10px;padding:12px;line-height:1.5;"></div>
       <div class="login-divider"><div class="login-div-line"></div><div class="login-div-txt">ainda não tem conta?</div><div class="login-div-line"></div></div>
       <div class="login-link"><a href="https://grapeinvest.kiwify.com.br">Assinar agora — 7 dias grátis →</a></div>
     </div>
@@ -1894,28 +1887,59 @@ function mostrarWelcome(nome) {
 
 async function fazerLogin() {
   const email = document.getElementById('login-email').value.trim().toLowerCase();
-  const senha = document.getElementById('login-input').value.trim();
   const erro = document.getElementById('login-error');
+  const sucesso = document.getElementById('login-success');
   const btn = document.getElementById('login-btn-el');
-  if (!email || !senha) { erro.textContent = 'Preencha e-mail e senha.'; erro.style.display = 'block'; return; }
-  btn.textContent = 'Entrando...'; btn.disabled = true; erro.style.display = 'none';
+  if (!email) { erro.textContent = 'Digite seu e-mail.'; erro.style.display = 'block'; return; }
+  btn.textContent = 'Enviando...'; btn.disabled = true;
+  erro.style.display = 'none'; sucesso.style.display = 'none';
   try {
-    const res = await fetch(`${BACKEND_URL}/auth/login`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({email, senha}) });
+    const res = await fetch(`${BACKEND_URL}/auth/magic-link`, {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ email })
+    });
     const data = await res.json();
     if (res.ok && data.success) {
-      localStorage.setItem('gi_token', data.token);
-      localStorage.setItem('gi_email', email);
-      localStorage.setItem('gi_nome', data.nome);
-      document.getElementById('login-screen').classList.add('hidden');
-      const inicial = (data.nome||email).charAt(0).toUpperCase();
-      document.getElementById('header-user').childNodes[0].textContent = inicial;
-      document.getElementById('menu-nome').textContent = data.nome || '—';
-      document.getElementById('menu-email').textContent = email;
-      mostrarWelcome(data.nome);
-    } else { erro.textContent = data.error || 'E-mail ou senha incorretos.'; erro.style.display = 'block'; }
-  } catch(e) { erro.textContent = 'Erro de conexão. Tente novamente.'; erro.style.display = 'block'; }
-  btn.textContent = 'Entrar no Grape Invest'; btn.disabled = false;
+      sucesso.textContent = '✓ Link enviado para ' + email + '! Verifique sua caixa de entrada e clique no link para acessar.';
+      sucesso.style.display = 'block';
+    } else {
+      erro.textContent = data.error || 'Erro ao enviar link. Tente novamente.';
+      erro.style.display = 'block';
+    }
+  } catch(e) {
+    erro.textContent = 'Erro de conexão. Tente novamente.';
+    erro.style.display = 'block';
+  }
+  btn.textContent = 'Enviar link de acesso ✉️'; btn.disabled = false;
 }
+
+(async function detectarMagicLink() {
+  const hash = window.location.hash;
+  if (hash && hash.includes('access_token')) {
+    const params = new URLSearchParams(hash.substring(1));
+    const accessToken = params.get('access_token');
+    if (accessToken) {
+      try {
+        const res = await fetch(`${BACKEND_URL}/auth/verificar`, {
+          method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ token: accessToken })
+        });
+        const data = await res.json();
+        if (data.valido) {
+          localStorage.setItem('gi_token', accessToken);
+          localStorage.setItem('gi_email', data.email);
+          localStorage.setItem('gi_nome', data.nome);
+          document.getElementById('login-screen').classList.add('hidden');
+          document.getElementById('header-user').childNodes[0].textContent = (data.nome||data.email).charAt(0).toUpperCase();
+          document.getElementById('menu-nome').textContent = data.nome || '—';
+          document.getElementById('menu-email').textContent = data.email;
+          mostrarWelcome(data.nome);
+          window.history.replaceState(null, '', window.location.pathname);
+        }
+      } catch(e) { console.error('Erro magic link', e); }
+    }
+  }
+})();
 
 function toggleMenu(e) {
   e.stopPropagation();
@@ -1930,34 +1954,14 @@ function alterarSenha() {
   document.getElementById('profile-menu').classList.remove('open');
   const email = localStorage.getItem('gi_email');
   if (!email) return;
-
-  if (!confirm('Vamos enviar um código de verificação para:\n' + email + '\n\nDeseja continuar?')) return;
-
-  fetch(`${BACKEND_URL}/auth/solicitar-codigo`, {
+  if (!confirm('Vamos enviar um link de acesso para:\n' + email + '\n\nUse o link para entrar novamente com segurança.')) return;
+  fetch(`${BACKEND_URL}/auth/magic-link`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email })
   }).then(r => r.json()).then(d => {
-    if (!d.success) { alert('Erro ao enviar código. Tente novamente.'); return; }
-    alert('✓ Código enviado para ' + email + '\nVerifique sua caixa de entrada.');
-
-    const codigo = prompt('Digite o código de 6 dígitos recebido no e-mail:');
-    if (!codigo) return;
-
-    const nova = prompt('Digite sua nova senha (mínimo 6 caracteres):');
-    if (!nova || nova.length < 6) { alert('Senha muito curta. Mínimo 6 caracteres.'); return; }
-
-    const confirma = prompt('Confirme a nova senha:');
-    if (nova !== confirma) { alert('As senhas não coincidem.'); return; }
-
-    fetch(`${BACKEND_URL}/auth/confirmar-senha`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, codigo, senha: nova })
-    }).then(r => r.json()).then(d => {
-      if (d.success) alert('✓ Senha alterada com sucesso! Faça login novamente.');
-      else alert('Código inválido ou expirado. Tente novamente.');
-    }).catch(() => alert('Erro de conexão.'));
+    if (d.success) alert('✓ Link enviado para ' + email + '!\nVerifique sua caixa de entrada.');
+    else alert('Erro ao enviar link. Tente novamente.');
   }).catch(() => alert('Erro de conexão. Tente novamente.'));
 }
 
@@ -2002,14 +2006,17 @@ function logout() {
   const token = localStorage.getItem('gi_token');
   const email = localStorage.getItem('gi_email');
   const nome = localStorage.getItem('gi_nome');
-  if (!token || !email) return;
+  if (!token) return;
   if (nome) {
     document.getElementById('header-user').childNodes[0].textContent = nome.charAt(0).toUpperCase();
     document.getElementById('menu-nome').textContent = nome;
-    document.getElementById('menu-email').textContent = email;
+    document.getElementById('menu-email').textContent = email || '—';
   }
   try {
-    const res = await fetch(`${BACKEND_URL}/auth/verificar`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({email, token}) });
+    const res = await fetch(`${BACKEND_URL}/auth/verificar`, {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ token })
+    });
     const data = await res.json();
     if (data.valido) { document.getElementById('login-screen').classList.add('hidden'); }
     else { localStorage.removeItem('gi_token'); localStorage.removeItem('gi_email'); }
