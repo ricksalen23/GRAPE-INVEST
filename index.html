@@ -733,17 +733,55 @@ footer { text-align: center; font-size: 11px; color: var(--text-subtle); padding
     <div class="saldo-box" id="saldo-box">
       <div class="saldo-label">Saldo disponível</div>
       <div class="saldo-value" id="saldo-valor">R$ 0,00</div>
-      <div class="saldo-meta"><span id="saldo-salario-label">Salário: R$ 0,00</span> · <span id="saldo-pago-label">Pago: R$ 0,00</span></div>
+      <div class="saldo-meta">
+        <span id="saldo-salario-label">Salário: R$ 0,00</span> ·
+        <span id="saldo-extra-label">Extra: R$ 0,00</span> ·
+        <span id="saldo-pago-label">Pago: R$ 0,00</span>
+      </div>
       <div class="saldo-bar-wrap"><div class="saldo-bar" id="saldo-barra" style="width:100%;"></div></div>
     </div>
 
+    <!-- Mini calculadora de renda -->
     <div class="card">
-      <div class="card-title">Meu salário</div>
-      <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
-        <div style="flex:1;min-width:160px;">
-          <div class="field"><label>Valor (R$)</label><input type="number" id="sal-valor" placeholder="Ex: 3000" min="0" step="0.01" oninput="salvarSalario()"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+        <div class="card-title" style="margin-bottom:0;">Minhas rendas</div>
+        <button onclick="copiarMesAnterior()" style="background:var(--purple-light);border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;color:var(--purple);cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px;">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="4" y="1" width="8" height="9" rx="1.5" stroke="currentColor" stroke-width="1.3"/><rect x="1" y="3" width="8" height="9" rx="1.5" stroke="currentColor" stroke-width="1.3" fill="white"/></svg>
+          Copiar mês anterior
+        </button>
+      </div>
+
+      <!-- Salário -->
+      <div style="background:var(--purple-light);border-radius:12px;padding:12px 14px;margin-bottom:10px;">
+        <div style="font-size:11px;font-weight:700;color:var(--purple);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">Salário principal</div>
+        <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
+          <div style="flex:1;min-width:140px;">
+            <div class="field" style="margin-bottom:0;"><label>Valor (R$)</label><input type="number" id="sal-valor" placeholder="Ex: 3000" min="0" step="0.01" oninput="salvarSalario()"></div>
+          </div>
+          <button id="sal-btn" onclick="toggleSalario()" class="btn-secondary" style="margin-bottom:1px;height:42px;">Marcar como recebido</button>
         </div>
-        <button id="sal-btn" onclick="toggleSalario()" class="btn-secondary" style="margin-bottom:1px;">Marcar como recebido</button>
+      </div>
+
+      <!-- Rendas extras -->
+      <div id="rendas-extras-list"></div>
+
+      <!-- Adicionar renda extra -->
+      <div style="border:1.5px dashed var(--border);border-radius:12px;padding:12px 14px;margin-bottom:10px;">
+        <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">+ Nova renda extra</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:flex-end;">
+          <div class="field" style="margin-bottom:0;"><label>Nome</label><input type="text" id="extra-nome" placeholder="Ex: Aulas, Freela..."></div>
+          <div class="field" style="margin-bottom:0;"><label>Valor (R$)</label><input type="number" id="extra-valor" placeholder="0,00" min="0" step="0.01"></div>
+          <button class="btn-primary" onclick="addRendaExtra()" style="height:42px;padding:0 14px;">+ Add</button>
+        </div>
+      </div>
+
+      <!-- Mini calculadora -->
+      <div style="background:#F0FDF4;border-radius:12px;padding:12px 14px;border:1px solid #BBF7D0;">
+        <div style="font-size:11px;font-weight:700;color:#16A34A;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">Total de rendas</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+          <div style="font-size:13px;color:#6B7280;" id="calc-detalhes">Salário R$ 0,00</div>
+          <div style="font-size:22px;font-weight:800;color:#16A34A;" id="calc-total">R$ 0,00</div>
+        </div>
       </div>
     </div>
 
@@ -1022,7 +1060,7 @@ function atualizar() {
 let mesSel = now.getMonth(), anoSel = now.getFullYear();
 
 function chave() { return `gi_${anoSel}_${mesSel}`; }
-function getMesData() { return JSON.parse(localStorage.getItem(chave()) || 'null') || { salario:0, salarioRecebido:false, expenses:[] }; }
+function getMesData() { return JSON.parse(localStorage.getItem(chave()) || 'null') || { salario:0, salarioRecebido:false, rendaExtra:[], expenses:[] }; }
 function saveMesData(data) { localStorage.setItem(chave(), JSON.stringify(data)); }
 
 function mudarMes(delta) {
@@ -1039,6 +1077,7 @@ function renderMes() {
   const data = getMesData();
   document.getElementById('sal-valor').value = data.salario || '';
   renderSalarioBtn(data);
+  renderRendaExtra(data);
   renderSaldo(data);
   renderExpenses(data);
 }
@@ -1046,7 +1085,86 @@ function renderMes() {
 function salvarSalario() {
   const data = getMesData();
   data.salario = parseFloat(document.getElementById('sal-valor').value) || 0;
-  saveMesData(data); renderSaldo(data);
+  saveMesData(data); renderRendaExtra(data); renderSaldo(data);
+}
+
+function addRendaExtra() {
+  const nome = document.getElementById('extra-nome').value.trim();
+  const valor = parseFloat(document.getElementById('extra-valor').value) || 0;
+  if (!nome || valor <= 0) { document.getElementById('extra-nome').focus(); return; }
+  const data = getMesData();
+  if (!data.rendaExtra) data.rendaExtra = [];
+  data.rendaExtra.push({ id: Date.now(), nome, valor, recebido: false });
+  saveMesData(data);
+  document.getElementById('extra-nome').value = '';
+  document.getElementById('extra-valor').value = '';
+  renderRendaExtra(data); renderSaldo(data);
+}
+
+function toggleRendaExtra(id) {
+  const data = getMesData();
+  const r = data.rendaExtra.find(r => r.id === id);
+  if (r) r.recebido = !r.recebido;
+  saveMesData(data); renderRendaExtra(data); renderSaldo(data);
+}
+
+function deleteRendaExtra(id) {
+  const data = getMesData();
+  data.rendaExtra = data.rendaExtra.filter(r => r.id !== id);
+  saveMesData(data); renderRendaExtra(data); renderSaldo(data);
+}
+
+function renderRendaExtra(data) {
+  const extras = data.rendaExtra || [];
+  const list = document.getElementById('rendas-extras-list');
+  const totalSalario = data.salarioRecebido ? data.salario : 0;
+  const totalExtra = extras.filter(r => r.recebido).reduce((s,r) => s + r.valor, 0);
+  const totalExtrasGeral = extras.reduce((s,r) => s + r.valor, 0);
+  const totalGeral = data.salario + totalExtrasGeral;
+
+  // Render extra income items
+  list.innerHTML = extras.map(r => `
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:${r.recebido ? '#F0FDF4' : 'var(--bg)'};border-radius:10px;margin-bottom:8px;border:1px solid ${r.recebido ? '#BBF7D0' : 'var(--border)'};">
+      <input type="checkbox" ${r.recebido ? 'checked' : ''} onchange="toggleRendaExtra(${r.id})" style="width:18px;height:18px;cursor:pointer;accent-color:#7C3AED;flex-shrink:0;">
+      <div style="flex:1;">
+        <div style="font-size:14px;font-weight:600;color:var(--text);${r.recebido ? 'text-decoration:line-through;opacity:0.6;' : ''}">${r.nome}</div>
+        <div style="font-size:12px;color:var(--text-muted);">Renda extra</div>
+      </div>
+      <div style="font-size:15px;font-weight:700;color:#16A34A;">${fmtMoney(r.valor)}</div>
+      <button class="btn-del" onclick="deleteRendaExtra(${r.id})">&times;</button>
+    </div>
+  `).join('');
+
+  // Mini calculator
+  const partes = [`Salário ${fmtMoney(data.salario)}`];
+  if (extras.length > 0) extras.forEach(r => partes.push(`+ ${r.nome} ${fmtMoney(r.valor)}`));
+  document.getElementById('calc-detalhes').textContent = partes.join(' ');
+  document.getElementById('calc-total').textContent = fmtMoney(totalGeral);
+
+  // Update saldo extra label
+  document.getElementById('saldo-extra-label').textContent = 'Extra: ' + fmtMoney(totalExtrasGeral);
+}
+
+function copiarMesAnterior() {
+  let mesPrev = mesSel - 1, anoPrev = anoSel;
+  if (mesPrev < 0) { mesPrev = 11; anoPrev--; }
+  const chavePrev = `gi_${anoPrev}_${mesPrev}`;
+  const prev = JSON.parse(localStorage.getItem(chavePrev) || 'null');
+  if (!prev) { alert('Nenhum dado encontrado em ' + MESES[mesPrev] + ' ' + anoPrev); return; }
+  if (!confirm('Copiar salário, rendas extras e gastos de ' + MESES[mesPrev] + ' para ' + MESES[mesSel] + '?')) return;
+
+  const data = getMesData();
+  data.salario = prev.salario || 0;
+  data.salarioRecebido = false;
+  data.rendaExtra = (prev.rendaExtra || []).map(r => ({ ...r, id: Date.now() + Math.random(), recebido: false }));
+  data.expenses = (prev.expenses || []).map(e => ({ ...e, id: Date.now() + Math.random(), pago: false }));
+  saveMesData(data);
+  document.getElementById('sal-valor').value = data.salario || '';
+  renderSalarioBtn(data);
+  renderRendaExtra(data);
+  renderSaldo(data);
+  renderExpenses(data);
+  alert('✓ Mês anterior copiado com sucesso!');
 }
 
 function toggleSalario() {
@@ -1065,10 +1183,14 @@ function renderSalarioBtn(data) {
 }
 
 function renderSaldo(data) {
+  const extras = data.rendaExtra || [];
   const salario = data.salarioRecebido ? data.salario : 0;
+  const extraRecebido = extras.filter(r => r.recebido).reduce((s,r) => s + r.valor, 0);
+  const totalRenda = salario + extraRecebido;
   const pago = data.expenses.filter(e => e.pago).reduce((s,e) => s + e.valor, 0);
-  const saldo = salario - pago;
-  const pct = salario > 0 ? Math.max(0, Math.min(100, (saldo/salario)*100)) : 100;
+  const saldo = totalRenda - pago;
+  const totalRendaGeral = data.salario + extras.reduce((s,r) => s + r.valor, 0);
+  const pct = totalRendaGeral > 0 ? Math.max(0, Math.min(100, (saldo/totalRendaGeral)*100)) : 100;
   const box = document.getElementById('saldo-box');
   const saldoEl = document.getElementById('saldo-valor');
   saldoEl.textContent = fmtMoney(saldo);
@@ -1081,6 +1203,7 @@ function renderSaldo(data) {
   }
   document.getElementById('saldo-barra').style.width = pct + '%';
   document.getElementById('saldo-salario-label').textContent = 'Salário: ' + fmtMoney(data.salario) + (data.salarioRecebido ? ' ✓' : ' (pendente)');
+  document.getElementById('saldo-extra-label').textContent = 'Extra: ' + fmtMoney(extras.reduce((s,r) => s + r.valor, 0));
   document.getElementById('saldo-pago-label').textContent = 'Pago: ' + fmtMoney(pago);
 }
 
