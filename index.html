@@ -2,12 +2,14 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Grape Invest — Controle Financeiro</title>
 <meta name="theme-color" content="#4C1D95">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-touch-fullscreen" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Grape Invest">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -188,7 +190,7 @@ body {
 .login-input-wrap input {
   width: 100%; height: 50px;
   background: #F9F7FF; border: 1.5px solid #EDE9FE; border-radius: 12px;
-  padding: 0 14px 0 44px; font-size: 14px; color: #1a0533; outline: none;
+  padding: 0 14px 0 44px; font-size: 16px; color: #1a0533; outline: none;
   transition: all 0.2s; font-family: inherit;
 }
 .login-input-wrap input::placeholder { color: #C4B5FD; }
@@ -358,7 +360,7 @@ header {
   position: fixed; bottom: 0; left: 0; right: 0;
   background: var(--card); border-top: 1px solid var(--border);
   display: flex; align-items: stretch; z-index: 200;
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), 8px);
   box-shadow: 0 -4px 24px rgba(124,58,237,0.08);
 }
 [data-theme="dark"] .bottom-nav { background: #1A1030; border-color: rgba(167,139,250,0.15); box-shadow: 0 -4px 24px rgba(0,0,0,0.3); }
@@ -546,7 +548,7 @@ header {
 .field label { font-size: 12px; font-weight: 600; color: var(--purple); display: block; margin-bottom: 5px; }
 .field input, .field select {
   width: 100%; height: 42px; border: 1.5px solid var(--purple-light);
-  border-radius: 10px; padding: 0 12px; font-size: 14px;
+  border-radius: 10px; padding: 0 12px; font-size: 16px;
   font-family: inherit; background: var(--bg); color: var(--text); outline: none;
 }
 .field input:focus, .field select:focus { border-color: var(--purple); box-shadow: 0 0 0 3px rgba(124,58,237,0.08); }
@@ -878,7 +880,7 @@ footer { text-align: center; font-size: 11px; color: var(--text-subtle); padding
 .confissao-textarea {
   width: 100%; min-height: 120px; max-height: 200px;
   background: var(--bg); border: 1.5px solid var(--border);
-  border-radius: 14px; padding: 14px; font-size: 14px;
+  border-radius: 14px; padding: 14px; font-size: 16px;
   font-family: inherit; color: var(--text); outline: none;
   resize: none; line-height: 1.6; transition: border-color 0.2s;
   margin-bottom: 12px;
@@ -957,7 +959,7 @@ footer { text-align: center; font-size: 11px; color: var(--text-subtle); padding
   width: 100%; height: 46px;
   background: var(--bg); border: 1.5px solid var(--border);
   border-radius: 10px; padding: 0 12px 0 36px;
-  font-size: 14px; font-family: inherit; color: var(--text); outline: none;
+  font-size: 16px; font-family: inherit; color: var(--text); outline: none;
   transition: border-color 0.2s;
 }
 .div-input-wrap input:focus { border-color: var(--purple); box-shadow: 0 0 0 3px rgba(124,58,237,0.08); }
@@ -1102,7 +1104,7 @@ footer { text-align: center; font-size: 11px; color: var(--text-subtle); padding
 }
 .div-selector-dropdown.open { display:block; }
 .div-selector-search { padding:10px; border-bottom:1px solid var(--border); position:sticky; top:0; background:var(--card); z-index:1; }
-.div-selector-search input { width:100%; height:36px; border:1.5px solid var(--border); border-radius:8px; padding:0 12px; font-size:13px; font-family:inherit; background:var(--bg); color:var(--text); outline:none; }
+.div-selector-search input { width:100%; height:40px; border:1.5px solid var(--border); border-radius:8px; padding:0 12px; font-size:16px; font-family:inherit; background:var(--bg); color:var(--text); outline:none; }
 .div-selector-search input:focus { border-color:var(--purple); }
 .div-selector-item { display:flex; align-items:center; gap:10px; padding:12px 14px; cursor:pointer; transition:background 0.1s; font-size:14px; color:var(--text); }
 .div-selector-item:hover { background:var(--purple-light); }
