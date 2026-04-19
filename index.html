@@ -267,24 +267,27 @@ header {
 
 /* TOP NAV */
 .top-nav {
-  display: flex; gap: 0; overflow-x: auto; scrollbar-width: none;
-  margin: 0 -1rem;
-  padding: 0 1rem;
+  display: flex; gap: 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--card);
+  overflow-x: auto; scrollbar-width: none;
 }
 .top-nav::-webkit-scrollbar { display: none; }
 
 .top-tab {
-  flex-shrink: 0;
-  display: flex; align-items: center; gap: 6px;
-  padding: 8px 14px; border: none; background: none;
-  font-family: inherit; font-size: 13px; font-weight: 600;
+  flex: 1;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 4px; padding: 10px 4px; border: none; background: none;
+  font-family: inherit; font-size: 10px; font-weight: 600;
   color: var(--text-muted); cursor: pointer;
   border-bottom: 2.5px solid transparent;
   transition: color 0.15s, border-color 0.15s;
-  white-space: nowrap; position: relative;
+  white-space: nowrap; position: relative; min-width: 0;
 }
-.top-tab .tab-emoji { font-size: 15px; }
+.top-tab .tab-emoji { font-size: 20px; line-height: 1; }
 .top-tab.active { color: var(--purple); border-bottom-color: var(--purple); }
+.top-tab.active .tab-emoji { transform: scale(1.1); display: inline-block; }
+[data-theme="dark"] .top-tab { color: #9CA3AF; }
 [data-theme="dark"] .top-tab.active { color: var(--purple); }
 
 .logo-icon {
@@ -346,11 +349,10 @@ header {
   background: var(--purple-light); flex-shrink: 0;
 }
 
-.container { max-width: 720px; margin: 0 auto; padding: 1rem 1rem 2rem; }
+.container { max-width: 720px; margin: 0 auto; padding: 1rem 1rem 2rem; padding-bottom: 2rem; }
 
 /* ===== NAV (oculta — substituída pela top-nav) ===== */
 .nav-tabs { display: none; }
-.bottom-nav { display: none; }
 
 .bottom-nav {
   position: fixed; bottom: 0; left: 0; right: 0;
@@ -2127,21 +2129,7 @@ function renderDashboard() {
   } else { metasSection.style.display = 'none'; }
 }
 
-// ===== TABS =====
-function setTab(tab, btn) {
-  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.section-page').forEach(p => p.classList.remove('active'));
-  btn.classList.add('active');
-  const page = document.getElementById('tab-' + tab);
-  if (page) { page.classList.add('active'); page.classList.add('fade-in'); }
-  if (tab === 'alertas') renderAlertas();
-  if (tab === 'metas') renderMetas();
-  if (tab === 'dividas') renderDividas();
-  if (tab === 'dashboard') renderDashboard();
-  if (tab === 'gastos') renderMes();
-  if (tab === 'investimentos') { renderInvestimentos(); renderPatrimonio(); }
-  if (tab === 'simulador') atualizar();
-}
+// setTab unificado acima
 
 // ===== SIMULADOR =====
 let chart = null;
@@ -3586,6 +3574,8 @@ document.getElementById('tab-dashboard').classList.add('active');
 document.querySelectorAll('.top-tab').forEach(t => t.classList.remove('active'));
 const dashBtn = document.querySelector('.top-tab[data-tab="dashboard"]');
 if (dashBtn) dashBtn.classList.add('active');
+renderProtecao();
+renderCurso();
 
 atualizar();
 renderMes();
