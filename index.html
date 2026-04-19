@@ -1698,63 +1698,6 @@ footer { text-align: center; font-size: 11px; color: var(--text-subtle); padding
     </div>
   </div>
 
-    <!-- Hero total -->
-    <div class="div-hero" id="div-hero">
-      <div class="div-hero-label">Sua situação atual</div>
-      <div class="div-hero-value" id="div-hero-total">R$ 0,00</div>
-      <div class="div-hero-sub" id="div-hero-sub">em dívidas cadastradas</div>
-      <div id="div-juros-burn" style="display:none;" class="juros-burn">
-        <span>🔥</span>
-        <span class="juros-burn-txt" id="div-juros-burn-txt">R$ 0,00 em juros todo mês</span>
-      </div>
-      <div style="margin-top:1rem;" class="div-hero-stats">
-        <div class="div-hero-stat">
-          <div class="div-hero-stat-label">Dívidas</div>
-          <div class="div-hero-stat-val" id="div-hero-qtd">0</div>
-        </div>
-        <div class="div-hero-stat">
-          <div class="div-hero-stat-label">Quitação</div>
-          <div class="div-hero-stat-val" id="div-hero-prazo">—</div>
-        </div>
-        <div class="div-hero-stat">
-          <div class="div-hero-stat-label">Total de juros</div>
-          <div class="div-hero-stat-val danger" id="div-hero-juros">R$ 0</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Card de liberdade (aparece quando nao tem dividas) -->
-    <div class="liberdade-card" id="liberdade-card">
-      <div class="liberdade-emoji">🎉</div>
-      <div class="liberdade-title">Você está livre de dívidas!</div>
-      <div class="liberdade-sub">Agora cada real que entra trabalha pra você. Invista!</div>
-    </div>
-
-    <!-- Lista de dívidas -->
-    <div id="dividas-list">
-      <div class="empty-state">
-        <div class="empty-state-icon">✨</div>
-        Nenhuma dívida cadastrada.<br>
-        <span style="color:var(--purple);font-weight:600;">Você está livre!</span>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- ===== ALERTAS ===== -->
-  <div id="tab-alertas" class="section-page">
-    <div class="card">
-      <div class="card-title">Novo alerta de vencimento</div>
-      <div class="input-row">
-        <div class="field"><label>Descrição</label><input type="text" id="alerta-nome" placeholder="Ex: Aluguel, Cartão..."></div>
-        <div class="field"><label>Valor (R$)</label><input type="number" id="alerta-valor" placeholder="0,00" min="0" step="0.01"></div>
-        <div class="field"><label>Data de vencimento</label><input type="date" id="alerta-data"></div>
-        <div class="field"><label>Recorrente?</label><select id="alerta-recorrente"><option value="nao">Não</option><option value="sim">Sim — todo mês</option></select></div>
-      </div>
-      <button class="btn-primary" onclick="addAlerta()" style="margin-top:8px;">+ Adicionar alerta</button>
-    </div>
-    <div id="alertas-list"><div class="empty-state"><div class="empty-state-icon">🔔</div>Nenhum alerta cadastrado.<br>Adicione seus vencimentos e nunca mais pague multa!</div></div>
-  </div>
 
 </div>
 
