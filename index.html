@@ -590,6 +590,108 @@ footer { text-align: center; font-size: 11px; color: var(--text-subtle); padding
 @media (max-width: 400px) {
   .form-row { grid-template-columns: 1fr; }
 }
+
+/* ===== MOTOR DE INTELIGÊNCIA FINANCEIRA ===== */
+.decisao-panel {
+  border-radius: var(--radius); margin-bottom: 1rem;
+  overflow: hidden; border: 1px solid var(--border);
+}
+.decisao-header {
+  padding: 10px 16px;
+  background: linear-gradient(135deg, #1a0533, #3b0764);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.decisao-header-title {
+  font-size: 10px; font-weight: 700;
+  color: rgba(255,255,255,0.6);
+  text-transform: uppercase; letter-spacing: 0.1em;
+}
+.decisao-body {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  background: var(--card);
+}
+.decisao-item {
+  padding: 14px 10px;
+  border-right: 1px solid var(--border);
+  text-align: center;
+}
+.decisao-item:last-child { border-right: none; }
+.decisao-label {
+  font-size: 10px; font-weight: 700; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 5px;
+}
+.decisao-value {
+  font-size: 15px; font-weight: 800; line-height: 1.1; margin-bottom: 2px;
+}
+.decisao-sub { font-size: 10px; color: var(--text-subtle); }
+.decisao-value.green { color: #16A34A; }
+.decisao-value.yellow { color: #D97706; }
+.decisao-value.red { color: #DC2626; }
+.decisao-value.blue { color: #2563EB; }
+.decisao-value.purple { color: var(--purple); }
+
+.risco-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px; border-radius: 99px;
+  font-size: 10px; font-weight: 700;
+}
+.risco-badge.baixo { background: #DCFCE7; color: #16A34A; }
+.risco-badge.medio { background: #FEF3C7; color: #D97706; }
+.risco-badge.alto  { background: #FEE2E2; color: #DC2626; }
+
+/* Insights */
+.insights-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 1rem; }
+.insight-card {
+  border-radius: 12px; padding: 12px 14px;
+  display: flex; align-items: flex-start; gap: 10px;
+  border: 1px solid; animation: fadeIn 0.3s ease;
+}
+.insight-card.alert  { background: #FFF5F5; border-color: #FCA5A5; }
+.insight-card.warn   { background: #FFFBEB; border-color: #FCD34D; }
+.insight-card.good   { background: #F0FDF4; border-color: #86EFAC; }
+.insight-card.info   { background: var(--purple-light); border-color: rgba(124,58,237,0.2); }
+.insight-card.tip    { background: #EFF6FF; border-color: #BFDBFE; }
+[data-theme="dark"] .insight-card.alert { background: rgba(220,38,38,0.1); border-color: rgba(220,38,38,0.3); }
+[data-theme="dark"] .insight-card.warn  { background: rgba(217,119,6,0.1); border-color: rgba(217,119,6,0.3); }
+[data-theme="dark"] .insight-card.good  { background: rgba(22,163,74,0.1); border-color: rgba(22,163,74,0.3); }
+[data-theme="dark"] .insight-card.info  { background: rgba(124,58,237,0.15); border-color: rgba(124,58,237,0.3); }
+[data-theme="dark"] .insight-card.tip   { background: rgba(37,99,235,0.1); border-color: rgba(37,99,235,0.3); }
+.insight-icon { font-size: 18px; flex-shrink: 0; line-height: 1; margin-top: 1px; }
+.insight-text { flex: 1; }
+.insight-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+.insight-desc { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+.insight-action {
+  font-size: 11px; font-weight: 700; color: var(--purple);
+  margin-top: 4px; cursor: pointer; display: inline-block;
+}
+
+/* Barra de tempo */
+.tempo-bar-wrap {
+  background: var(--purple-light); border-radius: 10px;
+  padding: 10px 14px; margin-bottom: 1rem;
+  display: flex; align-items: center; gap: 12px;
+}
+.tempo-bar-track { flex: 1; height: 5px; background: rgba(124,58,237,0.15); border-radius: 99px; overflow: hidden; }
+.tempo-bar-fill { height: 5px; border-radius: 99px; background: var(--purple); transition: width 0.5s ease; }
+.tempo-txt { font-size: 11px; font-weight: 700; color: var(--purple); white-space: nowrap; flex-shrink: 0; }
+
+/* Contexto no gasto */
+.gasto-ctx {
+  background: var(--purple-light); border-radius: 10px;
+  padding: 10px 14px; margin-bottom: 10px;
+  font-size: 12px; color: var(--purple); line-height: 1.5; border: 1px solid rgba(124,58,237,0.15);
+}
+.gasto-ctx strong { color: var(--purple-dark); }
+[data-theme="dark"] .gasto-ctx strong { color: #C4B5FD; }
+
+@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.5;} }
+.pulse { animation: pulse 2s ease-in-out infinite; }
+
+@media (max-width: 480px) {
+  .decisao-body { grid-template-columns: 1fr; }
+  .decisao-item { border-right: none; border-bottom: 1px solid var(--border); }
+  .decisao-item:last-child { border-bottom: none; }
+}
 </style>
 </head>
 <body>
@@ -767,6 +869,43 @@ footer { text-align: center; font-size: 11px; color: var(--text-subtle); padding
       </div>
     </div>
 
+    <!-- Barra de tempo do mês -->
+    <div class="tempo-bar-wrap" id="tempo-bar-wrap">
+      <div class="tempo-txt" id="tempo-txt">Carregando...</div>
+      <div class="tempo-bar-track">
+        <div class="tempo-bar-fill" id="tempo-bar-fill" style="width:0%;"></div>
+      </div>
+      <div class="tempo-txt" id="tempo-dias-txt">— dias</div>
+    </div>
+
+    <!-- Painel de Decisão -->
+    <div class="decisao-panel">
+      <div class="decisao-header">
+        <span class="decisao-header-title">⚡ Painel de decisão</span>
+        <span id="risco-badge" class="risco-badge baixo">Risco baixo</span>
+      </div>
+      <div class="decisao-body">
+        <div class="decisao-item">
+          <div class="decisao-label">Posso gastar/dia</div>
+          <div class="decisao-value" id="dec-por-dia">—</div>
+          <div class="decisao-sub" id="dec-por-dia-sub">até fim do mês</div>
+        </div>
+        <div class="decisao-item">
+          <div class="decisao-label">Posso investir</div>
+          <div class="decisao-value" id="dec-investir">—</div>
+          <div class="decisao-sub">este mês ainda</div>
+        </div>
+        <div class="decisao-item">
+          <div class="decisao-label">Saldo real</div>
+          <div class="decisao-value" id="dec-saldo-real">—</div>
+          <div class="decisao-sub" id="dec-saldo-sub">após pendentes</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Insights automáticos -->
+    <div id="insights-container" class="insights-list"></div>
+
     <!-- Dica do dia -->
     <div style="border-radius:14px;padding:14px 16px;margin-bottom:1rem;background:linear-gradient(135deg,#7C3AED,#6D28D9);display:flex;align-items:flex-start;gap:12px;">
       <div style="font-size:20px;flex-shrink:0;">💡</div>
@@ -904,6 +1043,9 @@ footer { text-align: center; font-size: 11px; color: var(--text-subtle); padding
       </div>
       <div class="saldo-bar-wrap"><div class="saldo-bar" id="saldo-barra" style="width:100%;"></div></div>
     </div>
+
+    <!-- Contexto inteligente de gastos -->
+    <div id="gasto-ctx-box" class="gasto-ctx" style="display:none;"></div>
 
     <!-- Rendas -->
     <div class="card">
@@ -1195,48 +1337,38 @@ function getDicaDoDia() {
 
 // ===== SCORE FINANCEIRO =====
 function calcularScore() {
-  const mesData = getMesData();
-  const extras = mesData.rendaExtra || [];
-  const totalRenda = mesData.salario + extras.reduce((s,r) => s + r.valor, 0);
-  const totalGasto = mesData.expenses.reduce((s,e) => s + e.valor, 0);
-  const totalInv = (() => {
-    const data = getInvData(); return data.aportes.filter(a => a.realizado).reduce((s,a) => s + a.valor, 0);
-  })();
-  const metas = getMetas();
-  const dividas = getDividas();
+  const totalRenda = (STATE.gastos.salario||0) + STATE.rendasExtras.reduce((s,r)=>s+parseFloat(r.valor||0),0);
+  const totalGasto = STATE.despesas.reduce((s,e)=>s+parseFloat(e.valor||0),0);
+  const totalInv = STATE.investimentos.filter(a=>a.realizado).reduce((s,a)=>s+parseFloat(a.valor||0),0);
 
-  if (totalRenda === 0) return { score: 0, status: 'Sem dados', tip: 'Cadastre seu salário para ver seu score financeiro.' };
+  if (totalRenda === 0) return { score:0, status:'Sem dados', tip:'Cadastre seu salário para ver seu score financeiro.' };
 
   let score = 0;
-  const pctGasto = totalRenda > 0 ? (totalGasto / totalRenda) * 100 : 0;
-  const pctInv = totalRenda > 0 ? (totalInv / totalRenda) * 100 : 0;
+  const pctGasto = (totalGasto/totalRenda)*100;
+  const pctInv = (totalInv/totalRenda)*100;
 
-  // Comprometimento de renda (0-40 pts)
   if (pctGasto <= 50) score += 40;
   else if (pctGasto <= 70) score += 28;
   else if (pctGasto <= 85) score += 15;
   else score += 5;
 
-  // Investimento (0-30 pts)
   if (pctInv >= 20) score += 30;
   else if (pctInv >= 10) score += 20;
   else if (pctInv >= 5) score += 10;
   else if (pctInv > 0) score += 5;
 
-  // Metas ativas (0-15 pts)
-  if (metas.length >= 3) score += 15;
-  else if (metas.length >= 1) score += 8;
+  if (STATE.metas.length >= 3) score += 15;
+  else if (STATE.metas.length >= 1) score += 8;
 
-  // Sem dívidas (0-15 pts)
-  if (dividas.length === 0) score += 15;
-  else if (dividas.length === 1) score += 8;
+  if (STATE.dividas.length === 0) score += 15;
+  else if (STATE.dividas.length === 1) score += 8;
 
   let status, tip;
-  if (score >= 85) { status = 'Excelente 🏆'; tip = 'Você está no caminho certo! Continue assim e a riqueza vem.'; }
-  else if (score >= 65) { status = 'Muito bom 🌟'; tip = 'Ótimo controle! Tente aumentar um pouco mais seus investimentos.'; }
-  else if (score >= 45) { status = 'Regular 📊'; tip = 'Bom começo! Reduza gastos ou aumente investimentos para melhorar.'; }
-  else if (score >= 25) { status = 'Atenção ⚠️'; tip = 'Revise seus gastos e tente criar pelo menos uma meta de investimento.'; }
-  else { status = 'Crítico 🚨'; tip = 'Hora de agir! Reduza gastos, quite dívidas e comece a investir.'; }
+  if (score >= 85) { status='Excelente 🏆'; tip='Você está no caminho certo! Continue assim.'; }
+  else if (score >= 65) { status='Muito bom 🌟'; tip='Ótimo controle! Tente aumentar seus investimentos.'; }
+  else if (score >= 45) { status='Regular 📊'; tip='Bom começo! Reduza gastos ou aumente investimentos.'; }
+  else if (score >= 25) { status='Atenção ⚠️'; tip='Revise seus gastos e crie pelo menos uma meta.'; }
+  else { status='Crítico 🚨'; tip='Hora de agir! Reduza gastos, quite dívidas e invista.'; }
 
   return { score, status, tip };
 }
@@ -1274,16 +1406,14 @@ function setTabBtn(tab) {
 }
 
 function renderDashboard() {
-  const mesData = getMesData();
-  const extras = mesData.rendaExtra || [];
-  const totalRenda = mesData.salario + extras.reduce((s,r) => s + r.valor, 0);
-  const totalGasto = mesData.expenses.reduce((s,e) => s + e.valor, 0);
-  const totalPago = mesData.expenses.filter(e => e.pago).reduce((s,e) => s + e.valor, 0);
-  const rendaRecebida = (mesData.salarioRecebido ? mesData.salario : 0) + extras.filter(r => r.recebido).reduce((s,r) => s + r.valor, 0);
+  const totalRenda = (STATE.gastos.salario||0) + STATE.rendasExtras.reduce((s,r)=>s+parseFloat(r.valor||0),0);
+  const totalGasto = STATE.despesas.reduce((s,e)=>s+parseFloat(e.valor||0),0);
+  const totalPago = STATE.despesas.filter(e=>e.pago).reduce((s,e)=>s+parseFloat(e.valor||0),0);
+  const rendaRecebida = ((STATE.gastos.salario_recebido||STATE.gastos.salarioRecebido)?(STATE.gastos.salario||0):0)
+    + STATE.rendasExtras.filter(r=>r.recebido).reduce((s,r)=>s+parseFloat(r.valor||0),0);
   const saldo = rendaRecebida - totalPago;
-  const invData = getInvData();
-  const totalInv = invData.aportes.filter(a => a.realizado).reduce((s,a) => s + a.valor, 0);
-  const pct = totalRenda > 0 ? Math.min(100, Math.round((totalGasto / totalRenda) * 100)) : 0;
+  const totalInv = STATE.investimentos.filter(a=>a.realizado).reduce((s,a)=>s+parseFloat(a.valor||0),0);
+  const pct = totalRenda > 0 ? Math.min(100, Math.round((totalGasto/totalRenda)*100)) : 0;
 
   document.getElementById('dash-mes').textContent = MESES[now.getMonth()];
   document.getElementById('dash-saldo').textContent = fmtMoney(saldo);
@@ -1295,56 +1425,55 @@ function renderDashboard() {
   const bar = document.getElementById('dash-pct-bar');
   bar.style.width = pct + '%';
   bar.style.background = pct >= 90 ? '#DC2626' : pct >= 70 ? '#D97706' : '#7C3AED';
-
   document.getElementById('dica-texto').textContent = getDicaDoDia();
-  renderScore();
 
-  // Alertas
-  const alertas = getAlertas();
+  // Motor de inteligência
+  renderScore();
+  renderTempoBar();
+  renderPainelDecisao();
+  renderInsights();
+
+  // Alertas urgentes no dashboard
   const hoje = new Date(); hoje.setHours(0,0,0,0);
-  const urgentes = alertas.filter(a => {
-    const diff = Math.round((new Date(a.data + 'T00:00:00') - hoje) / (1000*60*60*24));
+  const urgentes = STATE.alertas.filter(a=>{
+    const diff = Math.round((new Date(a.data_vencimento+'T00:00:00')-hoje)/(1000*60*60*24));
     return diff <= 5;
-  }).sort((a,b) => new Date(a.data) - new Date(b.data));
+  }).sort((a,b)=>new Date(a.data_vencimento)-new Date(b.data_vencimento));
 
   const alertaSection = document.getElementById('dash-alertas-section');
-  const alertaBadge = document.getElementById('alerta-badge');
+  document.getElementById('alerta-badge').style.display = urgentes.length > 0 ? 'block' : 'none';
   if (urgentes.length > 0) {
     alertaSection.style.display = 'block';
-    alertaBadge.style.display = 'block';
-    document.getElementById('dash-alertas-list').innerHTML = urgentes.slice(0,3).map(a => {
-      const diff = Math.round((new Date(a.data + 'T00:00:00') - hoje) / (1000*60*60*24));
+    document.getElementById('dash-alertas-list').innerHTML = urgentes.slice(0,3).map(a=>{
+      const diff = Math.round((new Date(a.data_vencimento+'T00:00:00')-hoje)/(1000*60*60*24));
       const cor = diff < 0 ? '#DC2626' : diff <= 2 ? '#DC2626' : '#D97706';
-      const label = diff < 0 ? 'Vencido' : diff === 0 ? 'Hoje!' : 'Em ' + diff + ' dias';
+      const label = diff < 0 ? 'Vencido' : diff === 0 ? 'Hoje!' : 'Em '+diff+' dias';
       return `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-top:1px solid var(--border);font-size:14px;">
         <div><span style="font-weight:600;">${a.nome}</span> <span style="font-size:12px;color:${cor};font-weight:700;">${label}</span></div>
-        ${a.valor > 0 ? `<span style="font-weight:700;color:${cor};">${fmtMoney(a.valor)}</span>` : ''}
+        ${a.valor>0?`<span style="font-weight:700;color:${cor};">${fmtMoney(a.valor)}</span>`:''}
       </div>`;
     }).join('');
-  } else {
-    alertaSection.style.display = 'none';
-    alertaBadge.style.display = 'none';
-  }
+  } else { alertaSection.style.display = 'none'; }
 
-  // Metas
-  const metas = getMetas();
+  // Metas no dashboard
   const metasSection = document.getElementById('dash-metas-section');
-  if (metas.length > 0) {
+  if (STATE.metas.length > 0) {
     metasSection.style.display = 'block';
-    document.getElementById('dash-metas-list').innerHTML = metas.slice(0,3).map(m => {
-      const pctM = Math.min(100, Math.round((m.atual / m.alvo) * 100));
+    document.getElementById('dash-metas-list').innerHTML = STATE.metas.slice(0,3).map(m=>{
+      const alvo=m.valor_alvo||0, atual=m.valor_atual||0;
+      const pctM = alvo > 0 ? Math.min(100, Math.round((atual/alvo)*100)) : 0;
       return `<div style="margin-bottom:10px;">
         <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px;">
           <span style="font-weight:600;">${m.nome}</span>
           <span style="color:var(--purple);font-weight:700;">${pctM}%</span>
         </div>
-        <div style="background:var(--purple-light);border-radius:99px;height:6px;"><div style="height:6px;border-radius:99px;background:${pctM >= 100 ? '#16A34A' : 'var(--purple)'};width:${pctM}%;"></div></div>
-        <div style="font-size:11px;color:var(--text-muted);margin-top:3px;">Falta ${fmtMoney(Math.max(0, m.alvo - m.atual))}</div>
+        <div style="background:var(--purple-light);border-radius:99px;height:6px;">
+          <div style="height:6px;border-radius:99px;background:${pctM>=100?'#16A34A':'var(--purple)'};width:${pctM}%;"></div>
+        </div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:3px;">Falta ${fmtMoney(Math.max(0,alvo-atual))}</div>
       </div>`;
     }).join('');
-  } else {
-    metasSection.style.display = 'none';
-  }
+  } else { metasSection.style.display = 'none'; }
 }
 
 // ===== TABS =====
@@ -1456,14 +1585,12 @@ function mudarMes(delta) {
 function irParaHoje() { mesSel = now.getMonth(); anoSel = now.getFullYear(); renderMes(); }
 
 function renderMes() {
-  const isHoje = mesSel === now.getMonth() && anoSel === now.getFullYear();
-  document.getElementById('mes-label').textContent = MESES[mesSel] + ' ' + anoSel + (isHoje ? ' · atual' : '');
-  const data = getMesData();
-  document.getElementById('sal-valor').value = data.salario || '';
-  renderSalarioBtn(data);
-  renderRendaExtra(data);
-  renderSaldo(data);
-  renderExpenses(data);
+  const isHoje = STATE.mesSel===now.getMonth()&&STATE.anoSel===now.getFullYear();
+  document.getElementById('mes-label').textContent=MESES[STATE.mesSel]+' '+STATE.anoSel+(isHoje?' · atual':'');
+  document.getElementById('sal-valor').value=STATE.gastos.salario||'';
+  renderSalarioBtn(); renderRendaExtra(); renderSaldo(); renderExpenses();
+  if(isHoje) renderContextoGastos();
+  else { const b=document.getElementById('gasto-ctx-box'); if(b) b.style.display='none'; }
 }
 
 function salvarSalario() {
@@ -2242,6 +2369,176 @@ function entrarComoTeste() {
   document.getElementById('menu-email').textContent = 'teste@grapeinvest.com.br';
 }
 
+// ===== MOTOR DE INTELIGÊNCIA FINANCEIRA =====
+
+function getDiasNoMes(ano, mes) { return new Date(ano, mes + 1, 0).getDate(); }
+
+function calcularContextoTemporal() {
+  const hoje = new Date();
+  const diaAtual = hoje.getDate();
+  const diasNoMes = getDiasNoMes(hoje.getFullYear(), hoje.getMonth());
+  const diasRestantes = diasNoMes - diaAtual;
+  const pctMes = Math.round((diaAtual / diasNoMes) * 100);
+  return { diaAtual, diasNoMes, diasRestantes, pctMes };
+}
+
+function renderTempoBar() {
+  const { diaAtual, diasNoMes, diasRestantes, pctMes } = calcularContextoTemporal();
+  const fill = document.getElementById('tempo-bar-fill');
+  const txt = document.getElementById('tempo-txt');
+  const diasTxt = document.getElementById('tempo-dias-txt');
+  if (!fill) return;
+  fill.style.width = pctMes + '%';
+  fill.style.background = pctMes >= 85 ? '#DC2626' : pctMes >= 60 ? '#D97706' : '#7C3AED';
+  txt.textContent = `Dia ${diaAtual} de ${diasNoMes} — ${pctMes}% do mês`;
+  diasTxt.textContent = diasRestantes + (diasRestantes === 1 ? ' dia' : ' dias');
+}
+
+function calcularPainelDecisao() {
+  const { diasRestantes, pctMes } = calcularContextoTemporal();
+  const totalRenda = (STATE.gastos.salario || 0) + STATE.rendasExtras.reduce((s, r) => s + parseFloat(r.valor || 0), 0);
+  const totalGasto = STATE.despesas.reduce((s, e) => s + parseFloat(e.valor || 0), 0);
+  const totalPago = STATE.despesas.filter(e => e.pago).reduce((s, e) => s + parseFloat(e.valor || 0), 0);
+  const totalPendente = totalGasto - totalPago;
+  const rendaRecebida = ((STATE.gastos.salario_recebido || STATE.gastos.salarioRecebido) ? (STATE.gastos.salario || 0) : 0)
+    + STATE.rendasExtras.filter(r => r.recebido).reduce((s, r) => s + parseFloat(r.valor || 0), 0);
+  const saldoDisponivel = rendaRecebida - totalPago;
+  const saldoReal = saldoDisponivel - totalPendente;
+  const podeInvestir = Math.max(0, saldoReal - (totalRenda * 0.05));
+  const porDia = diasRestantes > 0 ? (saldoReal / diasRestantes) : 0;
+  const pctGasto = totalRenda > 0 ? (totalGasto / totalRenda) * 100 : 0;
+
+  let risco = 'baixo';
+  if (saldoReal < 0 || pctGasto >= 95) risco = 'alto';
+  else if (pctGasto >= 80 || (pctGasto > pctMes * 1.25)) risco = 'medio';
+
+  return { saldoReal, porDia, podeInvestir, risco, totalRenda, totalGasto, totalPago, totalPendente, saldoDisponivel, rendaRecebida, pctGasto };
+}
+
+function renderPainelDecisao() {
+  const { diasRestantes } = calcularContextoTemporal();
+  const { saldoReal, porDia, podeInvestir, risco } = calcularPainelDecisao();
+  const elDia = document.getElementById('dec-por-dia');
+  const elInv = document.getElementById('dec-investir');
+  const elSaldo = document.getElementById('dec-saldo-real');
+  const elRisco = document.getElementById('risco-badge');
+  const elDiaSub = document.getElementById('dec-por-dia-sub');
+  if (!elDia) return;
+  elDia.textContent = fmtMoney(Math.max(0, porDia));
+  elDia.className = 'decisao-value ' + (porDia > 0 ? 'green' : 'red');
+  elDiaSub.textContent = diasRestantes + ' dias restantes';
+  elInv.textContent = fmtMoney(podeInvestir);
+  elInv.className = 'decisao-value ' + (podeInvestir > 0 ? 'blue' : 'yellow');
+  elSaldo.textContent = fmtMoney(saldoReal);
+  elSaldo.className = 'decisao-value ' + (saldoReal >= 0 ? 'green' : 'red');
+  elRisco.className = `risco-badge ${risco}`;
+  elRisco.textContent = risco === 'baixo' ? '✓ Risco baixo' : risco === 'medio' ? '⚠ Risco médio' : '🚨 Risco alto';
+}
+
+function gerarInsights() {
+  const insights = [];
+  const { diaAtual, diasNoMes, diasRestantes, pctMes } = calcularContextoTemporal();
+  const { totalRenda, totalGasto, saldoReal, porDia, podeInvestir, pctGasto } = calcularPainelDecisao();
+
+  if (totalRenda === 0) {
+    insights.push({ tipo:'info', icon:'👋', titulo:'Bem-vindo ao Grape Invest', desc:'Cadastre seu salário na aba Gastos para receber recomendações personalizadas.', acao:'Cadastrar salário →', fn:"setTabBtn('gastos')" });
+    return insights;
+  }
+
+  if (saldoReal < 0) {
+    insights.push({ tipo:'alert', icon:'🚨', titulo:'Saldo negativo detectado', desc:`Você está ${fmtMoney(Math.abs(saldoReal))} no negativo após considerar gastos pendentes. Evite novos gastos até regularizar.`, acao:'Ver gastos →', fn:"setTabBtn('gastos')" });
+  }
+
+  if (pctGasto > pctMes * 1.3 && saldoReal >= 0) {
+    insights.push({ tipo:'alert', icon:'⚡', titulo:'Ritmo de gastos acelerado', desc:`Você está no dia ${diaAtual} (${pctMes}% do mês) mas já gastou ${Math.round(pctGasto)}% da renda. No ritmo atual, pode não ter saldo no fim do mês.`, acao:'Revisar gastos →', fn:"setTabBtn('gastos')" });
+  }
+
+  if (porDia > 0 && porDia < 20 && diasRestantes > 5 && saldoReal >= 0) {
+    insights.push({ tipo:'warn', icon:'⚠️', titulo:'Margem diária muito baixa', desc:`Você tem apenas ${fmtMoney(porDia)}/dia disponível pelos próximos ${diasRestantes} dias. Priorize gastos essenciais.` });
+  }
+
+  const bycat = {};
+  STATE.despesas.forEach(e => { const cat = e.categoria||'Outros'; bycat[cat]=(bycat[cat]||0)+parseFloat(e.valor||0); });
+  const catOrdenada = Object.entries(bycat).sort((a,b)=>b[1]-a[1]);
+  if (catOrdenada.length > 0 && totalGasto > 0) {
+    const [topCat, topVal] = catOrdenada[0];
+    const pctCat = Math.round((topVal/totalGasto)*100);
+    if (pctCat >= 45 && totalGasto > 100) {
+      insights.push({ tipo:'warn', icon:'🔍', titulo:`${topCat} é sua maior despesa`, desc:`${pctCat}% do que você gastou este mês foi em ${topCat} (${fmtMoney(topVal)}). Considere se há margem para reduzir.` });
+    }
+  }
+
+  const comJurosAltos = STATE.dividas.filter(d=>(parseFloat(d.taxa_juros)||0)>2);
+  if (comJurosAltos.length > 0) {
+    insights.push({ tipo:'warn', icon:'💸', titulo:'Dívidas com juros altos', desc:`Você tem ${comJurosAltos.length} dívida(s) com juros acima de 2% ao mês. Quite essas antes de investir para não perder dinheiro.`, acao:'Ver dívidas →', fn:"setTabBtn('dividas')" });
+  }
+
+  if (podeInvestir > 50 && STATE.investimentos.filter(a=>!a.realizado).length === 0) {
+    insights.push({ tipo:'tip', icon:'📈', titulo:'Oportunidade de investimento', desc:`Você ainda tem ${fmtMoney(podeInvestir)} disponível para investir este mês sem comprometer o orçamento.`, acao:'Planejar aporte →', fn:"setTabBtn('investimentos')" });
+  }
+
+  const hoje2 = new Date(); hoje2.setHours(0,0,0,0);
+  const urgentissimos = STATE.alertas.filter(a => {
+    const diff = Math.round((new Date(a.data_vencimento+'T00:00:00') - hoje2)/(1000*60*60*24));
+    return diff >= 0 && diff <= 1;
+  });
+  if (urgentissimos.length > 0) {
+    insights.push({ tipo:'alert', icon:'🔔', titulo:urgentissimos.length===1?'Conta vence hoje ou amanhã':`${urgentissimos.length} contas vencem hoje ou amanhã`, desc:urgentissimos.map(a=>`${a.nome}${a.valor>0?' — '+fmtMoney(a.valor):''}`).join(', '), acao:'Ver alertas →', fn:"setTabBtn('alertas')" });
+  }
+
+  const metasAtrasadas = STATE.metas.filter(m => {
+    if (!m.prazo) return false;
+    const prazo = new Date(m.prazo+'-01'), agora = new Date();
+    const mesesRestantes = (prazo.getFullYear()-agora.getFullYear())*12+(prazo.getMonth()-agora.getMonth());
+    const pct = (m.valor_atual||0)/(m.valor_alvo||1);
+    return mesesRestantes <= 3 && pct < 0.7;
+  });
+  if (metasAtrasadas.length > 0) {
+    insights.push({ tipo:'warn', icon:'🎯', titulo:`Meta "${metasAtrasadas[0].nome}" em risco`, desc:`Faltam poucos meses e você ainda não atingiu 70% do valor. Aumente os aportes para não perder o prazo.`, acao:'Ver metas →', fn:"setTabBtn('metas')" });
+  }
+
+  if (insights.length === 0) {
+    insights.push({ tipo:'good', icon:'✅', titulo:'Finanças sob controle', desc:`Você gastou ${Math.round(pctGasto)}% da renda e tem ${fmtMoney(Math.max(0,porDia))}/dia disponível pelos próximos ${diasRestantes} dias. Continue assim!` });
+  }
+
+  return insights;
+}
+
+function renderInsights() {
+  const container = document.getElementById('insights-container');
+  if (!container) return;
+  const insights = gerarInsights();
+  container.innerHTML = insights.map(i => `
+    <div class="insight-card ${i.tipo}">
+      <div class="insight-icon">${i.icon}</div>
+      <div class="insight-text">
+        <div class="insight-title">${i.titulo}</div>
+        <div class="insight-desc">${i.desc}</div>
+        ${i.acao ? `<span class="insight-action" onclick="${i.fn}">${i.acao}</span>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+function renderContextoGastos() {
+  const box = document.getElementById('gasto-ctx-box');
+  if (!box) return;
+  const { diasRestantes, diaAtual, diasNoMes } = calcularContextoTemporal();
+  const { totalRenda, totalGasto, porDia, saldoReal } = calcularPainelDecisao();
+  if (totalRenda === 0) { box.style.display='none'; return; }
+  const pctGasto = totalRenda > 0 ? Math.round((totalGasto/totalRenda)*100) : 0;
+  box.style.display = 'block';
+  if (saldoReal < 0) {
+    box.style.cssText = 'display:block;background:#FEF2F2;color:#DC2626;border-color:#FCA5A5;border-radius:10px;padding:10px 14px;margin-bottom:10px;font-size:12px;line-height:1.5;border:1px solid;';
+    box.innerHTML = `🚨 <strong>Atenção:</strong> Você já está ${fmtMoney(Math.abs(saldoReal))} acima do saldo disponível. Evite novos gastos.`;
+  } else if (porDia > 0) {
+    box.style.cssText = 'display:block;background:var(--purple-light);color:var(--purple);border-color:rgba(124,58,237,0.15);border-radius:10px;padding:10px 14px;margin-bottom:10px;font-size:12px;line-height:1.5;border:1px solid;';
+    box.innerHTML = `📅 Dia ${diaAtual} de ${diasNoMes} — gastou <strong>${pctGasto}%</strong> da renda. Margem: <strong>${fmtMoney(Math.max(0,porDia))}/dia</strong> pelos próximos ${diasRestantes} dias.`;
+  } else {
+    box.style.cssText = 'display:block;background:#FFFBEB;color:#D97706;border-color:#FCD34D;border-radius:10px;padding:10px 14px;margin-bottom:10px;font-size:12px;line-height:1.5;border:1px solid;';
+    box.innerHTML = `⚠️ Orçamento do mês <strong>esgotado</strong>. Adicione apenas gastos essenciais.`;
+  }
+}
+
 // ===== INIT =====
 // Garantir que só o dashboard aparece no load
 document.querySelectorAll('.section-page').forEach(p => p.classList.remove('active'));
@@ -2253,6 +2550,7 @@ atualizar();
 renderMes();
 renderInvestimentos();
 renderDashboard();
+
 
 </script>
 
