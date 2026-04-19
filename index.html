@@ -1076,9 +1076,11 @@ footer { text-align: center; font-size: 11px; color: var(--text-subtle); padding
 }
 
 @media (max-width: 480px) {
-  .decisao-body { grid-template-columns: 1fr; }
-  .decisao-item { border-right: none; border-bottom: 1px solid var(--border); }
-  .decisao-item:last-child { border-bottom: none; }
+  .decisao-body { grid-template-columns: 1fr 1fr 1fr; }
+  .decisao-item { border-right: 1px solid var(--border); }
+  .decisao-label { font-size: 9px; }
+  .decisao-value { font-size: 13px; }
+  .decisao-sub { font-size: 9px; }
 }
 
 /* ===== ANIMAÇÃO DE UVAS ===== */
@@ -3738,6 +3740,35 @@ document.getElementById('confissao-modal') && document.getElementById('confissao
   if (e.target === this) fecharConfissaoModal();
 });
 
+// ===== PWA STANDALONE CHECK =====
+// Se abrir no Safari (não standalone), mostra banner para adicionar à tela inicial
+(function() {
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isStandalone = window.navigator.standalone === true;
+  const isAndroid = /android/i.test(navigator.userAgent);
+  const isPWA = window.matchMedia('(display-mode: standalone)').matches;
+  
+  if ((isIOS && !isStandalone) || (isAndroid && !isPWA)) {
+    // Criar banner sutil de instalação
+    const banner = document.createElement('div');
+    banner.id = 'install-banner';
+    banner.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#4C1D95;color:white;padding:12px 16px;z-index:99997;display:flex;align-items:center;gap:10px;font-family:inherit;';
+    banner.innerHTML = `
+      <img src="icon-192.png" style="width:32px;height:32px;border-radius:8px;flex-shrink:0;">
+      <div style="flex:1;font-size:13px;line-height:1.4;">
+        <strong>Adicione à tela inicial</strong><br>
+        <span style="opacity:0.75;font-size:11px;">${isIOS ? 'Toque em ↑ Compartilhar → Adicionar à Tela de Início' : 'Menu → Adicionar à tela inicial'}</span>
+      </div>
+      <button onclick="document.getElementById('install-banner').remove();localStorage.setItem('gi_banner_fechado','1')" 
+        style="background:rgba(255,255,255,0.2);border:none;color:white;border-radius:8px;padding:6px 10px;cursor:pointer;font-size:12px;font-family:inherit;flex-shrink:0;">✕</button>
+    `;
+    // Só mostra se não fechou antes
+    if (!localStorage.getItem('gi_banner_fechado')) {
+      document.body.appendChild(banner);
+    }
+  }
+})();
+
 // ===== INIT =====
 // Garantir que só o dashboard aparece no load
 document.querySelectorAll('.section-page').forEach(p => p.classList.remove('active'));
@@ -3764,3 +3795,4 @@ if ('serviceWorker' in navigator) {
 </script>
 </body>
 </html>
+
