@@ -321,36 +321,136 @@ header {
 
 .container { max-width: 720px; margin: 0 auto; padding: 1rem 1rem 5rem; }
 
-/* ===== NAV TABS ===== */
-.nav-tabs {
-  display: flex; gap: 0; margin-bottom: 1.25rem;
-  border-bottom: 1px solid var(--border);
-  background: var(--card);
-  overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;
-}
-.nav-tabs::-webkit-scrollbar { display: none; }
+/* ===== NAV INFERIOR FLUTUANTE ===== */
+.nav-tabs { display: none; }
 
-.nav-tab {
-  flex: 1; display: flex; flex-direction: column;
-  align-items: center; justify-content: center; gap: 4px;
-  padding: 10px 4px; border: none; background: none;
-  cursor: pointer; font-family: inherit; color: #6B7280;
-  font-size: 10px; font-weight: 600;
-  border-bottom: 2px solid transparent; margin-bottom: -1px;
-  transition: color 0.15s; white-space: nowrap;
-  letter-spacing: 0.01em; min-width: 0;
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--card); border-top: 1px solid var(--border);
+  display: flex; align-items: stretch; z-index: 200;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  box-shadow: 0 -4px 24px rgba(124,58,237,0.08);
 }
-[data-theme="dark"] .nav-tab { color: #9CA3AF; }
-.nav-tab svg { transition: transform 0.15s; opacity: 0.65; flex-shrink: 0; }
-[data-theme="dark"] .nav-tab svg { opacity: 0.5; }
-.nav-tab.active { color: var(--purple); border-bottom-color: var(--purple); }
-.nav-tab.active svg { transform: scale(1.1); opacity: 1; }
-.nav-tab span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+[data-theme="dark"] .bottom-nav { background: #1A1030; border-color: rgba(167,139,250,0.15); box-shadow: 0 -4px 24px rgba(0,0,0,0.3); }
+
+.bottom-tab {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 3px; padding: 10px 2px; border: none; background: none; cursor: pointer;
+  font-family: inherit; color: var(--text-subtle); font-size: 10px; font-weight: 600;
+  letter-spacing: 0.02em; transition: color 0.2s; position: relative; min-width: 0;
+}
+.bottom-tab svg { transition: transform 0.2s; opacity: 0.4; }
+.bottom-tab span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.bottom-tab.active { color: var(--purple); }
+.bottom-tab.active svg { opacity: 1; transform: translateY(-1px); }
+.bottom-tab-dot {
+  position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+  width: 0; height: 3px; border-radius: 0 0 3px 3px;
+  background: var(--purple); transition: width 0.25s ease;
+}
+.bottom-tab.active .bottom-tab-dot { width: 24px; }
+
+/* Tab Proteção especial */
+.protect-icon-wrap {
+  width: 40px; height: 40px; border-radius: 13px;
+  background: linear-gradient(135deg, #4C1D95, #7C3AED);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 12px rgba(124,58,237,0.4);
+  transition: transform 0.2s, box-shadow 0.2s;
+  margin-bottom: -2px; margin-top: -4px;
+}
+.bottom-tab.protect-tab.active .protect-icon-wrap,
+.bottom-tab.protect-tab:hover .protect-icon-wrap {
+  transform: scale(1.1); box-shadow: 0 6px 18px rgba(124,58,237,0.5);
+}
 
 .section-page { display: none; }
 .section-page.active { display: block; }
+.section-page.slide-right { animation: slideRight 0.22s cubic-bezier(0.25,0.46,0.45,0.94) forwards; }
+.section-page.slide-left  { animation: slideLeft  0.22s cubic-bezier(0.25,0.46,0.45,0.94) forwards; }
+@keyframes slideRight { from{opacity:0;transform:translateX(20px);} to{opacity:1;transform:translateX(0);} }
+@keyframes slideLeft  { from{opacity:0;transform:translateX(-20px);} to{opacity:1;transform:translateX(0);} }
+@keyframes fadeIn     { from{opacity:0;transform:translateY(4px);} to{opacity:1;transform:translateY(0);} }
 
-/* ===== SCORE FINANCEIRO ===== */
+.container { padding-bottom: 90px; max-width: 720px; margin: 0 auto; padding-top: 0; }
+
+/* ===== ABA PROTEÇÃO ===== */
+.protecao-hero {
+  border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1rem;
+  background: linear-gradient(135deg, #1a0533, #4C1D95); position: relative; overflow: hidden;
+}
+.protecao-hero::before { content:'🛡️'; position:absolute; right:-10px; top:-10px; font-size:100px; opacity:0.07; pointer-events:none; }
+.protecao-hero-label { font-size:10px; font-weight:700; color:rgba(255,255,255,0.5); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:6px; }
+.protecao-hero-title { font-size:22px; font-weight:800; color:white; margin-bottom:4px; line-height:1.2; }
+.protecao-hero-sub { font-size:13px; color:rgba(255,255,255,0.55); margin-bottom:1rem; line-height:1.5; }
+.escudo-stats { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.escudo-stat { background:rgba(255,255,255,0.08); border-radius:10px; padding:10px; text-align:center; }
+.escudo-stat-label { font-size:9px; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:3px; }
+.escudo-stat-val { font-size:16px; font-weight:800; color:white; }
+.escudo-stat-val.safe { color:#86EFAC; }
+.escudo-stat-val.danger { color:#FCA5A5; }
+
+.gatilho-card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:1rem 1.25rem; margin-bottom:10px; display:flex; align-items:center; gap:12px; }
+.gatilho-emoji { font-size:26px; flex-shrink:0; }
+.gatilho-info { flex:1; min-width:0; }
+.gatilho-nome { font-size:14px; font-weight:700; color:var(--text); }
+.gatilho-desc { font-size:12px; color:var(--text-muted); }
+.gatilho-toggle { width:44px; height:24px; border-radius:99px; background:#E5E7EB; border:none; cursor:pointer; position:relative; transition:background 0.2s; flex-shrink:0; }
+.gatilho-toggle.on { background:var(--purple); }
+.gatilho-toggle::after { content:''; position:absolute; width:18px; height:18px; border-radius:50%; background:white; top:3px; left:3px; transition:left 0.2s; box-shadow:0 1px 3px rgba(0,0,0,0.2); }
+.gatilho-toggle.on::after { left:23px; }
+[data-theme="dark"] .gatilho-toggle { background:rgba(255,255,255,0.15); }
+
+#bloqueio-overlay { position:fixed; inset:0; background:rgba(10,5,30,0.95); z-index:99990; display:none; align-items:center; justify-content:center; padding:2rem; }
+#bloqueio-overlay.show { display:flex; }
+.bloqueio-card { background:#1A1030; border:1px solid rgba(220,38,38,0.3); border-radius:24px; padding:2rem; max-width:340px; width:100%; text-align:center; }
+.bloqueio-emoji { font-size:48px; margin-bottom:12px; }
+.bloqueio-title { font-size:20px; font-weight:800; color:white; margin-bottom:8px; }
+.bloqueio-msg { font-size:13px; color:rgba(255,255,255,0.6); line-height:1.6; margin-bottom:1.25rem; }
+.bloqueio-insight { background:rgba(124,58,237,0.15); border:1px solid rgba(124,58,237,0.3); border-radius:12px; padding:12px; margin-bottom:1.25rem; font-size:13px; color:#C4B5FD; line-height:1.5; }
+.bloqueio-counter { font-size:36px; font-weight:800; color:#FCA5A5; margin-bottom:1rem; }
+.bloqueio-btn-cancelar { width:100%; height:46px; background:var(--purple); color:white; border:none; border-radius:12px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; margin-bottom:8px; }
+.bloqueio-btn-confirmar { width:100%; height:42px; background:transparent; color:rgba(255,255,255,0.3); border:1px solid rgba(255,255,255,0.1); border-radius:12px; font-size:13px; cursor:pointer; font-family:inherit; }
+
+/* ===== CURSO DE FINANÇAS ===== */
+.curso-header-wrap { display:flex; align-items:center; gap:10px; margin-bottom:1rem; }
+.curso-header-icon { width:40px; height:40px; border-radius:12px; background:linear-gradient(135deg,#7C3AED,#4C1D95); display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+.curso-header-info { flex:1; }
+.curso-header-title { font-size:15px; font-weight:700; color:var(--text); }
+.curso-header-sub { font-size:12px; color:var(--text-muted); }
+.curso-prog-bar { height:4px; background:var(--purple-light); border-radius:99px; overflow:hidden; margin-top:6px; }
+.curso-prog-fill { height:4px; background:var(--purple); border-radius:99px; transition:width 0.5s ease; }
+
+.licao-card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:1rem 1.25rem; margin-bottom:10px; display:flex; align-items:center; gap:12px; cursor:pointer; transition:all 0.15s; }
+.licao-card:hover { border-color:var(--purple); box-shadow:0 2px 12px rgba(124,58,237,0.1); }
+.licao-card.concluida { opacity:0.65; }
+.licao-num { width:36px; height:36px; border-radius:10px; background:var(--purple-light); display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; font-weight:800; color:var(--purple); }
+.licao-card.concluida .licao-num { background:#F0FDF4; color:#16A34A; }
+.licao-info { flex:1; }
+.licao-titulo { font-size:14px; font-weight:700; color:var(--text); margin-bottom:2px; }
+.licao-desc { font-size:12px; color:var(--text-muted); }
+.licao-tempo { font-size:11px; color:var(--text-subtle); white-space:nowrap; flex-shrink:0; }
+
+#licao-modal { position:fixed; inset:0; background:rgba(10,5,30,0.92); z-index:99990; display:none; align-items:flex-end; justify-content:center; }
+#licao-modal.show { display:flex; }
+.licao-modal-card { background:var(--card); border-radius:24px 24px 0 0; width:100%; max-width:720px; max-height:88vh; overflow-y:auto; padding:1.5rem; animation:slideUp 0.3s cubic-bezier(0.25,0.46,0.45,0.94); }
+@keyframes slideUp { from{transform:translateY(100%);} to{transform:translateY(0);} }
+.licao-modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; }
+.licao-modal-titulo { font-size:18px; font-weight:800; color:var(--text); }
+.licao-modal-close { background:var(--purple-light); border:none; border-radius:8px; width:32px; height:32px; cursor:pointer; font-size:16px; color:var(--purple); display:flex; align-items:center; justify-content:center; }
+.licao-slide { display:none; }
+.licao-slide.active { display:block; animation:fadeIn 0.25s ease; }
+.licao-slide-emoji { font-size:44px; text-align:center; margin-bottom:12px; }
+.licao-slide-title { font-size:17px; font-weight:800; color:var(--text); margin-bottom:10px; text-align:center; }
+.licao-slide-txt { font-size:14px; color:var(--text-muted); line-height:1.7; margin-bottom:16px; }
+.licao-highlight { background:var(--purple-light); border-left:3px solid var(--purple); border-radius:0 10px 10px 0; padding:12px 14px; font-size:13px; color:var(--purple); font-weight:600; margin-bottom:16px; line-height:1.5; }
+.licao-nav { display:flex; gap:10px; margin-top:1rem; }
+.licao-nav-btn { flex:1; height:46px; border-radius:12px; border:none; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; }
+.licao-nav-prev { background:var(--purple-light); color:var(--purple); }
+.licao-nav-next { background:var(--purple); color:white; }
+.licao-dots { display:flex; justify-content:center; gap:6px; margin-top:12px; }
+.licao-dot { width:6px; height:6px; border-radius:50%; background:var(--purple-light); transition:all 0.2s; }
+.licao-dot.active { width:18px; background:var(--purple); border-radius:3px; }
 .score-card {
   border-radius: var(--radius); padding: 1.25rem 1.5rem;
   margin-bottom: 1rem;
@@ -1028,37 +1128,6 @@ footer { text-align: center; font-size: 11px; color: var(--text-subtle); padding
 </header>
 
 <div class="container">
-  <div class="nav-tabs">
-    <button class="nav-tab active" onclick="setTab('dashboard',this)">
-      <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="3" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/><rect x="12" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/><rect x="3" y="12" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/><rect x="12" y="12" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/></svg>
-      <span>Início</span>
-    </button>
-    <button class="nav-tab" onclick="setTab('gastos',this)">
-      <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="3" y="5" width="16" height="13" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M3 9h16" stroke="currentColor" stroke-width="1.8"/><path d="M7 13h2M13 13h2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-      <span>Gastos</span>
-    </button>
-    <button class="nav-tab" onclick="setTab('metas',this)">
-      <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="1.8"/><circle cx="11" cy="11" r="4" stroke="currentColor" stroke-width="1.8"/><circle cx="11" cy="11" r="1.5" fill="currentColor"/></svg>
-      <span>Metas</span>
-    </button>
-    <button class="nav-tab" onclick="setTab('dividas',this)">
-      <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 3v2M11 17v2M5 11H3M19 11h-2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="11" cy="11" r="5" stroke="currentColor" stroke-width="1.8"/><path d="M9 9.5a2 2 0 113 1.7V13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="11" cy="14.5" r="0.8" fill="currentColor"/></svg>
-      <span>Dívidas</span>
-    </button>
-    <button class="nav-tab" onclick="setTab('alertas',this)" style="position:relative;">
-      <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 3C7.7 3 5 5.7 5 9v5l-2 2h16l-2-2V9c0-3.3-2.7-6-6-6z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 19a2 2 0 004 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-      <div id="alerta-badge" style="display:none;position:absolute;top:6px;right:14px;width:8px;height:8px;border-radius:50%;background:#DC2626;border:2px solid var(--card);"></div>
-      <span>Alertas</span>
-    </button>
-    <button class="nav-tab" onclick="setTab('simulador',this)">
-      <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M3 17L7 11L10 13L13 7L19 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <span>Simular</span>
-    </button>
-    <button class="nav-tab" onclick="setTab('investimentos',this)">
-      <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M3 15L7 9L11 12L15 5L19 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="19" cy="8" r="2" fill="currentColor"/></svg>
-      <span>Investimentos</span>
-    </button>
-  </div>
 
   <!-- ===== DASHBOARD ===== -->
   <div id="tab-dashboard" class="section-page active">
@@ -1428,8 +1497,86 @@ footer { text-align: center; font-size: 11px; color: var(--text-subtle); padding
     <div id="metas-list"><div class="empty-state"><div class="empty-state-icon">🎯</div>Nenhuma meta criada ainda.<br>Defina um objetivo e acompanhe seu progresso!</div></div>
   </div>
 
-  <!-- ===== DÍVIDAS ===== -->
-  <div id="tab-dividas" class="section-page">
+  <!-- ===== PROTEÇÃO ===== -->
+  <div id="tab-protecao" class="section-page">
+
+    <div class="protecao-hero">
+      <div class="protecao-hero-label">🛡️ Modo proteção</div>
+      <div class="protecao-hero-title">Blindagem financeira</div>
+      <div class="protecao-hero-sub">Ative os gatilhos que destroem seu orçamento. O app vai te avisar antes de você gastar.</div>
+      <div class="escudo-stats">
+        <div class="escudo-stat">
+          <div class="escudo-stat-label">Gatilhos ativos</div>
+          <div class="escudo-stat-val safe" id="prot-ativos">0</div>
+        </div>
+        <div class="escudo-stat">
+          <div class="escudo-stat-label">Bloqueios este mês</div>
+          <div class="escudo-stat-val" id="prot-bloqueios">0</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:1rem;">
+      <div class="card-title">Gatilhos de risco</div>
+      <div id="gatilhos-list"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Como funciona</div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="display:flex;gap:12px;align-items:flex-start;">
+          <div style="font-size:20px;flex-shrink:0;">1️⃣</div>
+          <div style="font-size:13px;color:var(--text-muted);line-height:1.5;">Ative os gatilhos das categorias que você quer controlar.</div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:flex-start;">
+          <div style="font-size:20px;flex-shrink:0;">2️⃣</div>
+          <div style="font-size:13px;color:var(--text-muted);line-height:1.5;">Quando adicionar um gasto nessa categoria, o app vai pausar e te mostrar o impacto.</div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:flex-start;">
+          <div style="font-size:20px;flex-shrink:0;">3️⃣</div>
+          <div style="font-size:13px;color:var(--text-muted);line-height:1.5;">Você escolhe: proteger o dinheiro ou registrar mesmo assim. Sem julgamento.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== ALERTAS + CURSO ===== -->
+  <div id="tab-alertas" class="section-page">
+
+    <!-- Curso de Finanças -->
+    <div class="card" style="margin-bottom:1rem;">
+      <div class="curso-header-wrap">
+        <div class="curso-header-icon">🎓</div>
+        <div class="curso-header-info">
+          <div class="curso-header-title">Escola Grape</div>
+          <div class="curso-header-sub" id="curso-sub">0 de 6 lições concluídas</div>
+          <div class="curso-prog-bar"><div class="curso-prog-fill" id="curso-prog" style="width:0%;"></div></div>
+        </div>
+      </div>
+      <div id="licoes-list"></div>
+    </div>
+
+    <!-- Alertas de vencimento -->
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+        <div class="card-title" style="margin-bottom:0;">🔔 Vencimentos</div>
+        <button onclick="mostrarFormAlerta()" style="background:var(--purple);color:white;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;">+ Novo</button>
+      </div>
+      <div id="form-alerta" style="display:none;margin-bottom:1rem;">
+        <div class="input-row" style="margin-bottom:8px;">
+          <div class="field" style="margin-bottom:0;"><label>Descrição</label><input type="text" id="alerta-nome" placeholder="Ex: Aluguel..."></div>
+          <div class="field" style="margin-bottom:0;"><label>Valor (R$)</label><input type="number" id="alerta-valor" placeholder="0,00" min="0" step="0.01"></div>
+        </div>
+        <div class="input-row" style="margin-bottom:8px;">
+          <div class="field" style="margin-bottom:0;"><label>Data de vencimento</label><input type="date" id="alerta-data"></div>
+          <div class="field" style="margin-bottom:0;"><label>Recorrente?</label><select id="alerta-recorrente"><option value="nao">Não</option><option value="sim">Todo mês</option></select></div>
+        </div>
+        <button class="btn-primary" onclick="addAlerta()" style="width:100%;">+ Adicionar alerta</button>
+      </div>
+      <div id="alertas-list"><div class="empty-state"><div class="empty-state-icon">🔔</div>Nenhum alerta cadastrado.<br>Adicione seus vencimentos e nunca mais pague multa!</div></div>
+    </div>
+
+  </div>
 
     <!-- Hero total -->
     <div class="div-hero" id="div-hero">
@@ -1545,6 +1692,77 @@ footer { text-align: center; font-size: 11px; color: var(--text-subtle); padding
 
 <footer>Grape Invest — Os valores são simulações baseadas em taxas de mercado e não constituem recomendação de investimento.</footer>
 
+
+<!-- BLOQUEIO OVERLAY -->
+<div id="bloqueio-overlay">
+  <div class="bloqueio-card">
+    <div class="bloqueio-emoji">🛑</div>
+    <div class="bloqueio-title" id="bloqueio-title">Atenção!</div>
+    <div class="bloqueio-msg" id="bloqueio-msg">Você ativou a proteção contra esse tipo de gasto.</div>
+    <div class="bloqueio-insight" id="bloqueio-insight">💡 R$ 100 investidos todo mês por 10 anos = R$ 23.000 com juros compostos.</div>
+    <div class="bloqueio-counter" id="bloqueio-counter">10</div>
+    <button class="bloqueio-btn-cancelar" onclick="fecharBloqueio()">🛡️ Proteger meu dinheiro</button>
+    <button class="bloqueio-btn-confirmar" id="bloqueio-confirmar" disabled onclick="confirmarGasto()">Registrar mesmo assim</button>
+  </div>
+</div>
+
+<!-- MODAL DE LIÇÃO -->
+<div id="licao-modal">
+  <div class="licao-modal-card">
+    <div class="licao-modal-header">
+      <div class="licao-modal-titulo" id="licao-modal-titulo">Lição</div>
+      <button class="licao-modal-close" onclick="fecharLicao()">✕</button>
+    </div>
+    <div id="licao-slides"></div>
+    <div class="licao-dots" id="licao-dots"></div>
+    <div class="licao-nav">
+      <button class="licao-nav-btn licao-nav-prev" id="licao-prev" onclick="navLicao(-1)">← Anterior</button>
+      <button class="licao-nav-btn licao-nav-next" id="licao-next" onclick="navLicao(1)">Próximo →</button>
+    </div>
+  </div>
+</div>
+
+<!-- NAVEGAÇÃO INFERIOR -->
+<nav class="bottom-nav" id="bottom-nav">
+  <button class="bottom-tab active" data-tab="dashboard" onclick="setTab('dashboard',this)">
+    <div class="bottom-tab-dot"></div>
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="3" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/><rect x="12" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/><rect x="3" y="12" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/><rect x="12" y="12" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/></svg>
+    <span>Início</span>
+  </button>
+  <button class="bottom-tab" data-tab="gastos" onclick="setTab('gastos',this)">
+    <div class="bottom-tab-dot"></div>
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="3" y="5" width="16" height="13" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M3 9h16" stroke="currentColor" stroke-width="1.8"/><path d="M7 13h2M13 13h2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    <span>Gastos</span>
+  </button>
+  <button class="bottom-tab" data-tab="metas" onclick="setTab('metas',this)">
+    <div class="bottom-tab-dot"></div>
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="1.8"/><circle cx="11" cy="11" r="4" stroke="currentColor" stroke-width="1.8"/><circle cx="11" cy="11" r="1.5" fill="currentColor"/></svg>
+    <span>Metas</span>
+  </button>
+  <button class="bottom-tab protect-tab" data-tab="protecao" onclick="setTab('protecao',this)">
+    <div class="bottom-tab-dot"></div>
+    <div class="protect-icon-wrap">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 2L3 5v5c0 4.5 3 8 7 9 4-1 7-4.5 7-9V5L10 2z" stroke="white" stroke-width="1.8" stroke-linejoin="round"/><path d="M7 10l2 2 4-4" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <span>Proteção</span>
+  </button>
+  <button class="bottom-tab" data-tab="alertas" onclick="setTab('alertas',this)" style="position:relative;">
+    <div class="bottom-tab-dot"></div>
+    <div id="alerta-badge" style="display:none;position:absolute;top:8px;right:6px;width:7px;height:7px;border-radius:50%;background:#DC2626;border:2px solid var(--card);"></div>
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 3C7.7 3 5 5.7 5 9v5l-2 2h16l-2-2V9c0-3.3-2.7-6-6-6z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 19a2 2 0 004 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    <span>Alertas</span>
+  </button>
+  <button class="bottom-tab" data-tab="simulador" onclick="setTab('simulador',this)">
+    <div class="bottom-tab-dot"></div>
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M3 17L7 11L10 13L13 7L19 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span>Simular</span>
+  </button>
+  <button class="bottom-tab" data-tab="investimentos" onclick="setTab('investimentos',this)">
+    <div class="bottom-tab-dot"></div>
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M3 15L7 9L11 12L15 5L19 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="19" cy="8" r="2" fill="currentColor"/></svg>
+    <span>Invest.</span>
+  </button>
+</nav>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
 
@@ -1686,22 +1904,234 @@ function renderScore() {
   ring.style.stroke = color;
 }
 
-// ===== DASHBOARD =====
-function setTabBtn(tab) {
-  const btn = document.querySelector(`[onclick="setTab('${tab}',this)"]`);
-  if (btn) {
-    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.section-page').forEach(p => p.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('tab-' + tab).classList.add('active');
-    if (tab === 'alertas') renderAlertas();
-    if (tab === 'metas') renderMetas();
-    if (tab === 'dividas') renderDividas();
-    if (tab === 'dashboard') renderDashboard();
-    if (tab === 'investimentos') { renderInvestimentos(); renderPatrimonio(); }
-    if (tab === 'gastos') renderMes();
+// ===== TABS COM DIREÇÃO =====
+const TAB_ORDER = ['dashboard','gastos','metas','protecao','alertas','simulador','investimentos'];
+let tabAtual = 'dashboard';
+
+function setTab(tab, btn) {
+  const idxOld = TAB_ORDER.indexOf(tabAtual);
+  const idxNew = TAB_ORDER.indexOf(tab);
+  const dir = idxNew >= idxOld ? 'slide-right' : 'slide-left';
+
+  document.querySelectorAll('.section-page').forEach(p => p.classList.remove('active','slide-right','slide-left'));
+  document.querySelectorAll('.bottom-tab').forEach(t => t.classList.remove('active'));
+
+  const page = document.getElementById('tab-' + tab);
+  if (page) {
+    page.classList.add('active');
+    if (tab !== tabAtual) page.classList.add(dir);
   }
+
+  if (btn) btn.classList.add('active');
+  else {
+    const navBtn = document.querySelector(`.bottom-tab[data-tab="${tab}"]`);
+    if (navBtn) navBtn.classList.add('active');
+  }
+
+  tabAtual = tab;
+  if (tab === 'alertas')       { renderAlertas(); renderCurso(); }
+  if (tab === 'metas')         renderMetas();
+  if (tab === 'protecao')      renderProtecao();
+  if (tab === 'dashboard')     renderDashboard();
+  if (tab === 'gastos')        renderMes();
+  if (tab === 'simulador')     atualizar();
+  if (tab === 'investimentos') { renderInvestimentos(); renderPatrimonio(); }
 }
+
+function setTabBtn(tab) {
+  const btn = document.querySelector(`.bottom-tab[data-tab="${tab}"]`);
+  setTab(tab, btn);
+}
+
+function mostrarFormAlerta() {
+  const f = document.getElementById('form-alerta');
+  if (f) f.style.display = f.style.display === 'none' ? 'block' : 'none';
+}
+
+// ===== PROTEÇÃO =====
+const GATILHOS = [
+  { id:'apostas',  emoji:'🎰', nome:'Apostas & Jogos',        desc:'Betano, Blaze, cassinos online',      cat:'Lazer',       frase:'💡 As casas de apostas ganham sempre. Seu dinheiro merece mais.' },
+  { id:'delivery', emoji:'🛵', nome:'Delivery por impulso',   desc:'iFood, Rappi sem necessidade',         cat:'Alimentação', frase:'💡 R$ 50/semana em delivery = R$ 2.600/ano que poderiam ser investidos.' },
+  { id:'compras',  emoji:'🛍️', nome:'Compras por impulso',    desc:'Roupa, eletrônico, sem planejar',      cat:'Outros',      frase:'💡 Espere 48h antes de comprar. Se ainda quiser, vale a pena.' },
+  { id:'credito',  emoji:'💳', nome:'Crédito rotativo',        desc:'Pagar menos que o mínimo do cartão',   cat:'Dívida',      frase:'💡 Juros do rotativo chegam a 400% ao ano. Quite sempre o total.' },
+  { id:'cripto',   emoji:'📉', nome:'Cripto especulativa',     desc:'Tokens sem fundamento',                cat:'Outros',      frase:'💡 Invista só o que pode perder 100%. Nunca dinheiro essencial.' },
+  { id:'assina',   emoji:'📱', nome:'Assinaturas esquecidas',  desc:'Serviços que você não usa',            cat:'Outros',      frase:'💡 Cada assinatura esquecida é dinheiro desperdiçado todo mês.' },
+];
+
+function getProtecaoState() { return JSON.parse(localStorage.getItem('gi_protecao') || '{}'); }
+function saveProtecaoState(s) { localStorage.setItem('gi_protecao', JSON.stringify(s)); }
+function getBloqueios() { return parseInt(localStorage.getItem('gi_bloqueios_mes') || '0'); }
+function addBloqueio() { localStorage.setItem('gi_bloqueios_mes', String(getBloqueios() + 1)); }
+
+function toggleGatilho(id) {
+  const s = getProtecaoState(); s[id] = !s[id];
+  saveProtecaoState(s); renderProtecao();
+}
+
+function renderProtecao() {
+  const s = getProtecaoState();
+  const ativos = Object.values(s).filter(Boolean).length;
+  const pa = document.getElementById('prot-ativos');
+  const pb = document.getElementById('prot-bloqueios');
+  if (pa) pa.textContent = ativos;
+  if (pb) pb.textContent = getBloqueios();
+  const list = document.getElementById('gatilhos-list');
+  if (!list) return;
+  list.innerHTML = GATILHOS.map(g => `
+    <div class="gatilho-card">
+      <div class="gatilho-emoji">${g.emoji}</div>
+      <div class="gatilho-info">
+        <div class="gatilho-nome">${g.nome}</div>
+        <div class="gatilho-desc">${g.desc}</div>
+      </div>
+      <button class="gatilho-toggle ${s[g.id] ? 'on' : ''}" onclick="toggleGatilho('${g.id}')"></button>
+    </div>`).join('');
+}
+
+let bloqueioGastoCallback = null;
+let bloqueioTimer = null;
+
+function verificarBloqueio(cat, valor, onConfirm) {
+  const s = getProtecaoState();
+  const gatilho = GATILHOS.find(g => g.cat === cat && s[g.id]);
+  if (!gatilho) { onConfirm(); return; }
+  const gastosNaCat = STATE.despesas.filter(e=>(e.categoria||e.cat)===cat).reduce((sum,e)=>sum+parseFloat(e.valor||0),0);
+  document.getElementById('bloqueio-title').textContent = gatilho.emoji + ' ' + gatilho.nome;
+  document.getElementById('bloqueio-msg').textContent = `Você já gastou ${fmtMoney(gastosNaCat)} em ${cat} este mês. Mais ${fmtMoney(valor)} vai para ${fmtMoney(gastosNaCat+valor)}.`;
+  document.getElementById('bloqueio-insight').textContent = gatilho.frase;
+  bloqueioGastoCallback = onConfirm;
+  document.getElementById('bloqueio-overlay').classList.add('show');
+  addBloqueio();
+  let count = 10;
+  const btn = document.getElementById('bloqueio-confirmar');
+  btn.disabled = true;
+  btn.textContent = `Registrar mesmo assim (${count}s)`;
+  document.getElementById('bloqueio-counter').textContent = count;
+  bloqueioTimer = setInterval(() => {
+    count--;
+    document.getElementById('bloqueio-counter').textContent = count;
+    btn.textContent = `Registrar mesmo assim (${count}s)`;
+    if (count <= 0) { clearInterval(bloqueioTimer); btn.disabled = false; btn.textContent = 'Registrar mesmo assim'; }
+  }, 1000);
+}
+
+function fecharBloqueio() {
+  clearInterval(bloqueioTimer);
+  document.getElementById('bloqueio-overlay').classList.remove('show');
+  bloqueioGastoCallback = null;
+  toast('🛡️ Dinheiro protegido!', 'success');
+}
+
+function confirmarGasto() {
+  clearInterval(bloqueioTimer);
+  document.getElementById('bloqueio-overlay').classList.remove('show');
+  if (bloqueioGastoCallback) { bloqueioGastoCallback(); bloqueioGastoCallback = null; }
+}
+
+// ===== CURSO DE FINANÇAS =====
+const LICOES = [
+  { id:'juros', emoji:'📈', titulo:'Juros compostos: o 8º prodígio', desc:'2 min · Fundamentos', slides:[
+    { emoji:'💰', title:'O que são juros compostos?', txt:'Juros compostos são juros sobre juros. Diferente dos juros simples, aqui você ganha sobre o total acumulado — incluindo os juros anteriores.', highlight:'É o mecanismo mais poderoso para construir riqueza no longo prazo.' },
+    { emoji:'🧮', title:'Um exemplo real', txt:'Você investe R$ 1.000 com 1% ao mês. Mês 1: ganha R$ 10. Mês 2: ganha 1% de R$ 1.010 = R$ 10,10. Em 10 anos esse dinheiro vira mais de R$ 3.300 sem você fazer nada.', highlight:'Quanto mais cedo você começa, mais poderoso o efeito.' },
+    { emoji:'⏰', title:'O segredo: o tempo', txt:'Quem investe R$ 300/mês a partir dos 25 anos chega aos 65 com muito mais do que quem investe R$ 600/mês a partir dos 35. A diferença é o tempo, não o valor.', highlight:'Começar hoje com pouco vale mais do que começar amanhã com muito.' },
+  ]},
+  { id:'orcamento', emoji:'📊', titulo:'A regra 50-30-20', desc:'2 min · Orçamento', slides:[
+    { emoji:'🥧', title:'A regra mais simples do mundo', txt:'Divida sua renda: 50% necessidades (moradia, alimentação, transporte), 30% desejos (lazer, restaurante) e 20% poupança e investimentos.', highlight:'Simples, mas 90% das pessoas nunca seguiram essa regra.' },
+    { emoji:'🏠', title:'Os 50% de necessidades', txt:'São gastos que você não pode cortar: aluguel, energia, água, mercado, transporte para trabalhar. Se estiver acima de 50%, algo precisa mudar.', highlight:'Necessidade é diferente de desejo. Delivery não é necessidade.' },
+    { emoji:'💹', title:'Os 20% que mudam sua vida', txt:'São os 20% que trabalham para você enquanto você dorme. Tesouro Selic, CDB, LCI — qualquer coisa que rende mais que a poupança.', highlight:'Pague a si mesmo primeiro. Transfira os 20% assim que o salário cair.' },
+  ]},
+  { id:'emergencia', emoji:'🛡️', titulo:'Fundo de emergência', desc:'2 min · Segurança', slides:[
+    { emoji:'🔥', title:'Por que você PRECISA disso', txt:'Sem fundo de emergência, qualquer imprevisto te joga no cartão rotativo com juros de 400% ao ano. O fundo é seu escudo contra isso.', highlight:'É a fundação de toda vida financeira saudável.' },
+    { emoji:'💼', title:'Quanto guardar?', txt:'De 3 a 6 meses dos seus gastos mensais. Se você gasta R$ 3.000/mês, seu fundo precisa ter entre R$ 9.000 e R$ 18.000. Construa aos poucos.', highlight:'Qualquer valor guardado é melhor que zero.' },
+    { emoji:'🏦', title:'Onde guardar?', txt:'O fundo precisa ter liquidez diária: Tesouro Selic, CDB de liquidez diária ou conta rendimento de banco digital. Nunca na poupança comum.', highlight:'Segurança + liquidez + rendimento acima da inflação.' },
+  ]},
+  { id:'divida', emoji:'💸', titulo:'Como sair das dívidas', desc:'2 min · Dívidas', slides:[
+    { emoji:'🏔️', title:'Duas estratégias que funcionam', txt:'Avalanche: pague primeiro as dívidas com maior juros — é matematicamente mais eficiente. Bola de Neve: pague primeiro as menores — é psicologicamente mais motivador.', highlight:'Qualquer um dos dois é melhor do que não fazer nada.' },
+    { emoji:'🔪', title:'Corte o crédito rotativo agora', txt:'O rotativo do cartão cobra em média 400% ao ano. Se você está pagando o mínimo, está afundando. Negocie com o banco ou busque empréstimo pessoal com taxa menor.', highlight:'Juros de 400% ao ano destroem qualquer orçamento.' },
+    { emoji:'🚀', title:'A fórmula da quitação', txt:'1. Liste todas as dívidas com taxa. 2. Pague o mínimo em todas. 3. Coloque o máximo na maior taxa. 4. Quando quitar uma, direcione o valor para a próxima.', highlight:'Disciplina por 6 meses pode mudar 6 anos de vida.' },
+  ]},
+  { id:'investir', emoji:'🌱', titulo:'Como começar a investir', desc:'2 min · Investimentos', slides:[
+    { emoji:'🗺️', title:'O caminho do iniciante', txt:'Antes de investir: 1. Quite dívidas com juros altos. 2. Monte o fundo de emergência. 3. Aí sim comece a investir. Tentar investir com dívida de 400% ao ano é contraproducente.', highlight:'A ordem importa tanto quanto o valor investido.' },
+    { emoji:'🏛️', title:'Renda fixa: o ponto de partida', txt:'Tesouro Selic é o investimento mais seguro do Brasil — garantido pelo governo. Rende próximo ao CDI, tem liquidez diária e qualquer valor pode ser investido.', highlight:'Simples, seguro e melhor que a poupança.' },
+    { emoji:'📱', title:'Onde investir?', txt:'XP, NuInvest, BTG, Rico — todas têm Tesouro Selic com taxa zero. Abra a conta em 10 minutos, transfira e invista.', highlight:'O melhor investimento é o que você realmente faz.' },
+  ]},
+  { id:'habitos', emoji:'🔄', titulo:'Hábitos que mudam tudo', desc:'2 min · Comportamento', slides:[
+    { emoji:'🌅', title:'O hábito mais importante', txt:'Olhe para suas finanças todo dia. 2 minutos no app já funcionam. Consciência financeira diária é o que separa quem progride de quem está sempre no zero.', highlight:'O que você mede, você gerencia.' },
+    { emoji:'🤖', title:'Automatize tudo que puder', txt:'Configure transferência automática para investimentos todo dia de salário. Quanto menos decisão financeira você precisar tomar, melhor.', highlight:'Automatizar é proteger seu futuro de você mesmo.' },
+    { emoji:'📅', title:'O ritual do dia 1', txt:'Todo dia 1: olhe o extrato anterior, calcule o que gastou por categoria, defina orçamento novo e ajuste um ponto. 15 minutos. Todo mês. Para sempre.', highlight:'Quem planeja o dinheiro, tem dinheiro.' },
+  ]},
+];
+
+let licaoAtual = 0;
+let slideAtual = 0;
+let licoesConcluidas = new Set(JSON.parse(localStorage.getItem('gi_licoes') || '[]'));
+
+function renderCurso() {
+  const total = LICOES.length;
+  const concluidas = licoesConcluidas.size;
+  const pct = Math.round((concluidas / total) * 100);
+  const sub = document.getElementById('curso-sub');
+  const prog = document.getElementById('curso-prog');
+  if (sub) sub.textContent = `${concluidas} de ${total} lições concluídas`;
+  if (prog) prog.style.width = pct + '%';
+  const list = document.getElementById('licoes-list');
+  if (!list) return;
+  list.innerHTML = LICOES.map((l, i) => {
+    const ok = licoesConcluidas.has(l.id);
+    return `<div class="licao-card ${ok ? 'concluida' : ''}" onclick="abrirLicao(${i})">
+      <div class="licao-num">${ok ? '✓' : l.emoji}</div>
+      <div class="licao-info"><div class="licao-titulo">${l.titulo}</div><div class="licao-desc">${l.desc}</div></div>
+      <div class="licao-tempo">${ok ? '✅' : '▶'}</div>
+    </div>`;
+  }).join('');
+}
+
+function abrirLicao(idx) {
+  licaoAtual = idx; slideAtual = 0;
+  document.getElementById('licao-modal-titulo').textContent = LICOES[idx].titulo;
+  renderSlides();
+  document.getElementById('licao-modal').classList.add('show');
+}
+
+function fecharLicao() {
+  document.getElementById('licao-modal').classList.remove('show');
+  renderCurso();
+}
+
+function renderSlides() {
+  const licao = LICOES[licaoAtual];
+  const total = licao.slides.length;
+  document.getElementById('licao-slides').innerHTML = licao.slides.map((s, i) => `
+    <div class="licao-slide ${i === slideAtual ? 'active' : ''}">
+      <div class="licao-slide-emoji">${s.emoji}</div>
+      <div class="licao-slide-title">${s.title}</div>
+      <div class="licao-slide-txt">${s.txt}</div>
+      <div class="licao-highlight">${s.highlight}</div>
+    </div>`).join('');
+  document.getElementById('licao-dots').innerHTML = licao.slides.map((_, i) =>
+    `<div class="licao-dot ${i === slideAtual ? 'active' : ''}"></div>`).join('');
+  const prev = document.getElementById('licao-prev');
+  const next = document.getElementById('licao-next');
+  prev.style.display = slideAtual === 0 ? 'none' : 'block';
+  const isLast = slideAtual === total - 1;
+  next.textContent = isLast ? '✓ Concluir lição' : 'Próximo →';
+  next.style.background = isLast ? '#16A34A' : '';
+}
+
+function navLicao(dir) {
+  const total = LICOES[licaoAtual].slides.length;
+  if (dir === 1 && slideAtual === total - 1) {
+    licoesConcluidas.add(LICOES[licaoAtual].id);
+    localStorage.setItem('gi_licoes', JSON.stringify([...licoesConcluidas]));
+    fecharLicao(); chuvaDeUvas();
+    toast('🍇 Lição concluída! Continue aprendendo!', 'success', 3500);
+    return;
+  }
+  slideAtual = Math.max(0, Math.min(total - 1, slideAtual + dir));
+  renderSlides();
+}
+
+// ===== DASHBOARD =====
 
 function renderDashboard() {
   const totalRenda = (STATE.gastos.salario||0) + STATE.rendasExtras.reduce((s,r)=>s+parseFloat(r.valor||0),0);
@@ -1884,10 +2314,12 @@ function mudarMes(delta) {
 function irParaHoje() { mesSel = now.getMonth(); anoSel = now.getFullYear(); renderMes(); }
 
 function renderMes() {
-  const isHoje = STATE.mesSel===now.getMonth()&&STATE.anoSel===now.getFullYear();
-  document.getElementById('mes-label').textContent=MESES[STATE.mesSel]+' '+STATE.anoSel+(isHoje?' · atual':'');
+  atualizarSTATE();
+  const isHoje = mesSel===now.getMonth()&&anoSel===now.getFullYear();
+  document.getElementById('mes-label').textContent=MESES[mesSel]+' '+anoSel+(isHoje?' · atual':'');
   document.getElementById('sal-valor').value=STATE.gastos.salario||'';
-  renderSalarioBtn(); renderRendaExtra(); renderSaldo(); renderExpenses();
+  const data = getMesData();
+  renderSalarioBtn(data); renderRendaExtra(data); renderSaldo(data); renderExpenses(data);
   if(isHoje) renderContextoGastos();
   else { const b=document.getElementById('gasto-ctx-box'); if(b) b.style.display='none'; }
 }
@@ -1895,7 +2327,7 @@ function renderMes() {
 function salvarSalario() {
   const data = getMesData();
   data.salario = parseFloat(document.getElementById('sal-valor').value) || 0;
-  saveMesData(data); renderRendaExtra(data); renderSaldo(data);
+  saveMesData(data); renderRendaExtra(data); renderSaldo(data); atualizarSTATE();
 }
 
 function addRendaExtra() {
@@ -1908,7 +2340,7 @@ function addRendaExtra() {
   saveMesData(data);
   document.getElementById('extra-nome').value = '';
   document.getElementById('extra-valor').value = '';
-  renderRendaExtra(data); renderSaldo(data);
+  renderRendaExtra(data); renderSaldo(data); atualizarSTATE();
   toast('✓ Renda extra adicionada!', 'success');
 }
 
@@ -1927,6 +2359,7 @@ function deleteRendaExtra(id) {
 }
 
 function renderRendaExtra(data) {
+  data = data || getMesData();
   const extras = data.rendaExtra || [];
   const list = document.getElementById('rendas-extras-list');
   const totalExtrasGeral = extras.reduce((s,r) => s + r.valor, 0);
@@ -1976,11 +2409,12 @@ function copiarMesAnterior() {
 function toggleSalario() {
   const data = getMesData();
   data.salarioRecebido = !data.salarioRecebido;
-  saveMesData(data); renderSalarioBtn(data); renderSaldo(data);
+  saveMesData(data); renderSalarioBtn(data); renderSaldo(data); atualizarSTATE();
   toast(data.salarioRecebido ? '✓ Salário marcado como recebido!' : 'Salário desmarcado.', data.salarioRecebido ? 'success' : 'info');
 }
 
 function renderSalarioBtn(data) {
+  data = data || getMesData();
   const btn = document.getElementById('sal-btn');
   if (data.salarioRecebido) {
     btn.textContent = '✓ Recebido'; btn.style.color = '#16A34A'; btn.style.borderColor = '#86EFAC'; btn.style.background = '#F0FDF4';
@@ -1990,6 +2424,7 @@ function renderSalarioBtn(data) {
 }
 
 function renderSaldo(data) {
+  data = data || getMesData();
   const extras = data.rendaExtra || [];
   const salario = data.salarioRecebido ? data.salario : 0;
   const extraRecebido = extras.filter(r => r.recebido).reduce((s,r) => s + r.valor, 0);
@@ -2019,26 +2454,30 @@ function addExpense() {
   const valor = parseFloat(document.getElementById('exp-valor').value);
   const cat = document.getElementById('exp-cat').value;
   if (!desc || isNaN(valor) || valor <= 0) { document.getElementById('exp-desc').focus(); toast('Preencha a descrição e o valor.', 'error'); return; }
-  const data = getMesData();
-  data.expenses.push({ id: Date.now(), desc, valor, cat, pago: false });
-  saveMesData(data);
-  document.getElementById('exp-desc').value = '';
-  document.getElementById('exp-valor').value = '';
-  renderExpenses(data); renderSaldo(data);
-  toast('✓ Gasto adicionado!', 'success');
+
+  verificarBloqueio(cat, valor, function() {
+    const data = getMesData();
+    data.expenses.push({ id: Date.now(), desc, valor, cat, pago: false });
+    saveMesData(data);
+    document.getElementById('exp-desc').value = '';
+    document.getElementById('exp-valor').value = '';
+    renderExpenses(data); renderSaldo(data);
+    atualizarSTATE();
+    toast('✓ Gasto adicionado!', 'success');
+  });
 }
 
 function togglePago(id) {
   const data = getMesData();
   const e = data.expenses.find(e => e.id === id);
   if (e) e.pago = !e.pago;
-  saveMesData(data); renderExpenses(data); renderSaldo(data);
+  saveMesData(data); renderExpenses(data); renderSaldo(data); atualizarSTATE();
 }
 
 function deleteExpense(id) {
   const data = getMesData();
   data.expenses = data.expenses.filter(e => e.id !== id);
-  saveMesData(data); renderExpenses(data); renderSaldo(data);
+  saveMesData(data); renderExpenses(data); renderSaldo(data); atualizarSTATE();
   toast('Gasto removido.', 'info');
 }
 
@@ -2046,12 +2485,13 @@ function clearExpenses() {
   const data = getMesData();
   if (!data.expenses.length) return;
   if (confirm('Limpar todos os gastos de ' + MESES[mesSel] + '?')) {
-    data.expenses = []; saveMesData(data); renderExpenses(data); renderSaldo(data);
+    data.expenses = []; saveMesData(data); renderExpenses(data); renderSaldo(data); atualizarSTATE();
     toast('Lista de gastos limpa.', 'info');
   }
 }
 
 function renderExpenses(data) {
+  data = data || getMesData();
   const list = document.getElementById('expense-list');
   const catCard = document.getElementById('cat-chart-card');
 
@@ -2314,6 +2754,10 @@ function chuvaDeUvas(duracao = 2200) {
   }
 }
 
+// ===== DÍVIDAS LOCAL =====
+function getDividas() { return JSON.parse(localStorage.getItem('gi_dividas') || '[]'); }
+function saveDividas(d) { localStorage.setItem('gi_dividas', JSON.stringify(d)); }
+
 // ===== SELETOR DE DÍVIDAS =====
 const DIVIDAS_CATALOG = [
   { emoji:'💳', nome:'Cartão de Crédito', desc:'Fatura mensal', taxa: 15 },
@@ -2488,8 +2932,13 @@ async function addDivida() {
   if (!nome) { toast('Selecione o tipo de dívida.', 'error'); return; }
   if (isNaN(total) || total <= 0) { toast('Informe o valor total da dívida.', 'error'); document.getElementById('div-total').focus(); return; }
 
+  const novaDivida = { id: Date.now(), nome, valor_total: total, taxa_juros: taxa, parcela_mensal: parcela };
+
   if (STATE.modoTeste) {
-    STATE.dividas.push({ id: Date.now(), nome, valor_total: total, taxa_juros: taxa, parcela_mensal: parcela });
+    const dividas = getDividas();
+    dividas.push(novaDivida);
+    saveDividas(dividas);
+    STATE.dividas = dividas;
   } else {
     try {
       const { data, error } = await sb.from('dividas').insert({
@@ -2519,7 +2968,8 @@ async function addDivida() {
 
 async function deleteDivida(id) {
   STATE.dividas = STATE.dividas.filter(d => d.id != id);
-  if (!STATE.modoTeste) await sb.from('dividas').delete().eq('id', id);
+  if (STATE.modoTeste) { saveDividas(STATE.dividas); }
+  else { await sb.from('dividas').delete().eq('id', id); }
   renderDividas();
   toast('Dívida removida.', 'info');
 }
@@ -2531,10 +2981,12 @@ async function pagarParcela(id) {
   if (parcela <= 0) { toast('Defina uma parcela mensal para registrar pagamento.', 'error'); return; }
   const novoTotal = Math.max(0, parseFloat(d.valor_total || d.total || 0) - parcela);
   d.valor_total = novoTotal;
-  if (!STATE.modoTeste) await sb.from('dividas').update({ valor_total: novoTotal }).eq('id', id);
+  if (STATE.modoTeste) { saveDividas(STATE.dividas); }
+  else { await sb.from('dividas').update({ valor_total: novoTotal }).eq('id', id); }
   if (novoTotal <= 0) {
     STATE.dividas = STATE.dividas.filter(dv => dv.id != id);
-    if (!STATE.modoTeste) await sb.from('dividas').delete().eq('id', id);
+    if (STATE.modoTeste) { saveDividas(STATE.dividas); }
+    else { await sb.from('dividas').delete().eq('id', id); }
     chuvaDeUvas();
     toast('🎉 Dívida quitada! Parabéns!', 'success', 4000);
   } else {
@@ -3176,12 +3628,42 @@ function renderContextoGastos() {
   }
 }
 
+// ===== STATE GLOBAL (montado do localStorage) =====
+function atualizarSTATE() {
+  const mesData  = getMesData();
+  const invData  = getInvData();
+  STATE.mesSel   = mesSel;
+  STATE.anoSel   = anoSel;
+  STATE.gastos   = {
+    salario:          mesData.salario          || 0,
+    salarioRecebido:  mesData.salarioRecebido  || false,
+    salario_recebido: mesData.salarioRecebido  || false,
+  };
+  STATE.rendasExtras   = mesData.rendaExtra    || [];
+  STATE.despesas       = (mesData.expenses     || []).map(e => ({ ...e, categoria: e.cat }));
+  STATE.investimentos  = invData.aportes       || [];
+  STATE.metas          = getMetas();
+  STATE.dividas        = getDividas();
+  STATE.alertas        = getAlertas();
+  STATE.modoTeste      = (localStorage.getItem('gi_token') === 'teste-local');
+  STATE.userId         = localStorage.getItem('gi_email') || '';
+}
+
+const STATE = {
+  mesSel: mesSel, anoSel: anoSel,
+  gastos: {}, rendasExtras: [], despesas: [],
+  investimentos: [], metas: [], dividas: [], alertas: [],
+  modoTeste: true, userId: ''
+};
+atualizarSTATE();
+
 // ===== INIT =====
 // Garantir que só o dashboard aparece no load
 document.querySelectorAll('.section-page').forEach(p => p.classList.remove('active'));
 document.getElementById('tab-dashboard').classList.add('active');
-document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-document.querySelector('[onclick="setTab(\'dashboard\',this)"]').classList.add('active');
+document.querySelectorAll('.bottom-tab').forEach(t => t.classList.remove('active'));
+const dashBtn = document.querySelector('.bottom-tab[data-tab="dashboard"]');
+if (dashBtn) dashBtn.classList.add('active');
 
 atualizar();
 renderMes();
