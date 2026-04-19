@@ -253,22 +253,49 @@ body {
 
 /* ===== APP SHELL ===== */
 header {
-  padding: 1rem 1.25rem;
-  display: flex; align-items: center; gap: 10px;
+  padding: 0.75rem 1rem 0;
   border-bottom: 1px solid var(--border);
   background: white;
   position: sticky; top: 0; z-index: 100;
+  display: flex; flex-direction: column; gap: 0;
 }
 
+.header-row {
+  display: flex; align-items: center; gap: 10px;
+  padding-bottom: 0.75rem;
+}
+
+/* TOP NAV */
+.top-nav {
+  display: flex; gap: 0; overflow-x: auto; scrollbar-width: none;
+  margin: 0 -1rem;
+  padding: 0 1rem;
+}
+.top-nav::-webkit-scrollbar { display: none; }
+
+.top-tab {
+  flex-shrink: 0;
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 14px; border: none; background: none;
+  font-family: inherit; font-size: 13px; font-weight: 600;
+  color: var(--text-muted); cursor: pointer;
+  border-bottom: 2.5px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+  white-space: nowrap; position: relative;
+}
+.top-tab .tab-emoji { font-size: 15px; }
+.top-tab.active { color: var(--purple); border-bottom-color: var(--purple); }
+[data-theme="dark"] .top-tab.active { color: var(--purple); }
+
 .logo-icon {
-  width: 36px; height: 36px;
-  background: var(--purple); border-radius: 10px;
+  width: 32px; height: 32px;
+  background: var(--purple); border-radius: 9px;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
 }
 
 .logo-name {
-  font-size: 18px; font-weight: 800; color: var(--purple);
+  font-size: 17px; font-weight: 800; color: var(--purple);
   letter-spacing: -0.02em; flex: 1;
   background: linear-gradient(135deg, #7C3AED, #A78BFA);
   -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
@@ -281,10 +308,10 @@ header {
 }
 
 .header-user {
-  width: 32px; height: 32px; border-radius: 50%;
+  width: 30px; height: 30px; border-radius: 50%;
   background: var(--purple-light); display: flex; align-items: center; justify-content: center;
   font-size: 12px; font-weight: 700; color: var(--purple); cursor: pointer;
-  position: relative; user-select: none;
+  position: relative; user-select: none; flex-shrink: 0;
 }
 
 .profile-menu {
@@ -319,10 +346,11 @@ header {
   background: var(--purple-light); flex-shrink: 0;
 }
 
-.container { max-width: 720px; margin: 0 auto; padding: 1rem 1rem 5rem; }
+.container { max-width: 720px; margin: 0 auto; padding: 1rem 1rem 2rem; }
 
-/* ===== NAV INFERIOR FLUTUANTE ===== */
+/* ===== NAV (oculta — substituída pela top-nav) ===== */
 .nav-tabs { display: none; }
+.bottom-nav { display: none; }
 
 .bottom-nav {
   position: fixed; bottom: 0; left: 0; right: 0;
@@ -1087,46 +1115,74 @@ footer { text-align: center; font-size: 11px; color: var(--text-subtle); padding
 
 <!-- APP -->
 <header>
-  <div class="logo-icon">
-    <svg class="grape-svg" width="22" height="22" viewBox="0 0 30 30" fill="none">
-      <rect x="14" y="2" width="2.5" height="6" rx="1.25" fill="white"/>
-      <path d="M16.5 3.5 Q19 1 20.5 3" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-      <circle cx="10" cy="12" r="5" fill="white"/><circle cx="20" cy="12" r="5" fill="white"/><circle cx="15" cy="20" r="5" fill="white"/>
-      <circle cx="8.5" cy="10.5" r="1.5" fill="rgba(124,58,237,0.25)"/>
-      <circle cx="18.5" cy="10.5" r="1.5" fill="rgba(124,58,237,0.25)"/>
-      <circle cx="13.5" cy="18.5" r="1.5" fill="rgba(124,58,237,0.25)"/>
-    </svg>
-  </div>
-  <span class="logo-name">Grape Invest</span>
-  <button onclick="toggleTheme()" id="theme-btn" style="background:none;border:none;cursor:pointer;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:16px;">🌙</button>
-  <div class="header-user" id="header-user" onclick="toggleMenu(event)">?
-    <div class="profile-menu" id="profile-menu">
-      <div class="profile-menu-header">
-        <div class="profile-menu-name" id="menu-nome">—</div>
-        <div class="profile-menu-email" id="menu-email">—</div>
+  <div class="header-row">
+    <div class="logo-icon">
+      <svg class="grape-svg" width="20" height="20" viewBox="0 0 30 30" fill="none">
+        <rect x="14" y="2" width="2.5" height="6" rx="1.25" fill="white"/>
+        <path d="M16.5 3.5 Q19 1 20.5 3" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+        <circle cx="10" cy="12" r="5" fill="white"/><circle cx="20" cy="12" r="5" fill="white"/><circle cx="15" cy="20" r="5" fill="white"/>
+        <circle cx="8.5" cy="10.5" r="1.5" fill="rgba(124,58,237,0.25)"/>
+        <circle cx="18.5" cy="10.5" r="1.5" fill="rgba(124,58,237,0.25)"/>
+        <circle cx="13.5" cy="18.5" r="1.5" fill="rgba(124,58,237,0.25)"/>
+      </svg>
+    </div>
+    <span class="logo-name">Grape Invest</span>
+    <button onclick="toggleTheme()" id="theme-btn" style="background:none;border:none;cursor:pointer;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:15px;">🌙</button>
+    <div class="header-user" id="header-user" onclick="toggleMenu(event)">?
+      <div class="profile-menu" id="profile-menu">
+        <div class="profile-menu-header">
+          <div class="profile-menu-name" id="menu-nome">—</div>
+          <div class="profile-menu-email" id="menu-email">—</div>
+        </div>
+        <button class="profile-menu-item" onclick="alterarSenha()">
+          <div class="profile-menu-icon">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="3.5" y="8" width="9" height="6" rx="1.5" stroke="#7C3AED" stroke-width="1.4"/><path d="M5 8V6a3 3 0 016 0v2" stroke="#7C3AED" stroke-width="1.4" stroke-linecap="round"/><circle cx="8" cy="11" r="1" fill="#7C3AED"/></svg>
+          </div>Alterar senha
+        </button>
+        <button class="profile-menu-item" onclick="exportarDados()">
+          <div class="profile-menu-icon">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2v8M5 7l3 3 3-3" stroke="#7C3AED" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 11v2a1 1 0 001 1h8a1 1 0 001-1v-2" stroke="#7C3AED" stroke-width="1.4" stroke-linecap="round"/></svg>
+          </div>Exportar dados
+        </button>
+        <button class="profile-menu-item" onclick="abrirSuporte()">
+          <div class="profile-menu-icon">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2a6 6 0 100 12A6 6 0 008 2z" stroke="#7C3AED" stroke-width="1.4"/><path d="M6.5 6a1.5 1.5 0 012.5 1.5c0 1-1 1.5-1 2" stroke="#7C3AED" stroke-width="1.4" stroke-linecap="round"/><circle cx="8" cy="11" r="0.8" fill="#7C3AED"/></svg>
+          </div>Suporte
+        </button>
+        <button class="profile-menu-item danger" onclick="logout()">
+          <div class="profile-menu-icon" style="background:#FEF2F2;">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 14H3a1 1 0 01-1-1V3a1 1 0 011-1h3" stroke="#DC2626" stroke-width="1.4" stroke-linecap="round"/><path d="M11 11l3-3-3-3M14 8H6" stroke="#DC2626" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>Sair da conta
+        </button>
       </div>
-      <button class="profile-menu-item" onclick="alterarSenha()">
-        <div class="profile-menu-icon">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="3.5" y="8" width="9" height="6" rx="1.5" stroke="#7C3AED" stroke-width="1.4"/><path d="M5 8V6a3 3 0 016 0v2" stroke="#7C3AED" stroke-width="1.4" stroke-linecap="round"/><circle cx="8" cy="11" r="1" fill="#7C3AED"/></svg>
-        </div>Alterar senha
-      </button>
-      <button class="profile-menu-item" onclick="exportarDados()">
-        <div class="profile-menu-icon">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2v8M5 7l3 3 3-3" stroke="#7C3AED" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 11v2a1 1 0 001 1h8a1 1 0 001-1v-2" stroke="#7C3AED" stroke-width="1.4" stroke-linecap="round"/></svg>
-        </div>Exportar dados
-      </button>
-      <button class="profile-menu-item" onclick="abrirSuporte()">
-        <div class="profile-menu-icon">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2a6 6 0 100 12A6 6 0 008 2z" stroke="#7C3AED" stroke-width="1.4"/><path d="M6.5 6a1.5 1.5 0 012.5 1.5c0 1-1 1.5-1 2" stroke="#7C3AED" stroke-width="1.4" stroke-linecap="round"/><circle cx="8" cy="11" r="0.8" fill="#7C3AED"/></svg>
-        </div>Suporte
-      </button>
-      <button class="profile-menu-item danger" onclick="logout()">
-        <div class="profile-menu-icon" style="background:#FEF2F2;">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 14H3a1 1 0 01-1-1V3a1 1 0 011-1h3" stroke="#DC2626" stroke-width="1.4" stroke-linecap="round"/><path d="M11 11l3-3-3-3M14 8H6" stroke="#DC2626" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </div>Sair da conta
-      </button>
     </div>
   </div>
+
+  <!-- TOP NAV -->
+  <nav class="top-nav" id="top-nav">
+    <button class="top-tab active" data-tab="dashboard" onclick="setTab('dashboard',this)">
+      <span class="tab-emoji">🏠</span> Início
+    </button>
+    <button class="top-tab" data-tab="gastos" onclick="setTab('gastos',this)">
+      <span class="tab-emoji">💳</span> Gastos
+    </button>
+    <button class="top-tab" data-tab="metas" onclick="setTab('metas',this)">
+      <span class="tab-emoji">🎯</span> Metas
+    </button>
+    <button class="top-tab" data-tab="educacao" onclick="setTab('educacao',this)">
+      <span class="tab-emoji">🎓</span> Aprender
+    </button>
+    <button class="top-tab" data-tab="alertas" onclick="setTab('alertas',this)" style="position:relative;">
+      <div id="alerta-badge" style="display:none;position:absolute;top:6px;right:6px;width:6px;height:6px;border-radius:50%;background:#DC2626;"></div>
+      <span class="tab-emoji">🔔</span> Alertas
+    </button>
+    <button class="top-tab" data-tab="simulador" onclick="setTab('simulador',this)">
+      <span class="tab-emoji">📊</span> Simular
+    </button>
+    <button class="top-tab" data-tab="investimentos" onclick="setTab('investimentos',this)">
+      <span class="tab-emoji">📈</span> Investir
+    </button>
+  </nav>
 </header>
 
 <div class="container">
@@ -1568,58 +1624,6 @@ footer { text-align: center; font-size: 11px; color: var(--text-subtle); padding
       <div class="liberdade-sub">Agora cada real que entra trabalha pra você. Invista!</div>
     </div>
 
-    <!-- Formulário minimalista -->
-    <div class="div-form-mini">
-      <div class="div-form-title">+ Adicionar dívida</div>
-      <div class="div-form-grid">
-        <div style="grid-column:span 2;">
-          <label class="div-input-label">Tipo de dívida</label>
-          <div class="div-selector" id="div-selector">
-            <div class="div-input-wrap" style="position:static;">
-              <span class="div-input-icon" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);z-index:1;">📋</span>
-              <button type="button" class="div-selector-toggle" id="div-selector-btn" onclick="toggleDivSelector()">
-                <span id="div-selector-txt" style="color:var(--text-muted);">Selecione ou busque...</span>
-              </button>
-            </div>
-            <div class="div-selector-dropdown" id="div-selector-dropdown">
-              <div class="div-selector-search">
-                <input type="text" id="div-search" placeholder="Buscar tipo de dívida..." oninput="filtrarDividas(this.value)">
-              </div>
-              <div id="div-selector-items"></div>
-              <div class="div-selector-custom" onclick="usarNomeCustom()">
-                ✏️ Digitar nome personalizado
-              </div>
-            </div>
-          </div>
-          <input type="hidden" id="div-nome">
-        </div>
-        <div>
-          <label class="div-input-label">Valor total (R$)</label>
-          <div class="div-input-wrap">
-            <span class="div-input-icon">💰</span>
-            <input type="number" id="div-total" placeholder="5000" min="0" step="0.01">
-          </div>
-        </div>
-        <div>
-          <label class="div-input-label">Taxa de juros (% a.m.)</label>
-          <div class="div-input-wrap">
-            <span class="div-input-icon">📈</span>
-            <input type="number" id="div-taxa" placeholder="2.5" min="0" step="0.1">
-          </div>
-        </div>
-        <div style="grid-column:span 2;">
-          <label class="div-input-label">Parcela mensal (R$)</label>
-          <div class="div-input-wrap">
-            <span class="div-input-icon">📅</span>
-            <input type="number" id="div-parcela" placeholder="300" min="0" step="0.01">
-          </div>
-        </div>
-      </div>
-      <button class="btn-primary" onclick="addDivida()" style="width:100%;height:46px;font-size:14px;">
-        Cadastrar dívida
-      </button>
-    </div>
-
     <!-- Lista de dívidas -->
     <div id="dividas-list">
       <div class="empty-state">
@@ -1681,44 +1685,6 @@ footer { text-align: center; font-size: 11px; color: var(--text-subtle); padding
 </div>
 
 <!-- NAVEGAÇÃO INFERIOR -->
-<nav class="bottom-nav" id="bottom-nav">
-  <button class="bottom-tab active" data-tab="dashboard" onclick="setTab('dashboard',this)">
-    <div class="bottom-tab-dot"></div>
-    <span class="tab-emoji">🏠</span>
-    <span>Início</span>
-  </button>
-  <button class="bottom-tab" data-tab="gastos" onclick="setTab('gastos',this)">
-    <div class="bottom-tab-dot"></div>
-    <span class="tab-emoji">💳</span>
-    <span>Gastos</span>
-  </button>
-  <button class="bottom-tab" data-tab="metas" onclick="setTab('metas',this)">
-    <div class="bottom-tab-dot"></div>
-    <span class="tab-emoji">🎯</span>
-    <span>Metas</span>
-  </button>
-  <button class="bottom-tab" data-tab="educacao" onclick="setTab('educacao',this)">
-    <div class="bottom-tab-dot"></div>
-    <span class="tab-emoji">🎓</span>
-    <span>Aprender</span>
-  </button>
-  <button class="bottom-tab" data-tab="alertas" onclick="setTab('alertas',this)" style="position:relative;">
-    <div class="bottom-tab-dot"></div>
-    <div id="alerta-badge" style="display:none;position:absolute;top:8px;right:6px;width:7px;height:7px;border-radius:50%;background:#DC2626;border:2px solid var(--card);"></div>
-    <span class="tab-emoji">🔔</span>
-    <span>Alertas</span>
-  </button>
-  <button class="bottom-tab" data-tab="simulador" onclick="setTab('simulador',this)">
-    <div class="bottom-tab-dot"></div>
-    <span class="tab-emoji">📊</span>
-    <span>Simular</span>
-  </button>
-  <button class="bottom-tab" data-tab="investimentos" onclick="setTab('investimentos',this)">
-    <div class="bottom-tab-dot"></div>
-    <span class="tab-emoji">📈</span>
-    <span>Invest.</span>
-  </button>
-</nav>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
 
@@ -1870,7 +1836,7 @@ function setTab(tab, btn) {
   const dir = idxNew >= idxOld ? 'slide-right' : 'slide-left';
 
   document.querySelectorAll('.section-page').forEach(p => p.classList.remove('active','slide-right','slide-left'));
-  document.querySelectorAll('.bottom-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.top-tab').forEach(t => t.classList.remove('active'));
 
   const page = document.getElementById('tab-' + tab);
   if (page) {
@@ -1880,7 +1846,7 @@ function setTab(tab, btn) {
 
   if (btn) btn.classList.add('active');
   else {
-    const navBtn = document.querySelector(`.bottom-tab[data-tab="${tab}"]`);
+    const navBtn = document.querySelector(`.top-tab[data-tab="${tab}"]`);
     if (navBtn) navBtn.classList.add('active');
   }
 
@@ -1895,7 +1861,7 @@ function setTab(tab, btn) {
 }
 
 function setTabBtn(tab) {
-  const btn = document.querySelector(`.bottom-tab[data-tab="${tab}"]`);
+  const btn = document.querySelector(`.top-tab[data-tab="${tab}"]`);
   setTab(tab, btn);
 }
 
@@ -3617,8 +3583,8 @@ atualizarSTATE();
 // Garantir que só o dashboard aparece no load
 document.querySelectorAll('.section-page').forEach(p => p.classList.remove('active'));
 document.getElementById('tab-dashboard').classList.add('active');
-document.querySelectorAll('.bottom-tab').forEach(t => t.classList.remove('active'));
-const dashBtn = document.querySelector('.bottom-tab[data-tab="dashboard"]');
+document.querySelectorAll('.top-tab').forEach(t => t.classList.remove('active'));
+const dashBtn = document.querySelector('.top-tab[data-tab="dashboard"]');
 if (dashBtn) dashBtn.classList.add('active');
 
 atualizar();
