@@ -687,6 +687,166 @@ footer { text-align: center; font-size: 11px; color: var(--text-subtle); padding
 @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.5;} }
 .pulse { animation: pulse 2s ease-in-out infinite; }
 
+/* ===== NOVA ABA DÍVIDAS ===== */
+.div-hero {
+  border-radius: var(--radius); padding: 1.5rem;
+  margin-bottom: 1rem; position: relative; overflow: hidden;
+  background: linear-gradient(135deg, #1a0533 0%, #4C1D95 100%);
+}
+.div-hero-label {
+  font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.5);
+  text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px;
+}
+.div-hero-value {
+  font-size: 36px; font-weight: 800; color: white; line-height: 1.1; margin-bottom: 4px;
+}
+.div-hero-sub { font-size: 12px; color: rgba(255,255,255,0.5); margin-bottom: 1rem; }
+.div-hero-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.div-hero-stat {
+  background: rgba(255,255,255,0.08); border-radius: 10px;
+  padding: 10px; text-align: center;
+}
+.div-hero-stat-label { font-size: 9px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; }
+.div-hero-stat-val { font-size: 13px; font-weight: 800; color: white; }
+.div-hero-stat-val.danger { color: #FCA5A5; }
+.div-hero-stat-val.ok { color: #86EFAC; }
+
+/* Juros queimando */
+.juros-burn {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(220,38,38,0.15); border: 1px solid rgba(220,38,38,0.3);
+  border-radius: 99px; padding: 3px 10px; margin-top: 6px;
+}
+.juros-burn-txt { font-size: 11px; font-weight: 700; color: #FCA5A5; }
+
+/* Formulário minimalista */
+.div-form-mini {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1rem;
+}
+.div-form-title {
+  font-size: 11px; font-weight: 700; color: var(--purple);
+  text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 1rem;
+}
+.div-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.div-input-wrap { position: relative; }
+.div-input-wrap input {
+  width: 100%; height: 46px;
+  background: var(--bg); border: 1.5px solid var(--border);
+  border-radius: 10px; padding: 0 12px 0 36px;
+  font-size: 14px; font-family: inherit; color: var(--text); outline: none;
+  transition: border-color 0.2s;
+}
+.div-input-wrap input:focus { border-color: var(--purple); box-shadow: 0 0 0 3px rgba(124,58,237,0.08); }
+.div-input-icon {
+  position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+  font-size: 14px; pointer-events: none;
+}
+.div-input-label {
+  font-size: 10px; font-weight: 600; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.06em;
+  display: block; margin-bottom: 5px;
+}
+
+/* Card de dívida repaginado */
+.divida-card-new {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); margin-bottom: 12px;
+  overflow: hidden; transition: transform 0.15s;
+}
+.divida-card-new:active { transform: scale(0.99); }
+
+.divida-card-top {
+  padding: 1rem 1.25rem;
+  display: flex; align-items: center; gap: 12px;
+}
+
+.divida-card-icon {
+  width: 44px; height: 44px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; flex-shrink: 0;
+  background: #FEF2F2;
+}
+
+.divida-card-info { flex: 1; min-width: 0; }
+.divida-card-nome {
+  font-size: 15px; font-weight: 700; color: var(--text);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.divida-card-total { font-size: 18px; font-weight: 800; color: #DC2626; }
+
+/* Barra de progresso da dívida */
+.divida-progress-wrap { padding: 0 1.25rem 0.75rem; }
+.divida-progress-label {
+  display: flex; justify-content: space-between;
+  font-size: 11px; color: var(--text-muted); margin-bottom: 6px;
+}
+.divida-progress-track {
+  height: 8px; background: var(--purple-light);
+  border-radius: 99px; overflow: hidden;
+}
+.divida-progress-bar {
+  height: 8px; border-radius: 99px;
+  background: linear-gradient(90deg, #DC2626, #F87171);
+  transition: width 0.6s ease;
+}
+
+/* Stats da dívida */
+.divida-stats {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  border-top: 1px solid var(--border);
+}
+.divida-stat {
+  padding: 10px; text-align: center;
+  border-right: 1px solid var(--border);
+}
+.divida-stat:last-child { border-right: none; }
+.divida-stat-label { font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px; }
+.divida-stat-val { font-size: 13px; font-weight: 700; color: var(--text); }
+.divida-stat-val.red { color: #DC2626; }
+.divida-stat-val.green { color: #16A34A; }
+
+/* Estrategia de quitacao */
+.divida-strategy {
+  padding: 10px 1.25rem 1rem;
+  border-top: 1px solid var(--border);
+  display: flex; align-items: center; gap: 8px;
+}
+.strategy-icon { font-size: 14px; flex-shrink: 0; }
+.strategy-txt { font-size: 11px; color: var(--text-muted); line-height: 1.4; flex: 1; }
+.strategy-txt strong { color: var(--text); }
+
+/* Barra de juros animada */
+@keyframes burnAnim {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+.juros-bar {
+  height: 4px; border-radius: 99px;
+  background: linear-gradient(90deg, #DC2626, #F97316, #DC2626);
+  background-size: 200% 100%;
+  animation: burnAnim 2s linear infinite;
+}
+
+/* Liberdade meter */
+.liberdade-card {
+  background: linear-gradient(135deg, #F0FDF4, #DCFCE7);
+  border: 1px solid #86EFAC; border-radius: var(--radius);
+  padding: 1.25rem; margin-bottom: 1rem; text-align: center;
+  display: none;
+}
+.liberdade-emoji { font-size: 40px; margin-bottom: 8px; }
+.liberdade-title { font-size: 18px; font-weight: 800; color: #16A34A; margin-bottom: 4px; }
+.liberdade-sub { font-size: 13px; color: #15803D; }
+
+@media (max-width: 480px) {
+  .div-hero-stats { grid-template-columns: 1fr 1fr; }
+  .div-form-grid { grid-template-columns: 1fr; }
+  .divida-stats { grid-template-columns: 1fr 1fr; }
+  .divida-stat:nth-child(2) { border-right: none; }
+  .divida-stat:last-child { grid-column: span 2; border-top: 1px solid var(--border); }
+}
+
 @media (max-width: 480px) {
   .decisao-body { grid-template-columns: 1fr; }
   .decisao-item { border-right: none; border-bottom: 1px solid var(--border); }
@@ -1211,21 +1371,86 @@ footer { text-align: center; font-size: 11px; color: var(--text-subtle); padding
 
   <!-- ===== DÍVIDAS ===== -->
   <div id="tab-dividas" class="section-page">
-    <div class="card">
-      <div class="card-title">Cadastrar dívida</div>
-      <div class="input-row">
-        <div class="field"><label>Nome da dívida</label><input type="text" id="div-nome" placeholder="Ex: Cartão, Empréstimo..."></div>
-        <div class="field"><label>Valor total (R$)</label><input type="number" id="div-total" placeholder="5000" min="0" step="0.01"></div>
-        <div class="field"><label>Taxa de juros (% a.m.)</label><input type="number" id="div-taxa" placeholder="2.5" min="0" step="0.1"></div>
-        <div class="field"><label>Parcela mensal (R$)</label><input type="number" id="div-parcela" placeholder="300" min="0" step="0.01"></div>
+
+    <!-- Hero total -->
+    <div class="div-hero" id="div-hero">
+      <div class="div-hero-label">Sua situação atual</div>
+      <div class="div-hero-value" id="div-hero-total">R$ 0,00</div>
+      <div class="div-hero-sub" id="div-hero-sub">em dívidas cadastradas</div>
+      <div id="div-juros-burn" style="display:none;" class="juros-burn">
+        <span>🔥</span>
+        <span class="juros-burn-txt" id="div-juros-burn-txt">R$ 0,00 em juros todo mês</span>
       </div>
-      <button class="btn-primary" onclick="addDivida()" style="margin-top:8px;">+ Cadastrar dívida</button>
+      <div style="margin-top:1rem;" class="div-hero-stats">
+        <div class="div-hero-stat">
+          <div class="div-hero-stat-label">Dívidas</div>
+          <div class="div-hero-stat-val" id="div-hero-qtd">0</div>
+        </div>
+        <div class="div-hero-stat">
+          <div class="div-hero-stat-label">Quitação</div>
+          <div class="div-hero-stat-val" id="div-hero-prazo">—</div>
+        </div>
+        <div class="div-hero-stat">
+          <div class="div-hero-stat-label">Total de juros</div>
+          <div class="div-hero-stat-val danger" id="div-hero-juros">R$ 0</div>
+        </div>
+      </div>
     </div>
-    <div id="dividas-resumo" style="display:none;" class="metrics">
-      <div class="metric"><div class="metric-label">Total em dívidas</div><div class="metric-value" id="div-total-geral">—</div></div>
-      <div class="metric"><div class="metric-label">Juros totais</div><div class="metric-value" id="div-juros-geral" style="color:#DC2626;">—</div></div>
+
+    <!-- Card de liberdade (aparece quando nao tem dividas) -->
+    <div class="liberdade-card" id="liberdade-card">
+      <div class="liberdade-emoji">🎉</div>
+      <div class="liberdade-title">Você está livre de dívidas!</div>
+      <div class="liberdade-sub">Agora cada real que entra trabalha pra você. Invista!</div>
     </div>
-    <div id="dividas-list"><div class="empty-state"><div class="empty-state-icon">💸</div>Nenhuma dívida cadastrada.<br>Registre suas dívidas e veja como quitá-las mais rápido!</div></div>
+
+    <!-- Formulário minimalista -->
+    <div class="div-form-mini">
+      <div class="div-form-title">+ Adicionar dívida</div>
+      <div class="div-form-grid">
+        <div>
+          <label class="div-input-label">Nome</label>
+          <div class="div-input-wrap">
+            <span class="div-input-icon">📋</span>
+            <input type="text" id="div-nome" placeholder="Ex: Cartão, Empréstimo..." onkeydown="if(event.key==='Enter') addDivida()">
+          </div>
+        </div>
+        <div>
+          <label class="div-input-label">Valor total (R$)</label>
+          <div class="div-input-wrap">
+            <span class="div-input-icon">💰</span>
+            <input type="number" id="div-total" placeholder="5000" min="0" step="0.01">
+          </div>
+        </div>
+        <div>
+          <label class="div-input-label">Taxa de juros (% a.m.)</label>
+          <div class="div-input-wrap">
+            <span class="div-input-icon">📈</span>
+            <input type="number" id="div-taxa" placeholder="2.5" min="0" step="0.1">
+          </div>
+        </div>
+        <div>
+          <label class="div-input-label">Parcela mensal (R$)</label>
+          <div class="div-input-wrap">
+            <span class="div-input-icon">📅</span>
+            <input type="number" id="div-parcela" placeholder="300" min="0" step="0.01">
+          </div>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="addDivida()" style="width:100%;height:46px;font-size:14px;">
+        Cadastrar dívida
+      </button>
+    </div>
+
+    <!-- Lista de dívidas -->
+    <div id="dividas-list">
+      <div class="empty-state">
+        <div class="empty-state-icon">✨</div>
+        Nenhuma dívida cadastrada.<br>
+        <span style="color:var(--purple);font-weight:600;">Você está livre!</span>
+      </div>
+    </div>
+
   </div>
 
   <!-- ===== ALERTAS ===== -->
@@ -1989,18 +2214,18 @@ function renderMetas() {
 }
 
 // ===== DÍVIDAS =====
-function getDividas() { return JSON.parse(localStorage.getItem('gi_dividas') || '[]'); }
-function saveDividas(d) { localStorage.setItem('gi_dividas', JSON.stringify(d)); }
-
-function addDivida() {
+async function addDivida() {
   const nome = document.getElementById('div-nome').value.trim();
   const total = parseFloat(document.getElementById('div-total').value);
   const taxa = parseFloat(document.getElementById('div-taxa').value) || 0;
   const parcela = parseFloat(document.getElementById('div-parcela').value) || 0;
-  if (!nome || isNaN(total) || total <= 0) { document.getElementById('div-nome').focus(); toast('Preencha o nome e valor da dívida.', 'error'); return; }
-  const dividas = getDividas();
-  dividas.push({ id: Date.now(), nome, total, taxa, parcela });
-  saveDividas(dividas);
+  if (!nome || isNaN(total) || total <= 0) { toast('Preencha nome e valor da dívida.', 'error'); return; }
+  if (STATE.modoTeste) {
+    STATE.dividas.push({ id: Date.now(), nome, valor_total: total, taxa_juros: taxa, parcela_mensal: parcela });
+  } else {
+    const { data } = await sb.from('dividas').insert({ user_id: STATE.userId, nome, valor_total: total, taxa_juros: taxa, parcela_mensal: parcela }).select().single();
+    STATE.dividas.push(data);
+  }
   document.getElementById('div-nome').value = '';
   document.getElementById('div-total').value = '';
   document.getElementById('div-taxa').value = '';
@@ -2009,51 +2234,179 @@ function addDivida() {
   toast('✓ Dívida cadastrada!', 'success');
 }
 
-function deleteDivida(id) {
-  saveDividas(getDividas().filter(d => d.id !== id)); renderDividas();
+async function deleteDivida(id) {
+  STATE.dividas = STATE.dividas.filter(d => d.id != id);
+  if (!STATE.modoTeste) await sb.from('dividas').delete().eq('id', id);
+  renderDividas();
   toast('Dívida removida.', 'info');
 }
 
+async function pagarParcela(id) {
+  const d = STATE.dividas.find(d => d.id == id);
+  if (!d) return;
+  const parcela = parseFloat(d.parcela_mensal || d.parcela || 0);
+  if (parcela <= 0) { toast('Defina uma parcela mensal para registrar pagamento.', 'error'); return; }
+  const novoTotal = Math.max(0, parseFloat(d.valor_total || d.total || 0) - parcela);
+  d.valor_total = novoTotal;
+  if (!STATE.modoTeste) await sb.from('dividas').update({ valor_total: novoTotal }).eq('id', id);
+  if (novoTotal <= 0) {
+    STATE.dividas = STATE.dividas.filter(dv => dv.id != id);
+    if (!STATE.modoTeste) await sb.from('dividas').delete().eq('id', id);
+    toast('🎉 Dívida quitada! Parabéns!', 'success', 4000);
+  } else {
+    toast('✓ Parcela registrada!', 'success');
+  }
+  renderDividas();
+}
+
+function getDividaEmoji(nome) {
+  const n = nome.toLowerCase();
+  if (n.includes('cartao') || n.includes('cartão') || n.includes('credit')) return '💳';
+  if (n.includes('carro') || n.includes('veiculo') || n.includes('veículo') || n.includes('moto')) return '🚗';
+  if (n.includes('casa') || n.includes('imovel') || n.includes('imóvel') || n.includes('aluguel') || n.includes('financiamento')) return '🏠';
+  if (n.includes('emprestimo') || n.includes('empréstimo') || n.includes('banco')) return '🏦';
+  if (n.includes('faculdade') || n.includes('educacao') || n.includes('educação') || n.includes('estudo')) return '📚';
+  if (n.includes('medico') || n.includes('médico') || n.includes('saude') || n.includes('saúde') || n.includes('hospital')) return '❤️';
+  return '💸';
+}
+
+function calcDivida(d) {
+  const total = parseFloat(d.valor_total || d.total || 0);
+  const taxa = parseFloat(d.taxa_juros || d.taxa || 0) / 100;
+  const parcela = parseFloat(d.parcela_mensal || d.parcela || 0);
+  let meses = 0, jurosTotal = 0, totalAPagar = total;
+  if (parcela > 0 && taxa > 0 && parcela > total * taxa) {
+    meses = Math.ceil(Math.log(parcela / (parcela - total * taxa)) / Math.log(1 + taxa));
+    jurosTotal = (parcela * meses) - total;
+    totalAPagar = parcela * meses;
+  } else if (parcela > 0) {
+    meses = Math.ceil(total / parcela);
+    totalAPagar = total;
+  }
+  const jurosMes = total * taxa;
+  const dataQuitacao = meses > 0 ? (() => {
+    const d2 = new Date(); d2.setMonth(d2.getMonth() + meses);
+    return d2.toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' });
+  })() : '—';
+  return { total, taxa, parcela, meses, jurosTotal, totalAPagar, jurosMes, dataQuitacao };
+}
+
+function getEstrategia(d, calc) {
+  if (calc.taxa >= 0.1) return { icon: '🚨', txt: `Juros de <strong>${(calc.taxa*100).toFixed(1)}% ao mês</strong> — quite esta dívida antes de qualquer outra. É a mais cara.` };
+  if (calc.taxa >= 0.03) return { icon: '⚠️', txt: `Esta dívida consome <strong>${fmtMoney(calc.jurosMes)}/mês</strong> só em juros. Tente pagar mais que a parcela mínima.` };
+  if (calc.meses > 0 && calc.meses <= 3) return { icon: '🏁', txt: `Faltam apenas <strong>${calc.meses} meses</strong> para quitar. Você está na reta final!` };
+  if (calc.taxa === 0) return { icon: '✅', txt: `Sem juros. Mantenha as parcelas em dia e quite conforme planejado.` };
+  return { icon: '💡', txt: `Pagando <strong>${fmtMoney(calc.parcela)}/mês</strong>, você quita em <strong>${calc.meses} meses</strong>.` };
+}
+
 function renderDividas() {
-  const dividas = getDividas();
   const list = document.getElementById('dividas-list');
-  const resumo = document.getElementById('dividas-resumo');
-  if (!dividas.length) {
-    list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">💸</div>Nenhuma dívida cadastrada.<br>Registre suas dívidas e veja como quitá-las mais rápido!</div>';
-    resumo.style.display = 'none'; return;
+  const liberdade = document.getElementById('liberdade-card');
+  const hero = document.getElementById('div-hero');
+  const burn = document.getElementById('div-juros-burn');
+
+  if (!STATE.dividas.length) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-state-icon">✨</div>Nenhuma dívida cadastrada.<br><span style="color:var(--purple);font-weight:600;">Você está livre!</span></div>`;
+    if (liberdade) liberdade.style.display = 'block';
+    document.getElementById('div-hero-total').textContent = 'R$ 0,00';
+    document.getElementById('div-hero-sub').textContent = 'Nenhuma dívida ativa';
+    document.getElementById('div-hero-qtd').textContent = '0';
+    document.getElementById('div-hero-prazo').textContent = '—';
+    document.getElementById('div-hero-juros').textContent = 'R$ 0';
+    if (burn) burn.style.display = 'none';
+    return;
   }
 
-  let totalGeral = 0, jurosGeral = 0;
-  const cards = dividas.map(d => {
-    const taxaMensal = d.taxa / 100;
-    let parcelas = 0, jurosTotal = 0;
-    if (d.parcela > 0 && taxaMensal > 0) {
-      parcelas = Math.ceil(Math.log(d.parcela / (d.parcela - d.total * taxaMensal)) / Math.log(1 + taxaMensal));
-      jurosTotal = (d.parcela * parcelas) - d.total;
-    } else if (d.parcela > 0) {
-      parcelas = Math.ceil(d.total / d.parcela);
-    }
-    totalGeral += d.total; jurosGeral += jurosTotal;
-    return `<div class="debt-card">
-      <div class="debt-header">
-        <div class="debt-name">${d.nome}</div>
-        <div style="display:flex;align-items:center;gap:8px;"><div class="debt-total">${fmtMoney(d.total)}</div><button class="btn-del" onclick="deleteDivida(${d.id})">&times;</button></div>
+  if (liberdade) liberdade.style.display = 'none';
+
+  // Calcular totais
+  let totalGeral = 0, jurosGeralMes = 0, jurosGeralTotal = 0, maxMeses = 0;
+  STATE.dividas.forEach(d => {
+    const c = calcDivida(d);
+    totalGeral += c.total;
+    jurosGeralMes += c.jurosMes;
+    jurosGeralTotal += c.jurosTotal;
+    if (c.meses > maxMeses) maxMeses = c.meses;
+  });
+
+  // Atualizar hero
+  document.getElementById('div-hero-total').textContent = fmtMoney(totalGeral);
+  document.getElementById('div-hero-sub').textContent = `em ${STATE.dividas.length} dívida${STATE.dividas.length > 1 ? 's' : ''} ativa${STATE.dividas.length > 1 ? 's' : ''}`;
+  document.getElementById('div-hero-qtd').textContent = STATE.dividas.length;
+  document.getElementById('div-hero-juros').textContent = fmtMoney(Math.round(jurosGeralTotal));
+  if (maxMeses > 0) {
+    const dataFim = new Date(); dataFim.setMonth(dataFim.getMonth() + maxMeses);
+    document.getElementById('div-hero-prazo').textContent = dataFim.toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' });
+  }
+
+  if (jurosGeralMes > 0 && burn) {
+    burn.style.display = 'inline-flex';
+    document.getElementById('div-juros-burn-txt').textContent = `${fmtMoney(jurosGeralMes)} em juros todo mês`;
+  } else if (burn) { burn.style.display = 'none'; }
+
+  // Ordenar: maior taxa primeiro (snowball de juros)
+  const sorted = [...STATE.dividas].sort((a, b) => {
+    const ta = parseFloat(a.taxa_juros || a.taxa || 0);
+    const tb = parseFloat(b.taxa_juros || b.taxa || 0);
+    return tb - ta;
+  });
+
+  list.innerHTML = sorted.map((d, idx) => {
+    const c = calcDivida(d);
+    const emoji = getDividaEmoji(d.nome);
+    const estrategia = getEstrategia(d, c);
+    // Progresso: quanto já pagou (assumindo que o valor atual é o restante)
+    // Barra representa o quanto ainda falta vs o total original (não temos histórico, mas mostramos o peso relativo)
+    const pesoRelativo = totalGeral > 0 ? Math.round((c.total / totalGeral) * 100) : 100;
+    const isPrioridade = idx === 0 && STATE.dividas.length > 1;
+
+    return `<div class="divida-card-new">
+      <div class="divida-card-top">
+        <div class="divida-card-icon">${emoji}</div>
+        <div class="divida-card-info">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
+            <div class="divida-card-nome">${d.nome}</div>
+            ${isPrioridade ? `<span style="font-size:9px;background:#FEE2E2;color:#DC2626;padding:2px 7px;border-radius:99px;font-weight:700;flex-shrink:0;">PRIORIDADE</span>` : ''}
+          </div>
+          <div class="divida-card-total">${fmtMoney(c.total)}</div>
+        </div>
+        <button class="btn-del" onclick="deleteDivida('${d.id}')" style="font-size:20px;padding:4px 8px;">&times;</button>
       </div>
-      <div class="debt-info">
-        <div class="debt-info-item">Taxa de juros<span>${d.taxa > 0 ? d.taxa + '% a.m.' : 'Sem juros'}</span></div>
-        <div class="debt-info-item">Parcela mensal<span>${d.parcela > 0 ? fmtMoney(d.parcela) : '—'}</span></div>
-        <div class="debt-info-item">Meses restantes<span>${parcelas > 0 ? parcelas + ' meses' : '—'}</span></div>
-        <div class="debt-info-item">Total de juros<span style="color:#DC2626;">${jurosTotal > 0 ? fmtMoney(jurosTotal) : 'R$ 0,00'}</span></div>
-        <div class="debt-info-item">Total a pagar<span>${d.parcela > 0 ? fmtMoney(d.parcela * parcelas) : '—'}</span></div>
-        <div class="debt-info-item">Quitação em<span>${parcelas > 0 ? (() => { const d2 = new Date(); d2.setMonth(d2.getMonth()+parcelas); return d2.toLocaleDateString('pt-BR',{month:'short',year:'numeric'}); })() : '—'}</span></div>
+
+      ${c.taxa > 0 ? `<div style="padding:0 1.25rem 0.75rem;"><div class="juros-bar"></div></div>` : ''}
+
+      <div class="divida-progress-wrap">
+        <div class="divida-progress-label">
+          <span>Peso no total das dívidas</span>
+          <span style="font-weight:700;color:#DC2626;">${pesoRelativo}%</span>
+        </div>
+        <div class="divida-progress-track">
+          <div class="divida-progress-bar" style="width:${pesoRelativo}%;"></div>
+        </div>
+      </div>
+
+      <div class="divida-stats">
+        <div class="divida-stat">
+          <div class="divida-stat-label">Taxa</div>
+          <div class="divida-stat-val ${c.taxa >= 0.05 ? 'red' : ''}">${c.taxa > 0 ? (c.taxa * 100).toFixed(1) + '% a.m.' : 'Sem juros'}</div>
+        </div>
+        <div class="divida-stat">
+          <div class="divida-stat-label">Parcela</div>
+          <div class="divida-stat-val">${c.parcela > 0 ? fmtMoney(c.parcela) : '—'}</div>
+        </div>
+        <div class="divida-stat">
+          <div class="divida-stat-label">Quita em</div>
+          <div class="divida-stat-val ${c.meses <= 3 && c.meses > 0 ? 'green' : ''}">${c.meses > 0 ? c.meses + ' meses' : '—'}</div>
+        </div>
+      </div>
+
+      <div class="divida-strategy">
+        <span class="strategy-icon">${estrategia.icon}</span>
+        <span class="strategy-txt">${estrategia.txt}</span>
+        ${c.parcela > 0 ? `<button onclick="pagarParcela('${d.id}')" style="flex-shrink:0;background:var(--purple);color:white;border:none;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">✓ Paguei</button>` : ''}
       </div>
     </div>`;
   }).join('');
-
-  list.innerHTML = cards;
-  resumo.style.display = 'grid';
-  document.getElementById('div-total-geral').textContent = fmtMoney(totalGeral);
-  document.getElementById('div-juros-geral').textContent = fmtMoney(jurosGeral);
 }
 
 // ===== ALERTAS =====
