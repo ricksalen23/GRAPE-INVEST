@@ -340,9 +340,11 @@ header {
   letter-spacing: 0.02em; transition: color 0.2s; position: relative; min-width: 0;
 }
 .bottom-tab svg { transition: transform 0.2s; opacity: 0.4; }
+.bottom-tab .tab-emoji { transition: transform 0.2s; opacity: 0.45; font-size: 20px; line-height: 1; display: block; }
 .bottom-tab span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 .bottom-tab.active { color: var(--purple); }
 .bottom-tab.active svg { opacity: 1; transform: translateY(-1px); }
+.bottom-tab.active .tab-emoji { opacity: 1; transform: translateY(-1px); }
 .bottom-tab-dot {
   position: absolute; top: 0; left: 50%; transform: translateX(-50%);
   width: 0; height: 3px; border-radius: 0 0 3px 3px;
@@ -1497,53 +1499,8 @@ footer { text-align: center; font-size: 11px; color: var(--text-subtle); padding
     <div id="metas-list"><div class="empty-state"><div class="empty-state-icon">🎯</div>Nenhuma meta criada ainda.<br>Defina um objetivo e acompanhe seu progresso!</div></div>
   </div>
 
-  <!-- ===== PROTEÇÃO ===== -->
-  <div id="tab-protecao" class="section-page">
-
-    <div class="protecao-hero">
-      <div class="protecao-hero-label">🛡️ Modo proteção</div>
-      <div class="protecao-hero-title">Blindagem financeira</div>
-      <div class="protecao-hero-sub">Ative os gatilhos que destroem seu orçamento. O app vai te avisar antes de você gastar.</div>
-      <div class="escudo-stats">
-        <div class="escudo-stat">
-          <div class="escudo-stat-label">Gatilhos ativos</div>
-          <div class="escudo-stat-val safe" id="prot-ativos">0</div>
-        </div>
-        <div class="escudo-stat">
-          <div class="escudo-stat-label">Bloqueios este mês</div>
-          <div class="escudo-stat-val" id="prot-bloqueios">0</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card" style="margin-bottom:1rem;">
-      <div class="card-title">Gatilhos de risco</div>
-      <div id="gatilhos-list"></div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">Como funciona</div>
-      <div style="display:flex;flex-direction:column;gap:12px;">
-        <div style="display:flex;gap:12px;align-items:flex-start;">
-          <div style="font-size:20px;flex-shrink:0;">1️⃣</div>
-          <div style="font-size:13px;color:var(--text-muted);line-height:1.5;">Ative os gatilhos das categorias que você quer controlar.</div>
-        </div>
-        <div style="display:flex;gap:12px;align-items:flex-start;">
-          <div style="font-size:20px;flex-shrink:0;">2️⃣</div>
-          <div style="font-size:13px;color:var(--text-muted);line-height:1.5;">Quando adicionar um gasto nessa categoria, o app vai pausar e te mostrar o impacto.</div>
-        </div>
-        <div style="display:flex;gap:12px;align-items:flex-start;">
-          <div style="font-size:20px;flex-shrink:0;">3️⃣</div>
-          <div style="font-size:13px;color:var(--text-muted);line-height:1.5;">Você escolhe: proteger o dinheiro ou registrar mesmo assim. Sem julgamento.</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ===== ALERTAS + CURSO ===== -->
-  <div id="tab-alertas" class="section-page">
-
-    <!-- Curso de Finanças -->
+  <!-- ===== EDUCAÇÃO FINANCEIRA ===== -->
+  <div id="tab-educacao" class="section-page">
     <div class="card" style="margin-bottom:1rem;">
       <div class="curso-header-wrap">
         <div class="curso-header-icon">🎓</div>
@@ -1555,8 +1512,10 @@ footer { text-align: center; font-size: 11px; color: var(--text-subtle); padding
       </div>
       <div id="licoes-list"></div>
     </div>
+  </div>
 
-    <!-- Alertas de vencimento -->
+  <!-- ===== ALERTAS ===== -->
+  <div id="tab-alertas" class="section-page">
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
         <div class="card-title" style="margin-bottom:0;">🔔 Vencimentos</div>
@@ -1575,7 +1534,6 @@ footer { text-align: center; font-size: 11px; color: var(--text-subtle); padding
       </div>
       <div id="alertas-list"><div class="empty-state"><div class="empty-state-icon">🔔</div>Nenhum alerta cadastrado.<br>Adicione seus vencimentos e nunca mais pague multa!</div></div>
     </div>
-
   </div>
 
     <!-- Hero total -->
@@ -1726,40 +1684,38 @@ footer { text-align: center; font-size: 11px; color: var(--text-subtle); padding
 <nav class="bottom-nav" id="bottom-nav">
   <button class="bottom-tab active" data-tab="dashboard" onclick="setTab('dashboard',this)">
     <div class="bottom-tab-dot"></div>
-    <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="3" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/><rect x="12" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/><rect x="3" y="12" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/><rect x="12" y="12" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.8"/></svg>
+    <span class="tab-emoji">🏠</span>
     <span>Início</span>
   </button>
   <button class="bottom-tab" data-tab="gastos" onclick="setTab('gastos',this)">
     <div class="bottom-tab-dot"></div>
-    <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="3" y="5" width="16" height="13" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M3 9h16" stroke="currentColor" stroke-width="1.8"/><path d="M7 13h2M13 13h2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    <span class="tab-emoji">💳</span>
     <span>Gastos</span>
   </button>
   <button class="bottom-tab" data-tab="metas" onclick="setTab('metas',this)">
     <div class="bottom-tab-dot"></div>
-    <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="1.8"/><circle cx="11" cy="11" r="4" stroke="currentColor" stroke-width="1.8"/><circle cx="11" cy="11" r="1.5" fill="currentColor"/></svg>
+    <span class="tab-emoji">🎯</span>
     <span>Metas</span>
   </button>
-  <button class="bottom-tab protect-tab" data-tab="protecao" onclick="setTab('protecao',this)">
+  <button class="bottom-tab" data-tab="educacao" onclick="setTab('educacao',this)">
     <div class="bottom-tab-dot"></div>
-    <div class="protect-icon-wrap">
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 2L3 5v5c0 4.5 3 8 7 9 4-1 7-4.5 7-9V5L10 2z" stroke="white" stroke-width="1.8" stroke-linejoin="round"/><path d="M7 10l2 2 4-4" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </div>
-    <span>Proteção</span>
+    <span class="tab-emoji">🎓</span>
+    <span>Aprender</span>
   </button>
   <button class="bottom-tab" data-tab="alertas" onclick="setTab('alertas',this)" style="position:relative;">
     <div class="bottom-tab-dot"></div>
     <div id="alerta-badge" style="display:none;position:absolute;top:8px;right:6px;width:7px;height:7px;border-radius:50%;background:#DC2626;border:2px solid var(--card);"></div>
-    <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M11 3C7.7 3 5 5.7 5 9v5l-2 2h16l-2-2V9c0-3.3-2.7-6-6-6z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 19a2 2 0 004 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    <span class="tab-emoji">🔔</span>
     <span>Alertas</span>
   </button>
   <button class="bottom-tab" data-tab="simulador" onclick="setTab('simulador',this)">
     <div class="bottom-tab-dot"></div>
-    <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M3 17L7 11L10 13L13 7L19 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span class="tab-emoji">📊</span>
     <span>Simular</span>
   </button>
   <button class="bottom-tab" data-tab="investimentos" onclick="setTab('investimentos',this)">
     <div class="bottom-tab-dot"></div>
-    <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M3 15L7 9L11 12L15 5L19 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="19" cy="8" r="2" fill="currentColor"/></svg>
+    <span class="tab-emoji">📈</span>
     <span>Invest.</span>
   </button>
 </nav>
@@ -1905,7 +1861,7 @@ function renderScore() {
 }
 
 // ===== TABS COM DIREÇÃO =====
-const TAB_ORDER = ['dashboard','gastos','metas','protecao','alertas','simulador','investimentos'];
+const TAB_ORDER = ['dashboard','gastos','metas','educacao','alertas','simulador','investimentos'];
 let tabAtual = 'dashboard';
 
 function setTab(tab, btn) {
@@ -1929,9 +1885,9 @@ function setTab(tab, btn) {
   }
 
   tabAtual = tab;
-  if (tab === 'alertas')       { renderAlertas(); renderCurso(); }
+  if (tab === 'alertas')       renderAlertas();
+  if (tab === 'educacao')      renderCurso();
   if (tab === 'metas')         renderMetas();
-  if (tab === 'protecao')      renderProtecao();
   if (tab === 'dashboard')     renderDashboard();
   if (tab === 'gastos')        renderMes();
   if (tab === 'simulador')     atualizar();
