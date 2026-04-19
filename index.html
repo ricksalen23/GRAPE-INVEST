@@ -655,6 +655,11 @@ footer { text-align: center; font-size: 11px; color: var(--text-subtle); padding
       <div id="login-success" style="font-size:13px;color:#16A34A;margin-top:10px;display:none;text-align:center;background:#F0FDF4;border-radius:10px;padding:12px;line-height:1.5;"></div>
       <div class="login-divider"><div class="login-div-line"></div><div class="login-div-txt">ainda não tem conta?</div><div class="login-div-line"></div></div>
       <div class="login-link"><a href="https://grapeinvest.kiwify.com.br">Assinar agora — 7 dias grátis →</a></div>
+      <div style="margin-top:12px;text-align:center;">
+        <button onclick="entrarComoTeste()" style="background:none;border:1.5px dashed #C4B5FD;border-radius:10px;padding:10px 20px;font-size:12px;font-weight:600;color:#7C3AED;cursor:pointer;font-family:inherit;width:100%;">
+          🧪 Entrar em modo teste (sem login)
+        </button>
+      </div>
     </div>
     <div class="login-secure">
       <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 1L2 2.5v3c0 2 1.5 3.5 3 4 1.5-.5 3-2 3-4v-3L5 1z" stroke="rgba(255,255,255,0.3)" stroke-width="1" fill="none"/></svg>
@@ -2210,6 +2215,11 @@ function logout() {
     document.getElementById('menu-nome').textContent = nome;
     document.getElementById('menu-email').textContent = email || '—';
   }
+  // Modo teste — pula verificação no backend
+  if (token === 'teste-local') {
+    document.getElementById('login-screen').classList.add('hidden');
+    return;
+  }
   try {
     const res = await fetch(`${BACKEND_URL}/auth/verificar`, {
       method: 'POST', headers: {'Content-Type': 'application/json'},
@@ -2220,6 +2230,17 @@ function logout() {
     else { localStorage.removeItem('gi_token'); localStorage.removeItem('gi_email'); }
   } catch(e) { document.getElementById('login-screen').classList.add('hidden'); }
 })();
+
+// ===== MODO TESTE =====
+function entrarComoTeste() {
+  localStorage.setItem('gi_token', 'teste-local');
+  localStorage.setItem('gi_email', 'teste@grapeinvest.com.br');
+  localStorage.setItem('gi_nome', 'Teste');
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('header-user').childNodes[0].textContent = 'T';
+  document.getElementById('menu-nome').textContent = 'Modo Teste';
+  document.getElementById('menu-email').textContent = 'teste@grapeinvest.com.br';
+}
 
 // ===== INIT =====
 // Garantir que só o dashboard aparece no load
