@@ -819,6 +819,97 @@ footer { text-align: center; font-size: 11px; color: var(--text-subtle); padding
 @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.5;} }
 .pulse { animation: pulse 2s ease-in-out infinite; }
 
+/* ===== MODO CONFISSÃO ===== */
+.confissao-card {
+  border-radius: var(--radius); padding: 1.25rem 1.5rem;
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, rgba(124,58,237,0.08), rgba(124,58,237,0.04));
+  border: 1px solid rgba(124,58,237,0.2);
+  display: none;
+  animation: fadeIn 0.4s ease;
+}
+.confissao-card.show { display: block; }
+[data-theme="dark"] .confissao-card {
+  background: linear-gradient(135deg, rgba(124,58,237,0.15), rgba(124,58,237,0.08));
+  border-color: rgba(167,139,250,0.25);
+}
+.confissao-header {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+}
+.confissao-emoji { font-size: 22px; flex-shrink: 0; }
+.confissao-title { font-size: 15px; font-weight: 700; color: var(--text); }
+.confissao-sub { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+.confissao-btn {
+  width: 100%; height: 44px;
+  background: var(--purple); color: white;
+  border: none; border-radius: 12px;
+  font-size: 14px; font-weight: 600;
+  cursor: pointer; font-family: inherit;
+  transition: opacity 0.15s;
+}
+.confissao-btn:active { opacity: 0.85; }
+.confissao-ignorar {
+  display: block; text-align: center; margin-top: 8px;
+  font-size: 12px; color: var(--text-subtle);
+  cursor: pointer; padding: 4px;
+}
+.confissao-ignorar:hover { color: var(--text-muted); }
+
+/* Modal confissão */
+#confissao-modal {
+  position: fixed; inset: 0;
+  background: rgba(10,5,30,0.88);
+  z-index: 99990; display: none;
+  align-items: flex-end; justify-content: center;
+}
+#confissao-modal.show { display: flex; }
+.confissao-modal-card {
+  background: var(--card); border-radius: 24px 24px 0 0;
+  width: 100%; max-width: 720px; padding: 1.75rem;
+  animation: slideUp 0.3s cubic-bezier(0.25,0.46,0.45,0.94);
+}
+.confissao-modal-titulo {
+  font-size: 18px; font-weight: 800; color: var(--text);
+  margin-bottom: 4px;
+}
+.confissao-modal-sub {
+  font-size: 13px; color: var(--text-muted); margin-bottom: 1.25rem; line-height: 1.5;
+}
+.confissao-textarea {
+  width: 100%; min-height: 120px; max-height: 200px;
+  background: var(--bg); border: 1.5px solid var(--border);
+  border-radius: 14px; padding: 14px; font-size: 14px;
+  font-family: inherit; color: var(--text); outline: none;
+  resize: none; line-height: 1.6; transition: border-color 0.2s;
+  margin-bottom: 12px;
+}
+.confissao-textarea:focus { border-color: var(--purple); box-shadow: 0 0 0 3px rgba(124,58,237,0.08); }
+.confissao-textarea::placeholder { color: var(--text-subtle); }
+.confissao-enviar {
+  width: 100%; height: 48px;
+  background: var(--purple); color: white;
+  border: none; border-radius: 14px;
+  font-size: 15px; font-weight: 700;
+  cursor: pointer; font-family: inherit;
+}
+
+/* Resposta do Grape */
+.confissao-resposta {
+  background: linear-gradient(135deg, rgba(124,58,237,0.1), rgba(124,58,237,0.05));
+  border: 1px solid rgba(124,58,237,0.2);
+  border-radius: 14px; padding: 1.25rem;
+  margin-top: 12px; display: none;
+  animation: fadeIn 0.4s ease;
+}
+.confissao-resposta.show { display: block; }
+.confissao-resposta-txt {
+  font-size: 14px; color: var(--text); line-height: 1.6; margin-bottom: 10px;
+}
+.confissao-resposta-acao {
+  font-size: 12px; font-weight: 700; color: var(--purple);
+  display: flex; align-items: center; gap: 6px;
+}
+
 /* ===== NOVA ABA DÍVIDAS ===== */
 .div-hero {
   border-radius: var(--radius); padding: 1.5rem;
@@ -1209,6 +1300,19 @@ footer { text-align: center; font-size: 11px; color: var(--text-subtle); padding
         <div class="score-status" id="score-status">Calculando...</div>
         <div class="score-tip" id="score-tip">Adicione seus dados para calcular.</div>
       </div>
+    </div>
+
+    <!-- Modo Confissão -->
+    <div class="confissao-card" id="confissao-card">
+      <div class="confissao-header">
+        <div class="confissao-emoji">💜</div>
+        <div>
+          <div class="confissao-title">Como foi sua semana financeira?</div>
+          <div class="confissao-sub">Um espaço só seu. Sem julgamento.</div>
+        </div>
+      </div>
+      <button class="confissao-btn" onclick="abrirConfissao()">Contar para o Grape</button>
+      <span class="confissao-ignorar" onclick="ignorarConfissao()">Agora não</span>
     </div>
 
     <!-- Barra de tempo do mês -->
@@ -1687,6 +1791,20 @@ footer { text-align: center; font-size: 11px; color: var(--text-subtle); padding
 </div>
 
 <!-- NAVEGAÇÃO INFERIOR -->
+<!-- MODAL CONFISSÃO -->
+<div id="confissao-modal">
+  <div class="confissao-modal-card">
+    <div class="confissao-modal-titulo">💜 Confissão financeira</div>
+    <div class="confissao-modal-sub">O que aconteceu com seu dinheiro essa semana? Pode ser bom ou ruim. Só você vai ver.</div>
+    <textarea class="confissao-textarea" id="confissao-texto" placeholder="Ex: Gastei R$ 200 em delivery que não precisava. Me sinto mal com isso..."></textarea>
+    <button class="confissao-enviar" onclick="enviarConfissao()">Enviar para o Grape 💜</button>
+    <div class="confissao-resposta" id="confissao-resposta">
+      <div class="confissao-resposta-txt" id="confissao-resposta-txt"></div>
+      <div class="confissao-resposta-acao" id="confissao-resposta-acao"></div>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
 
@@ -2085,6 +2203,7 @@ function renderDashboard() {
   renderPainelDecisao();
   renderInsights();
   renderComparativo();
+  mostrarCardConfissao();
 
   // Alertas urgentes no dashboard
   const hoje = new Date(); hoje.setHours(0,0,0,0);
@@ -3566,6 +3685,110 @@ const STATE = {
   modoTeste: true, userId: ''
 };
 atualizarSTATE();
+
+// ===== MODO CONFISSÃO =====
+const RESPOSTAS_CONFISSAO = [
+  { gatilho: ['delivery','comida','ifood','rappi'], resposta: 'Delivery é o ladrão silencioso do orçamento. Você percebeu — isso já é o primeiro passo. Que tal definir um limite semanal para delivery?', acao: '💡 Tente: máximo 2x por semana' },
+  { gatilho: ['aposta','jogo','betano','blaze','cassino'], resposta: 'Reconhecer isso tem valor. Apostas são projetadas para viciar — não é fraqueza, é engenharia. Você pode ativar o bloqueio de apostas no Grape para ter um aliado.', acao: '🛡️ Ativar proteção contra apostas' },
+  { gatilho: ['cartão','parcelei','parcelou','crédito'], resposta: 'Parcelar parece aliviar, mas dilui a dor e facilita gastar mais do que temos. Tudo bem, acontece com todo mundo. Que tal listar o que está parcelado agora?', acao: '📋 Ver gastos do mês' },
+  { gatilho: ['impuls','comprei sem','precisava','arrependimento','arrependido'], resposta: 'A compra por impulso é uma das mais humanas. O truque é criar um ritual: 48 horas antes de qualquer compra não essencial. Simples e poderoso.', acao: '⏰ Regra: espere 48h antes de comprar' },
+  { gatilho: ['economizei','guardei','investi','consegui','orgulho'], resposta: 'Isso merece ser celebrado! Cada real guardado é uma versão futura sua agradecendo. Continue assim — a consistência bate qualquer valor esporádico.', acao: '🍇 Você está no caminho certo!' },
+  { gatilho: ['dívida','divida','devia','empréstimo'], resposta: 'Dívida pesa mais no emocional do que no financeiro. Você está certo em pensar nisso. O primeiro passo é saber exatamente quanto deve — sem susto, só clareza.', acao: '📊 Registrar suas dívidas' },
+];
+
+const RESPOSTA_PADRAO = [
+  { resposta: 'Obrigado por compartilhar. Consciência financeira começa por aqui — no momento em que você para e olha para os seus hábitos com honestidade. Isso já é mais do que a maioria faz.', acao: '💜 Continue abrindo o Grape todo dia' },
+  { resposta: 'Cada semana é um recomeço. O que importa não é ser perfeito, mas ser consistente. Você está aqui, isso já diz muito sobre quem você está se tornando.', acao: '🌱 Pequenos passos, grandes mudanças' },
+  { resposta: 'Falar sobre dinheiro é difícil. A maioria das pessoas foge disso. Você não fugiu — e isso é o que separa quem evolui de quem fica no mesmo lugar.', acao: '🍇 Continue sua jornada financeira' },
+];
+
+function verificarConfissaoSemana() {
+  const ultima = localStorage.getItem('gi_confissao_semana');
+  if (!ultima) return true;
+  const agora = new Date();
+  const ultimaData = new Date(ultima);
+  const diffDias = Math.floor((agora - ultimaData) / (1000 * 60 * 60 * 24));
+  return diffDias >= 7;
+}
+
+function mostrarCardConfissao() {
+  const ignorou = localStorage.getItem('gi_confissao_ignorou');
+  if (ignorou) {
+    const agora = new Date();
+    const ignorouData = new Date(ignorou);
+    const diffHoras = (agora - ignorouData) / (1000 * 60 * 60);
+    if (diffHoras < 24) return; // ignorou hoje, não mostra
+  }
+  if (verificarConfissaoSemana()) {
+    const card = document.getElementById('confissao-card');
+    if (card) card.classList.add('show');
+  }
+}
+
+function ignorarConfissao() {
+  const card = document.getElementById('confissao-card');
+  if (card) card.classList.remove('show');
+  localStorage.setItem('gi_confissao_ignorou', new Date().toISOString());
+}
+
+function abrirConfissao() {
+  document.getElementById('confissao-modal').classList.add('show');
+  document.getElementById('confissao-texto').value = '';
+  document.getElementById('confissao-resposta').classList.remove('show');
+  setTimeout(() => document.getElementById('confissao-texto').focus(), 300);
+}
+
+function fecharConfissaoModal() {
+  document.getElementById('confissao-modal').classList.remove('show');
+  const card = document.getElementById('confissao-card');
+  if (card) card.classList.remove('show');
+}
+
+function gerarResposta(texto) {
+  const lower = texto.toLowerCase();
+  for (const r of RESPOSTAS_CONFISSAO) {
+    if (r.gatilho.some(g => lower.includes(g))) {
+      return r;
+    }
+  }
+  return RESPOSTA_PADRAO[Math.floor(Math.random() * RESPOSTA_PADRAO.length)];
+}
+
+function enviarConfissao() {
+  const texto = document.getElementById('confissao-texto').value.trim();
+  if (!texto || texto.length < 10) {
+    toast('Conta um pouquinho mais... 💜', 'info');
+    return;
+  }
+
+  const resposta = gerarResposta(texto);
+
+  // Salvar localmente (privado, nunca sai do dispositivo)
+  const historico = JSON.parse(localStorage.getItem('gi_confissoes') || '[]');
+  historico.push({ data: new Date().toISOString(), texto });
+  if (historico.length > 12) historico.shift(); // mantém só as últimas 12
+  localStorage.setItem('gi_confissoes', JSON.stringify(historico));
+  localStorage.setItem('gi_confissao_semana', new Date().toISOString());
+
+  // Mostrar resposta
+  const enviarBtn = document.querySelector('.confissao-enviar');
+  if (enviarBtn) enviarBtn.style.display = 'none';
+  document.getElementById('confissao-textarea') && (document.getElementById('confissao-texto').disabled = true);
+
+  const respostaEl = document.getElementById('confissao-resposta');
+  document.getElementById('confissao-resposta-txt').textContent = resposta.resposta;
+  document.getElementById('confissao-resposta-acao').textContent = resposta.acao;
+  respostaEl.classList.add('show');
+
+  // Fechar automaticamente após 5s
+  setTimeout(() => fecharConfissaoModal(), 6000);
+  toast('💜 O Grape te ouviu.', 'info', 3000);
+}
+
+// Fechar modal ao clicar fora
+document.getElementById('confissao-modal') && document.getElementById('confissao-modal').addEventListener('click', function(e) {
+  if (e.target === this) fecharConfissaoModal();
+});
 
 // ===== INIT =====
 // Garantir que só o dashboard aparece no load
