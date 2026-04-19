@@ -2,11 +2,13 @@
   "name": "Grape Invest",
   "short_name": "Grape Invest",
   "description": "Controle financeiro inteligente",
-  "start_url": "/",
+  "start_url": "https://grapeinvest.com.br/",
+  "scope": "https://grapeinvest.com.br/",
   "display": "standalone",
-  "orientation": "portrait",
+  "orientation": "portrait-primary",
   "background_color": "#4C1D95",
   "theme_color": "#4C1D95",
+  "lang": "pt-BR",
   "icons": [
     {
       "src": "icon-192.png",
