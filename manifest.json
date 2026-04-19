@@ -1,12 +1,12 @@
 {
-  "name": "Warden Invest",
-  "short_name": "Warden",
-  "description": "Seu guardião financeiro pessoal — controle, invista e construa patrimônio",
+  "name": "Grape Invest",
+  "short_name": "Grape Invest",
+  "description": "Controle financeiro inteligente",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0a0a0a",
-  "theme_color": "#0a0a0a",
-  "orientation": "portrait-primary",
+  "orientation": "portrait",
+  "background_color": "#4C1D95",
+  "theme_color": "#4C1D95",
   "icons": [
     {
       "src": "icon-192.png",
@@ -20,7 +20,5 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
-  ],
-  "categories": ["finance", "productivity"],
-  "lang": "pt-BR"
+  ]
 }
