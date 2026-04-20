@@ -3286,30 +3286,61 @@ async function fazerLogin() {
 }
 
 (async function detectarMagicLink() {
+  // Verificar hash da URL (magic link do Supabase)
   const hash = window.location.hash;
+  const search = window.location.search;
+
+  let accessToken = null;
+
+  // Formato 1: #access_token=...
   if (hash && hash.includes('access_token')) {
     const params = new URLSearchParams(hash.substring(1));
-    const accessToken = params.get('access_token');
-    if (accessToken) {
-      try {
-        const res = await fetch(`${BACKEND_URL}/auth/verificar`, {
-          method: 'POST', headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ token: accessToken })
-        });
-        const data = await res.json();
-        if (data.valido) {
-          localStorage.setItem('gi_token', accessToken);
-          localStorage.setItem('gi_email', data.email);
-          localStorage.setItem('gi_nome', data.nome);
-          document.getElementById('login-screen').classList.add('hidden');
-          document.getElementById('header-user').childNodes[0].textContent = (data.nome||data.email).charAt(0).toUpperCase();
-          document.getElementById('menu-nome').textContent = data.nome || '—';
-          document.getElementById('menu-email').textContent = data.email;
+    accessToken = params.get('access_token');
+  }
+
+  // Formato 2: ?access_token=... (alguns redirecionamentos)
+  if (!accessToken && search && search.includes('access_token')) {
+    const params = new URLSearchParams(search.substring(1));
+    accessToken = params.get('access_token');
+  }
+
+  if (accessToken) {
+    try {
+      // Mostrar loading enquanto valida
+      document.getElementById('login-screen').classList.add('hidden');
+      document.getElementById('app-shell').classList.add('ready');
+
+      const res = await fetch(`${BACKEND_URL}/auth/verificar`, {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ token: accessToken })
+      });
+      const data = await res.json();
+      if (data.valido) {
+        localStorage.setItem('gi_token', accessToken);
+        localStorage.setItem('gi_email', data.email);
+        localStorage.setItem('gi_nome', data.nome || data.email);
+        document.getElementById('header-user').childNodes[0].textContent = (data.nome||data.email).charAt(0).toUpperCase();
+        document.getElementById('menu-nome').textContent = data.nome || '—';
+        document.getElementById('menu-email').textContent = data.email;
+        window.history.replaceState(null, '', window.location.pathname);
+        // Mostrar welcome apenas se for primeira vez
+        const jaEntrou = localStorage.getItem('gi_ja_entrou');
+        if (!jaEntrou) {
+          localStorage.setItem('gi_ja_entrou', '1');
           mostrarWelcome(data.nome);
-          document.getElementById('app-shell').classList.add('ready');
-          window.history.replaceState(null, '', window.location.pathname);
         }
-      } catch(e) { console.error('Erro magic link', e); }
+      } else {
+        // Token inválido — voltar para login
+        localStorage.removeItem('gi_token');
+        localStorage.removeItem('gi_email');
+        localStorage.removeItem('gi_nome');
+        document.getElementById('login-screen').classList.remove('hidden');
+        document.getElementById('app-shell').classList.remove('ready');
+      }
+    } catch(e) {
+      console.error('Erro magic link', e);
+      // Se erro de rede, manter na tela de login
+      document.getElementById('login-screen').classList.remove('hidden');
     }
   }
 })();
@@ -3380,27 +3411,90 @@ function logout() {
   const token = localStorage.getItem('gi_token');
   const email = localStorage.getItem('gi_email');
   const nome = localStorage.getItem('gi_nome');
-  if (!token) { document.getElementById('app-shell').classList.add('ready'); return; }
+
+  function mostrarApp() {
+    document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('app-shell').classList.add('ready');
+    if (nome) {
+      document.getElementById('header-user').childNodes[0].textContent = nome.charAt(0).toUpperCase();
+      document.getElementById('menu-nome').textContent = nome;
+      document.getElementById('menu-email').textContent = email || '—';
+    }
+  }
+
+  function mostrarLogin() {
+    document.getElementById('app-shell').classList.add('ready');
+  }
+
+  if (!token) { mostrarLogin(); return; }
+
   if (nome) {
     document.getElementById('header-user').childNodes[0].textContent = nome.charAt(0).toUpperCase();
     document.getElementById('menu-nome').textContent = nome;
     document.getElementById('menu-email').textContent = email || '—';
   }
+
   // Modo teste — pula verificação no backend
   if (token === 'teste-local') {
-    document.getElementById('login-screen').classList.add('hidden');
-    document.getElementById('app-shell').classList.add('ready');
+    mostrarApp();
     return;
   }
+
+  // PWA offline: se tiver token e email salvos, mostra o app imediatamente
+  // e valida em segundo plano
+  const isPWA = window.matchMedia('(display-mode: standalone)').matches
+    || window.navigator.standalone === true;
+
+  if (isPWA && token && email) {
+    // Mostrar app imediatamente para não travar no loading
+    mostrarApp();
+    // Validar em segundo plano — se inválido, faz logout silencioso na próxima abertura
+    try {
+      const res = await fetch(`${BACKEND_URL}/auth/verificar`, {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ token })
+      });
+      const data = await res.json();
+      if (!data.valido) {
+        localStorage.removeItem('gi_token');
+        localStorage.removeItem('gi_email');
+        localStorage.removeItem('gi_nome');
+        // Não força logout agora — só na próxima abertura
+      }
+    } catch(e) {
+      // Offline ou erro de rede — mantém sessão local
+      console.log('Verificação offline — mantendo sessão local');
+    }
+    return;
+  }
+
+  // Navegador normal: verificar normalmente
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
     const res = await fetch(`${BACKEND_URL}/auth/verificar`, {
       method: 'POST', headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ token })
+      body: JSON.stringify({ token }),
+      signal: controller.signal
     });
+    clearTimeout(timeout);
     const data = await res.json();
-    if (data.valido) { document.getElementById('login-screen').classList.add('hidden'); document.getElementById('app-shell').classList.add('ready'); }
-    else { localStorage.removeItem('gi_token'); localStorage.removeItem('gi_email'); document.getElementById('app-shell').classList.add('ready'); }
-  } catch(e) { document.getElementById('login-screen').classList.add('hidden'); document.getElementById('app-shell').classList.add('ready'); }
+    if (data.valido) {
+      mostrarApp();
+    } else {
+      localStorage.removeItem('gi_token');
+      localStorage.removeItem('gi_email');
+      localStorage.removeItem('gi_nome');
+      mostrarLogin();
+    }
+  } catch(e) {
+    // Timeout ou offline — se tiver token, mostra app
+    if (token && email) {
+      mostrarApp();
+    } else {
+      mostrarLogin();
+    }
+  }
 })();
 
 // ===== MODO TESTE =====
