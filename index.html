@@ -80,6 +80,8 @@ body {
   min-height: 100vh;
   transition: background 0.3s, color 0.3s;
 }
+#app-shell { visibility: hidden; }
+#app-shell.ready { visibility: visible; }
 
 /* ===== TOAST ===== */
 #toast-container {
@@ -1099,8 +1101,12 @@ footer { text-align: center; font-size: 11px; color: var(--text-subtle); padding
       <div class="login-error" id="login-error"></div>
       <div id="login-success" style="font-size:13px;color:#16A34A;margin-top:10px;display:none;text-align:center;background:#F0FDF4;border-radius:10px;padding:12px;line-height:1.5;"></div>
       <div class="login-divider"><div class="login-div-line"></div><div class="login-div-txt">ainda não tem conta?</div><div class="login-div-line"></div></div>
-      <div class="login-link"><a href="https://grapeinvest.kiwify.com.br">Assinar agora — 7 dias grátis →</a></div>
-
+      <div class="login-link"><a href="https://grapeinvest.kiwify.com.br">Ainda não tem acesso? Garantir agora por R$ 47 →</a></div>
+      <div style="margin-top:12px;text-align:center;">
+        <button onclick="entrarComoTeste()" style="background:none;border:1.5px dashed #C4B5FD;border-radius:10px;padding:10px 20px;font-size:12px;font-weight:600;color:#7C3AED;cursor:pointer;font-family:inherit;width:100%;">
+          🧪 Entrar em modo teste (sem login)
+        </button>
+      </div>
     </div>
     <div class="login-secure">
       <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 1L2 2.5v3c0 2 1.5 3.5 3 4 1.5-.5 3-2 3-4v-3L5 1z" stroke="rgba(255,255,255,0.3)" stroke-width="1" fill="none"/></svg>
@@ -1110,7 +1116,7 @@ footer { text-align: center; font-size: 11px; color: var(--text-subtle); padding
 </div>
 
 <!-- APP -->
-<header>
+<div id="app-shell"><header>
   <div class="header-row">
     <div class="logo-icon">
       <svg class="grape-svg" width="20" height="20" viewBox="0 0 30 30" fill="none">
@@ -1648,6 +1654,7 @@ footer { text-align: center; font-size: 11px; color: var(--text-subtle); padding
 
 </div>
 
+</div>
 <footer>Grape Invest — Os valores são simulações baseadas em taxas de mercado e não constituem recomendação de investimento.</footer>
 
 
@@ -3270,6 +3277,7 @@ async function fazerLogin() {
           document.getElementById('menu-nome').textContent = data.nome || '—';
           document.getElementById('menu-email').textContent = data.email;
           mostrarWelcome(data.nome);
+          document.getElementById('app-shell').classList.add('ready');
           window.history.replaceState(null, '', window.location.pathname);
         }
       } catch(e) { console.error('Erro magic link', e); }
@@ -3343,7 +3351,7 @@ function logout() {
   const token = localStorage.getItem('gi_token');
   const email = localStorage.getItem('gi_email');
   const nome = localStorage.getItem('gi_nome');
-  if (!token) return;
+  if (!token) { document.getElementById('app-shell').classList.add('ready'); return; }
   if (nome) {
     document.getElementById('header-user').childNodes[0].textContent = nome.charAt(0).toUpperCase();
     document.getElementById('menu-nome').textContent = nome;
@@ -3352,6 +3360,7 @@ function logout() {
   // Modo teste — pula verificação no backend
   if (token === 'teste-local') {
     document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('app-shell').classList.add('ready');
     return;
   }
   try {
@@ -3360,9 +3369,9 @@ function logout() {
       body: JSON.stringify({ token })
     });
     const data = await res.json();
-    if (data.valido) { document.getElementById('login-screen').classList.add('hidden'); }
-    else { localStorage.removeItem('gi_token'); localStorage.removeItem('gi_email'); }
-  } catch(e) { document.getElementById('login-screen').classList.add('hidden'); }
+    if (data.valido) { document.getElementById('login-screen').classList.add('hidden'); document.getElementById('app-shell').classList.add('ready'); }
+    else { localStorage.removeItem('gi_token'); localStorage.removeItem('gi_email'); document.getElementById('app-shell').classList.add('ready'); }
+  } catch(e) { document.getElementById('login-screen').classList.add('hidden'); document.getElementById('app-shell').classList.add('ready'); }
 })();
 
 // ===== MODO TESTE =====
