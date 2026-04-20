@@ -3286,67 +3286,94 @@ async function fazerLogin() {
 }
 
 (async function detectarMagicLink() {
-  // Verificar hash da URL (magic link do Supabase)
   const hash = window.location.hash;
   const search = window.location.search;
+  const searchParams = new URLSearchParams(search);
 
   let accessToken = null;
+  let emailDireto = null;
+  let nomeDireto = null;
 
-  // Formato 1: #access_token=...
-  if (hash && hash.includes('access_token')) {
+  // Formato 1: callback do backend com ?gi_token=xxx (funciona no PWA iOS)
+  if (searchParams.get('gi_token')) {
+    accessToken = searchParams.get('gi_token');
+    emailDireto = searchParams.get('gi_email') || '';
+    nomeDireto  = searchParams.get('gi_nome')  || emailDireto;
+  }
+  // Formato 2: hash #access_token=xxx (Supabase direto)
+  else if (hash && hash.includes('access_token')) {
     const params = new URLSearchParams(hash.substring(1));
     accessToken = params.get('access_token');
   }
-
-  // Formato 2: ?access_token=... (alguns redirecionamentos)
-  if (!accessToken && search && search.includes('access_token')) {
-    const params = new URLSearchParams(search.substring(1));
-    accessToken = params.get('access_token');
+  // Formato 3: query string ?access_token=xxx
+  else if (searchParams.get('access_token')) {
+    accessToken = searchParams.get('access_token');
   }
 
-  if (accessToken) {
-    try {
-      // Mostrar loading enquanto valida
+  // Erro de auth vindo do callback
+  if (searchParams.get('auth_error')) {
+    const erros = {
+      token_missing: 'Link inválido. Solicite um novo link de acesso.',
+      invalid_token: 'Link expirado. Solicite um novo link de acesso.',
+      inactive: 'Sua conta está inativa. Entre em contato com o suporte.',
+      server_error: 'Erro no servidor. Tente novamente.'
+    };
+    const msg = erros[searchParams.get('auth_error')] || 'Erro ao autenticar.';
+    document.getElementById('login-error').textContent = msg;
+    document.getElementById('login-error').style.display = 'block';
+    window.history.replaceState(null, '', window.location.pathname);
+    document.getElementById('app-shell').classList.add('ready');
+    return;
+  }
+
+  if (!accessToken) return;
+
+  try {
+    // Se veio do callback do backend, já foi verificado — salva direto
+    if (emailDireto) {
+      localStorage.setItem('gi_token', accessToken);
+      localStorage.setItem('gi_email', emailDireto);
+      localStorage.setItem('gi_nome', nomeDireto);
+      sessionStorage.setItem('gi_token', accessToken);
+      sessionStorage.setItem('gi_email', emailDireto);
+      sessionStorage.setItem('gi_nome', nomeDireto);
       document.getElementById('login-screen').classList.add('hidden');
+      const inicial = (nomeDireto || emailDireto).charAt(0).toUpperCase();
+      document.getElementById('header-user').childNodes[0].textContent = inicial;
+      document.getElementById('menu-nome').textContent = nomeDireto || '—';
+      document.getElementById('menu-email').textContent = emailDireto;
+      mostrarWelcome(nomeDireto);
       document.getElementById('app-shell').classList.add('ready');
-
-      const res = await fetch(`${BACKEND_URL}/auth/verificar`, {
-        method: 'POST', headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ token: accessToken })
-      });
-      const data = await res.json();
-      if (data.valido) {
-        localStorage.setItem('gi_token', accessToken);
-        localStorage.setItem('gi_email', data.email);
-        localStorage.setItem('gi_nome', data.nome || data.email);
-        sessionStorage.setItem('gi_token', accessToken);
-        sessionStorage.setItem('gi_email', data.email);
-        sessionStorage.setItem('gi_nome', data.nome || data.email);
-        document.getElementById('header-user').childNodes[0].textContent = (data.nome||data.email).charAt(0).toUpperCase();
-        document.getElementById('menu-nome').textContent = data.nome || '—';
-        document.getElementById('menu-email').textContent = data.email;
-        window.history.replaceState(null, '', window.location.pathname);
-        // Mostrar welcome apenas se for primeira vez
-        const jaEntrou = localStorage.getItem('gi_ja_entrou');
-        if (!jaEntrou) {
-          localStorage.setItem('gi_ja_entrou', '1');
-          mostrarWelcome(data.nome);
-        }
-      } else {
-        // Token inválido — voltar para login
-        localStorage.removeItem('gi_token');
-        localStorage.removeItem('gi_email');
-        localStorage.removeItem('gi_nome');
-        document.getElementById('login-screen').classList.remove('hidden');
-        document.getElementById('app-shell').classList.remove('ready');
-      }
-    } catch(e) {
-      console.error('Erro magic link', e);
-      // Se erro de rede, manter na tela de login
-      document.getElementById('login-screen').classList.remove('hidden');
+      window.history.replaceState(null, '', window.location.pathname);
+      return;
     }
+
+    // Se veio direto do Supabase, verifica no backend
+    const res = await fetch(`${BACKEND_URL}/auth/verificar`, {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ token: accessToken })
+    });
+    const data = await res.json();
+    if (data.valido) {
+      localStorage.setItem('gi_token', accessToken);
+      localStorage.setItem('gi_email', data.email);
+      localStorage.setItem('gi_nome', data.nome || data.email);
+      sessionStorage.setItem('gi_token', accessToken);
+      sessionStorage.setItem('gi_email', data.email);
+      sessionStorage.setItem('gi_nome', data.nome || data.email);
+      document.getElementById('login-screen').classList.add('hidden');
+      document.getElementById('header-user').childNodes[0].textContent = (data.nome||data.email).charAt(0).toUpperCase();
+      document.getElementById('menu-nome').textContent = data.nome || '—';
+      document.getElementById('menu-email').textContent = data.email;
+      mostrarWelcome(data.nome);
+      document.getElementById('app-shell').classList.add('ready');
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+  } catch(e) {
+    console.error('Erro magic link', e);
+    document.getElementById('app-shell').classList.add('ready');
   }
-})();
+}
 
 function toggleMenu(e) {
   e.stopPropagation();
