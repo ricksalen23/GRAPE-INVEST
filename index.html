@@ -3319,6 +3319,9 @@ async function fazerLogin() {
         localStorage.setItem('gi_token', accessToken);
         localStorage.setItem('gi_email', data.email);
         localStorage.setItem('gi_nome', data.nome || data.email);
+        sessionStorage.setItem('gi_token', accessToken);
+        sessionStorage.setItem('gi_email', data.email);
+        sessionStorage.setItem('gi_nome', data.nome || data.email);
         document.getElementById('header-user').childNodes[0].textContent = (data.nome||data.email).charAt(0).toUpperCase();
         document.getElementById('menu-nome').textContent = data.nome || '—';
         document.getElementById('menu-email').textContent = data.email;
