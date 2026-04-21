@@ -275,15 +275,15 @@ header {
 
 .top-tab {
   flex-shrink: 0;
-  display: flex; align-items: center; gap: 6px;
-  padding: 8px 14px; border: none; background: none;
-  font-family: inherit; font-size: 13px; font-weight: 600;
+  display: flex; align-items: center; gap: 4px;
+  padding: 8px 10px; border: none; background: none;
+  font-family: inherit; font-size: 11px; font-weight: 600;
   color: var(--text-muted); cursor: pointer;
   border-bottom: 2.5px solid transparent;
   transition: color 0.15s, border-color 0.15s;
   white-space: nowrap; position: relative;
 }
-.top-tab .tab-emoji { font-size: 15px; }
+.top-tab .tab-emoji { font-size: 14px; }
 .top-tab.active { color: var(--purple); border-bottom-color: var(--purple); }
 [data-theme="dark"] .top-tab.active { color: var(--purple); }
 
@@ -395,12 +395,17 @@ header {
 }
 
 .section-page { display: none; }
-.section-page.active { display: block; }
-.section-page.slide-right { animation: slideRight 0.22s cubic-bezier(0.25,0.46,0.45,0.94) forwards; }
-.section-page.slide-left  { animation: slideLeft  0.22s cubic-bezier(0.25,0.46,0.45,0.94) forwards; }
-@keyframes slideRight { from{opacity:0;transform:translateX(20px);} to{opacity:1;transform:translateX(0);} }
-@keyframes slideLeft  { from{opacity:0;transform:translateX(-20px);} to{opacity:1;transform:translateX(0);} }
+.section-page.active { display: block; animation: fadeInPage 0.2s ease forwards; }
+@keyframes fadeInPage { from{opacity:0;transform:translateY(6px);} to{opacity:1;transform:translateY(0);} }
 @keyframes fadeIn     { from{opacity:0;transform:translateY(4px);} to{opacity:1;transform:translateY(0);} }
+
+/* Fix zoom iOS — inputs precisam de font-size 16px */
+input, select, textarea {
+  font-size: 16px !important;
+}
+.field input, .field select { font-size: 16px !important; }
+.login-input-wrap input { font-size: 16px !important; }
+.form-row input, .form-row select { font-size: 16px !important; }
 
 .container { padding-bottom: 90px; max-width: 720px; margin: 0 auto; padding-top: 0; }
 
@@ -1149,6 +1154,13 @@ footer { text-align: center; font-size: 11px; color: var(--text-subtle); padding
       <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 1L2 2.5v3c0 2 1.5 3.5 3 4 1.5-.5 3-2 3-4v-3L5 1z" stroke="rgba(255,255,255,0.3)" stroke-width="1" fill="none"/></svg>
       Acesso seguro e criptografado
     </div>
+    <div style="margin-top:12px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:14px;padding:12px 16px;max-width:360px;width:100%;">
+      <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">📲 Dica — Instale o app</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.75);line-height:1.6;">
+        <b style="color:white;">iPhone:</b> toque em compartilhar ⬆️ e depois <b style="color:white;">"Adicionar à Tela de Início"</b><br>
+        <b style="color:white;">Android:</b> toque nos 3 pontinhos ⋮ e depois <b style="color:white;">"Adicionar à tela inicial"</b>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1631,63 +1643,6 @@ footer { text-align: center; font-size: 11px; color: var(--text-subtle); padding
     </div>
   </div>
 
-    <!-- Hero total -->
-    <div class="div-hero" id="div-hero">
-      <div class="div-hero-label">Sua situação atual</div>
-      <div class="div-hero-value" id="div-hero-total">R$ 0,00</div>
-      <div class="div-hero-sub" id="div-hero-sub">em dívidas cadastradas</div>
-      <div id="div-juros-burn" style="display:none;" class="juros-burn">
-        <span>🔥</span>
-        <span class="juros-burn-txt" id="div-juros-burn-txt">R$ 0,00 em juros todo mês</span>
-      </div>
-      <div style="margin-top:1rem;" class="div-hero-stats">
-        <div class="div-hero-stat">
-          <div class="div-hero-stat-label">Dívidas</div>
-          <div class="div-hero-stat-val" id="div-hero-qtd">0</div>
-        </div>
-        <div class="div-hero-stat">
-          <div class="div-hero-stat-label">Quitação</div>
-          <div class="div-hero-stat-val" id="div-hero-prazo">—</div>
-        </div>
-        <div class="div-hero-stat">
-          <div class="div-hero-stat-label">Total de juros</div>
-          <div class="div-hero-stat-val danger" id="div-hero-juros">R$ 0</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Card de liberdade (aparece quando nao tem dividas) -->
-    <div class="liberdade-card" id="liberdade-card">
-      <div class="liberdade-emoji">🎉</div>
-      <div class="liberdade-title">Você está livre de dívidas!</div>
-      <div class="liberdade-sub">Agora cada real que entra trabalha pra você. Invista!</div>
-    </div>
-
-    <!-- Lista de dívidas -->
-    <div id="dividas-list">
-      <div class="empty-state">
-        <div class="empty-state-icon">✨</div>
-        Nenhuma dívida cadastrada.<br>
-        <span style="color:var(--purple);font-weight:600;">Você está livre!</span>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- ===== ALERTAS ===== -->
-  <div id="tab-alertas" class="section-page">
-    <div class="card">
-      <div class="card-title">Novo alerta de vencimento</div>
-      <div class="input-row">
-        <div class="field"><label>Descrição</label><input type="text" id="alerta-nome" placeholder="Ex: Aluguel, Cartão..."></div>
-        <div class="field"><label>Valor (R$)</label><input type="number" id="alerta-valor" placeholder="0,00" min="0" step="0.01"></div>
-        <div class="field"><label>Data de vencimento</label><input type="date" id="alerta-data"></div>
-        <div class="field"><label>Recorrente?</label><select id="alerta-recorrente"><option value="nao">Não</option><option value="sim">Sim — todo mês</option></select></div>
-      </div>
-      <button class="btn-primary" onclick="addAlerta()" style="margin-top:8px;">+ Adicionar alerta</button>
-    </div>
-    <div id="alertas-list"><div class="empty-state"><div class="empty-state-icon">🔔</div>Nenhum alerta cadastrado.<br>Adicione seus vencimentos e nunca mais pague multa!</div></div>
-  </div>
 
 </div>
 
@@ -1870,18 +1825,11 @@ const TAB_ORDER = ['dashboard','gastos','metas','educacao','alertas','simulador'
 let tabAtual = 'dashboard';
 
 function setTab(tab, btn) {
-  const idxOld = TAB_ORDER.indexOf(tabAtual);
-  const idxNew = TAB_ORDER.indexOf(tab);
-  const dir = idxNew >= idxOld ? 'slide-right' : 'slide-left';
-
-  document.querySelectorAll('.section-page').forEach(p => p.classList.remove('active','slide-right','slide-left'));
+  document.querySelectorAll('.section-page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.top-tab').forEach(t => t.classList.remove('active'));
 
   const page = document.getElementById('tab-' + tab);
-  if (page) {
-    page.classList.add('active');
-    if (tab !== tabAtual) page.classList.add(dir);
-  }
+  if (page) page.classList.add('active');
 
   if (btn) btn.classList.add('active');
   else {
@@ -3698,6 +3646,7 @@ renderMes();
 renderInvestimentos();
 renderDashboard();
 renderDivSelector(DIVIDAS_CATALOG);
+renderCurso();
 
 
 </script>
