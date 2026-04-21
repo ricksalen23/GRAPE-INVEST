@@ -80,8 +80,6 @@ body {
   min-height: 100vh;
   transition: background 0.3s, color 0.3s;
 }
-#app-shell { visibility: hidden; }
-#app-shell.ready { visibility: visible; }
 
 /* ===== TOAST ===== */
 #toast-container {
@@ -1021,28 +1019,6 @@ footer { text-align: center; font-size: 11px; color: var(--text-subtle); padding
 .div-selector-custom { padding:10px 14px; border-top:1px solid var(--border); font-size:12px; color:var(--purple); font-weight:600; cursor:pointer; display:flex; align-items:center; gap:6px; }
 .div-selector-custom:hover { background:var(--purple-light); }
 
-
-/* ===== ONBOARDING ===== */
-#onboarding-screen {
-  position: fixed; inset: 0; background: #4C1D95;
-  display: flex; align-items: center; justify-content: center;
-  z-index: 10001; padding: 2rem; flex-direction: column; text-align: center;
-}
-#onboarding-screen.hidden { display: none; }
-.onb-steps { display: flex; gap: 6px; margin-bottom: 2rem; }
-.onb-step-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.3); transition: all 0.3s; }
-.onb-step-dot.active { width: 24px; border-radius: 4px; background: white; }
-.onb-icon { font-size: 64px; margin-bottom: 1.25rem; }
-.onb-title { font-size: 24px; font-weight: 800; color: white; margin-bottom: 8px; line-height: 1.2; max-width: 300px; }
-.onb-desc { font-size: 14px; color: rgba(255,255,255,0.65); line-height: 1.6; max-width: 300px; margin-bottom: 1.5rem; }
-.onb-card { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 16px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; max-width: 300px; width: 100%; text-align: left; }
-.onb-card-title { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
-.onb-card-item { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; font-size: 13px; color: rgba(255,255,255,0.85); line-height: 1.5; }
-.onb-card-item-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
-.onb-btn { width: 100%; max-width: 300px; height: 52px; background: white; color: #4C1D95; border: none; border-radius: 14px; font-size: 16px; font-weight: 700; font-family: inherit; cursor: pointer; margin-bottom: 12px; transition: transform 0.1s; }
-.onb-btn:active { transform: scale(0.97); }
-.onb-btn-skip { background: none; border: none; color: rgba(255,255,255,0.4); font-size: 13px; cursor: pointer; font-family: inherit; padding: 8px; }
-
 /* ===== COMPARATIVO HISTÓRICO ===== */
 .comparativo-card { border-radius:var(--radius); padding:1.25rem; margin-bottom:1rem; background:var(--card); border:1px solid var(--border); }
 .comparativo-title { font-size:11px; font-weight:700; color:var(--purple); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:1rem; }
@@ -1090,18 +1066,6 @@ footer { text-align: center; font-size: 11px; color: var(--text-subtle); padding
   </div>
 </div>
 
-<!-- ONBOARDING -->
-<div id="onboarding-screen" class="hidden">
-  <div class="onb-steps">
-    <div class="onb-step-dot active" id="onb-dot-0"></div>
-    <div class="onb-step-dot" id="onb-dot-1"></div>
-    <div class="onb-step-dot" id="onb-dot-2"></div>
-  </div>
-  <div id="onb-content"></div>
-  <button class="onb-btn" id="onb-btn-next" onclick="onbNext()">Continuar →</button>
-  <button class="onb-btn-skip" onclick="onbPular()">Pular introdução</button>
-</div>
-
 <!-- LOGIN -->
 <div id="login-screen">
   <div class="login-bg-pattern"></div>
@@ -1123,20 +1087,27 @@ footer { text-align: center; font-size: 11px; color: var(--text-subtle); padding
     </div>
     <div class="login-card">
       <div class="login-card-title">Bem-vindo ao Grape Invest</div>
-      <div class="login-card-sub">Digite seu e-mail e receba um link de acesso instantâneo</div>
+      <div class="login-card-sub">Entre com seu e-mail e senha para acessar</div>
       <div class="login-field">
         <label>E-mail</label>
         <div class="login-input-wrap">
           <svg class="login-input-icon" width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="1.5" y="3.5" width="15" height="11" rx="2" stroke="#7C3AED" stroke-width="1.4"/><path d="M1.5 7l7.5 5 7.5-5" stroke="#7C3AED" stroke-width="1.4" stroke-linecap="round"/></svg>
-          <input type="email" id="login-email" placeholder="seu@email.com" onkeydown="if(event.key==='Enter') fazerLogin()">
+          <input type="email" id="login-email" placeholder="seu@email.com" onkeydown="if(event.key==='Enter') document.getElementById('login-senha').focus()">
         </div>
       </div>
-      <button class="login-btn" id="login-btn-el" onclick="fazerLogin()">Enviar link de acesso ✉️</button>
+      <div class="login-field">
+        <label>Senha</label>
+        <div class="login-input-wrap">
+          <svg class="login-input-icon" width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="2" y="8" width="14" height="9" rx="2" stroke="#7C3AED" stroke-width="1.4"/><path d="M6 8V6a3 3 0 016 0v2" stroke="#7C3AED" stroke-width="1.4" stroke-linecap="round"/><circle cx="9" cy="12.5" r="1.2" fill="#7C3AED"/></svg>
+          <input type="password" id="login-senha" placeholder="••••••••" onkeydown="if(event.key==='Enter') fazerLogin()">
+        </div>
+      </div>
+      <button class="login-btn" id="login-btn-el" onclick="fazerLogin()">Entrar →</button>
       <div class="login-error" id="login-error"></div>
       <div id="login-success" style="font-size:13px;color:#16A34A;margin-top:10px;display:none;text-align:center;background:#F0FDF4;border-radius:10px;padding:12px;line-height:1.5;"></div>
       <div class="login-divider"><div class="login-div-line"></div><div class="login-div-txt">ainda não tem conta?</div><div class="login-div-line"></div></div>
-      <div class="login-link"><a href="https://grapeinvest.kiwify.com.br">Ainda não tem acesso? Garantir agora por R$ 47 →</a></div>
-      </div>
+      <div class="login-link"><a href="https://grapeinvest.kiwify.com.br">Assinar agora — 7 dias grátis →</a></div>
+    </div>
     <div class="login-secure">
       <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 1L2 2.5v3c0 2 1.5 3.5 3 4 1.5-.5 3-2 3-4v-3L5 1z" stroke="rgba(255,255,255,0.3)" stroke-width="1" fill="none"/></svg>
       Acesso seguro e criptografado
@@ -1145,7 +1116,7 @@ footer { text-align: center; font-size: 11px; color: var(--text-subtle); padding
 </div>
 
 <!-- APP -->
-<div id="app-shell"><header>
+<header>
   <div class="header-row">
     <div class="logo-icon">
       <svg class="grape-svg" width="20" height="20" viewBox="0 0 30 30" fill="none">
@@ -1683,7 +1654,6 @@ footer { text-align: center; font-size: 11px; color: var(--text-subtle); padding
 
 </div>
 
-</div>
 <footer>Grape Invest — Os valores são simulações baseadas em taxas de mercado e não constituem recomendação de investimento.</footer>
 
 
@@ -3249,7 +3219,7 @@ function renderPatrimonio() {
 // ===== LOGIN =====
 const BACKEND_URL = 'https://grape-invest-backend-production.up.railway.app';
 
-function fecharWelcome() { document.getElementById('welcome-screen').classList.add('hidden'); mostrarOnboardingSeNecessario(); }
+function fecharWelcome() { document.getElementById('welcome-screen').classList.add('hidden'); }
 
 function mostrarWelcome(nome) {
   const ws = document.getElementById('welcome-screen');
@@ -3257,122 +3227,51 @@ function mostrarWelcome(nome) {
   ws.classList.remove('hidden');
 }
 
+function abrirApp(token, email, nome) {
+  localStorage.setItem('gi_token', token);
+  localStorage.setItem('gi_email', email);
+  localStorage.setItem('gi_nome', nome || '');
+  document.getElementById('login-screen').classList.add('hidden');
+  const inicial = (nome || email).charAt(0).toUpperCase();
+  document.getElementById('header-user').childNodes[0].textContent = inicial;
+  document.getElementById('menu-nome').textContent = nome || '—';
+  document.getElementById('menu-email').textContent = email;
+}
+
 async function fazerLogin() {
   const email = document.getElementById('login-email').value.trim().toLowerCase();
-  const erro = document.getElementById('login-error');
-  const sucesso = document.getElementById('login-success');
-  const btn = document.getElementById('login-btn-el');
+  const senha = document.getElementById('login-senha').value;
+  const erro  = document.getElementById('login-error');
+  const btn   = document.getElementById('login-btn-el');
+
+  erro.style.display = 'none';
+
   if (!email) { erro.textContent = 'Digite seu e-mail.'; erro.style.display = 'block'; return; }
-  btn.textContent = 'Enviando...'; btn.disabled = true;
-  erro.style.display = 'none'; sucesso.style.display = 'none';
+  if (!senha)  { erro.textContent = 'Digite sua senha.';  erro.style.display = 'block'; return; }
+
+  btn.textContent = 'Entrando...'; btn.disabled = true;
+
   try {
-    const res = await fetch(`${BACKEND_URL}/auth/magic-link`, {
-      method: 'POST', headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ email })
+    const res  = await fetch(`${BACKEND_URL}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: senha })
     });
     const data = await res.json();
-    if (res.ok && data.success) {
-      sucesso.textContent = '✓ Link enviado para ' + email + '! Verifique sua caixa de entrada e clique no link para acessar.';
-      sucesso.style.display = 'block';
+
+    if (res.ok && data.token) {
+      abrirApp(data.token, data.email || email, data.nome || data.name || '');
+      mostrarWelcome(data.nome || data.name || '');
     } else {
-      erro.textContent = data.error || 'Erro ao enviar link. Tente novamente.';
+      erro.textContent = data.error || data.message || 'E-mail ou senha incorretos.';
       erro.style.display = 'block';
     }
   } catch(e) {
     erro.textContent = 'Erro de conexão. Tente novamente.';
     erro.style.display = 'block';
   }
-  btn.textContent = 'Enviar link de acesso ✉️'; btn.disabled = false;
-}
 
-(async function detectarMagicLink() {
-  const hash = window.location.hash;
-  const search = window.location.search;
-  const searchParams = new URLSearchParams(search);
-
-  let accessToken = null;
-  let emailDireto = null;
-  let nomeDireto = null;
-
-  // Formato 1: callback do backend com ?gi_token=xxx (funciona no PWA iOS)
-  if (searchParams.get('gi_token')) {
-    accessToken = searchParams.get('gi_token');
-    emailDireto = searchParams.get('gi_email') || '';
-    nomeDireto  = searchParams.get('gi_nome')  || emailDireto;
-  }
-  // Formato 2: hash #access_token=xxx (Supabase direto)
-  else if (hash && hash.includes('access_token')) {
-    const params = new URLSearchParams(hash.substring(1));
-    accessToken = params.get('access_token');
-  }
-  // Formato 3: query string ?access_token=xxx
-  else if (searchParams.get('access_token')) {
-    accessToken = searchParams.get('access_token');
-  }
-
-  // Erro de auth vindo do callback
-  if (searchParams.get('auth_error')) {
-    const erros = {
-      token_missing: 'Link inválido. Solicite um novo link de acesso.',
-      invalid_token: 'Link expirado. Solicite um novo link de acesso.',
-      inactive: 'Sua conta está inativa. Entre em contato com o suporte.',
-      server_error: 'Erro no servidor. Tente novamente.'
-    };
-    const msg = erros[searchParams.get('auth_error')] || 'Erro ao autenticar.';
-    document.getElementById('login-error').textContent = msg;
-    document.getElementById('login-error').style.display = 'block';
-    window.history.replaceState(null, '', window.location.pathname);
-    document.getElementById('app-shell').classList.add('ready');
-    return;
-  }
-
-  if (!accessToken) return;
-
-  try {
-    // Se veio do callback do backend, já foi verificado — salva direto
-    if (emailDireto) {
-      localStorage.setItem('gi_token', accessToken);
-      localStorage.setItem('gi_email', emailDireto);
-      localStorage.setItem('gi_nome', nomeDireto);
-      sessionStorage.setItem('gi_token', accessToken);
-      sessionStorage.setItem('gi_email', emailDireto);
-      sessionStorage.setItem('gi_nome', nomeDireto);
-      document.getElementById('login-screen').classList.add('hidden');
-      const inicial = (nomeDireto || emailDireto).charAt(0).toUpperCase();
-      document.getElementById('header-user').childNodes[0].textContent = inicial;
-      document.getElementById('menu-nome').textContent = nomeDireto || '—';
-      document.getElementById('menu-email').textContent = emailDireto;
-      mostrarWelcome(nomeDireto);
-      document.getElementById('app-shell').classList.add('ready');
-      window.history.replaceState(null, '', window.location.pathname);
-      return;
-    }
-
-    // Se veio direto do Supabase, verifica no backend
-    const res = await fetch(`${BACKEND_URL}/auth/verificar`, {
-      method: 'POST', headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ token: accessToken })
-    });
-    const data = await res.json();
-    if (data.valido) {
-      localStorage.setItem('gi_token', accessToken);
-      localStorage.setItem('gi_email', data.email);
-      localStorage.setItem('gi_nome', data.nome || data.email);
-      sessionStorage.setItem('gi_token', accessToken);
-      sessionStorage.setItem('gi_email', data.email);
-      sessionStorage.setItem('gi_nome', data.nome || data.email);
-      document.getElementById('login-screen').classList.add('hidden');
-      document.getElementById('header-user').childNodes[0].textContent = (data.nome||data.email).charAt(0).toUpperCase();
-      document.getElementById('menu-nome').textContent = data.nome || '—';
-      document.getElementById('menu-email').textContent = data.email;
-      mostrarWelcome(data.nome);
-      document.getElementById('app-shell').classList.add('ready');
-      window.history.replaceState(null, '', window.location.pathname);
-    }
-  } catch(e) {
-    console.error('Erro magic link', e);
-    document.getElementById('app-shell').classList.add('ready');
-  }
+  btn.textContent = 'Entrar →'; btn.disabled = false;
 }
 
 function toggleMenu(e) {
@@ -3386,16 +3285,7 @@ document.addEventListener('click', () => {
 
 function alterarSenha() {
   document.getElementById('profile-menu').classList.remove('open');
-  const email = localStorage.getItem('gi_email');
-  if (!email) return;
-  if (!confirm('Vamos enviar um link de acesso para:\n' + email)) return;
-  fetch(`${BACKEND_URL}/auth/magic-link`, {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email })
-  }).then(r => r.json()).then(d => {
-    if (d.success) toast('✓ Link enviado para ' + email, 'success');
-    else toast('Erro ao enviar link. Tente novamente.', 'error');
-  }).catch(() => toast('Erro de conexão.', 'error'));
+  toast('Para redefinir a senha, entre em contato com o suporte.', 'info', 4000);
 }
 
 function abrirSuporte() {
@@ -3440,90 +3330,45 @@ function logout() {
 (async function verificarAuth() {
   const token = localStorage.getItem('gi_token');
   const email = localStorage.getItem('gi_email');
-  const nome = localStorage.getItem('gi_nome');
+  const nome  = localStorage.getItem('gi_nome');
+  if (!token) return;
 
-  function mostrarApp() {
-    document.getElementById('login-screen').classList.add('hidden');
-    document.getElementById('app-shell').classList.add('ready');
-    if (nome) {
-      document.getElementById('header-user').childNodes[0].textContent = nome.charAt(0).toUpperCase();
-      document.getElementById('menu-nome').textContent = nome;
-      document.getElementById('menu-email').textContent = email || '—';
-    }
-  }
-
-  function mostrarLogin() {
-    document.getElementById('app-shell').classList.add('ready');
-  }
-
-  if (!token) { mostrarLogin(); return; }
-
-  if (nome) {
-    document.getElementById('header-user').childNodes[0].textContent = nome.charAt(0).toUpperCase();
-    document.getElementById('menu-nome').textContent = nome;
+  // Restaurar UI imediatamente
+  if (nome || email) {
+    document.getElementById('header-user').childNodes[0].textContent = (nome || email).charAt(0).toUpperCase();
+    document.getElementById('menu-nome').textContent = nome || '—';
     document.getElementById('menu-email').textContent = email || '—';
   }
 
-  // Modo teste — pula verificação no backend
+  // Modo teste — pula backend
   if (token === 'teste-local') {
-    mostrarApp();
+    document.getElementById('login-screen').classList.add('hidden');
     return;
   }
 
-  // PWA offline: se tiver token e email salvos, mostra o app imediatamente
-  // e valida em segundo plano
-  const isPWA = window.matchMedia('(display-mode: standalone)').matches
-    || window.navigator.standalone === true;
-
-  if (isPWA && token && email) {
-    // Mostrar app imediatamente para não travar no loading
-    mostrarApp();
-    // Validar em segundo plano — se inválido, faz logout silencioso na próxima abertura
-    try {
-      const res = await fetch(`${BACKEND_URL}/auth/verificar`, {
-        method: 'POST', headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ token })
-      });
-      const data = await res.json();
-      if (!data.valido) {
-        localStorage.removeItem('gi_token');
-        localStorage.removeItem('gi_email');
-        localStorage.removeItem('gi_nome');
-        // Não força logout agora — só na próxima abertura
-      }
-    } catch(e) {
-      // Offline ou erro de rede — mantém sessão local
-      console.log('Verificação offline — mantendo sessão local');
-    }
-    return;
-  }
-
-  // Navegador normal: verificar normalmente
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000);
-    const res = await fetch(`${BACKEND_URL}/auth/verificar`, {
-      method: 'POST', headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ token }),
-      signal: controller.signal
+    const res  = await fetch(`${BACKEND_URL}/me`, {
+      headers: { 'Authorization': 'Bearer ' + token }
     });
-    clearTimeout(timeout);
-    const data = await res.json();
-    if (data.valido) {
-      mostrarApp();
+    if (res.ok) {
+      const data = await res.json();
+      // Atualizar dados caso tenham mudado
+      if (data.nome || data.name) {
+        const nomeAtual = data.nome || data.name;
+        localStorage.setItem('gi_nome', nomeAtual);
+        document.getElementById('header-user').childNodes[0].textContent = nomeAtual.charAt(0).toUpperCase();
+        document.getElementById('menu-nome').textContent = nomeAtual;
+      }
+      document.getElementById('login-screen').classList.add('hidden');
     } else {
+      // Token inválido — limpa e mostra login
       localStorage.removeItem('gi_token');
       localStorage.removeItem('gi_email');
       localStorage.removeItem('gi_nome');
-      mostrarLogin();
     }
   } catch(e) {
-    // Timeout ou offline — se tiver token, mostra app
-    if (token && email) {
-      mostrarApp();
-    } else {
-      mostrarLogin();
-    }
+    // Offline — deixa entrar com dados locais
+    document.getElementById('login-screen').classList.add('hidden');
   }
 })();
 
@@ -3736,89 +3581,6 @@ const STATE = {
   modoTeste: true, userId: ''
 };
 atualizarSTATE();
-
-
-// ===== ONBOARDING =====
-const ONB_SLIDES = [
-  {
-    icon: '🍇',
-    title: 'Bem-vindo ao Grape Invest!',
-    desc: 'Seu app de controle financeiro está pronto. Vamos te mostrar como aproveitar ao máximo.',
-    card: null,
-    btn: 'Começar →'
-  },
-  {
-    icon: '📱',
-    title: 'Adicione à tela inicial',
-    desc: 'Instale o app no seu celular para acessar sempre, sem abrir o navegador.',
-    card: {
-      title: 'Como instalar:',
-      items: [
-        { icon: '🍎', text: 'iPhone: toque em compartilhar ⬆️ e depois "Adicionar à Tela de Início"' },
-        { icon: '🤖', text: 'Android: toque nos 3 pontinhos ⋮ e depois "Adicionar à tela inicial"' },
-      ]
-    },
-    btn: 'Entendi →'
-  },
-  {
-    icon: '🔑',
-    title: 'Acesso por e-mail',
-    desc: 'Para entrar novamente, basta digitar seu e-mail e clicar no link que vai chegar na sua caixa de entrada.',
-    card: {
-      title: 'Dica importante:',
-      items: [
-        { icon: '📧', text: 'Se o e-mail não chegar, verifique a pasta de spam' },
-        { icon: '⚡', text: 'O link expira em 1 hora — clique logo que receber' },
-      ]
-    },
-    btn: 'Pronto, vamos lá! 🍇'
-  }
-];
-
-let onbAtual = 0;
-
-function onbRender() {
-  const slide = ONB_SLIDES[onbAtual];
-  for (let i = 0; i < 3; i++) {
-    const dot = document.getElementById('onb-dot-' + i);
-    if (dot) dot.classList.toggle('active', i === onbAtual);
-  }
-  const cardHTML = slide.card ? `
-    <div class="onb-card">
-      <div class="onb-card-title">${slide.card.title}</div>
-      ${slide.card.items.map(item => `
-        <div class="onb-card-item">
-          <span class="onb-card-item-icon">${item.icon}</span>
-          <span>${item.text}</span>
-        </div>`).join('')}
-    </div>` : '<div style="height:1rem;"></div>';
-
-  document.getElementById('onb-content').innerHTML = `
-    <div class="onb-icon">${slide.icon}</div>
-    <div class="onb-title">${slide.title}</div>
-    <div class="onb-desc">${slide.desc}</div>
-    ${cardHTML}
-  `;
-  document.getElementById('onb-btn-next').textContent = slide.btn;
-}
-
-function onbNext() {
-  onbAtual++;
-  if (onbAtual >= ONB_SLIDES.length) { onbPular(); return; }
-  onbRender();
-}
-
-function onbPular() {
-  localStorage.setItem('gi_onboarding_visto', '1');
-  document.getElementById('onboarding-screen').classList.add('hidden');
-}
-
-function mostrarOnboardingSeNecessario() {
-  if (!localStorage.getItem('gi_onboarding_visto')) {
-    onbRender();
-    document.getElementById('onboarding-screen').classList.remove('hidden');
-  }
-}
 
 // ===== INIT =====
 // Garantir que só o dashboard aparece no load
