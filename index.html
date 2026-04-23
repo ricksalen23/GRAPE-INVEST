@@ -779,8 +779,32 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
 .cat-bar-fill { height: 8px; border-radius: 99px; transition: width 0.5s ease; }
 .cat-bar-val { font-size: 12px; font-weight: 600; color: var(--text); min-width: 70px; text-align: right; }
 
-/* ===== FOOTER ===== */
-footer { text-align: center; font-size: 11px; color: var(--text-subtle); padding: 1.5rem 1rem; border-top: 1px solid var(--border); }
+/* ===== MEI ===== */
+.mei-hero {
+  border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1rem;
+  background: linear-gradient(135deg, #1e1b4b, #4C1D95);
+  position: relative; overflow: hidden;
+}
+.mei-hero::before { content:'💼'; position:absolute; right:-10px; top:-10px; font-size:100px; opacity:0.07; }
+.mei-hero-label { font-size:10px; font-weight:700; color:rgba(255,255,255,0.5); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:6px; }
+.mei-hero-value { font-size:36px; font-weight:800; color:white; line-height:1.1; margin-bottom:4px; }
+.mei-hero-sub { font-size:12px; color:rgba(255,255,255,0.5); margin-bottom:1rem; }
+.mei-stats { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
+.mei-stat { background:rgba(255,255,255,0.08); border-radius:10px; padding:10px; text-align:center; }
+.mei-stat-label { font-size:9px; color:rgba(255,255,255,0.4); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:3px; }
+.mei-stat-val { font-size:14px; font-weight:800; color:white; }
+.mei-stat-val.ok { color:#86EFAC; }
+.mei-stat-val.warn { color:#FCD34D; }
+.mei-stat-val.danger { color:#FCA5A5; }
+.das-card { border-radius:var(--radius); padding:1.25rem; margin-bottom:1rem; background:var(--card); border:1px solid var(--border); }
+.das-vence { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+.das-label { font-size:11px; font-weight:700; color:var(--purple); text-transform:uppercase; letter-spacing:0.08em; }
+.das-badge { font-size:11px; font-weight:700; padding:3px 10px; border-radius:99px; }
+.das-badge.ok { background:#DCFCE7; color:#16A34A; }
+.das-badge.warn { background:#FEF3C7; color:#D97706; }
+.das-badge.danger { background:#FEE2E2; color:#DC2626; }
+.limite-bar-wrap { margin-top:8px; background:rgba(22,163,74,0.12); border-radius:99px; height:8px; overflow:hidden; }
+.limite-bar { height:8px; border-radius:99px; transition:width 0.5s ease; } text-align: center; font-size: 11px; color: var(--text-subtle); padding: 1.5rem 1rem; border-top: 1px solid var(--border); }
 
 /* ===== ANIM ===== */
 .fade-in { animation: fadeIn 0.25s ease forwards; }
@@ -1156,13 +1180,13 @@ footer { text-align: center; font-size: 11px; color: var(--text-subtle); padding
   <div class="login-content">
     <div class="login-header">
       <div class="login-logo-icon">
-        <svg class="grape-svg" width="30" height="30" viewBox="0 0 30 30" fill="none">
-          <rect x="14" y="2" width="2.5" height="6" rx="1.25" fill="white"/>
-          <path d="M16.5 3.5 Q19 1 20.5 3" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-          <circle cx="10" cy="12" r="5" fill="white"/><circle cx="20" cy="12" r="5" fill="white"/><circle cx="15" cy="20" r="5" fill="white"/>
-          <circle cx="8" cy="10" r="1.5" fill="rgba(22,163,74,0.3)"/>
-          <circle cx="18" cy="10" r="1.5" fill="rgba(22,163,74,0.3)"/>
-          <circle cx="13" cy="18" r="1.5" fill="rgba(22,163,74,0.3)"/>
+        <svg width="30" height="30" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <g fill="white">
+            <circle cx="210" cy="270" r="90"/>
+            <circle cx="302" cy="270" r="90"/>
+            <circle cx="256" cy="350" r="90"/>
+          </g>
+          <path d="M244 180 Q256 150 290 150 Q310 150 320 165" stroke="white" stroke-width="32" stroke-linecap="round" fill="none"/>
         </svg>
       </div>
       <div class="login-logo-name">Grape Invest</div>
@@ -1253,13 +1277,13 @@ footer { text-align: center; font-size: 11px; color: var(--text-subtle); padding
 <header>
   <div class="header-row">
     <div class="logo-icon">
-      <svg class="grape-svg" width="20" height="20" viewBox="0 0 30 30" fill="none">
-        <rect x="14" y="2" width="2.5" height="6" rx="1.25" fill="white"/>
-        <path d="M16.5 3.5 Q19 1 20.5 3" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-        <circle cx="10" cy="12" r="5" fill="white"/><circle cx="20" cy="12" r="5" fill="white"/><circle cx="15" cy="20" r="5" fill="white"/>
-        <circle cx="8.5" cy="10.5" r="1.5" fill="rgba(22,163,74,0.25)"/>
-        <circle cx="18.5" cy="10.5" r="1.5" fill="rgba(22,163,74,0.25)"/>
-        <circle cx="13.5" cy="18.5" r="1.5" fill="rgba(22,163,74,0.25)"/>
+      <svg width="20" height="20" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g fill="white">
+          <circle cx="210" cy="270" r="90"/>
+          <circle cx="302" cy="270" r="90"/>
+          <circle cx="256" cy="350" r="90"/>
+        </g>
+        <path d="M244 180 Q256 150 290 150 Q310 150 320 165" stroke="white" stroke-width="32" stroke-linecap="round" fill="none"/>
       </svg>
     </div>
     <span class="logo-name">Grape Invest</span>
@@ -1727,6 +1751,107 @@ footer { text-align: center; font-size: 11px; color: var(--text-subtle); padding
   </div>
 
 
+  <!-- ===== MEI / NEGÓCIO ===== -->
+  <div id="tab-mei" class="section-page">
+
+    <!-- Hero faturamento -->
+    <div class="mei-hero">
+      <div class="mei-hero-label">Meu negócio — <span id="mei-mes-label"></span></div>
+      <div class="mei-hero-value" id="mei-faturamento-total">R$ 0,00</div>
+      <div class="mei-hero-sub">faturado este mês</div>
+      <div class="mei-stats">
+        <div class="mei-stat">
+          <div class="mei-stat-label">Pró-labore</div>
+          <div class="mei-stat-val ok" id="mei-prolabore">R$ 0</div>
+        </div>
+        <div class="mei-stat">
+          <div class="mei-stat-label">DAS mensal</div>
+          <div class="mei-stat-val warn" id="mei-das-valor">R$ 0</div>
+        </div>
+        <div class="mei-stat">
+          <div class="mei-stat-label">Limite anual</div>
+          <div class="mei-stat-val" id="mei-limite-pct">0%</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DAS -->
+    <div class="das-card">
+      <div class="das-vence">
+        <div class="das-label">DAS — Imposto MEI</div>
+        <span class="das-badge ok" id="das-badge">Vence dia 20</span>
+      </div>
+      <div style="font-size:13px;color:var(--text-muted);margin-bottom:10px;">O DAS é calculado automaticamente com base no tipo de atividade. Valor fixo mensal.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="field" style="margin-bottom:0;">
+          <label>Tipo de MEI</label>
+          <select id="mei-tipo" onchange="salvarMEI()">
+            <option value="comercio">Comércio / Indústria</option>
+            <option value="servico">Serviços</option>
+            <option value="ambos">Comércio + Serviços</option>
+          </select>
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label>DAS mensal (R$)</label>
+          <input type="number" id="mei-das-input" placeholder="71,60" oninput="salvarMEI()">
+        </div>
+      </div>
+      <button class="btn-primary" style="width:100%;margin-top:10px;" onclick="marcarDASPago()">✓ Marcar DAS como pago</button>
+    </div>
+
+    <!-- Faturamento -->
+    <div class="card">
+      <div class="card-title">Registrar faturamento</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="field" style="margin-bottom:0;"><label>Descrição (cliente/serviço)</label><input type="text" id="mei-desc" placeholder="Ex: Consultoria, Venda..."></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div class="field" style="margin-bottom:0;"><label>Valor (R$)</label><input type="number" id="mei-valor" placeholder="0,00" min="0" step="0.01"></div>
+          <div class="field" style="margin-bottom:0;">
+            <label>Tipo</label>
+            <select id="mei-cat">
+              <option value="Produto">Produto</option>
+              <option value="Serviço">Serviço</option>
+              <option value="Comissão">Comissão</option>
+              <option value="Outro">Outro</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn-primary" onclick="addFaturamento()" style="width:100%;">+ Registrar entrada</button>
+      </div>
+    </div>
+
+    <!-- Lista faturamentos -->
+    <div class="card">
+      <div class="card-title">Entradas do mês</div>
+      <div id="mei-list"><div class="empty-state"><div class="empty-state-icon">💼</div>Nenhuma entrada registrada.<br>Adicione seu faturamento acima.</div></div>
+    </div>
+
+    <!-- Limite anual -->
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <div class="card-title" style="margin-bottom:0;">Limite anual MEI</div>
+        <span style="font-size:13px;font-weight:700;color:var(--purple);" id="mei-limite-valor">R$ 0 / R$ 81.000</span>
+      </div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">Faturamento acumulado no ano. Limite: R$ 81.000/ano.</div>
+      <div class="limite-bar-wrap">
+        <div class="limite-bar" id="mei-limite-bar" style="width:0%;background:#16A34A;"></div>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:6px;" id="mei-limite-aviso"></div>
+    </div>
+
+    <!-- Pró-labore -->
+    <div class="card">
+      <div class="card-title">Pró-labore sugerido</div>
+      <div style="font-size:13px;color:var(--text-muted);margin-bottom:12px;">Valor que você pode retirar do negócio com segurança — após pagar DAS e reservar 20% para custos.</div>
+      <div style="background:var(--purple-light);border-radius:12px;padding:1rem;text-align:center;">
+        <div style="font-size:11px;font-weight:700;color:var(--purple);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Você pode retirar</div>
+        <div style="font-size:32px;font-weight:800;color:var(--purple-dark);" id="mei-prolabore-sugerido">R$ 0,00</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Faturamento − DAS − 20% reserva</div>
+      </div>
+    </div>
+
+  </div>
+
 </div>
 
 <footer>Grape Invest — Os valores são simulações baseadas em taxas de mercado e não constituem recomendação de investimento.</footer>
@@ -1787,22 +1912,14 @@ footer { text-align: center; font-size: 11px; color: var(--text-subtle); padding
     </svg>
     <span>Metas</span>
   </button>
-  <button class="bottom-tab" data-tab="educacao" onclick="setTab('educacao',this)">
+  <button class="bottom-tab" data-tab="mei" onclick="setTab('mei',this)">
     <div class="bottom-tab-dot"></div>
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M12 3L2 8l10 5 10-5-10-5z"/>
-      <path d="M2 8v8M22 8v8M6 10.5v6a6 6 0 0012 0v-6"/>
+      <rect x="2" y="7" width="20" height="14" rx="2"/>
+      <path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/>
+      <line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/>
     </svg>
-    <span>Aprender</span>
-  </button>
-  <button class="bottom-tab" data-tab="alertas" onclick="setTab('alertas',this)" style="position:relative;">
-    <div class="bottom-tab-dot"></div>
-    <div id="alerta-badge" style="display:none;position:absolute;top:8px;right:8px;width:7px;height:7px;border-radius:50%;background:#DC2626;border:1.5px solid var(--card);"></div>
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-      <path d="M13.73 21a2 2 0 01-3.46 0"/>
-    </svg>
-    <span>Alertas</span>
+    <span>Negócio</span>
   </button>
   <button class="bottom-tab" data-tab="simulador" onclick="setTab('simulador',this)">
     <div class="bottom-tab-dot"></div>
@@ -1810,6 +1927,14 @@ footer { text-align: center; font-size: 11px; color: var(--text-subtle); padding
       <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
     </svg>
     <span>Simular</span>
+  </button>
+  <button class="bottom-tab" data-tab="educacao" onclick="setTab('educacao',this)">
+    <div class="bottom-tab-dot"></div>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 3L2 8l10 5 10-5-10-5z"/>
+      <path d="M6 10.5v6a6 6 0 0012 0v-6"/>
+    </svg>
+    <span>Aprender</span>
   </button>
   <button class="bottom-tab" data-tab="investimentos" onclick="setTab('investimentos',this)">
     <div class="bottom-tab-dot"></div>
@@ -1992,6 +2117,7 @@ function setTab(tab, btn) {
   if (tab === 'dashboard')     renderDashboard();
   if (tab === 'gastos')        renderMes();
   if (tab === 'simulador')     atualizar();
+  if (tab === 'mei')           renderMEI();
   if (tab === 'investimentos') { renderInvestimentos(); renderPatrimonio(); }
 }
 
@@ -3787,6 +3913,120 @@ const STATE = {
   modoTeste: true, userId: ''
 };
 atualizarSTATE();
+
+// ===== MEI =====
+function getMEIConfig() { return JSON.parse(localStorage.getItem('gi_mei_config') || '{"tipo":"servico","das":71.60,"dasPago":false}'); }
+function saveMEIConfig(d) { localStorage.setItem('gi_mei_config', JSON.stringify(d)); }
+function getMEIFat() { return JSON.parse(localStorage.getItem(`gi_mei_fat_${anoSel}_${mesSel}`) || '[]'); }
+function saveMEIFat(d) { localStorage.setItem(`gi_mei_fat_${anoSel}_${mesSel}`, JSON.stringify(d)); }
+
+function getMEIFatAnual() {
+  let total = 0;
+  for (let a = now.getFullYear(); a >= now.getFullYear() - 1; a--) {
+    for (let m = 0; m < 12; m++) {
+      const fat = JSON.parse(localStorage.getItem(`gi_mei_fat_${a}_${m}`) || '[]');
+      fat.forEach(f => total += parseFloat(f.valor || 0));
+    }
+  }
+  return total;
+}
+
+function salvarMEI() {
+  const config = getMEIConfig();
+  config.tipo = document.getElementById('mei-tipo').value;
+  config.das = parseFloat(document.getElementById('mei-das-input').value) || 71.60;
+  saveMEIConfig(config);
+  renderMEI();
+}
+
+function marcarDASPago() {
+  const config = getMEIConfig();
+  config.dasPago = !config.dasPago;
+  saveMEIConfig(config);
+  renderMEI();
+  toast(config.dasPago ? '✓ DAS marcado como pago!' : 'DAS desmarcado.', config.dasPago ? 'success' : 'info');
+}
+
+function addFaturamento() {
+  const desc = document.getElementById('mei-desc').value.trim();
+  const valor = parseFloat(document.getElementById('mei-valor').value);
+  const cat = document.getElementById('mei-cat').value;
+  if (!desc || isNaN(valor) || valor <= 0) { toast('Preencha descrição e valor.', 'error'); return; }
+  const fat = getMEIFat();
+  fat.push({ id: Date.now(), desc, valor, cat });
+  saveMEIFat(fat);
+  document.getElementById('mei-desc').value = '';
+  document.getElementById('mei-valor').value = '';
+  renderMEI();
+  toast('✓ Entrada registrada!', 'success');
+}
+
+function deleteFaturamento(id) {
+  const fat = getMEIFat().filter(f => f.id !== id);
+  saveMEIFat(fat);
+  renderMEI();
+}
+
+function renderMEI() {
+  const config = getMEIConfig();
+  const fat = getMEIFat();
+  const totalMes = fat.reduce((s, f) => s + parseFloat(f.valor || 0), 0);
+  const das = config.das || 71.60;
+  const reserva = totalMes * 0.20;
+  const prolabore = Math.max(0, totalMes - das - reserva);
+  const fatAnual = getMEIFatAnual();
+  const pctLimite = Math.min(100, Math.round((fatAnual / 81000) * 100));
+
+  // Atualizar label do mês
+  document.getElementById('mei-mes-label').textContent = MESES[mesSel] + ' ' + anoSel;
+  document.getElementById('mei-faturamento-total').textContent = fmtMoney(totalMes);
+  document.getElementById('mei-prolabore').textContent = fmtMoney(prolabore);
+  document.getElementById('mei-das-valor').textContent = fmtMoney(das);
+  document.getElementById('mei-limite-pct').textContent = pctLimite + '%';
+  document.getElementById('mei-limite-valor').textContent = fmtMoney(fatAnual) + ' / R$ 81.000';
+  document.getElementById('mei-prolabore-sugerido').textContent = fmtMoney(prolabore);
+
+  // Inputs
+  document.getElementById('mei-tipo').value = config.tipo;
+  document.getElementById('mei-das-input').value = das;
+
+  // Barra limite
+  const bar = document.getElementById('mei-limite-bar');
+  bar.style.width = pctLimite + '%';
+  bar.style.background = pctLimite >= 90 ? '#DC2626' : pctLimite >= 70 ? '#D97706' : '#16A34A';
+
+  // Aviso limite
+  const aviso = document.getElementById('mei-limite-aviso');
+  if (pctLimite >= 90) aviso.textContent = '⚠️ Atenção! Você está próximo do limite anual. Considere formalizar como ME.';
+  else if (pctLimite >= 70) aviso.textContent = '📊 Você já usou ' + pctLimite + '% do limite. Acompanhe de perto.';
+  else aviso.textContent = 'Restam ' + fmtMoney(81000 - fatAnual) + ' de limite para o ano.';
+
+  // DAS badge
+  const hoje = new Date();
+  const diasParaDAS = 20 - hoje.getDate();
+  const badge = document.getElementById('das-badge');
+  if (config.dasPago) { badge.textContent = '✓ Pago'; badge.className = 'das-badge ok'; }
+  else if (diasParaDAS < 0) { badge.textContent = 'Vencido!'; badge.className = 'das-badge danger'; }
+  else if (diasParaDAS <= 5) { badge.textContent = 'Vence em ' + diasParaDAS + ' dias'; badge.className = 'das-badge warn'; }
+  else { badge.textContent = 'Vence dia 20'; badge.className = 'das-badge ok'; }
+
+  // Lista
+  const list = document.getElementById('mei-list');
+  if (!fat.length) { list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">💼</div>Nenhuma entrada registrada.</div>'; return; }
+  list.innerHTML = fat.map(f => `
+    <div class="expense-row-item">
+      <div style="flex:1;">
+        <div style="font-size:14px;font-weight:600;color:var(--text);">${f.desc}</div>
+        <div style="font-size:11px;color:var(--text-muted);">${f.cat}</div>
+      </div>
+      <div style="font-size:15px;font-weight:700;color:#16A34A;">${fmtMoney(f.valor)}</div>
+      <button class="btn-del" onclick="deleteFaturamento(${f.id})">&times;</button>
+    </div>`).join('') + `
+    <div style="display:flex;justify-content:space-between;padding:10px 0 0;border-top:1px solid var(--border);margin-top:8px;">
+      <span style="font-size:13px;font-weight:600;color:var(--text-muted);">Total do mês</span>
+      <span style="font-size:18px;font-weight:800;color:#16A34A;">${fmtMoney(totalMes)}</span>
+    </div>`;
+}
 
 // ===== INIT =====
 // Garantir que só o dashboard aparece no load
