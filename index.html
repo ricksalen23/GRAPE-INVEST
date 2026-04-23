@@ -393,16 +393,16 @@ header {
 }
 
 .logo-name {
-  font-size: 17px; font-weight: 800; color: var(--purple);
-  letter-spacing: -0.02em; flex: 1;
-  background: linear-gradient(135deg, #16A34A, #4ADE80);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  font-size: 17px; font-weight: 800; color: #0a0a0a;
+  letter-spacing: -0.02em; flex: 0 0 auto;
+  -webkit-text-fill-color: #0a0a0a;
 }
 
 [data-theme="dark"] .logo-icon { background: #16A34A; box-shadow: 0 0 12px rgba(22,163,74,0.4); }
 [data-theme="dark"] .logo-name {
-  background: linear-gradient(135deg, #86EFAC, #4ADE80);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  color: #f0fdf4;
+  -webkit-text-fill-color: #f0fdf4;
+  background: none;
 }
 
 .header-user {
@@ -3764,17 +3764,32 @@ renderCurso();
 
 // ===== TICKER DE FRASES FINANCEIRAS =====
 const FRASES_TICKER = [
-  '💰 Pague a si mesmo primeiro — invista antes de gastar',
-  '📈 Juros compostos: o maior aliado de quem começa cedo',
-  '🎯 Uma meta sem prazo é só um sonho',
-  '🛡️ Fundo de emergência é a base de tudo',
-  '💡 R$ 100/mês durante 30 anos = mais de R$ 300.000',
-  '📊 Quem não controla o dinheiro, o dinheiro controla',
-  '🚀 O melhor investimento é o que você realmente faz',
-  '⏰ Tempo no mercado bate timing do mercado',
-  '💳 Cartão de crédito é ferramenta, não renda extra',
-  '🌱 Pequenos aportes constantes constroem grandes patrimônios',
+  'Pague a si mesmo primeiro — invista antes de gastar',
+  'Juros compostos trabalham para você enquanto você dorme',
+  'Uma meta sem prazo é apenas um desejo',
+  'Fundo de emergência não é luxo — é fundação',
+  'R$ 300 por mês durante 20 anos superam R$ 500.000 com juros reais',
+  'Quem não controla o dinheiro acaba sendo controlado por ele',
+  'O melhor momento para investir foi ontem. O segundo melhor é hoje',
+  'Tempo no mercado sempre supera o timing do mercado',
+  'Cartão de crédito é ferramenta — não extensão de salário',
+  'Pequenos aportes constantes constroem grandes patrimônios',
+  'Diversificar é proteger o que você construiu',
+  'Inflação corrói o dinheiro parado — renda fixa corrige isso',
+  'Rico não é quem ganha mais — é quem guarda mais',
+  'Automatize seus investimentos e retire a emoção da equação',
+  'Dívida com juros altos é o maior inimigo do patrimônio',
+  'Tesouro Selic rende mais que a poupança com a mesma segurança',
+  'Antes de investir, quite as dívidas que cobram mais de 1% ao mês',
+  'Consciência financeira começa pelo registro diário dos gastos',
+  'LCI e LCA são isentos de IR — use isso a seu favor',
+  'Seu maior ativo é sua capacidade de gerar renda — invista nela',
+  'Independência financeira é uma maratona, não um sprint',
+  'Compare o preço do café diário: R$ 10 por dia são R$ 3.650 por ano',
+  'O hábito de poupar vale mais do que o valor poupado',
+  'Renda extra acelerada + investimento constante = liberdade antecipada',
 ];
+
 
 (function initTicker() {
   const el = document.getElementById('frase-ticker');
