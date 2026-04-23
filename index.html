@@ -455,51 +455,8 @@ header {
 
 .container { max-width: 720px; margin: 0 auto; padding: 1rem 1rem 90px; }
 
-/* ===== NAV (oculta — substituída pela top-nav) ===== */
+/* ===== NAV (oculta) ===== */
 .nav-tabs { display: none; }
-.bottom-nav { display: none; }
-
-.bottom-nav {
-  position: fixed; bottom: 0; left: 0; right: 0;
-  background: var(--card); border-top: 1px solid var(--border);
-  display: flex; align-items: stretch; z-index: 200;
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-  box-shadow: 0 -4px 24px rgba(22,163,74,0.08);
-}
-[data-theme="dark"] .bottom-nav { background: #0a3d1f; border-color: rgba(74,222,128,0.15); box-shadow: 0 -4px 24px rgba(0,0,0,0.3); }
-
-.bottom-tab {
-  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 3px; padding: 10px 2px; border: none; background: none; cursor: pointer;
-  font-family: inherit; color: var(--text-subtle); font-size: 10px; font-weight: 600;
-  letter-spacing: 0.02em; transition: color 0.2s; position: relative; min-width: 0;
-}
-.bottom-tab svg { transition: transform 0.2s; opacity: 0.4; }
-.bottom-tab .tab-emoji { transition: transform 0.2s; opacity: 0.45; font-size: 20px; line-height: 1; display: block; }
-.bottom-tab span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
-.bottom-tab.active { color: var(--purple); }
-.bottom-tab.active svg { opacity: 1; transform: translateY(-1px); }
-.bottom-tab.active .tab-emoji { opacity: 1; transform: translateY(-1px); }
-.bottom-tab-dot {
-  position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-  width: 0; height: 3px; border-radius: 0 0 3px 3px;
-  background: var(--purple); transition: width 0.25s ease;
-}
-.bottom-tab.active .bottom-tab-dot { width: 24px; }
-
-/* Tab Proteção especial */
-.protect-icon-wrap {
-  width: 40px; height: 40px; border-radius: 13px;
-  background: linear-gradient(135deg, #14532D, #16A34A);
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 4px 12px rgba(22,163,74,0.4);
-  transition: transform 0.2s, box-shadow 0.2s;
-  margin-bottom: -2px; margin-top: -4px;
-}
-.bottom-tab.protect-tab.active .protect-icon-wrap,
-.bottom-tab.protect-tab:hover .protect-icon-wrap {
-  transform: scale(1.1); box-shadow: 0 6px 18px rgba(22,163,74,0.5);
-}
 
 .section-page { display: none; }
 .section-page.active { display: block; animation: fadeInPage 0.2s ease forwards; }
@@ -1587,7 +1544,36 @@ footer { text-align: center; font-size: 11px; color: var(--text-subtle); padding
         <div class="field" style="margin-bottom:0;"><label>Descrição</label><input type="text" id="exp-desc" placeholder="Ex: Aluguel..." onkeydown="if(event.key==='Enter') addExpense()"></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
           <div class="field" style="margin-bottom:0;"><label>Valor (R$)</label><input type="number" id="exp-valor" placeholder="0,00" min="0" step="0.01" onkeydown="if(event.key==='Enter') addExpense()"></div>
-          <div class="field" style="margin-bottom:0;"><label>Categoria</label><select id="exp-cat"><option value="Moradia">🏠 Moradia</option><option value="Alimentação">🍽️ Alimentação</option><option value="Transporte">🚗 Transporte</option><option value="Dívida">💸 Dívida</option><option value="Saúde">❤️ Saúde</option><option value="Lazer">🎮 Lazer</option><option value="Educação">📚 Educação</option><option value="Outros">📦 Outros</option></select></div>
+          <div class="field" style="margin-bottom:0;">
+            <label>Categoria</label>
+            <select id="exp-cat">
+              <optgroup label="Gastos">
+                <option value="Moradia">🏠 Moradia</option>
+                <option value="Alimentação">🍽️ Alimentação</option>
+                <option value="Transporte">🚗 Transporte</option>
+                <option value="Saúde">❤️ Saúde</option>
+                <option value="Lazer">🎮 Lazer</option>
+                <option value="Educação">📚 Educação</option>
+                <option value="Outros">📦 Outros</option>
+              </optgroup>
+              <optgroup label="Dívidas — Bancos">
+                <option value="Dívida Nubank">💜 Nubank</option>
+                <option value="Dívida Itaú">🟠 Itaú</option>
+                <option value="Dívida Bradesco">🔴 Bradesco</option>
+                <option value="Dívida Santander">🔴 Santander</option>
+                <option value="Dívida Banco do Brasil">🟡 Banco do Brasil</option>
+                <option value="Dívida Caixa">🔵 Caixa</option>
+                <option value="Dívida Inter">🟠 Inter</option>
+                <option value="Dívida C6 Bank">⚫ C6 Bank</option>
+                <option value="Dívida PicPay">🟢 PicPay</option>
+                <option value="Dívida BTG">🔵 BTG</option>
+                <option value="Dívida XP">🔵 XP</option>
+                <option value="Dívida Sicoob">🟢 Sicoob</option>
+                <option value="Dívida Sicredi">🟢 Sicredi</option>
+                <option value="Dívida">💸 Outro banco</option>
+              </optgroup>
+            </select>
+          </div>
         </div>
         <div style="display:flex;gap:8px;">
           <button class="btn-primary" onclick="addExpense()" style="flex:1;">+ Adicionar</button>
