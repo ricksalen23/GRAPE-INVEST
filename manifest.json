@@ -1,26 +1,22 @@
 {
   "name": "Grape Invest",
   "short_name": "Grape Invest",
-  "description": "Controle financeiro inteligente",
-  "start_url": "https://grapeinvest.com.br/",
-  "scope": "https://grapeinvest.com.br/",
+  "description": "Controle financeiro para o seu dia a dia",
+  "start_url": "/",
   "display": "standalone",
-  "orientation": "portrait-primary",
-  "background_color": "#4C1D95",
-  "theme_color": "#4C1D95",
-  "lang": "pt-BR",
+  "background_color": "#16A34A",
+  "theme_color": "#16A34A",
+  "orientation": "portrait",
   "icons": [
     {
       "src": "icon-192.png",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     },
     {
       "src": "icon-512.png",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     }
   ]
 }

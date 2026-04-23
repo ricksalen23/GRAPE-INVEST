@@ -453,7 +453,7 @@ header {
   background: var(--purple-light); flex-shrink: 0;
 }
 
-.container { max-width: 720px; margin: 0 auto; padding: 1rem 1rem 90px; }
+.container { max-width: 720px; margin: 0 auto; padding: 1rem 1rem 120px; }
 
 /* ===== NAV (oculta) ===== */
 .nav-tabs { display: none; }
@@ -1263,7 +1263,7 @@ footer { text-align: center; font-size: 11px; color: var(--text-subtle); padding
       </svg>
     </div>
     <span class="logo-name">Grape Invest</span>
-    <div id="frase-ticker" style="flex:1;overflow:hidden;margin:0 8px;"></div>
+    <div style="flex:1;"></div>
     <button onclick="toggleTheme()" id="theme-btn" style="background:none;border:none;cursor:pointer;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:15px;">🌙</button>
     <div class="header-user" id="header-user" onclick="toggleMenu(event)">?
       <div class="profile-menu" id="profile-menu">
@@ -1548,29 +1548,32 @@ footer { text-align: center; font-size: 11px; color: var(--text-subtle); padding
             <label>Categoria</label>
             <select id="exp-cat">
               <optgroup label="Gastos">
-                <option value="Moradia">🏠 Moradia</option>
-                <option value="Alimentação">🍽️ Alimentação</option>
-                <option value="Transporte">🚗 Transporte</option>
-                <option value="Saúde">❤️ Saúde</option>
-                <option value="Lazer">🎮 Lazer</option>
-                <option value="Educação">📚 Educação</option>
-                <option value="Outros">📦 Outros</option>
+                <option value="Moradia">Moradia</option>
+                <option value="Alimentação">Alimentação</option>
+                <option value="Transporte">Transporte</option>
+                <option value="Saúde">Saúde</option>
+                <option value="Lazer">Lazer</option>
+                <option value="Educação">Educação</option>
+                <option value="Outros">Outros</option>
               </optgroup>
               <optgroup label="Dívidas — Bancos">
-                <option value="Dívida Nubank">💜 Nubank</option>
-                <option value="Dívida Itaú">🟠 Itaú</option>
-                <option value="Dívida Bradesco">🔴 Bradesco</option>
-                <option value="Dívida Santander">🔴 Santander</option>
-                <option value="Dívida Banco do Brasil">🟡 Banco do Brasil</option>
-                <option value="Dívida Caixa">🔵 Caixa</option>
-                <option value="Dívida Inter">🟠 Inter</option>
-                <option value="Dívida C6 Bank">⚫ C6 Bank</option>
-                <option value="Dívida PicPay">🟢 PicPay</option>
-                <option value="Dívida BTG">🔵 BTG</option>
-                <option value="Dívida XP">🔵 XP</option>
-                <option value="Dívida Sicoob">🟢 Sicoob</option>
-                <option value="Dívida Sicredi">🟢 Sicredi</option>
-                <option value="Dívida">💸 Outro banco</option>
+                <option value="Dívida Nubank">Nubank</option>
+                <option value="Dívida Itaú">Itaú</option>
+                <option value="Dívida Bradesco">Bradesco</option>
+                <option value="Dívida Santander">Santander</option>
+                <option value="Dívida Banco do Brasil">Banco do Brasil</option>
+                <option value="Dívida Caixa">Caixa</option>
+                <option value="Dívida Inter">Inter</option>
+                <option value="Dívida C6 Bank">C6 Bank</option>
+                <option value="Dívida PicPay">PicPay</option>
+                <option value="Dívida BTG">BTG</option>
+                <option value="Dívida XP">XP</option>
+                <option value="Dívida Sicoob">Sicoob</option>
+                <option value="Dívida Sicredi">Sicredi</option>
+                <option value="Dívida Neon">Neon</option>
+                <option value="Dívida PagBank">PagBank</option>
+                <option value="Dívida Mercado Pago">Mercado Pago</option>
+                <option value="Dívida">Outro banco</option>
               </optgroup>
             </select>
           </div>
@@ -1964,14 +1967,20 @@ const TAB_ORDER = ['dashboard','gastos','metas','educacao','alertas','simulador'
 let tabAtual = 'dashboard';
 
 function setTab(tab, btn) {
-  document.querySelectorAll('.section-page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.bottom-tab').forEach(t => t.classList.remove('active'));
+  // Remove active de TODAS as abas sem exceção
+  document.querySelectorAll('.bottom-tab').forEach(t => {
+    t.classList.remove('active');
+  });
+  document.querySelectorAll('.section-page').forEach(p => {
+    p.classList.remove('active');
+  });
 
   const page = document.getElementById('tab-' + tab);
   if (page) page.classList.add('active');
 
-  if (btn) btn.classList.add('active');
-  else {
+  if (btn) {
+    btn.classList.add('active');
+  } else {
     const navBtn = document.querySelector(`.bottom-tab[data-tab="${tab}"]`);
     if (navBtn) navBtn.classList.add('active');
   }
