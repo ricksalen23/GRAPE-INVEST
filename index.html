@@ -1225,7 +1225,7 @@ footer { text-align: center; font-size: 11px; color: var(--text-subtle); padding
       <div class="login-divider"><div class="login-div-line"></div><div class="login-div-txt">primeira vez aqui?</div><div class="login-div-line"></div></div>
       <div class="login-link"><a href="#" onclick="mostrarCadastro(); return false;">Criar minha conta →</a></div>
       <div style="margin-top:8px;text-align:center;">
-        <a href="https://grapeinvest.kiwify.com.br" style="font-size:12px;color:#9CA3AF;text-decoration:none;">Garantir acesso vitalício — Oferta de Fundador →</a>
+        <a href="https://kiwify.app/PIjQ1TL" style="font-size:12px;color:rgba(255,255,255,0.5);text-decoration:none;">Garantir acesso vitalício — Oferta de Fundador →</a>
       </div>
     </div>
 
@@ -3517,7 +3517,6 @@ function logout() {
     });
     if (res.ok) {
       const data = await res.json();
-      // Atualizar dados caso tenham mudado
       if (data.nome || data.name) {
         const nomeAtual = data.nome || data.name;
         localStorage.setItem('gi_nome', nomeAtual);
@@ -3526,7 +3525,7 @@ function logout() {
       }
       document.getElementById('login-screen').classList.add('hidden');
     } else {
-      // Token inválido — limpa e mostra login
+      // Token inválido ou acesso negado (expirado/inativo)
       localStorage.removeItem('gi_token');
       localStorage.removeItem('gi_email');
       localStorage.removeItem('gi_nome');
