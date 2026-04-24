@@ -3835,14 +3835,15 @@ function logout() {
       }
       document.getElementById('login-screen').classList.add('hidden');
     } else {
-      // Token inválido ou acesso negado (expirado/inativo)
+      // Token inválido, inativo ou expirado — força logout
       localStorage.removeItem('gi_token');
       localStorage.removeItem('gi_email');
       localStorage.removeItem('gi_nome');
     }
   } catch(e) {
-    // Offline — deixa entrar com dados locais
-    document.getElementById('login-screen').classList.add('hidden');
+    // Erro de rede — NÃO deixa entrar, mostra tela de login
+    // O usuário tenta novamente quando tiver conexão
+    console.log('Sem conexão — mantendo tela de login');
   }
 })();
 
