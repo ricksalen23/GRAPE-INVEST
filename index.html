@@ -16,16 +16,16 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --purple: #16A34A;
-  --purple-dark: #14532D;
-  --purple-light: #dcfce7;
-  --purple-mid: #15803D;
+  --purple: #7C3AED;
+  --purple-dark: #4C1D95;
+  --purple-light: #EDE9FE;
+  --purple-mid: #6D28D9;
   --text: #0a0a0a;
   --text-muted: #4B5563;
   --text-subtle: #9CA3AF;
   --bg: #f9fafb;
   --card: #ffffff;
-  --border: rgba(22,163,74,0.12);
+  --border: rgba(124,58,237,0.12);
   --radius: 16px;
   --green: #16A34A;
   --red: #DC2626;
@@ -34,16 +34,16 @@
 }
 
 [data-theme="dark"] {
-  --purple: #4ADE80;
-  --purple-dark: #86EFAC;
-  --purple-light: rgba(22,163,74,0.15);
-  --purple-mid: #22C55E;
-  --text: #f0fdf4;
+  --purple: #A78BFA;
+  --purple-dark: #C4B5FD;
+  --purple-light: rgba(124,58,237,0.15);
+  --purple-mid: #8B5CF6;
+  --text: #f5f3ff;
   --text-muted: #9CA3AF;
   --text-subtle: #6B7280;
   --bg: #0a0a0a;
   --card: #111111;
-  --border: rgba(74,222,128,0.12);
+  --border: rgba(167,139,250,0.12);
 }
 
 [data-theme="dark"] .card { background: var(--card); border-color: var(--border); }
@@ -369,35 +369,40 @@ header {
   border: none; background: none; cursor: pointer;
   font-family: inherit; color: #9CA3AF;
   font-size: 10px; font-weight: 500;
-  letter-spacing: 0.01em;
-  transition: color 0.2s;
+  transition: color 0.25s ease, opacity 0.25s ease;
   position: relative; min-width: 0;
 }
 .bottom-tab svg {
   width: 22px; height: 22px;
-  transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
-  opacity: 0.35;
+  transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), opacity 0.25s ease;
+  opacity: 0.3;
 }
 .bottom-tab span {
   white-space: nowrap; overflow: hidden;
   text-overflow: ellipsis; max-width: 100%;
-  font-size: 10px; opacity: 0.35; transition: opacity 0.2s;
+  font-size: 10px; opacity: 0.3;
+  transition: opacity 0.25s ease, font-weight 0.25s ease;
 }
 .bottom-tab.active { color: var(--purple); }
-.bottom-tab.active svg { opacity: 1; transform: translateY(-2px) scale(1.12); }
+.bottom-tab.active svg { opacity: 1; transform: translateY(-2px) scale(1.1); }
 .bottom-tab.active span { opacity: 1; font-weight: 700; }
 .bottom-tab-dot {
   position: absolute; top: 0; left: 50%; transform: translateX(-50%);
   width: 0; height: 3px; border-radius: 0 0 3px 3px;
   background: var(--purple); transition: width 0.25s ease;
 }
-.bottom-tab.active .bottom-tab-dot { width: 28px; }
+.bottom-tab.active .bottom-tab-dot { width: 24px; }
 
 .logo-icon {
   width: 32px; height: 32px;
-  background: var(--purple); border-radius: 9px;
+  background: #7C3AED; border-radius: 9px;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
+}
+.grape-svg { animation: grapeSwing 3s ease-in-out infinite; transform-origin: center top; }
+@keyframes grapeSwing {
+  0%,100% { transform: rotate(-6deg); }
+  50%      { transform: rotate(6deg); }
 }
 
 .logo-name {
@@ -1277,13 +1282,14 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
 <header>
   <div class="header-row">
     <div class="logo-icon">
-      <svg width="20" height="20" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <svg class="grape-svg" width="20" height="20" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
         <g fill="white">
-          <circle cx="210" cy="270" r="90"/>
-          <circle cx="302" cy="270" r="90"/>
-          <circle cx="256" cy="350" r="90"/>
+          <circle cx="420" cy="540" r="130"/>
+          <circle cx="604" cy="540" r="130"/>
+          <circle cx="512" cy="700" r="130"/>
         </g>
-        <path d="M244 180 Q256 150 290 150 Q310 150 320 165" stroke="white" stroke-width="32" stroke-linecap="round" fill="none"/>
+        <path d="M500 360 Q512 300 580 300 Q620 300 640 330"
+              stroke="white" stroke-width="45" stroke-linecap="round" fill="none"/>
       </svg>
     </div>
     <span class="logo-name">Grape Invest</span>
@@ -1715,17 +1721,55 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
 
   <!-- ===== EDUCAÇÃO FINANCEIRA ===== -->
   <div id="tab-educacao" class="section-page">
+
+    <!-- Header progresso -->
     <div class="card" style="margin-bottom:1rem;">
       <div class="curso-header-wrap">
         <div class="curso-header-icon">🎓</div>
         <div class="curso-header-info">
           <div class="curso-header-title">Escola Grape</div>
-          <div class="curso-header-sub" id="curso-sub">0 de 6 lições concluídas</div>
+          <div class="curso-header-sub" id="curso-sub">0 de 12 lições concluídas</div>
           <div class="curso-prog-bar"><div class="curso-prog-fill" id="curso-prog" style="width:0%;"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Módulo 1 -->
+    <div class="card" style="margin-bottom:1rem;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <div style="width:36px;height:36px;border-radius:10px;background:#EDE9FE;display:flex;align-items:center;justify-content:center;font-size:18px;">💰</div>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--text);">Módulo 1 — Fundamentos</div>
+          <div style="font-size:11px;color:var(--text-muted);">Base para qualquer decisão financeira</div>
         </div>
       </div>
       <div id="licoes-list"></div>
     </div>
+
+    <!-- Módulo 2 — MEI -->
+    <div class="card" style="margin-bottom:1rem;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <div style="width:36px;height:36px;border-radius:10px;background:#EDE9FE;display:flex;align-items:center;justify-content:center;font-size:18px;">💼</div>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--text);">Módulo 2 — MEI & Autônomo</div>
+          <div style="font-size:11px;color:var(--text-muted);">Gerencie seu negócio com inteligência</div>
+        </div>
+      </div>
+      <div id="licoes-mei-list"></div>
+    </div>
+
+    <!-- Módulo 3 — Investimentos -->
+    <div class="card" style="margin-bottom:1rem;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <div style="width:36px;height:36px;border-radius:10px;background:#EDE9FE;display:flex;align-items:center;justify-content:center;font-size:18px;">📈</div>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--text);">Módulo 3 — Investimentos</div>
+          <div style="font-size:11px;color:var(--text-muted);">Faça seu dinheiro trabalhar por você</div>
+        </div>
+      </div>
+      <div id="licoes-inv-list"></div>
+    </div>
+
   </div>
 
   <!-- ===== ALERTAS ===== -->
@@ -1880,8 +1924,8 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
     <div id="licao-slides"></div>
     <div class="licao-dots" id="licao-dots"></div>
     <div class="licao-nav">
-      <button class="licao-nav-btn licao-nav-prev" id="licao-prev" onclick="navLicao(-1)">← Anterior</button>
-      <button class="licao-nav-btn licao-nav-next" id="licao-next" onclick="navLicao(1)">Próximo →</button>
+      <button class="licao-nav-btn licao-nav-prev" id="licao-prev" onclick="licaoModulo==='base'?navLicao(-1):navLicaoCustom(-1)">← Anterior</button>
+      <button class="licao-nav-btn licao-nav-next" id="licao-next" onclick="licaoModulo==='base'?navLicao(1):navLicaoCustom(1)">Próximo →</button>
     </div>
   </div>
 </div>
@@ -2249,19 +2293,48 @@ let licaoAtual = 0;
 let slideAtual = 0;
 let licoesConcluidas = new Set(JSON.parse(localStorage.getItem('gi_licoes') || '[]'));
 
-function renderCurso() {
-  const total = LICOES.length;
-  const concluidas = licoesConcluidas.size;
-  const pct = Math.round((concluidas / total) * 100);
-  const sub = document.getElementById('curso-sub');
-  const prog = document.getElementById('curso-prog');
-  if (sub) sub.textContent = `${concluidas} de ${total} lições concluídas`;
-  if (prog) prog.style.width = pct + '%';
-  const list = document.getElementById('licoes-list');
+const LICOES_MEI = [
+  { id:'mei1', emoji:'🏢', titulo:'O que é MEI e como funciona', desc:'3 min · Básico', slides:[
+    { emoji:'🏢', title:'O que é MEI?', txt:'MEI é o Microempreendedor Individual — uma forma simplificada de formalizar seu negócio no Brasil. Com o MEI você tem CNPJ, pode emitir nota fiscal e tem acesso a benefícios como aposentadoria e auxílio-doença.', highlight:'Faturamento máximo: R$ 81.000 por ano (R$ 6.750/mês em média).' },
+    { emoji:'💰', title:'Quanto custa ser MEI?', txt:'O DAS (Document de Arrecadação do Simples) é um imposto fixo mensal. Para comércio: R$ 67,60. Para serviços: R$ 71,60. Para comércio + serviços: R$ 72,60. Esse valor inclui INSS, ICMS ou ISS.', highlight:'Pague sempre até o dia 20 de cada mês para evitar multas.' },
+    { emoji:'📋', title:'Obrigações do MEI', txt:'1. Pagar o DAS todo mês. 2. Fazer declaração anual (DASN) até maio. 3. Emitir nota fiscal quando o cliente pedir. 4. Não ultrapassar o limite de faturamento anual.', highlight:'São apenas 4 obrigações — muito simples comparado a outras formas jurídicas.' },
+  ]},
+  { id:'mei2', emoji:'💸', titulo:'Pró-labore: quanto retirar do negócio', desc:'3 min · Finanças PJ', slides:[
+    { emoji:'💡', title:'O que é pró-labore?', txt:'Pró-labore é o "salário" que o sócio retira da empresa. Para MEI, não existe um valor obrigatório — você decide quanto retirar. Mas é crucial separar o dinheiro do negócio do dinheiro pessoal.', highlight:'Nunca use o faturamento todo como salário — o negócio precisa de reserva.' },
+    { emoji:'🧮', title:'Como calcular seu pró-labore', txt:'Uma fórmula simples: Faturamento − DAS − 20% reserva = Pró-labore disponível. Se você faturou R$ 5.000, pagou R$ 71,60 de DAS e guardou R$ 1.000 (20%), pode retirar até R$ 3.928,40.', highlight:'20% de reserva protege seu negócio de meses ruins.' },
+    { emoji:'🏦', title:'Conta PJ separada', txt:'Abra uma conta PJ separada da pessoal. Banco Inter, C6, Nubank Empresas — todos gratuitos para MEI. Todo faturamento entra na PJ, você transfere o pró-labore para a pessoal.', highlight:'Misturar PJ e PF é o erro número 1 do MEI iniciante.' },
+  ]},
+  { id:'mei3', emoji:'📊', titulo:'Limite MEI e quando crescer', desc:'3 min · Crescimento', slides:[
+    { emoji:'⚠️', title:'O limite de R$ 81.000', txt:'Se você faturar mais de R$ 81.000 em um ano, será desenquadrado do MEI retroativamente. Isso pode gerar impostos e multas. Acompanhe seu faturamento mensalmente — o Grape Invest faz isso por você.', highlight:'A partir de 70% do limite, comece a planejar a migração para ME.' },
+    { emoji:'🚀', title:'Quando virar ME ou EPP?', txt:'Quando seu faturamento ultrapassa consistentemente R$ 5.000-6.000 por mês, vale considerar. Como ME, o limite sobe para R$ 360.000/ano. O contador custa entre R$ 150-300/mês, mas você pode emitir mais notas e contratar funcionários.', highlight:'Crescer além do MEI é sinal de sucesso — não é problema.' },
+    { emoji:'🎯', title:'Planejando a transição', txt:'1. Contrate um contador de confiança. 2. Organize suas notas fiscais. 3. Separe seu pró-labore por pelo menos 6 meses antes de migrar. 4. Entenda o Simples Nacional — pode ser vantajoso.', highlight:'A transição bem planejada não dói no bolso.' },
+  ]},
+];
+
+const LICOES_INV = [
+  { id:'inv1', emoji:'🏛️', titulo:'Renda fixa para iniciantes', desc:'3 min · Investimentos', slides:[
+    { emoji:'🏛️', title:'O que é renda fixa?', txt:'Renda fixa é quando você empresta dinheiro para uma instituição (banco, governo) e recebe de volta com juros. É previsível — você sabe quanto vai render. Exemplos: Tesouro Selic, CDB, LCI, LCA, poupança.', highlight:'Ideal para fundo de emergência e objetivos de curto prazo.' },
+    { emoji:'📊', title:'Comparando as opções', txt:'Poupança: 6,17% ao ano — a pior opção. Tesouro Selic: ~13% ao ano, liquidez diária, risco zero. CDB 110% CDI: ~13,5% ao ano. LCI/LCA: isento de IR, equivale a CDB 120%+ para pessoa física.', highlight:'Qualquer coisa rende mais que poupança — migre agora.' },
+    { emoji:'🔒', title:'FGC — sua proteção', txt:'O Fundo Garantidor de Créditos protege até R$ 250.000 por CPF por instituição financeira. Isso significa que CDBs de bancos pequenos (que pagam mais) são tão seguros quanto os grandes até esse limite.', highlight:'Diversifique entre instituições para maximizar a proteção do FGC.' },
+  ]},
+  { id:'inv2', emoji:'📈', titulo:'Renda variável: ações e FIIs', desc:'4 min · Avançado', slides:[
+    { emoji:'📈', title:'O que são ações?', txt:'Ação é uma pequena parte de uma empresa. Quando você compra, vira sócio e pode lucrar com dividendos e valorização. Mas pode perder também — o preço oscila diariamente. É para dinheiro que você não vai precisar em menos de 5 anos.', highlight:'Nunca invista em ações dinheiro que pode precisar em curto prazo.' },
+    { emoji:'🏢', title:'FIIs — aluguel sem imóvel', txt:'Fundo de Investimento Imobiliário (FII) é como comprar uma parte de um shopping, prédio ou galpão. Você recebe aluguéis mensais (dividendos) isentos de IR. Com R$ 100 já dá para começar.', highlight:'FIIs distribuem pelo menos 95% do lucro em dividendos mensais.' },
+    { emoji:'🎯', title:'Como começar com pouco', txt:'Abra conta em XP, Rico, NuInvest ou BTG. Comece com R$ 100 no Tesouro Selic. Quando tiver fundo de emergência completo, adicione FIIs. Depois de 1 ano aprendendo, considere ações de empresas sólidas.', highlight:'A jornada importa mais que o valor inicial.' },
+  ]},
+  { id:'inv3', emoji:'🧠', titulo:'Psicologia do investidor', desc:'3 min · Comportamento', slides:[
+    { emoji:'😱', title:'Os inimigos do seu patrimônio', txt:'1. FOMO — medo de perder uma oportunidade e entrar no pico. 2. Pânico — vender na baixa quando deveria segurar. 3. Ganância — colocar tudo em algo arriscado por querer enriquecer rápido. Todos somos suscetíveis.', highlight:'O maior risco do investimento é você mesmo.' },
+    { emoji:'🤖', title:'A solução: automatize', txt:'Configure aportes automáticos todo dia do pagamento. Esqueça que existe. Não fique verificando preços diariamente. Defina sua estratégia uma vez e siga. O investidor que menos mexe geralmente ganha mais.', highlight:'Set it and forget it — configure e esqueça.' },
+    { emoji:'⏳', title:'O poder do tempo', txt:'R$ 500/mês por 30 anos com 10% ao ano = R$ 1.100.000. R$ 500/mês por 20 anos = R$ 380.000. R$ 500/mês por 10 anos = R$ 103.000. A diferença é brutal — comece hoje, não amanhã.', highlight:'Cada mês que você espera custa mais do que você imagina.' },
+  ]},
+];
+
+function renderLicoesMEI() {
+  const list = document.getElementById('licoes-mei-list');
   if (!list) return;
-  list.innerHTML = LICOES.map((l, i) => {
+  list.innerHTML = LICOES_MEI.map((l, i) => {
     const ok = licoesConcluidas.has(l.id);
-    return `<div class="licao-card ${ok ? 'concluida' : ''}" onclick="abrirLicao(${i})">
+    return `<div class="licao-card ${ok ? 'concluida' : ''}" onclick="abrirLicaoCustom('mei', ${i})">
       <div class="licao-num">${ok ? '✓' : l.emoji}</div>
       <div class="licao-info"><div class="licao-titulo">${l.titulo}</div><div class="licao-desc">${l.desc}</div></div>
       <div class="licao-tempo">${ok ? '✅' : '▶'}</div>
@@ -2269,7 +2342,90 @@ function renderCurso() {
   }).join('');
 }
 
+function renderLicoesInv() {
+  const list = document.getElementById('licoes-inv-list');
+  if (!list) return;
+  list.innerHTML = LICOES_INV.map((l, i) => {
+    const ok = licoesConcluidas.has(l.id);
+    return `<div class="licao-card ${ok ? 'concluida' : ''}" onclick="abrirLicaoCustom('inv', ${i})">
+      <div class="licao-num">${ok ? '✓' : l.emoji}</div>
+      <div class="licao-info"><div class="licao-titulo">${l.titulo}</div><div class="licao-desc">${l.desc}</div></div>
+      <div class="licao-tempo">${ok ? '✅' : '▶'}</div>
+    </div>`;
+  }).join('');
+}
+
+let licaoModulo = 'base';
+
+function abrirLicaoCustom(modulo, idx) {
+  licaoModulo = modulo;
+  const lista = modulo === 'mei' ? LICOES_MEI : LICOES_INV;
+  licaoAtual = idx; slideAtual = 0;
+  document.getElementById('licao-modal-titulo').textContent = lista[idx].titulo;
+  renderSlidesCustom();
+  document.getElementById('licao-modal').classList.add('show');
+}
+
+function renderSlidesCustom() {
+  const lista = licaoModulo === 'mei' ? LICOES_MEI : licaoModulo === 'inv' ? LICOES_INV : LICOES;
+  const licao = lista[licaoAtual];
+  const total = licao.slides.length;
+  document.getElementById('licao-slides').innerHTML = licao.slides.map((s, i) => `
+    <div class="licao-slide ${i === slideAtual ? 'active' : ''}">
+      <div class="licao-slide-emoji">${s.emoji}</div>
+      <div class="licao-slide-title">${s.title}</div>
+      <div class="licao-slide-txt">${s.txt}</div>
+      <div class="licao-highlight">${s.highlight}</div>
+    </div>`).join('');
+  document.getElementById('licao-dots').innerHTML = licao.slides.map((_, i) =>
+    `<div class="licao-dot ${i === slideAtual ? 'active' : ''}"></div>`).join('');
+  const prev = document.getElementById('licao-prev');
+  const next = document.getElementById('licao-next');
+  prev.style.display = slideAtual === 0 ? 'none' : 'block';
+  const isLast = slideAtual === total - 1;
+  next.textContent = isLast ? '✓ Concluir lição' : 'Próximo →';
+  next.style.background = isLast ? 'var(--purple)' : '';
+}
+
+function navLicaoCustom(dir) {
+  const lista = licaoModulo === 'mei' ? LICOES_MEI : licaoModulo === 'inv' ? LICOES_INV : LICOES;
+  const total = lista[licaoAtual].slides.length;
+  if (dir === 1 && slideAtual === total - 1) {
+    licoesConcluidas.add(lista[licaoAtual].id);
+    localStorage.setItem('gi_licoes', JSON.stringify([...licoesConcluidas]));
+    fecharLicao(); chuvaDeUvas();
+    toast('🍇 Lição concluída!', 'success', 3500);
+    return;
+  }
+  slideAtual = Math.max(0, Math.min(total - 1, slideAtual + dir));
+  renderSlidesCustom();
+}
+
+function renderCurso() {
+  const total = LICOES.length + LICOES_MEI.length + LICOES_INV.length;
+  const concluidas = licoesConcluidas.size;
+  const pct = Math.round((concluidas / total) * 100);
+  const sub = document.getElementById('curso-sub');
+  const prog = document.getElementById('curso-prog');
+  if (sub) sub.textContent = `${concluidas} de ${total} lições concluídas`;
+  if (prog) prog.style.width = pct + '%';
+  const list = document.getElementById('licoes-list');
+  if (list) {
+    list.innerHTML = LICOES.map((l, i) => {
+      const ok = licoesConcluidas.has(l.id);
+      return `<div class="licao-card ${ok ? 'concluida' : ''}" onclick="abrirLicao(${i})">
+        <div class="licao-num">${ok ? '✓' : l.emoji}</div>
+        <div class="licao-info"><div class="licao-titulo">${l.titulo}</div><div class="licao-desc">${l.desc}</div></div>
+        <div class="licao-tempo">${ok ? '✅' : '▶'}</div>
+      </div>`;
+    }).join('');
+  }
+  renderLicoesMEI();
+  renderLicoesInv();
+}
+
 function abrirLicao(idx) {
+  licaoModulo = 'base';
   licaoAtual = idx; slideAtual = 0;
   document.getElementById('licao-modal-titulo').textContent = LICOES[idx].titulo;
   renderSlides();
