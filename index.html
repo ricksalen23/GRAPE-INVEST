@@ -1186,7 +1186,13 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
   <div class="login-content">
     <div class="login-header">
       <div class="login-logo-icon">
-        <img src="icon-192.png" width="40" height="40" style="border-radius:8px;display:block;" alt="Grape Invest">
+        <svg width="36" height="36" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="35" cy="52" r="20" fill="white"/>
+          <circle cx="65" cy="52" r="20" fill="white"/>
+          <circle cx="50" cy="75" r="20" fill="white"/>
+          <path d="M48 32 L48 18 Q48 10 58 8 Q65 6 70 12" stroke="white" stroke-width="5" stroke-linecap="round" fill="none"/>
+          <path d="M40 20 Q44 14 40 10 Q37 7 33 10" stroke="white" stroke-width="3" stroke-linecap="round" fill="none"/>
+        </svg>
       </div>
       <div class="login-logo-name">Grape Invest</div>
       <div class="login-tagline">Controle financeiro para o seu dia a dia</div>
@@ -1276,7 +1282,13 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
 <header>
   <div class="header-row">
     <div class="logo-icon">
-      <img src="icon-192.png" width="28" height="28" style="border-radius:6px;display:block;" alt="Grape Invest">
+      <svg width="24" height="24" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="35" cy="52" r="20" fill="white"/>
+        <circle cx="65" cy="52" r="20" fill="white"/>
+        <circle cx="50" cy="75" r="20" fill="white"/>
+        <path d="M48 32 L48 18 Q48 10 58 8 Q65 6 70 12" stroke="white" stroke-width="5" stroke-linecap="round" fill="none"/>
+        <path d="M40 20 Q44 14 40 10 Q37 7 33 10" stroke="white" stroke-width="3" stroke-linecap="round" fill="none"/>
+      </svg>
     </div>
     <span class="logo-name">Grape Invest</span>
     <div style="flex:1;"></div>
@@ -1348,19 +1360,19 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
         <button onclick="setTabBtn('gastos')" style="font-size:12px;color:var(--purple);background:none;border:none;cursor:pointer;font-weight:600;font-family:inherit;">Ver detalhes →</button>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem;">
-        <div style="background:var(--purple-light);border-radius:12px;padding:1rem;">
+        <div style="background:rgba(124,58,237,0.15);border-radius:12px;padding:1rem;">
           <div style="font-size:11px;color:var(--purple);font-weight:700;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px;">Saldo disponível</div>
           <div style="font-size:22px;font-weight:800;color:var(--purple-dark);" id="dash-saldo">R$ 0,00</div>
         </div>
-        <div style="background:#F5F3FF;border-radius:12px;padding:1rem;">
-          <div style="font-size:11px;color:#7C3AED;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px;">Total de rendas</div>
-          <div style="font-size:22px;font-weight:800;color:#7C3AED;" id="dash-renda">R$ 0,00</div>
+        <div style="background:rgba(124,58,237,0.1);border-radius:12px;padding:1rem;">
+          <div style="font-size:11px;color:var(--purple);font-weight:700;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px;">Total de rendas</div>
+          <div style="font-size:22px;font-weight:800;color:var(--purple);" id="dash-renda">R$ 0,00</div>
         </div>
-        <div style="background:#FEF2F2;border-radius:12px;padding:1rem;">
+        <div style="background:rgba(220,38,38,0.1);border-radius:12px;padding:1rem;">
           <div style="font-size:11px;color:#DC2626;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px;">Total gasto</div>
           <div style="font-size:22px;font-weight:800;color:#DC2626;" id="dash-gasto">R$ 0,00</div>
         </div>
-        <div style="background:#EFF6FF;border-radius:12px;padding:1rem;">
+        <div style="background:rgba(29,78,216,0.1);border-radius:12px;padding:1rem;">
           <div style="font-size:11px;color:#1D4ED8;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px;">Investido</div>
           <div style="font-size:22px;font-weight:800;color:#1D4ED8;" id="dash-investido">R$ 0,00</div>
         </div>
