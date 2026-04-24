@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Grape Invest — Controle Financeiro</title>
-<meta name="theme-color" content="#7C3AED">
+<meta name="theme-color" content="#0a0a0a">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -127,7 +127,7 @@ body {
   display: flex; align-items: flex-start; justify-content: center;
   z-index: 9999; padding: 1.5rem;
   overflow-y: auto; overflow-x: hidden;
-  background: linear-gradient(145deg, #1e1b4b 0%, #2e1065 40%, #4C1D95 70%, #6D28D9 100%);
+  background: linear-gradient(145deg, #000000 0%, #0a0a0a 40%, #111111 70%, #1a1a1a 100%);
 }
 #login-screen.hidden { display: none; }
 
@@ -145,7 +145,7 @@ body:has(#login-screen:not(.hidden)) footer { display: none !important; }
   content: '';
   position: absolute;
   width: 400px; height: 400px;
-  background: radial-gradient(circle, rgba(74,222,128,0.35) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(124,58,237,0.2) 0%, transparent 70%);
   top: -100px; left: -100px;
   animation: orbFloat 8s ease-in-out infinite;
 }
@@ -153,7 +153,7 @@ body:has(#login-screen:not(.hidden)) footer { display: none !important; }
   content: '';
   position: absolute;
   width: 350px; height: 350px;
-  background: radial-gradient(circle, rgba(124,58,237,0.3) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(124,58,237,0.15) 0%, transparent 70%);
   bottom: -80px; right: -80px;
   animation: orbFloat 10s ease-in-out infinite reverse;
 }
@@ -394,10 +394,11 @@ header {
 .bottom-tab.active .bottom-tab-dot { width: 24px; }
 
 .logo-icon {
-  width: 32px; height: 32px;
-  background: #7C3AED; border-radius: 9px;
+  width: 36px; height: 36px;
+  background: #000000; border-radius: 9px;
   display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
+  flex-shrink: 0; overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.1);
 }
 .grape-svg { animation: grapeSwing 3s ease-in-out infinite; transform-origin: center top; }
 @keyframes grapeSwing {
@@ -1185,14 +1186,7 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
   <div class="login-content">
     <div class="login-header">
       <div class="login-logo-icon">
-        <svg width="30" height="30" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <g fill="white">
-            <circle cx="210" cy="270" r="90"/>
-            <circle cx="302" cy="270" r="90"/>
-            <circle cx="256" cy="350" r="90"/>
-          </g>
-          <path d="M244 180 Q256 150 290 150 Q310 150 320 165" stroke="white" stroke-width="32" stroke-linecap="round" fill="none"/>
-        </svg>
+        <img src="icon-192.png" width="40" height="40" style="border-radius:8px;display:block;" alt="Grape Invest">
       </div>
       <div class="login-logo-name">Grape Invest</div>
       <div class="login-tagline">Controle financeiro para o seu dia a dia</div>
@@ -1282,15 +1276,7 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
 <header>
   <div class="header-row">
     <div class="logo-icon">
-      <svg class="grape-svg" width="20" height="20" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
-        <g fill="white">
-          <circle cx="420" cy="540" r="130"/>
-          <circle cx="604" cy="540" r="130"/>
-          <circle cx="512" cy="700" r="130"/>
-        </g>
-        <path d="M500 360 Q512 300 580 300 Q620 300 640 330"
-              stroke="white" stroke-width="45" stroke-linecap="round" fill="none"/>
-      </svg>
+      <img src="icon-192.png" width="28" height="28" style="border-radius:6px;display:block;" alt="Grape Invest">
     </div>
     <span class="logo-name">Grape Invest</span>
     <div style="flex:1;"></div>
@@ -2043,8 +2029,12 @@ function toggleTheme() {
   localStorage.setItem('gi_theme', isDark ? 'light' : 'dark');
 }
 
-const savedTheme = localStorage.getItem('gi_theme') || 'light';
+const savedTheme = localStorage.getItem('gi_theme') || 'dark';
 document.documentElement.setAttribute('data-theme', savedTheme);
+// Forçar dark na primeira vez
+if (!localStorage.getItem('gi_theme')) {
+  localStorage.setItem('gi_theme', 'dark');
+}
 document.addEventListener('DOMContentLoaded', () => {
   const btn = document.getElementById('theme-btn');
   if (btn) btn.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
