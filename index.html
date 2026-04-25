@@ -79,6 +79,7 @@ body {
   color: var(--text);
   min-height: 100vh;
   transition: background 0.3s, color 0.3s;
+  padding-top: env(safe-area-inset-top, 0px);
 }
 
 /* ===== TOAST ===== */
@@ -331,7 +332,7 @@ body:has(#login-screen:not(.hidden)) footer { display: none !important; }
 
 /* ===== APP SHELL ===== */
 header {
-  padding: 0.75rem 1.25rem 0;
+  padding: calc(env(safe-area-inset-top, 0px) + 0.75rem) 1.25rem 0;
   border-bottom: 1px solid var(--border);
   background: white;
   position: sticky; top: 0; z-index: 100;
