@@ -4,8 +4,8 @@
   "description": "Controle financeiro para o seu dia a dia",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#16A34A",
-  "theme_color": "#16A34A",
+  "background_color": "#000000",
+  "theme_color": "#000000",
   "orientation": "portrait",
   "icons": [
     {
