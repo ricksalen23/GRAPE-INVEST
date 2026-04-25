@@ -53,7 +53,7 @@
 [data-theme="dark"] .card-title { color: #A78BFA; }
 [data-theme="dark"] .field input, [data-theme="dark"] .field select { background: #1a1a1a; border-color: rgba(74,222,128,0.2); color: #f5f3ff; }
 [data-theme="dark"] .field label { color: #A78BFA; }
-[data-theme="dark"] header { background: #111111; border-color: rgba(74,222,128,0.1); }
+[data-theme="dark"] header { background: #111111; border-color: rgba(124,58,237,0.1); }
 [data-theme="dark"] .saldo-box { background: rgba(124,58,237,0.1); border-color: rgba(74,222,128,0.2); }
 [data-theme="dark"] .saldo-label { color: #C4B5FD; }
 [data-theme="dark"] .saldo-value { color: #f5f3ff; }
@@ -459,7 +459,7 @@ header {
   background: var(--purple-light); flex-shrink: 0;
 }
 
-.container { max-width: 720px; margin: 0 auto; padding: 1rem 1rem 120px; }
+.container { max-width: 720px; margin: 0 auto; padding: 1rem 1rem 120px; scroll-margin-top: 60px; }
 
 /* ===== NAV (oculta) ===== */
 .nav-tabs { display: none; }
@@ -491,7 +491,7 @@ input, select, textarea {
 .login-input-wrap input { font-size: 16px !important; }
 .form-row input, .form-row select { font-size: 16px !important; }
 
-.container { padding-bottom: 90px; max-width: 720px; margin: 0 auto; padding-top: 0; }
+.container { padding-bottom: 100px; max-width: 720px; margin: 0 auto; padding-top: 1rem; }
 
 /* ===== ABA PROTEÇÃO ===== */
 .protecao-hero {
@@ -1996,20 +1996,27 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
 <script>
 
 // ===== SPLASH SCREEN =====
-window.addEventListener('load', () => {
-  const splash = document.getElementById('splash-screen');
-  if (!splash) return;
-  setTimeout(() => {
+(function() {
+  // Bloquear inputs durante splash para evitar teclado
+  const inputs = document.querySelectorAll('input, select, textarea');
+  inputs.forEach(el => { el.setAttribute('readonly', 'true'); el.setAttribute('tabindex', '-1'); });
+  
+  function hideSplash() {
+    const splash = document.getElementById('splash-screen');
+    if (!splash) return;
     splash.style.transition = 'opacity 0.4s ease';
     splash.style.opacity = '0';
-    setTimeout(() => { splash.style.display = 'none'; splash.remove(); }, 400);
-  }, 1800);
-});
-// Garantia extra — nunca fica preso
-setTimeout(() => {
-  const splash = document.getElementById('splash-screen');
-  if (splash) { splash.style.display = 'none'; splash.remove(); }
-}, 3000);
+    setTimeout(() => {
+      if (splash.parentNode) splash.parentNode.removeChild(splash);
+      // Reativar inputs
+      const inputs = document.querySelectorAll('input, select, textarea');
+      inputs.forEach(el => { el.removeAttribute('readonly'); el.removeAttribute('tabindex'); });
+    }, 400);
+  }
+
+  window.addEventListener('load', () => setTimeout(hideSplash, 1800));
+  setTimeout(hideSplash, 3000);
+})();
 const fmt = v => 'R$ ' + Math.round(v).toLocaleString('pt-BR');
 const fmtMoney = v => 'R$ ' + (parseFloat(v)||0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
 const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
