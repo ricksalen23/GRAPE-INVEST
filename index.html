@@ -283,7 +283,7 @@ header {
 
 /* ===== TICKER ===== */
 .frase-ticker { overflow: hidden; flex: 1; }
-.frase-ticker-inner { font-size: 11px; font-weight: 500; color: var(--purple); white-space: nowrap; animation: tickerScroll 12s linear infinite; opacity: 0.8; }
+.frase-ticker-inner { font-size: 11px; font-weight: 500; color: var(--purple); white-space: nowrap; animation: tickerScroll 18s linear infinite; opacity: 0.8; }
 @keyframes tickerScroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
 [data-theme="dark"] .frase-ticker-inner { color: #A78BFA; }
 
@@ -1014,9 +1014,9 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
       <div id="cf-body">
         <div id="cf-lista"></div>
         <div style="display:flex;gap:8px;margin-top:10px;">
-          <input type="text" id="cf-nova-desc" placeholder="Nova conta..." list="gd-desc-list" autocomplete="off" style="flex:1;height:38px;border:1.5px solid var(--border);border-radius:8px;padding:0 10px;font-size:13px;font-family:inherit;background:var(--bg);color:var(--text);outline:none;">
-          <input type="number" id="cf-novo-valor" placeholder="R$" min="0" step="0.01" style="width:90px;height:38px;border:1.5px solid var(--border);border-radius:8px;padding:0 10px;font-size:13px;font-family:inherit;background:var(--bg);color:var(--text);outline:none;">
-          <button onclick="addContaFixa()" style="height:38px;padding:0 14px;border-radius:8px;border:none;background:var(--purple);color:white;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;white-space:nowrap;">+ Add</button>
+          <input type="text" id="cf-nova-desc" placeholder="Nova conta..." list="gd-desc-list" autocomplete="off" style="flex:1;min-width:0;height:38px;border:1.5px solid var(--border);border-radius:8px;padding:0 10px;font-size:13px;font-family:inherit;background:var(--bg);color:var(--text);outline:none;">
+          <input type="number" id="cf-novo-valor" placeholder="R$" min="0" step="0.01" style="width:80px;flex-shrink:0;height:38px;border:1.5px solid var(--border);border-radius:8px;padding:0 8px;font-size:13px;font-family:inherit;background:var(--bg);color:var(--text);outline:none;">
+          <button onclick="addContaFixa()" style="flex-shrink:0;height:38px;padding:0 12px;border-radius:8px;border:none;background:var(--purple);color:white;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;">+</button>
         </div>
       </div>
     </div>
@@ -1891,11 +1891,14 @@ function renderGastosDiarios() {
   document.getElementById('gd-saldo-val').className='gd-stat-val '+(saldo<0?'red':'green');
   document.getElementById('gd-orcamento-val').textContent=orcamento>0?fmtMoney(orcamento):'—';
 
-  // Inputs
-  document.getElementById('gd-orcamento').value=orcamento||'';
-  document.getElementById('gd-salario').value=salario||'';
-  const reEl=document.getElementById('gd-renda-extra');
-  if(reEl) reEl.value=rendaExtra||'';
+  // Inputs — só popula se a aba estiver visível (evita flash do teclado no init)
+  const gdTabAtiva = document.getElementById('tab-gastos-diarios').classList.contains('active');
+  if (gdTabAtiva) {
+    document.getElementById('gd-orcamento').value=orcamento||'';
+    document.getElementById('gd-salario').value=salario||'';
+    const reEl=document.getElementById('gd-renda-extra');
+    if(reEl) reEl.value=rendaExtra||'';
+  }
   atualizarBtnRecebido();
 
   renderContasFixas();
