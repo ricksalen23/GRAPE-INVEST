@@ -2800,12 +2800,15 @@ document.getElementById('tab-dashboard').classList.add('active');
 document.querySelectorAll('.bottom-tab').forEach(t=>t.classList.remove('active'));
 document.querySelector('.bottom-tab[data-tab="dashboard"]').classList.add('active');
 
+// Adiar renders que populam inputs (evita flash do teclado no splash)
 renderDashboard();
-renderGastosDiarios();
-renderDividas();
 renderCurso();
-atualizar();
-renderMEI();
+setTimeout(function() {
+  renderGastosDiarios();
+  renderDividas();
+  atualizar();
+  renderMEI();
+}, 2000);
 </script>
 <script>if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(()=>{});});}</script>
 </body>
