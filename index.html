@@ -713,7 +713,7 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
 </div>
 
 <!-- LOGIN -->
-<div id="login-screen">
+<div id="login-screen" class="hidden">
   <div class="login-bg-pattern"></div>
   <div class="login-hex"></div>
   <div class="login-content">
@@ -2767,14 +2767,14 @@ function logout(){if(confirm('Deseja sair da sua conta?')){localStorage.removeIt
 
 (async function verificarAuth(){
   const token=localStorage.getItem('gi_token');const email=localStorage.getItem('gi_email');const nome=localStorage.getItem('gi_nome');
-  if(!token) return;
+  if(!token){document.getElementById('login-screen').classList.remove('hidden');return;}
   if(nome||email){document.getElementById('header-user').childNodes[0].textContent=(nome||email).charAt(0).toUpperCase();document.getElementById('menu-nome').textContent=nome||'—';document.getElementById('menu-email').textContent=email||'—';}
   if(token==='teste-local'){document.getElementById('login-screen').classList.add('hidden');return;}
   try{
     const res=await fetch(`${BACKEND_URL}/me`,{headers:{'Authorization':'Bearer '+token}});
     if(res.ok){const data=await res.json();if(data.nome||data.name){const n=data.nome||data.name;localStorage.setItem('gi_nome',n);document.getElementById('header-user').childNodes[0].textContent=n.charAt(0).toUpperCase();document.getElementById('menu-nome').textContent=n;}document.getElementById('login-screen').classList.add('hidden');}
     else{localStorage.removeItem('gi_token');localStorage.removeItem('gi_email');localStorage.removeItem('gi_nome');}
-  }catch(e){console.log('Sem conexão');}
+  }catch(e){console.log('Sem conexão, usando token local.');document.getElementById('login-screen').classList.add('hidden');}
 })();
 
 // ===== TICKER =====
