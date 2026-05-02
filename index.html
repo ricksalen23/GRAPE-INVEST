@@ -203,7 +203,7 @@ body:has(#login-screen:not(.hidden)) footer { display: none !important; }
 /* ===== APP SHELL ===== */
 header {
   padding: calc(env(safe-area-inset-top, 0px) + 0.5rem) 1.25rem 0;
-  border-bottom: 1px solid var(--border); background: white;
+  border-bottom: 1px solid var(--border); background: var(--card);
   position: sticky; top: 0; z-index: 100; display: flex; flex-direction: column; gap: 0;
 }
 .header-row { display: flex; align-items: center; gap: 10px; padding-bottom: 0.75rem; }
@@ -242,13 +242,13 @@ header {
 .bottom-tab[data-tab="dividas"].active svg { opacity: 1; }
 
 .logo-icon {
-  width: 36px; height: 36px; background: #000000; border-radius: 9px;
-  display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden;
-  border: 2px solid #360388b4; box-shadow: 0 0 8px #4000afab, 0 0 16px rgba(78, 1, 165, 0.651);
+  width: 36px; height: 36px; background: #1a0533; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  border: 1.5px solid rgba(124,58,237,0.3);
 }
 .grape-svg { animation: grapeSwing 3s ease-in-out infinite; transform-origin: center top; }
 .logo-name { font-size: 17px; font-weight: 800; color: #0a0a0a; letter-spacing: -0.03em; flex: 0 0 auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
-[data-theme="dark"] .logo-icon { background: #00000034; box-shadow: 0 0 12px rgba(68, 1, 185, 0.808); }
+[data-theme="dark"] .logo-icon { background: #7C3AED; border-color: rgba(124,58,237,0.5); }
 [data-theme="dark"] .logo-name { color: #ffffff; }
 
 .header-user {
@@ -283,7 +283,7 @@ header {
 
 /* ===== TICKER ===== */
 .frase-ticker { overflow: hidden; flex: 1; }
-.frase-ticker-inner { font-size: 11px; font-weight: 500; color: var(--purple); white-space: nowrap; animation: tickerScroll 18s linear infinite; opacity: 0.8; }
+.frase-ticker-inner { font-size: 11px; font-weight: 500; color: var(--purple); white-space: nowrap; animation: tickerScroll 12s linear infinite; opacity: 0.8; }
 @keyframes tickerScroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
 [data-theme="dark"] .frase-ticker-inner { color: #A78BFA; }
 
@@ -472,7 +472,7 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
 /* ===== GASTOS DIÁRIOS — nova aba ===== */
 .gasto-diario-hero {
   border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1rem;
-  background: linear-gradient(135deg, #1e1b4b 0%, #4C1D95 100%); position: relative; overflow: hidden;
+  background: linear-gradient(135deg, #1e1b4b 0%, #4C1D95 100%); position: relative;
 }
 .gasto-diario-hero::before { content:'💳'; position:absolute; right:-10px; top:-10px; font-size:100px; opacity:0.08; pointer-events:none; }
 .gd-label { font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
