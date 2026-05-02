@@ -950,14 +950,25 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
     <!-- Hero -->
     <div class="gasto-diario-hero">
       <div class="gd-label">Gastos Diários — <span id="gd-mes-label"></span></div>
+      <div style="font-size:10px;color:rgba(255,255,255,0.55);margin-bottom:1px;font-weight:600;letter-spacing:.05em;">✅ JÁ PAGO</div>
       <div class="gd-value" id="gd-total-hero">R$ 0,00</div>
-      <div class="gd-sub" id="gd-sub-hero">Nenhum gasto registrado ainda</div>
+
+      <!-- Mini barra total geral -->
+      <div style="background:rgba(255,255,255,0.1);border-radius:8px;padding:6px 10px;margin:8px 0 4px;display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:11px;color:rgba(255,255,255,0.65);">📋 Total geral</span>
+        <span style="font-size:13px;font-weight:800;color:#fff;" id="gd-total-geral">R$ 0,00</span>
+      </div>
+      <div style="background:rgba(255,255,255,0.15);border-radius:99px;height:3px;margin-bottom:10px;">
+        <div id="gd-prog-bar" style="background:#4ade80;border-radius:99px;height:3px;width:0%;transition:width 0.4s ease;"></div>
+      </div>
+
+      <div class="gd-sub" id="gd-sub-hero" style="margin-bottom:8px;">Nenhum gasto registrado ainda</div>
       <div class="gd-stats">
         <div class="gd-stat">
           <div class="gd-stat-label">Hoje</div>
           <div class="gd-stat-val" id="gd-hoje-val">R$ 0</div>
         </div>
-        <div class="gd-stat">
+        <div class="gd-stat" id="gd-saldo-stat" style="display:none;">
           <div class="gd-stat-label">Saldo</div>
           <div class="gd-stat-val green" id="gd-saldo-val">R$ 0</div>
         </div>
@@ -1871,25 +1882,52 @@ function renderGastosDiarios() {
 
   GD_CONFIG=getGDConfig(gdMesSel,gdAnoSel);
   const dados=getGastosDiariosMes(gdMesSel,gdAnoSel);
-  const totalGastos=dados.reduce((s,g)=>s+parseFloat(g.valor||0),0);
-  const totalCF=getTotalContasFixasPagas(gdMesSel,gdAnoSel);
-  const total=totalGastos+totalCF;
+  const cfVals=getCFVals(gdMesSel,gdAnoSel);
+  const cfPago=getCFPago(gdMesSel,gdAnoSel);
+  const cfs=getContasFixas();
+
+  // Total PAGO (gastos marcados como pago + contas fixas pagas)
+  const totalGastosPagos=dados.filter(g=>g.pago).reduce((s,g)=>s+parseFloat(g.valor||0),0);
+  const totalCFPago=cfs.filter(c=>cfPago[c.id]).reduce((s,c)=>s+parseFloat(cfVals[c.id]||0),0);
+  const totalPago=totalGastosPagos+totalCFPago;
+
+  // Total GERAL (pago + pendente)
+  const totalGastosGeral=dados.reduce((s,g)=>s+parseFloat(g.valor||0),0);
+  const totalCFGeral=cfs.reduce((s,c)=>s+parseFloat(cfVals[c.id]||0),0);
+  const totalGeral=totalGastosGeral+totalCFGeral;
+
   const orcamento=GD_CONFIG.orcamento||0;
   const salario=GD_CONFIG.salario||0;
   const rendaExtra=GD_CONFIG.rendaExtra||0;
   const rendaTotal=salario+rendaExtra;
-  const saldo=rendaTotal-total;
+  const saldo=rendaTotal-totalGeral;
+  const recebido=!!GD_CONFIG.salarioRecebido;
 
   // Hoje
   const hojeStr=now.toISOString().split('T')[0];
   const totalHoje=dados.filter(g=>g.data===hojeStr).reduce((s,g)=>s+parseFloat(g.valor||0),0);
 
-  document.getElementById('gd-total-hero').textContent=fmtMoney(total);
-  document.getElementById('gd-sub-hero').textContent=dados.length+' gasto(s) + '+getContasFixas().filter(c=>getCFPago(gdMesSel,gdAnoSel)[c.id]).length+' conta(s) fixa(s)';
+  // Hero: grande = pago, mini = geral
+  document.getElementById('gd-total-hero').textContent=fmtMoney(totalPago);
+  document.getElementById('gd-total-geral').textContent=fmtMoney(totalGeral);
+  document.getElementById('gd-sub-hero').textContent=dados.filter(g=>g.pago).length+' pago(s) de '+dados.length+' gasto(s)';
+
+  // Barra de progresso pago/geral
+  const pct=totalGeral>0?Math.min(100,Math.round((totalPago/totalGeral)*100)):0;
+  document.getElementById('gd-prog-bar').style.width=pct+'%';
+
   document.getElementById('gd-hoje-val').textContent=fmtMoney(totalHoje);
-  document.getElementById('gd-saldo-val').textContent=fmtMoney(Math.max(0,saldo));
-  document.getElementById('gd-saldo-val').className='gd-stat-val '+(saldo<0?'red':'green');
   document.getElementById('gd-orcamento-val').textContent=orcamento>0?fmtMoney(orcamento):'—';
+
+  // Saldo: só aparece se marcou como recebido
+  const saldoStat=document.getElementById('gd-saldo-stat');
+  if(saldoStat){
+    saldoStat.style.display=recebido?'':'none';
+    if(recebido){
+      document.getElementById('gd-saldo-val').textContent=fmtMoney(Math.max(0,saldo));
+      document.getElementById('gd-saldo-val').className='gd-stat-val '+(saldo<0?'red':'green');
+    }
+  }
 
   // Inputs — só popula se a aba estiver visível (evita flash do teclado no init)
   const gdTabAtiva = document.getElementById('tab-gastos-diarios').classList.contains('active');
