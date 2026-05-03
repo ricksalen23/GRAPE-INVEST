@@ -864,14 +864,14 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
     <!-- Card: Evolução do Score — últimos 6 meses -->
     <div id="card-score-evolucao" style="background:#16161e;border:1px solid rgba(124,58,237,0.22);border-radius:18px;padding:20px;margin-bottom:1rem;overflow:hidden;">
 
-      <!-- Topo: score destaque + mini-ring -->
+      <!-- Topo: score destaque + mini-ring (valores preenchidos por JS) -->
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;">
         <div>
           <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.38);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;">Evolução do Score</div>
           <div style="display:flex;align-items:baseline;gap:10px;">
-            <span style="font-size:44px;font-weight:900;color:#fff;line-height:1;letter-spacing:-2px;">80</span>
+            <span id="evolucao-score-num" style="font-size:44px;font-weight:900;color:#fff;line-height:1;letter-spacing:-2px;">—</span>
             <div>
-              <span style="font-size:11px;color:#22c55e;font-weight:700;background:rgba(34,197,94,0.12);padding:3px 9px;border-radius:99px;display:block;margin-bottom:4px;">▲ +19 pts</span>
+              <span id="evolucao-delta-badge" style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px;display:block;margin-bottom:4px;color:rgba(255,255,255,0.4);background:rgba(255,255,255,0.06);">…</span>
               <span style="font-size:10px;color:rgba(255,255,255,0.3);">em 6 meses</span>
             </div>
           </div>
@@ -879,50 +879,24 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
         <div style="position:relative;width:58px;height:58px;flex-shrink:0;">
           <svg width="58" height="58" viewBox="0 0 58 58" style="transform:rotate(-90deg);">
             <circle cx="29" cy="29" r="23" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="6"/>
-            <circle cx="29" cy="29" r="23" fill="none" stroke="#7c3aed" stroke-width="6" stroke-linecap="round"
-              stroke-dasharray="144.51" stroke-dashoffset="28.9"/>
+            <circle id="evolucao-ring-fill" cx="29" cy="29" r="23" fill="none" stroke="#7c3aed" stroke-width="6" stroke-linecap="round"
+              stroke-dasharray="144.51" stroke-dashoffset="144.51" style="transition:stroke-dashoffset 1s cubic-bezier(0.22,1,0.36,1) 0.3s;"/>
           </svg>
-          <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:13px;font-weight:800;color:#fff;line-height:1;">80</div>
+          <div id="evolucao-ring-num" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:13px;font-weight:800;color:#fff;line-height:1;">—</div>
         </div>
       </div>
 
       <!-- Gráfico de barras (gerado via JS) -->
       <div id="evolucao-bars" style="display:flex;align-items:flex-end;gap:6px;height:76px;margin-bottom:4px;"></div>
 
-      <!-- Labels dos meses -->
-      <div style="display:flex;gap:6px;margin-bottom:20px;">
-        <div style="flex:1;text-align:center;font-size:10px;color:rgba(255,255,255,0.32);font-weight:600;">Jan</div>
-        <div style="flex:1;text-align:center;font-size:10px;color:rgba(255,255,255,0.32);font-weight:600;">Fev</div>
-        <div style="flex:1;text-align:center;font-size:10px;color:rgba(255,255,255,0.32);font-weight:600;">Mar</div>
-        <div style="flex:1;text-align:center;font-size:10px;color:rgba(255,255,255,0.32);font-weight:600;">Abr</div>
-        <div style="flex:1;text-align:center;font-size:10px;color:rgba(255,255,255,0.32);font-weight:600;">Mai</div>
-        <div style="flex:1;text-align:center;font-size:10px;color:#7c3aed;font-weight:700;">Jun</div>
-      </div>
+      <!-- Labels dos meses (gerados via JS) -->
+      <div id="evolucao-labels" style="display:flex;gap:6px;margin-bottom:20px;"></div>
 
-      <!-- Streak: 6 bolinhas laranjas conectadas -->
+      <!-- Streak (gerado via JS) -->
       <div style="margin-bottom:18px;">
-        <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.38);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px;">🔥 Streak — 6 meses seguidos de melhora</div>
-        <div style="display:flex;align-items:center;">
-          <div style="width:12px;height:12px;border-radius:50%;background:#f97316;flex-shrink:0;box-shadow:0 0 8px rgba(249,115,22,0.55);"></div>
-          <div style="flex:1;height:2px;background:rgba(249,115,22,0.35);"></div>
-          <div style="width:12px;height:12px;border-radius:50%;background:#f97316;flex-shrink:0;box-shadow:0 0 8px rgba(249,115,22,0.55);"></div>
-          <div style="flex:1;height:2px;background:rgba(249,115,22,0.35);"></div>
-          <div style="width:12px;height:12px;border-radius:50%;background:#f97316;flex-shrink:0;box-shadow:0 0 8px rgba(249,115,22,0.55);"></div>
-          <div style="flex:1;height:2px;background:rgba(249,115,22,0.35);"></div>
-          <div style="width:12px;height:12px;border-radius:50%;background:#f97316;flex-shrink:0;box-shadow:0 0 8px rgba(249,115,22,0.55);"></div>
-          <div style="flex:1;height:2px;background:rgba(249,115,22,0.35);"></div>
-          <div style="width:12px;height:12px;border-radius:50%;background:#f97316;flex-shrink:0;box-shadow:0 0 8px rgba(249,115,22,0.55);"></div>
-          <div style="flex:1;height:2px;background:rgba(249,115,22,0.35);"></div>
-          <div style="width:16px;height:16px;border-radius:50%;background:#f97316;flex-shrink:0;box-shadow:0 0 14px rgba(249,115,22,0.85);border:2px solid rgba(255,255,255,0.18);"></div>
-        </div>
-        <div style="display:flex;justify-content:space-between;margin-top:6px;">
-          <span style="font-size:9px;color:rgba(255,255,255,0.28);">Jan</span>
-          <span style="font-size:9px;color:rgba(255,255,255,0.28);">Fev</span>
-          <span style="font-size:9px;color:rgba(255,255,255,0.28);">Mar</span>
-          <span style="font-size:9px;color:rgba(255,255,255,0.28);">Abr</span>
-          <span style="font-size:9px;color:rgba(255,255,255,0.28);">Mai</span>
-          <span style="font-size:9px;color:#f97316;font-weight:700;">Jun ✓</span>
-        </div>
+        <div id="evolucao-streak-titulo" style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.38);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px;"></div>
+        <div id="evolucao-streak-dots" style="display:flex;align-items:center;"></div>
+        <div id="evolucao-streak-labels" style="display:flex;justify-content:space-between;margin-top:6px;"></div>
       </div>
 
       <!-- Barra de progresso rumo ao score 90 -->
@@ -932,48 +906,15 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
             <span style="font-size:11px;color:rgba(255,255,255,0.5);font-weight:600;">Rumo ao score </span>
             <span style="font-size:11px;color:#7c3aed;font-weight:800;">90</span>
           </div>
-          <span style="font-size:11px;color:#7c3aed;font-weight:700;">80 / 90 pts</span>
+          <span id="evolucao-prog-label" style="font-size:11px;color:#7c3aed;font-weight:700;">— / 90 pts</span>
         </div>
         <div style="background:rgba(255,255,255,0.06);border-radius:99px;height:8px;overflow:hidden;">
           <div id="score-meta-bar" style="height:100%;border-radius:99px;background:linear-gradient(90deg,#6d28d9,#7c3aed,#a855f7);width:0%;transition:width 1.2s cubic-bezier(0.22,1,0.36,1) 0.4s;"></div>
         </div>
-        <div style="font-size:10px;color:rgba(255,255,255,0.28);margin-top:5px;text-align:right;">Faltam 10 pontos</div>
+        <div id="evolucao-prog-faltam" style="font-size:10px;color:rgba(255,255,255,0.28);margin-top:5px;text-align:right;">—</div>
       </div>
 
     </div>
-    <script>
-    (function() {
-      var scores = [
-        {v:61},{v:65},{v:68},{v:72},{v:76},{v:80}
-      ];
-      var cont = document.getElementById('evolucao-bars');
-      if (!cont) return;
-      var maxH = 72;
-      scores.forEach(function(d, i) {
-        var wrap = document.createElement('div');
-        wrap.style.cssText = 'flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;';
-        var lbl = document.createElement('div');
-        lbl.style.cssText = 'font-size:10px;font-weight:700;color:rgba(255,255,255,0.42);';
-        lbl.textContent = d.v;
-        var bar = document.createElement('div');
-        var isLast = i === scores.length - 1;
-        bar.style.cssText = 'width:100%;height:0;border-radius:5px 5px 2px 2px;'
-          + 'background:' + (isLast ? 'linear-gradient(180deg,#a855f7,#7c3aed)' : 'rgba(124,58,237,0.28)') + ';'
-          + 'transition:height 0.7s cubic-bezier(0.22,1,0.36,1) ' + (i * 0.08) + 's;';
-        var targetH = Math.round((d.v / 100) * maxH);
-        wrap.appendChild(lbl);
-        wrap.appendChild(bar);
-        cont.appendChild(wrap);
-        requestAnimationFrame(function() {
-          setTimeout(function() { bar.style.height = targetH + 'px'; }, 80);
-        });
-      });
-      setTimeout(function() {
-        var pb = document.getElementById('score-meta-bar');
-        if (pb) pb.style.width = ((80 / 90) * 100).toFixed(1) + '%';
-      }, 200);
-    })();
-    </script>
 
     <div id="insights-container" class="insights-list"></div>
 
@@ -1741,6 +1682,152 @@ function renderScore() {
   ring.style.stroke=score>=65?'#A7F3D0':score>=45?'#FCD34D':'#FCA5A5';
 }
 
+function calcularScoreMes(mes, ano) {
+  const cfg = getGDConfig(mes, ano);
+  const renda = (cfg.salario||0) + (cfg.rendaExtra||0);
+  if (renda === 0) return null;
+  const gasto = getGastosDiariosMes(mes, ano).reduce((s,g) => s + parseFloat(g.valor||0), 0);
+  const divida = getDividas().reduce((s,d) => s + parseFloat(d.valor_total||0), 0);
+  let score = 0;
+  const pct = (gasto / renda) * 100;
+  if (pct<=50) score+=40; else if(pct<=70) score+=28; else if(pct<=85) score+=15; else score+=5;
+  if (divida===0) score+=30; else if(divida < renda*3) score+=15; else score+=5;
+  const mts = getMetas();
+  if (mts.length>=3) score+=15; else if(mts.length>=1) score+=8;
+  score+=10;
+  return score;
+}
+
+function renderEvolucaoScore() {
+  const NOMES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const META = 90;
+  const hoje = new Date();
+
+  const historico = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(hoje.getFullYear(), hoje.getMonth() - i, 1);
+    historico.push({ nome: NOMES[d.getMonth()], score: calcularScoreMes(d.getMonth(), d.getFullYear()) });
+  }
+
+  let scoreAtual = 0, scorePrimeiro = 0;
+  for (let k = historico.length-1; k >= 0; k--) { if (historico[k].score !== null) { scoreAtual = historico[k].score; break; } }
+  for (let k = 0; k < historico.length; k++) { if (historico[k].score !== null) { scorePrimeiro = historico[k].score; break; } }
+  const delta = scoreAtual - scorePrimeiro;
+
+  const elNum = document.getElementById('evolucao-score-num');
+  if (elNum) elNum.textContent = scoreAtual || '—';
+
+  const elDelta = document.getElementById('evolucao-delta-badge');
+  if (elDelta) {
+    if (scoreAtual) {
+      elDelta.textContent = (delta >= 0 ? '▲ +' : '▼ ') + delta + ' pts';
+      elDelta.style.color = delta >= 0 ? '#22c55e' : '#ef4444';
+      elDelta.style.background = delta >= 0 ? 'rgba(34,197,94,0.12)' : 'rgba(239,68,68,0.12)';
+    } else {
+      elDelta.textContent = 'sem dados';
+      elDelta.style.color = 'rgba(255,255,255,0.3)';
+      elDelta.style.background = 'rgba(255,255,255,0.06)';
+    }
+  }
+
+  const elRing = document.getElementById('evolucao-ring-fill');
+  if (elRing) {
+    elRing.style.strokeDashoffset = '144.51';
+    setTimeout(() => { elRing.style.strokeDashoffset = (144.51*(1-scoreAtual/100)).toFixed(2); }, 150);
+  }
+  const elRingNum = document.getElementById('evolucao-ring-num');
+  if (elRingNum) elRingNum.textContent = scoreAtual || '—';
+
+  const cont = document.getElementById('evolucao-bars');
+  if (cont) {
+    cont.innerHTML = '';
+    const maxH = 72;
+    historico.forEach((h, i) => {
+      const v = h.score || 0;
+      const isLast = i === historico.length - 1;
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;';
+      const lbl = document.createElement('div');
+      lbl.style.cssText = 'font-size:10px;font-weight:700;color:rgba(255,255,255,0.42);';
+      lbl.textContent = h.score !== null ? v : '—';
+      const bar = document.createElement('div');
+      bar.style.cssText = `width:100%;height:0;border-radius:5px 5px 2px 2px;background:${isLast?'linear-gradient(180deg,#a855f7,#7c3aed)':'rgba(124,58,237,0.28)'};transition:height 0.7s cubic-bezier(0.22,1,0.36,1) ${i*0.08}s;`;
+      const targetH = Math.round((v/100)*maxH);
+      wrap.appendChild(lbl);
+      wrap.appendChild(bar);
+      cont.appendChild(wrap);
+      requestAnimationFrame(() => setTimeout(() => { bar.style.height = targetH + 'px'; }, 80));
+    });
+  }
+
+  const elLabels = document.getElementById('evolucao-labels');
+  if (elLabels) {
+    elLabels.innerHTML = '';
+    historico.forEach((h, i) => {
+      const isLast = i === historico.length - 1;
+      const el = document.createElement('div');
+      el.style.cssText = `flex:1;text-align:center;font-size:10px;font-weight:${isLast?'700':'600'};color:${isLast?'#7c3aed':'rgba(255,255,255,0.32)'};`;
+      el.textContent = h.nome;
+      elLabels.appendChild(el);
+    });
+  }
+
+  let streak = 0;
+  for (let j = historico.length-1; j > 0; j--) {
+    const cur = historico[j].score, prev = historico[j-1].score;
+    if (cur !== null && prev !== null && cur > prev) streak++;
+    else break;
+  }
+  const elTitulo = document.getElementById('evolucao-streak-titulo');
+  if (elTitulo) elTitulo.textContent = streak > 0
+    ? `🔥 Streak — ${streak} ${streak===1?'mês':'meses'} seguidos de melhora`
+    : '📊 Acompanhe sua evolução mês a mês';
+
+  const elDots = document.getElementById('evolucao-streak-dots');
+  if (elDots) {
+    elDots.innerHTML = '';
+    historico.forEach((h, i) => {
+      const isLast = i === historico.length - 1;
+      const melhora = i > 0 && h.score !== null && historico[i-1].score !== null && h.score > historico[i-1].score;
+      if (i > 0) {
+        const line = document.createElement('div');
+        line.style.cssText = `flex:1;height:2px;background:${melhora?'rgba(249,115,22,0.4)':'rgba(255,255,255,0.08)'};`;
+        elDots.appendChild(line);
+      }
+      const dot = document.createElement('div');
+      const sz = isLast ? '16px' : '12px';
+      const cor = (h.score !== null && (melhora || i===0)) ? '#f97316' : 'rgba(255,255,255,0.15)';
+      dot.style.cssText = `width:${sz};height:${sz};border-radius:50%;background:${cor};flex-shrink:0;`
+        + (cor==='#f97316' ? `box-shadow:0 0 ${isLast?'14px':'8px'} rgba(249,115,22,${isLast?'0.85':'0.55'});` : '')
+        + (isLast ? 'border:2px solid rgba(255,255,255,0.18);' : '');
+      elDots.appendChild(dot);
+    });
+  }
+
+  const elStreakLbls = document.getElementById('evolucao-streak-labels');
+  if (elStreakLbls) {
+    elStreakLbls.innerHTML = '';
+    historico.forEach((h, i) => {
+      const isLast = i === historico.length - 1;
+      const el = document.createElement('span');
+      el.style.cssText = `font-size:9px;color:${isLast?'#f97316':'rgba(255,255,255,0.28)'};font-weight:${isLast?'700':'400'};`;
+      el.textContent = h.nome + (isLast ? ' ✓' : '');
+      elStreakLbls.appendChild(el);
+    });
+  }
+
+  const faltam = Math.max(0, META - scoreAtual);
+  const elProgLabel = document.getElementById('evolucao-prog-label');
+  if (elProgLabel) elProgLabel.textContent = `${scoreAtual} / ${META} pts`;
+  const elFaltam = document.getElementById('evolucao-prog-faltam');
+  if (elFaltam) elFaltam.textContent = faltam > 0 ? `Faltam ${faltam} pontos` : '🎯 Meta atingida!';
+  const pb = document.getElementById('score-meta-bar');
+  if (pb) {
+    pb.style.width = '0%';
+    setTimeout(() => { pb.style.width = Math.min(100, (scoreAtual/META)*100).toFixed(1) + '%'; }, 200);
+  }
+}
+
 // ===== DASHBOARD =====
 function renderDashboard() {
   const cfgDash = getGDConfig(now.getMonth(), now.getFullYear());
@@ -1777,6 +1864,7 @@ function renderDashboard() {
   document.getElementById('dica-texto').textContent=getDicaDoDia();
 
   renderScore();
+  renderEvolucaoScore();
   renderInsights();
   renderComparativo();
 
