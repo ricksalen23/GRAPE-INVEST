@@ -873,9 +873,9 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
           <div style="font-size:11px;color:var(--purple);font-weight:700;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px;">Saldo disponível</div>
           <div style="font-size:22px;font-weight:800;color:var(--purple-dark);" id="dash-saldo">R$ 0,00</div>
         </div>
-        <div style="background:rgba(124,58,237,0.1);border-radius:12px;padding:1rem;">
-          <div style="font-size:11px;color:var(--purple);font-weight:700;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px;">Total de rendas</div>
-          <div style="font-size:22px;font-weight:800;color:var(--purple);" id="dash-renda">R$ 0,00</div>
+        <div style="background:rgba(245,158,11,0.1);border-radius:12px;padding:1rem;">
+          <div style="font-size:11px;color:#f59e0b;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px;">Gastos pendentes</div>
+          <div style="font-size:22px;font-weight:800;color:#f59e0b;" id="dash-renda">R$ 0,00</div>
         </div>
         <div style="background:rgba(220,38,38,0.1);border-radius:12px;padding:1rem;">
           <div style="font-size:11px;color:#DC2626;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px;">Gastos diários</div>
@@ -1630,18 +1630,30 @@ function renderScore() {
 // ===== DASHBOARD =====
 function renderDashboard() {
   const cfgDash = getGDConfig(now.getMonth(), now.getFullYear());
-  const totalGastosVariaveis = getGastosDiariosMes(now.getMonth(), now.getFullYear()).reduce((s,g)=>s+parseFloat(g.valor||0),0);
-  const totalCFMes = getTotalContasFixasPagas(now.getMonth(), now.getFullYear());
-  const totalGasto = totalGastosVariaveis + totalCFMes;
+  const dadosMes = getGastosDiariosMes(now.getMonth(), now.getFullYear());
+  const cfsMes = getContasFixas();
+  const cfValsMes = getCFVals(now.getMonth(), now.getFullYear());
+  const cfPagoMes = getCFPago(now.getMonth(), now.getFullYear());
+
+  // Pago = marcados como pago
+  const totalGastosPagos = dadosMes.filter(g=>g.pago).reduce((s,g)=>s+parseFloat(g.valor||0),0);
+  const totalCFPago = cfsMes.filter(c=>cfPagoMes[c.id]).reduce((s,c)=>s+parseFloat(cfValsMes[c.id]||0),0);
+  const totalGasto = totalGastosPagos + totalCFPago;
+
+  // Pendentes = não pagos
+  const totalGastosPend = dadosMes.filter(g=>!g.pago).reduce((s,g)=>s+parseFloat(g.valor||0),0);
+  const totalCFPend = cfsMes.filter(c=>!cfPagoMes[c.id]).reduce((s,c)=>s+parseFloat(cfValsMes[c.id]||0),0);
+  const totalPendente = totalGastosPend + totalCFPend;
+
   const totalDiv = getDividas().reduce((s,d)=>s+parseFloat(d.valor_total||0),0);
   const renda = (cfgDash.salario||0) + (cfgDash.rendaExtra||0);
-  const saldo = renda - totalGasto;
-  const pct = renda>0?Math.min(100,Math.round((totalGasto/renda)*100)):0;
+  const saldo = renda - totalGasto;  // saldo = renda - o que já pagou
+  const pct = renda>0?Math.min(100,Math.round(((totalGasto+totalPendente)/renda)*100)):0;
 
   document.getElementById('dash-mes').textContent=MESES[now.getMonth()];
   document.getElementById('dash-saldo').textContent=fmtMoney(saldo);
   document.getElementById('dash-saldo').style.color=saldo<0?'#DC2626':'';
-  document.getElementById('dash-renda').textContent=fmtMoney(renda);
+  document.getElementById('dash-renda').textContent=fmtMoney(totalPendente);
   document.getElementById('dash-gasto').textContent=fmtMoney(totalGasto);
   document.getElementById('dash-dividas').textContent=fmtMoney(totalDiv);
   document.getElementById('dash-pct-txt').textContent=pct+'%';
@@ -1697,7 +1709,8 @@ function renderInsights() {
     }
     const saldo=renda-gastos;
     if(saldo>0 && pctGasto<70){
-      insights.push({tipo:'tip',icon:'📈',titulo:'Você tem margem para investir',desc:`Sobram ${fmtMoney(saldo)} este mês. Considere direcionar parte para uma meta ou investimento.`,acao:'Ver metas →',fn:"setTabBtn('metas')"});
+      const sobraReal = renda - totalGasto - totalPendente;
+      insights.push({tipo:'tip',icon:'📈',titulo:'Você tem margem para investir',desc:`Depois de pagar tudo, sobram ${fmtMoney(Math.max(0,sobraReal))} este mês. Considere direcionar parte para uma meta ou investimento.`,acao:'Ver metas →',fn:"setTabBtn('metas')"});
     }
   }
   if(insights.length===0){
