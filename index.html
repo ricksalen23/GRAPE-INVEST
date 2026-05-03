@@ -1651,7 +1651,10 @@ function setTabBtn(tab) { setTab(tab, document.querySelector(`.bottom-tab[data-t
 function calcularScore() {
   const cfgScore = getGDConfig(now.getMonth(), now.getFullYear());
   const totalRenda = (cfgScore.salario||0) + (cfgScore.rendaExtra||0);
-  const totalGasto = getGastosDiariosMes(now.getMonth(), now.getFullYear()).reduce((s,g)=>s+parseFloat(g.valor||0),0);
+  const _gd = getGastosDiariosMes(now.getMonth(), now.getFullYear()).reduce((s,g)=>s+parseFloat(g.valor||0),0);
+  const _cfVals = getCFVals(now.getMonth(), now.getFullYear());
+  const _totalCF = getContasFixas().reduce((s,c)=>s+parseFloat(_cfVals[c.id]||0),0);
+  const totalGasto = _gd + _totalCF;
   const totalDiv = getDividas().reduce((s,d)=>s+parseFloat(d.valor_total||0),0);
   if (totalRenda===0) return { score:0, status:'Sem dados', tip:'Cadastre seu salário na aba Gastos para ver seu score.' };
   let score=0;
@@ -1686,7 +1689,10 @@ function calcularScoreMes(mes, ano) {
   const cfg = getGDConfig(mes, ano);
   const renda = (cfg.salario||0) + (cfg.rendaExtra||0);
   if (renda === 0) return null;
-  const gasto = getGastosDiariosMes(mes, ano).reduce((s,g) => s + parseFloat(g.valor||0), 0);
+  const _gdM = getGastosDiariosMes(mes, ano).reduce((s,g) => s + parseFloat(g.valor||0), 0);
+  const _cfValsM = getCFVals(mes, ano);
+  const _totalCFM = getContasFixas().reduce((s,c) => s + parseFloat(_cfValsM[c.id]||0), 0);
+  const gasto = _gdM + _totalCFM;
   const divida = getDividas().reduce((s,d) => s + parseFloat(d.valor_total||0), 0);
   let score = 0;
   const pct = (gasto / renda) * 100;
@@ -1709,8 +1715,8 @@ function renderEvolucaoScore() {
     historico.push({ nome: NOMES[d.getMonth()], score: calcularScoreMes(d.getMonth(), d.getFullYear()) });
   }
 
-  let scoreAtual = 0, scorePrimeiro = 0;
-  for (let k = historico.length-1; k >= 0; k--) { if (historico[k].score !== null) { scoreAtual = historico[k].score; break; } }
+  const scoreAtual = calcularScore().score;
+  let scorePrimeiro = 0;
   for (let k = 0; k < historico.length; k++) { if (historico[k].score !== null) { scorePrimeiro = historico[k].score; break; } }
   const delta = scoreAtual - scorePrimeiro;
 
