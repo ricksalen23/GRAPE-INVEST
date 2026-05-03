@@ -1769,6 +1769,7 @@ function toggleSalarioRecebido(){
 }
 
 function atualizarBtnRecebido(){
+  GD_CONFIG=getGDConfig(gdMesSel,gdAnoSel);  // sempre ler do mês atual
   const recebido=!!GD_CONFIG.salarioRecebido;
   const btn=document.getElementById('gd-salario-recebido-btn');
   const icon=document.getElementById('gd-check-icon');
@@ -1900,7 +1901,7 @@ function renderGastosDiarios() {
   const salario=GD_CONFIG.salario||0;
   const rendaExtra=GD_CONFIG.rendaExtra||0;
   const rendaTotal=salario+rendaExtra;
-  const saldo=rendaTotal-totalGeral;
+  const saldo=rendaTotal-totalPago;  // desconta só o que já foi pago
   const recebido=!!GD_CONFIG.salarioRecebido;
 
   // Hoje
@@ -1922,9 +1923,9 @@ function renderGastosDiarios() {
   // Saldo: só aparece se marcou como recebido
   const saldoStat=document.getElementById('gd-saldo-stat');
   if(saldoStat){
-    saldoStat.style.display=recebido?'':'none';
+    saldoStat.style.display=recebido?'flex':'none';
     if(recebido){
-      document.getElementById('gd-saldo-val').textContent=fmtMoney(Math.max(0,saldo));
+      document.getElementById('gd-saldo-val').textContent=fmtMoney(saldo);
       document.getElementById('gd-saldo-val').className='gd-stat-val '+(saldo<0?'red':'green');
     }
   }
@@ -1937,7 +1938,7 @@ function renderGastosDiarios() {
     const reEl=document.getElementById('gd-renda-extra');
     if(reEl) reEl.value=rendaExtra||'';
   }
-  atualizarBtnRecebido();
+  atualizarBtnRecebido();  // GD_CONFIG já carregado do mês correto acima
 
   renderContasFixas();
   renderListaGD();
