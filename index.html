@@ -965,12 +965,12 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
       <div class="gd-sub" id="gd-sub-hero" style="margin-bottom:8px;">Nenhum gasto registrado ainda</div>
       <div class="gd-stats">
         <div class="gd-stat">
-          <div class="gd-stat-label">Hoje</div>
-          <div class="gd-stat-val" id="gd-hoje-val">R$ 0</div>
+          <div class="gd-stat-label">Pendente</div>
+          <div class="gd-stat-val" style="color:#f59e0b;" id="gd-hoje-val">R$ 0</div>
         </div>
         <div class="gd-stat" id="gd-saldo-stat" style="display:none;">
-          <div class="gd-stat-label">Saldo</div>
-          <div class="gd-stat-val green" id="gd-saldo-val">R$ 0</div>
+          <div class="gd-stat-label" style="margin-bottom:4px;">Saldo</div>
+          <div class="gd-stat-val green" id="gd-saldo-val" style="padding-left:2px;">R$ 0</div>
         </div>
         <div class="gd-stat">
           <div class="gd-stat-label">Orçamento</div>
@@ -1904,9 +1904,10 @@ function renderGastosDiarios() {
   const saldo=rendaTotal-totalPago;  // desconta só o que já foi pago
   const recebido=!!GD_CONFIG.salarioRecebido;
 
-  // Hoje
-  const hojeStr=now.toISOString().split('T')[0];
-  const totalHoje=dados.filter(g=>g.data===hojeStr).reduce((s,g)=>s+parseFloat(g.valor||0),0);
+  // Pendente = total não pago (gastos + contas fixas não pagas)
+  const totalGastosPendente=dados.filter(g=>!g.pago).reduce((s,g)=>s+parseFloat(g.valor||0),0);
+  const totalCFPendente=cfs.filter(c=>!cfPago[c.id]).reduce((s,c)=>s+parseFloat(cfVals[c.id]||0),0);
+  const totalPendente=totalGastosPendente+totalCFPendente;
 
   // Hero: grande = pago, mini = geral
   document.getElementById('gd-total-hero').textContent=fmtMoney(totalPago);
@@ -1917,7 +1918,7 @@ function renderGastosDiarios() {
   const pct=totalGeral>0?Math.min(100,Math.round((totalPago/totalGeral)*100)):0;
   document.getElementById('gd-prog-bar').style.width=pct+'%';
 
-  document.getElementById('gd-hoje-val').textContent=fmtMoney(totalHoje);
+  document.getElementById('gd-hoje-val').textContent=fmtMoney(totalPendente);
   document.getElementById('gd-orcamento-val').textContent=orcamento>0?fmtMoney(orcamento):'—';
 
   // Saldo: só aparece se marcou como recebido
