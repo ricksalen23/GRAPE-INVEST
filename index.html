@@ -2165,11 +2165,11 @@ function renderGastosDiarios() {
   document.getElementById('gd-hoje-val').textContent=fmtMoney(totalPendente);
   document.getElementById('gd-orcamento-val').textContent=orcamento>0?fmtMoney(orcamento):'—';
 
-  // Saldo: só aparece se marcou como recebido
+  // Saldo: aparece sempre que há salário cadastrado
   const saldoStat=document.getElementById('gd-saldo-stat');
   if(saldoStat){
-    saldoStat.style.display=recebido?'flex':'none';
-    if(recebido){
+    saldoStat.style.display=rendaTotal>0?'flex':'none';
+    if(rendaTotal>0){
       document.getElementById('gd-saldo-val').textContent=fmtMoney(saldo);
       document.getElementById('gd-saldo-val').className='gd-stat-val '+(saldo<0?'red':'green');
     }
