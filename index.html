@@ -472,7 +472,12 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
 /* ===== GASTOS DIÁRIOS — nova aba ===== */
 .gasto-diario-hero {
   border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1rem;
-  background: linear-gradient(135deg, #1e1b4b 0%, #4C1D95 100%); position: relative;
+  background: linear-gradient(135deg, #1e1b4b 0%, #4C1D95 100%); position: sticky;
+  top: var(--header-h, 58px); z-index: 90; transition: box-shadow 0.25s ease;
+}
+.gasto-diario-hero.is-stuck {
+  box-shadow: 0 6px 28px rgba(76,29,149,0.55), 0 1px 0 rgba(124,58,237,0.25);
+  border-radius: 0 0 var(--radius) var(--radius);
 }
 .gasto-diario-hero::before { content:'💳'; position:absolute; right:-10px; top:-10px; font-size:100px; opacity:0.08; pointer-events:none; }
 .gd-label { font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
@@ -481,7 +486,7 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
 .gd-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
 .gd-stat { background: rgba(255,255,255,0.08); border-radius: 10px; padding: 10px; text-align: center; }
 .gd-stat-label { font-size: 9px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; }
-.gd-stat-val { font-size: 14px; font-weight: 800; color: white; }
+.gd-stat-val { font-size: 17px; font-weight: 800; color: white; }
 .gd-stat-val.green { color: #C4B5FD; }
 .gd-stat-val.red { color: #FCA5A5; }
 
@@ -1002,6 +1007,8 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
   <!-- ===== GASTOS DIÁRIOS ===== -->
   <div id="tab-gastos-diarios" class="section-page">
 
+    <!-- Sentinel para detectar sticky -->
+    <div id="gd-hero-sentinel" style="height:1px;margin-bottom:-1px;pointer-events:none;visibility:hidden;"></div>
     <!-- Hero -->
     <div class="gasto-diario-hero">
       <div class="gd-label">Gastos Diários — <span id="gd-mes-label"></span></div>
@@ -1607,6 +1614,22 @@ document.documentElement.setAttribute('data-theme', savedTheme);
 document.addEventListener('DOMContentLoaded', () => {
   const btn = document.getElementById('theme-btn');
   if (btn) btn.textContent = savedTheme==='dark'?'☀️':'🌙';
+
+  // Sticky hero: ajusta top ao header e aplica sombra quando fixado
+  function atualizarHeaderH() {
+    const h = document.querySelector('header');
+    if (h) document.documentElement.style.setProperty('--header-h', h.offsetHeight + 'px');
+  }
+  atualizarHeaderH();
+  new ResizeObserver(atualizarHeaderH).observe(document.querySelector('header'));
+
+  const sentinel = document.getElementById('gd-hero-sentinel');
+  const hero = document.querySelector('.gasto-diario-hero');
+  if (sentinel && hero) {
+    new IntersectionObserver(([entry]) => {
+      hero.classList.toggle('is-stuck', !entry.isIntersecting);
+    }, { threshold: 0 }).observe(sentinel);
+  }
 });
 
 // ===== DICAS =====
@@ -2215,7 +2238,7 @@ function renderListaGD() {
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;">
           <div class="gd-item-valor">${fmtMoney(g.valor)}</div>
           <div style="display:flex;gap:3px;">
-            <button onclick="togglePagoGD(${g.id})" style="font-size:10px;padding:2px 7px;border-radius:6px;border:1.5px solid ${pago?'#16a34a':'var(--border)'};background:${pago?'#dcfce7':'transparent'};color:${pago?'#16a34a':'var(--text-muted)'};cursor:pointer;font-family:inherit;font-weight:700;white-space:nowrap;">${pago?'✓ Pago':'Pagar'}</button>
+            <button onclick="togglePagoGD(${g.id})" style="font-size:10px;padding:4px 10px;border-radius:6px;border:1.5px solid ${pago?'#16a34a':'var(--border)'};background:${pago?'#dcfce7':'transparent'};color:${pago?'#16a34a':'var(--text-muted)'};cursor:pointer;font-family:inherit;font-weight:700;white-space:nowrap;">${pago?'✓ Pago':'Pagar'}</button>
             <button onclick="repetirProximoMesGD(${g.id})" title="Copiar para próximo mês" style="font-size:10px;padding:2px 7px;border-radius:6px;border:1.5px solid var(--border);background:transparent;color:var(--purple);cursor:pointer;font-family:inherit;font-weight:700;">+1</button>
             <button class="btn-del" onclick="deleteGastoDiario(${g.id})">&times;</button>
           </div>
@@ -2440,7 +2463,7 @@ function renderContasFixas() {
           style="width:90px;height:26px;border:1px solid var(--border);border-radius:6px;padding:0 8px;font-size:12px;font-family:inherit;background:var(--bg);color:var(--text);margin-top:2px;outline:none;">
       </div>
       <div style="display:flex;gap:3px;flex-shrink:0;align-items:center;">
-        <button onclick="togglePagoCF('${c.id}')" style="font-size:10px;padding:3px 8px;border-radius:6px;border:1.5px solid ${isPago?'#16a34a':'var(--border)'};background:${isPago?'#dcfce7':'transparent'};color:${isPago?'#16a34a':'var(--text-muted)'};cursor:pointer;font-family:inherit;font-weight:700;white-space:nowrap;">${isPago?'✓ Pago':'Pagar'}</button>
+        <button onclick="togglePagoCF('${c.id}')" style="font-size:10px;padding:4px 10px;border-radius:6px;border:1.5px solid ${isPago?'#16a34a':'var(--border)'};background:${isPago?'#dcfce7':'transparent'};color:${isPago?'#16a34a':'var(--text-muted)'};cursor:pointer;font-family:inherit;font-weight:700;white-space:nowrap;">${isPago?'✓ Pago':'Pagar'}</button>
         <button onclick="deleteContaFixa('${c.id}')" style="font-size:13px;width:24px;height:24px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;">&times;</button>
       </div>
     </div>`;
