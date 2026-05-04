@@ -2463,7 +2463,7 @@ function renderContasFixas() {
           style="width:90px;height:26px;border:1px solid var(--border);border-radius:6px;padding:0 8px;font-size:12px;font-family:inherit;background:var(--bg);color:var(--text);margin-top:2px;outline:none;">
       </div>
       <div style="display:flex;gap:3px;flex-shrink:0;align-items:center;">
-        <button onclick="togglePagoCF('${c.id}')" style="font-size:10px;padding:4px 10px;border-radius:6px;border:1.5px solid ${isPago?'#16a34a':'var(--border)'};background:${isPago?'#dcfce7':'transparent'};color:${isPago?'#16a34a':'var(--text-muted)'};cursor:pointer;font-family:inherit;font-weight:700;white-space:nowrap;">${isPago?'✓ Pago':'Pagar'}</button>
+        <button onclick="togglePagoCF('${c.id}')" style="font-size:11px;padding:10px 20px;border-radius:8px;border:none;background:${isPago?'#16a34a':'#7c3aed'};color:#fff;cursor:pointer;font-family:inherit;font-weight:700;white-space:nowrap;">${isPago?'✓ Pago':'Pagar'}</button>
         <button onclick="deleteContaFixa('${c.id}')" style="font-size:13px;width:24px;height:24px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;">&times;</button>
       </div>
     </div>`;
