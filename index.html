@@ -225,21 +225,33 @@ header {
   border: none; background: none; cursor: pointer; font-family: inherit; color: #9CA3AF;
   font-size: 9px; font-weight: 500; transition: color 0.25s ease; position: relative;
 }
-.bottom-tab svg { width: 20px; height: 20px; transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), opacity 0.25s ease; opacity: 0.3; }
+.bottom-tab svg { width: 24px; height: 24px; transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), opacity 0.25s ease; opacity: 0.28; }
 .bottom-tab span { white-space: nowrap; font-size: 9px; opacity: 0.3; transition: opacity 0.25s ease, font-weight 0.25s ease; }
-.bottom-tab.active { color: var(--purple); }
-.bottom-tab.active svg { opacity: 1; transform: translateY(-2px) scale(1.1); }
-.bottom-tab.active span { opacity: 1; font-weight: 700; }
+.bottom-tab.active { color: #a855f7; }
+.bottom-tab.active svg { opacity: 1; transform: translateY(-2px) scale(1.1); filter: drop-shadow(0 0 6px rgba(168,85,247,0.5)); }
+.bottom-tab.active span { opacity: 1; font-weight: 700; color: #a855f7; }
 .bottom-tab-dot {
-  position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-  width: 0; height: 3px; border-radius: 0 0 3px 3px; background: var(--purple); transition: width 0.25s ease;
+  position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%);
+  width: 0; height: 3px; border-radius: 3px; background: #a855f7; transition: width 0.3s cubic-bezier(0.34,1.56,0.64,1);
 }
-.bottom-tab.active .bottom-tab-dot { width: 20px; }
+.bottom-tab.active .bottom-tab-dot { width: 16px; }
 
 /* Tab de dívidas com cor vermelha quando ativo */
 .bottom-tab[data-tab="dividas"].active { color: #DC2626; }
 .bottom-tab[data-tab="dividas"].active .bottom-tab-dot { background: #DC2626; }
-.bottom-tab[data-tab="dividas"].active svg { opacity: 1; }
+.bottom-tab[data-tab="dividas"].active svg { opacity: 1; filter: none; }
+
+/* ===== COMPRAS ===== */
+.compras-hero { border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1rem; background: linear-gradient(135deg, #0f0a1e 0%, #2d1165 50%, #4C1D95 100%); position: relative; overflow: hidden; }
+.compras-hero::before { content:'🛒'; position:absolute; right:-8px; top:-8px; font-size:90px; opacity:0.07; pointer-events:none; }
+.compras-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 1rem; }
+.compras-stat { background: rgba(255,255,255,0.07); border-radius: 10px; padding: 10px; text-align: center; }
+.compras-stat-label { font-size: 9px; color: rgba(255,255,255,0.42); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+.compras-stat-val { font-size: 16px; font-weight: 800; color: #fff; }
+.compra-item-wrap { display:flex; align-items:center; gap:10px; padding:13px 0; border-bottom:1px solid var(--border); }
+.compra-toggle { width:22px; height:22px; border-radius:6px; border:2px solid var(--border); background:transparent; flex-shrink:0; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:11px; color:#fff; font-weight:900; padding:0; transition:background 0.2s,border-color 0.2s; }
+.compra-toggle.checked { background:#7c3aed; border-color:#7c3aed; }
+.compra-del { width:28px; height:28px; border-radius:7px; border:1px solid var(--border); background:transparent; color:var(--text-muted); cursor:pointer; font-size:15px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
 
 .logo-icon {
   width: 36px; height: 36px; background: #1a0533; border-radius: 9px;
@@ -321,7 +333,7 @@ input, select, textarea { font-size: 16px !important; }
 .input-group { margin-bottom: 1.25rem; }
 .input-group label { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--text-muted); margin-bottom: 8px; }
 .input-group label span { font-size: 15px; font-weight: 700; color: var(--purple); }
-input[type=range] { -webkit-appearance: none; width: 100%; height: 4px; border-radius: 99px; background: var(--purple-light); outline: none; cursor: pointer; }
+input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 4px; border-radius: 99px; background: var(--purple-light); outline: none; cursor: pointer; }
 input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--purple); border: 3px solid white; box-shadow: 0 0 0 1.5px var(--purple); cursor: pointer; transition: transform 0.15s; }
 input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
 
@@ -1466,6 +1478,51 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
 
 </div>
 
+<!-- ===== COMPRAS ===== -->
+<div id="tab-compras" class="section-page">
+  <div class="compras-hero">
+    <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px;">Lista de Compras</div>
+    <div style="font-size:32px;font-weight:800;color:#fff;line-height:1.1;" id="cp-hero-val">R$ 0,00</div>
+    <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:3px;" id="cp-hero-sub">Nenhum item ainda</div>
+    <div class="compras-stats">
+      <div class="compras-stat">
+        <div class="compras-stat-label">Total lista</div>
+        <div class="compras-stat-val" id="cp-stat-lista">R$ 0</div>
+      </div>
+      <div class="compras-stat">
+        <div class="compras-stat-label">No carrinho</div>
+        <div class="compras-stat-val" style="color:#c084fc;" id="cp-stat-carrinho">R$ 0</div>
+      </div>
+      <div class="compras-stat">
+        <div class="compras-stat-label">Falta pegar</div>
+        <div class="compras-stat-val" style="color:#fbbf24;" id="cp-stat-falta">R$ 0</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:1rem;">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:120px;position:relative;">
+        <input type="text" id="cp-nome" placeholder="Nome do produto..." autocomplete="off"
+          oninput="cpAutoComplete(this.value)" onblur="setTimeout(()=>cpHideAC(),150)"
+          onkeydown="cpAcKeydown(event)"
+          style="width:100%;height:40px;border:1.5px solid var(--border);border-radius:10px;padding:0 12px;font-size:13px;font-family:inherit;background:var(--bg);color:var(--text);outline:none;box-sizing:border-box;">
+        <div id="cp-ac-dropdown" style="display:none;position:absolute;top:44px;left:0;right:0;background:var(--card);border:1.5px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.18);z-index:999;max-height:200px;overflow-y:auto;"></div>
+      </div>
+      <input type="number" id="cp-preco" placeholder="R$ preço" min="0" step="0.01"
+        style="width:100px;flex-shrink:0;height:40px;border:1.5px solid var(--border);border-radius:10px;padding:0 10px;font-size:13px;font-family:inherit;background:var(--bg);color:var(--text);outline:none;">
+      <button onclick="addCompraItem()" style="height:40px;padding:0 18px;border-radius:10px;border:none;background:#7c3aed;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0;">+ Adicionar</button>
+    </div>
+  </div>
+
+  <div id="cp-lista"></div>
+
+  <button onclick="finalizarCompras()" id="cp-btn-finalizar"
+    style="display:none;width:100%;height:48px;border-radius:12px;border:none;background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:4px;box-shadow:0 4px 16px rgba(124,58,237,0.35);">
+    ✓ Finalizar compra
+  </button>
+</div>
+
 <footer style="text-align:center;font-size:10px;color:var(--text-subtle);padding:0.75rem 1rem;border-top:1px solid var(--border);">Grape Invest · Simulações baseadas em taxas de mercado. Não constituem recomendação de investimento.</footer>
 
 <!-- BLOQUEIO OVERLAY -->
@@ -1559,6 +1616,16 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
       <path d="M6 10.5v6a6 6 0 0012 0v-6"/>
     </svg>
     <span>Aprender</span>
+  </button>
+
+  <button class="bottom-tab" data-tab="compras" onclick="setTab('compras',this)">
+    <div class="bottom-tab-dot"></div>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+      <line x1="3" y1="6" x2="21" y2="6"/>
+      <path d="M16 10a4 4 0 01-8 0"/>
+    </svg>
+    <span>Compras</span>
   </button>
 </nav>
 
@@ -1667,6 +1734,7 @@ function setTab(tab, btn) {
   if (tab==='simulador')     atualizar();
   if (tab==='educacao')      renderCurso();
   if (tab==='mei')           renderMEI();
+  if (tab==='compras')       renderCompras();
 }
 function setTabBtn(tab) { setTab(tab, document.querySelector(`.bottom-tab[data-tab="${tab}"]`)); }
 
@@ -2658,14 +2726,15 @@ function addMeta(){
   toast('✓ Meta criada!','success');
 }
 
-function atualizarMeta(id, novoAtual){
+function atualizarMeta(id, deposito){
+  if(deposito<=0) return;
   const metas=getMetas();
   const m=metas.find(m=>m.id==id);
   if(!m) return;
-  m.atual=novoAtual;
+  m.atual=(m.atual||0)+deposito;
   saveMetas(metas);
-  if(novoAtual>=(m.alvo||0)&&(m.alvo||0)>0){chuvaDeUvas();toast('🍇 Meta concluída! Incrível!','success',4000);}
-  else{toast('✓ Meta atualizada!','success');}
+  if(m.atual>=(m.alvo||0)&&(m.alvo||0)>0){chuvaDeUvas();toast('🍇 Meta concluída! Incrível!','success',4000);}
+  else{toast(`✓ +${fmtMoney(deposito)} depositado!`,'success');}
   renderMetas();
 }
 
@@ -2698,11 +2767,137 @@ function renderMetas(){
         <span>Falta: <strong style="color:var(--purple);">${fmtMoney(falta)}</strong></span>
       </div>
       <div style="display:flex;align-items:center;gap:8px;margin-top:10px;">
-        <input type="number" placeholder="Atualizar valor guardado" style="flex:1;height:36px;border:1.5px solid var(--border);border-radius:8px;padding:0 10px;font-size:13px;font-family:inherit;background:var(--bg);color:var(--text);outline:none;" id="meta-update-${m.id}">
-        <button class="btn-primary" style="height:36px;font-size:13px;" onclick="atualizarMeta(${m.id},parseFloat(document.getElementById('meta-update-${m.id}').value)||${m.atual||0})">Atualizar</button>
+        <input type="number" placeholder="Valor a depositar" style="flex:1;height:36px;border:1.5px solid var(--border);border-radius:8px;padding:0 10px;font-size:13px;font-family:inherit;background:var(--bg);color:var(--text);outline:none;" id="meta-update-${m.id}">
+        <button class="btn-primary" style="height:36px;font-size:13px;" onclick="atualizarMeta(${m.id},parseFloat(document.getElementById('meta-update-${m.id}').value)||0)">+ Depositar</button>
       </div>
     </div>`;
   }).join('');
+}
+
+// ===== COMPRAS =====
+const CP_PRODUTOS = ['Arroz','Feijão','Carne','Frango','Café','Leite','Pão','Manteiga','Ovos','Açúcar','Sal','Óleo','Macarrão','Molho de tomate','Sabão','Detergente','Shampoo','Papel higiênico','Queijo','Presunto','Banana','Maçã','Tomate','Cebola','Alho','Batata','Cenoura','Alface','Refrigerante','Água','Suco','Biscoito','Achocolatado','Margarina','Farinha','Linguiça','Peixe','Iogurte','Chocolate'];
+let _cpAcIdx = -1;
+
+function cpAutoComplete(val) {
+  const dd = document.getElementById('cp-ac-dropdown');
+  if (!dd) return;
+  const q = val.trim().toLowerCase();
+  if (!q) { dd.style.display = 'none'; return; }
+  const hits = CP_PRODUTOS.filter(p => p.toLowerCase().includes(q)).slice(0, 8);
+  if (!hits.length) { dd.style.display = 'none'; return; }
+  _cpAcIdx = -1;
+  dd.innerHTML = hits.map((p, i) => `<div data-i="${i}" onmousedown="cpAcPick('${p.replace(/'/g,"\\'")}')}"
+    style="padding:10px 14px;font-size:13px;color:var(--text);cursor:pointer;border-bottom:1px solid var(--border);transition:background 0.15s;"
+    onmouseover="this.style.background='rgba(124,58,237,0.1)'"
+    onmouseout="this.style.background=''">${p}</div>`).join('');
+  dd.style.display = 'block';
+}
+
+function cpAcPick(val) {
+  const el = document.getElementById('cp-nome');
+  if (el) el.value = val;
+  cpHideAC();
+  document.getElementById('cp-preco')?.focus();
+}
+
+function cpHideAC() {
+  const dd = document.getElementById('cp-ac-dropdown');
+  if (dd) dd.style.display = 'none';
+  _cpAcIdx = -1;
+}
+
+function cpAcKeydown(e) {
+  const dd = document.getElementById('cp-ac-dropdown');
+  if (!dd || dd.style.display === 'none') { if (e.key === 'Enter') addCompraItem(); return; }
+  const items = dd.querySelectorAll('div');
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    _cpAcIdx = Math.min(_cpAcIdx + 1, items.length - 1);
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    _cpAcIdx = Math.max(_cpAcIdx - 1, -1);
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    if (_cpAcIdx >= 0 && items[_cpAcIdx]) { items[_cpAcIdx].dispatchEvent(new MouseEvent('mousedown')); }
+    else { cpHideAC(); addCompraItem(); }
+    return;
+  } else if (e.key === 'Escape') { cpHideAC(); return; }
+  items.forEach((el, i) => { el.style.background = i === _cpAcIdx ? 'rgba(124,58,237,0.15)' : ''; });
+}
+
+const CP_KEY = 'gi_compras';
+function getCompras() { return JSON.parse(localStorage.getItem(CP_KEY) || '[]'); }
+function saveCompras(arr) { localStorage.setItem(CP_KEY, JSON.stringify(arr)); }
+
+function addCompraItem() {
+  const nome = document.getElementById('cp-nome').value.trim();
+  const preco = parseFloat(document.getElementById('cp-preco').value) || 0;
+  if (!nome) { toast('Digite o nome do produto.', 'error'); return; }
+  const arr = getCompras();
+  arr.push({ id: Date.now(), nome, preco, noCarrinho: false });
+  saveCompras(arr);
+  document.getElementById('cp-nome').value = '';
+  document.getElementById('cp-preco').value = '';
+  renderCompras();
+  toast('Produto adicionado!', 'success');
+}
+
+function toggleCompraItem(id) {
+  const arr = getCompras();
+  const item = arr.find(c => c.id === id);
+  if (item) { item.noCarrinho = !item.noCarrinho; saveCompras(arr); renderCompras(); }
+}
+
+function deleteCompraItem(id) {
+  saveCompras(getCompras().filter(c => c.id !== id));
+  renderCompras();
+}
+
+function finalizarCompras() {
+  const arr = getCompras();
+  const totalCarrinho = arr.filter(c => c.noCarrinho).reduce((s, c) => s + (c.preco || 0), 0);
+  const total = arr.reduce((s, c) => s + (c.preco || 0), 0);
+  toast(`🛒 Compras finalizadas! Pago: ${fmtMoney(totalCarrinho)} de ${fmtMoney(total)}`, 'success', 5000);
+  saveCompras([]);
+  renderCompras();
+}
+
+function renderCompras() {
+  const arr = getCompras();
+  const totalLista = arr.reduce((s, c) => s + (c.preco || 0), 0);
+  const totalCarrinho = arr.filter(c => c.noCarrinho).reduce((s, c) => s + (c.preco || 0), 0);
+  const totalFalta = totalLista - totalCarrinho;
+  const noCarrinhoCount = arr.filter(c => c.noCarrinho).length;
+
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  set('cp-hero-val', fmtMoney(totalCarrinho));
+  set('cp-hero-sub', arr.length === 0 ? 'Nenhum item ainda' : `${noCarrinhoCount} de ${arr.length} no carrinho`);
+  set('cp-stat-lista', fmtMoney(totalLista));
+  set('cp-stat-carrinho', fmtMoney(totalCarrinho));
+  set('cp-stat-falta', fmtMoney(totalFalta));
+
+  const lista = document.getElementById('cp-lista');
+  if (!lista) return;
+
+  if (arr.length === 0) {
+    lista.innerHTML = '<div style="text-align:center;padding:2.5rem 1rem;color:var(--text-subtle);font-size:14px;line-height:1.7;">Nenhum produto na lista ainda.<br>Adicione o primeiro acima! 🛒</div>';
+    const fb = document.getElementById('cp-btn-finalizar'); if (fb) fb.style.display = 'none';
+    return;
+  }
+
+  lista.innerHTML = arr.map(c => `
+    <div class="compra-item-wrap">
+      <button class="compra-toggle ${c.noCarrinho ? 'checked' : ''}" onclick="toggleCompraItem(${c.id})">${c.noCarrinho ? '✓' : ''}</button>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:14px;font-weight:600;color:${c.noCarrinho ? 'var(--text-muted)' : 'var(--text)'};${c.noCarrinho ? 'text-decoration:line-through;' : ''}white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.nome}</div>
+        <div style="font-size:12px;color:${c.noCarrinho ? 'var(--text-subtle)' : '#a855f7'};font-weight:700;margin-top:1px;">${c.preco > 0 ? fmtMoney(c.preco) : 'Sem preço'}</div>
+      </div>
+      <button class="compra-del" onclick="deleteCompraItem(${c.id})">&times;</button>
+    </div>
+  `).join('');
+
+  const fb = document.getElementById('cp-btn-finalizar');
+  if (fb) fb.style.display = noCarrinhoCount > 0 ? 'block' : 'none';
 }
 
 // ===== SIMULADOR =====
