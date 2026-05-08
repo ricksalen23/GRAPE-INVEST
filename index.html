@@ -131,7 +131,7 @@ body:has(#login-screen:not(.hidden)) footer { display: none !important; }
 /* ===== RIPPLE (water touch on card) ===== */
 
 /* ===== LOGO PULSE ===== */
-@keyframes logoPulse { 0%,100% { transform:scale(1); box-shadow:0 8px 32px rgba(0,0,0,0.4),0 0 0px rgba(124,58,237,0); } 50% { transform:scale(1.08); box-shadow:0 8px 32px rgba(0,0,0,0.4),0 0 28px rgba(124,58,237,0.5); } }
+@keyframes logoPulse { 0%,100% { transform:scale(1); box-shadow:0 8px 32px rgba(0,0,0,0.5),0 0 0px rgba(124,58,237,0),0 0 0px rgba(100,30,210,0); } 50% { transform:scale(1.07); box-shadow:0 8px 32px rgba(0,0,0,0.4),0 0 45px rgba(124,58,237,0.8),0 0 90px rgba(100,30,210,0.32); } }
 @keyframes grapeRotatePulse { 0% { transform:rotate(-10deg) scale(0.95); } 50% { transform:rotate(10deg) scale(1.05); } 100% { transform:rotate(-10deg) scale(0.95); } }
 
 /* ===== SHIMMER ===== */
@@ -144,7 +144,8 @@ body:has(#login-screen:not(.hidden)) footer { display: none !important; }
 }
 
 .login-content { position: relative; z-index: 1; width: 100%; max-width: 360px; display: flex; flex-direction: column; align-items: center; }
-.login-header { display: flex; flex-direction: column; align-items: center; margin-bottom: 1.25rem; }
+.login-header { display: flex; flex-direction: column; align-items: center; margin-bottom: 1.25rem; position: relative; }
+@media (max-width: 480px) { .login-content { padding: 0 14px; } }
 .login-logo-icon {
   width: 64px; height: 64px; background: #18112b; border: 1px solid rgba(124,58,237,0.4);
   border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px;
@@ -1757,97 +1758,82 @@ function initAvatarGrid() {
   if (saved) aplicarAvatar(saved);
 }
 
-function initLoginConstellation() {
+function initLoginRain() {
   const canvas = document.getElementById('login-particles');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
-  const mouse = { x: -999, y: -999 };
-  const screen = document.getElementById('login-screen');
-  if (screen) {
-    screen.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
-    screen.addEventListener('touchmove', e => { mouse.x = e.touches[0].clientX; mouse.y = e.touches[0].clientY; }, { passive: true });
-  }
+
   function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
   resize();
   window.addEventListener('resize', resize);
 
-  // Regular small constellation points
-  const pts = Array.from({ length: 170 }, () => ({
-    x: Math.random() * window.innerWidth,
-    y: Math.random() * window.innerHeight,
-    dx: (Math.random() - 0.5) * 0.45,
-    dy: (Math.random() - 0.5) * 0.45,
-    r: Math.random() * 1.4 + 0.5,
-    star: false,
-  }));
+  function randDrop() {
+    const t = Math.random();
+    let r, g, b;
+    if (t < 0.55)      { r = 124; g = 58;  b = 237; }  // #7c3aed
+    else if (t < 0.80) { r = 160; g = 100; b = 255; }  // lilás médio
+    else               { r = 210; g = 200; b = 255; }  // quase branco
+    return {
+      x: Math.random() * window.innerWidth,
+      y: -Math.random() * 40,
+      vy: Math.random() * 3.5 + 2,
+      vx: Math.random() * 0.55 + 0.08,
+      len: Math.random() * 15 + 8,
+      width: Math.random() * 0.85 + 0.3,
+      alpha: Math.random() * 0.28 + 0.07,
+      r, g, b,
+    };
+  }
 
-  // 30 large pulsing stars with glow
-  const stars = Array.from({ length: 30 }, () => ({
-    x: Math.random() * window.innerWidth,
-    y: Math.random() * window.innerHeight,
-    dx: (Math.random() - 0.5) * 0.28,
-    dy: (Math.random() - 0.5) * 0.28,
-    baseR: Math.random() * 2.5 + 2.5,
-    phase: Math.random() * Math.PI * 2,
-    speed: Math.random() * 0.018 + 0.012,
-    star: true,
-  }));
+  const drops = Array.from({ length: 130 }, () => {
+    const d = randDrop();
+    d.y = Math.random() * window.innerHeight; // começa espalhado
+    return d;
+  });
 
-  const all = [...pts, ...stars];
-  const MAX = 150, MOUSE_MAX = 200;
-  let tick = 0;
+  const splashes = [];
 
   function draw() {
-    tick++;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.lineCap = 'round';
 
-    // Draw lines between close points
-    for (let i = 0; i < all.length; i++) {
-      const p = all[i];
-      for (let j = i + 1; j < all.length; j++) {
-        const q = all[j];
-        const dx = p.x - q.x, dy = p.y - q.y, d = Math.hypot(dx, dy);
-        if (d < MAX) {
-          ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y);
-          ctx.strokeStyle = `rgba(168,85,247,${(1 - d / MAX) * 0.2})`; ctx.lineWidth = 0.8; ctx.stroke();
+    for (const d of drops) {
+      const grad = ctx.createLinearGradient(d.x - d.vx * (d.len / d.vy), d.y - d.len, d.x, d.y);
+      grad.addColorStop(0, `rgba(${d.r},${d.g},${d.b},0)`);
+      grad.addColorStop(0.5, `rgba(${d.r},${d.g},${d.b},${d.alpha * 0.55})`);
+      grad.addColorStop(1, `rgba(${d.r},${d.g},${d.b},${d.alpha})`);
+      ctx.beginPath();
+      ctx.moveTo(d.x, d.y);
+      ctx.lineTo(d.x - d.vx * (d.len / d.vy), d.y - d.len);
+      ctx.strokeStyle = grad;
+      ctx.lineWidth = d.width;
+      ctx.stroke();
+
+      d.x += d.vx;
+      d.y += d.vy;
+
+      if (d.y > canvas.height + d.len) {
+        if (Math.random() > 0.5) {
+          splashes.push({ x: d.x, y: canvas.height - 2, born: Date.now(), r: d.r, g: d.g, b: d.b });
         }
-      }
-      const md = Math.hypot(p.x - mouse.x, p.y - mouse.y);
-      if (md < MOUSE_MAX) {
-        ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(mouse.x, mouse.y);
-        ctx.strokeStyle = `rgba(192,132,252,${(1 - md / MOUSE_MAX) * 0.55})`; ctx.lineWidth = 1.2; ctx.stroke();
+        Object.assign(d, randDrop());
       }
     }
 
-    // Draw regular points
-    ctx.shadowBlur = 0;
-    for (const p of pts) {
-      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(168,85,247,0.7)'; ctx.fill();
-      p.x += p.dx; p.y += p.dy;
-      if (p.x < 0 || p.x > canvas.width) p.dx *= -1;
-      if (p.y < 0 || p.y > canvas.height) p.dy *= -1;
-    }
-
-    // Draw pulsing stars with glow
-    for (const s of stars) {
-      const pulse = (Math.sin(s.phase + tick * s.speed) + 1) / 2; // 0..1
-      const r = s.baseR * (0.75 + pulse * 0.6);
-      const alpha = 0.5 + pulse * 0.5;
-      const glowSize = 8 + pulse * 18;
-      ctx.save();
-      ctx.shadowBlur = glowSize;
-      ctx.shadowColor = `rgba(124,58,237,${0.5 + pulse * 0.5})`;
-      ctx.beginPath(); ctx.arc(s.x, s.y, r, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(180,150,255,${alpha})`; ctx.fill();
-      // Extra inner bright core
-      ctx.shadowBlur = 4;
-      ctx.beginPath(); ctx.arc(s.x, s.y, r * 0.45, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(255,255,255,${0.6 + pulse * 0.4})`; ctx.fill();
-      ctx.restore();
-      s.x += s.dx; s.y += s.dy;
-      if (s.x < 0 || s.x > canvas.width) s.dx *= -1;
-      if (s.y < 0 || s.y > canvas.height) s.dy *= -1;
+    // Splash ellipses ao tocar o chão
+    const now = Date.now();
+    for (let i = splashes.length - 1; i >= 0; i--) {
+      const s = splashes[i];
+      const age = (now - s.born) / 1000;
+      if (age > 0.55) { splashes.splice(i, 1); continue; }
+      const p = age / 0.55;
+      const rr = p * 22;
+      const a = (1 - p) * 0.2;
+      ctx.beginPath();
+      ctx.ellipse(s.x, s.y, rr, rr * 0.27, 0, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(${s.r},${s.g},${s.b},${a})`;
+      ctx.lineWidth = 0.65;
+      ctx.stroke();
     }
 
     requestAnimationFrame(draw);
@@ -1904,11 +1890,38 @@ function initCardRipple() {
   });
 }
 
+function initLogoGlow() {
+  const logo = document.querySelector('.login-logo-icon');
+  if (!logo) return;
+  const img = logo.querySelector('img');
+  if (!img) return;
+
+  // Ajusta margem para o reflexo sentar junto
+  logo.style.marginBottom = '2px';
+
+  // Cria o elemento de reflexo abaixo da logo
+  const reflect = document.createElement('div');
+  reflect.setAttribute('aria-hidden', 'true');
+  reflect.style.cssText = [
+    'width:44px;height:22px;overflow:hidden;',
+    'margin-bottom:14px;',
+    '-webkit-mask-image:linear-gradient(to bottom,rgba(255,255,255,0.5) 0%,transparent 100%);',
+    'mask-image:linear-gradient(to bottom,rgba(255,255,255,0.5) 0%,transparent 100%);',
+  ].join('');
+  const ri = document.createElement('img');
+  ri.src = img.src; ri.width = 44; ri.height = 44;
+  ri.style.cssText = 'display:block;border-radius:10px;transform:scaleY(-1);opacity:0.38;';
+  ri.alt = '';
+  reflect.appendChild(ri);
+  logo.parentNode.insertBefore(reflect, logo.nextSibling);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   const btn = document.getElementById('theme-btn');
   if (btn) btn.textContent = savedTheme==='dark'?'☀️':'🌙';
-  initLoginConstellation();
+  initLoginRain();
   initCardRipple();
+  initLogoGlow();
   initAvatarGrid();
 
   // Sticky hero: ajusta top ao header e aplica sombra quando fixado
