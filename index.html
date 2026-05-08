@@ -296,7 +296,7 @@ header {
 .bottom-nav {
   position: fixed; bottom: 0; left: 0; right: 0; background: var(--card);
   border-top: 1px solid var(--border); display: flex; align-items: stretch; justify-content: center; z-index: 200;
-  padding-bottom: max(env(safe-area-inset-bottom, 0px), 16px); box-shadow: 0 -4px 24px rgba(124,58,237,0.1);
+  padding-bottom: max(env(safe-area-inset-bottom, 0px), 24px); box-shadow: 0 -4px 24px rgba(124,58,237,0.1);
   overflow-x: auto; scrollbar-width: none;
 }
 .bottom-nav::-webkit-scrollbar { display: none; }
@@ -3841,6 +3841,9 @@ setTimeout(function() {
   renderMEI();
 }, 2000);
 </script>
-<script>if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(()=>{});});}</script>
+<script>
+if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(()=>{});});}
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); });
+</script>
 </body>
 </html>
