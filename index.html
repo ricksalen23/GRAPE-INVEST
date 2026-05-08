@@ -100,10 +100,12 @@ body {
 @keyframes toastOut { from { opacity: 1; } to { opacity: 0; transform: translateY(-8px) scale(0.95); } }
 
 /* ===== LOGIN ===== */
+@keyframes bgBreathe { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
 #login-screen {
   position: fixed; inset: 0; display: flex; align-items: flex-start; justify-content: center;
   z-index: 9999; padding: 1.5rem; overflow-y: auto; overflow-x: hidden;
-  background: linear-gradient(145deg, #000000 0%, #0a0a0a 40%, #111111 70%, #1a1a1a 100%);
+  background: linear-gradient(145deg, #000000 0%, #05000f 30%, #0a0018 55%, #04000c 75%, #000000 100%);
+  background-size: 300% 300%; animation: bgBreathe 8s ease-in-out infinite;
 }
 #login-screen.hidden { display: none; }
 body:has(#login-screen:not(.hidden)) header,
@@ -122,7 +124,18 @@ body:has(#login-screen:not(.hidden)) footer { display: none !important; }
   background: radial-gradient(circle, rgba(124,58,237,0.15) 0%, transparent 70%);
   bottom: -80px; right: -80px; animation: orbFloat 10s ease-in-out infinite reverse;
 }
-@keyframes orbFloat { 0%, 100% { transform: translate(0,0) scale(1); } 33% { transform: translate(30px,-20px) scale(1.05); } 66% { transform: translate(-20px,15px) scale(0.95); } }
+@keyframes orbFloat { 0%, 100% { transform: translate(0,0) scale(1); } 33% { transform: translate(30px,-20px) scale(1.1); } 66% { transform: translate(-20px,15px) scale(0.9); } }
+@keyframes loginPulse { 0%, 100% { opacity: 0.35; transform: scale(1); } 50% { opacity: 1; transform: scale(1.18); } }
+@keyframes cardGlow { 0%, 100% { box-shadow: 0 8px 40px rgba(0,0,0,0.6), 0 0 30px rgba(124,58,237,0.06); } 50% { box-shadow: 0 8px 40px rgba(0,0,0,0.6), 0 0 70px rgba(124,58,237,0.22); } }
+
+/* ===== RIPPLE (water touch on card) ===== */
+
+/* ===== LOGO PULSE ===== */
+@keyframes logoPulse { 0%,100% { transform:scale(1); box-shadow:0 8px 32px rgba(0,0,0,0.4),0 0 0px rgba(124,58,237,0); } 50% { transform:scale(1.08); box-shadow:0 8px 32px rgba(0,0,0,0.4),0 0 28px rgba(124,58,237,0.5); } }
+@keyframes grapeRotatePulse { 0% { transform:rotate(-10deg) scale(0.95); } 50% { transform:rotate(10deg) scale(1.05); } 100% { transform:rotate(-10deg) scale(0.95); } }
+
+/* ===== SHIMMER ===== */
+@keyframes shimmerBtn { 0%,50% { left:-110%; } 75% { left:160%; } 100% { left:160%; } }
 
 .login-hex {
   position: absolute; inset: 0; opacity: 0.03;
@@ -133,20 +146,26 @@ body:has(#login-screen:not(.hidden)) footer { display: none !important; }
 .login-content { position: relative; z-index: 1; width: 100%; max-width: 360px; display: flex; flex-direction: column; align-items: center; }
 .login-header { display: flex; flex-direction: column; align-items: center; margin-bottom: 1.25rem; }
 .login-logo-icon {
-  width: 64px; height: 64px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25);
+  width: 64px; height: 64px; background: #18112b; border: 1px solid rgba(124,58,237,0.4);
   border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px;
-  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.2);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  animation: logoPulse 3s ease-in-out infinite;
 }
-.grape-svg { animation: grapeSwing 2.5s ease-in-out infinite; transform-origin: center top; }
+.grape-svg { animation: grapeRotatePulse 2.5s ease-in-out infinite; transform-origin: center top; }
 @keyframes grapeSwing { 0% { transform: rotate(-8deg); } 50% { transform: rotate(8deg); } 100% { transform: rotate(-8deg); } }
 .login-logo-name { font-size: 30px; font-weight: 800; color: white; letter-spacing: -0.03em; margin-bottom: 4px; text-shadow: 0 2px 20px rgba(0,0,0,0.3); }
 .login-tagline { font-size: 11px; color: rgba(255,255,255,0.5); letter-spacing: 0.12em; text-transform: uppercase; font-weight: 500; }
 
 .login-card {
-  width: 100%; background: rgba(255,255,255,0.08); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255,255,255,0.18); border-radius: 28px; padding: 2rem 1.75rem;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.2), inset 0 -1px 0 rgba(0,0,0,0.1);
+  width: 100%; background: #0e0e12; border-radius: 28px; padding: 2rem 1.75rem;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.6), 0 0 30px rgba(124,58,237,0.06);
+  animation: cardGlow 4.5s ease-in-out infinite;
+  position: relative; isolation: isolate; overflow: hidden;
+  transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.35s ease;
+}
+.login-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 24px 64px rgba(0,0,0,0.7), 0 0 70px rgba(124,58,237,0.35);
 }
 .login-card-title { font-size: 20px; font-weight: 700; color: white; margin-bottom: 4px; }
 .login-card-sub { font-size: 13px; color: rgba(255,255,255,0.55); margin-bottom: 1.75rem; }
@@ -154,23 +173,24 @@ body:has(#login-screen:not(.hidden)) footer { display: none !important; }
 .login-field label { display: block; font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.7); margin-bottom: 7px; letter-spacing: 0.08em; text-transform: uppercase; }
 .login-input-wrap { position: relative; }
 .login-input-wrap input {
-  width: 100%; height: 52px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+  width: 100%; height: 52px; background: #18181f; border: 1px solid rgba(124,58,237,0.3);
   border-radius: 14px; padding: 0 14px 0 46px; font-size: 16px; color: white; outline: none;
-  transition: all 0.2s; font-family: inherit; backdrop-filter: blur(10px);
+  transition: all 0.2s; font-family: inherit;
 }
-.login-input-wrap input::placeholder { color: rgba(255,255,255,0.35); }
-.login-input-wrap input:focus { border-color: rgba(167,139,250,0.6); background: rgba(255,255,255,0.15); box-shadow: 0 0 0 3px rgba(167,139,250,0.15); }
+.login-input-wrap input::placeholder { color: rgba(255,255,255,0.28); }
+.login-input-wrap input:focus { border-color: rgba(124,58,237,0.75); background: #1e1e28; box-shadow: 0 0 0 3px rgba(124,58,237,0.15); }
 .login-input-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); opacity: 0.6; filter: brightness(10); }
 .login-btn {
-  width: 100%; height: 52px; background: linear-gradient(135deg, #7C3AED, #4C1D95); color: white;
+  width: 100%; height: 52px; background: #7c3aed; color: white;
   border: none; border-radius: 16px; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 12px;
   position: relative; overflow: hidden; transition: transform 0.1s, box-shadow 0.2s; font-family: inherit;
-  box-shadow: 0 4px 20px rgba(124,58,237,0.4);
+  box-shadow: 0 4px 24px rgba(124,58,237,0.45);
 }
 .login-btn:active { transform: scale(0.98); }
 .login-btn::after {
-  content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
-  background: rgba(255,255,255,0.2); transform: skewX(-20deg); animation: shine 3s ease-in-out infinite;
+  content: ''; position: absolute; top: 0; left: -110%; width: 60%; height: 100%;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.35) 50%, transparent 100%);
+  transform: skewX(-20deg); animation: shimmerBtn 2.5s ease-in-out infinite;
 }
 @keyframes shine { 0%,65% { left: -100%; } 80% { left: 150%; } 100% { left: 150%; } }
 .login-divider { display: flex; align-items: center; gap: 10px; margin: 1.25rem 0 1rem; }
@@ -265,8 +285,8 @@ header {
 [data-theme="dark"] .logo-name { color: #ffffff; }
 
 .header-user {
-  width: 30px; height: 30px; border-radius: 50%; background: var(--purple-light);
-  display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700;
+  width: 36px; height: 36px; border-radius: 50%; background: var(--purple-light);
+  display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700;
   color: var(--purple); cursor: pointer; position: relative; user-select: none; flex-shrink: 0;
 }
 .profile-menu {
@@ -732,8 +752,9 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
 
 <!-- LOGIN -->
 <div id="login-screen" class="hidden">
+  <canvas id="login-particles" style="position:absolute;inset:0;pointer-events:none;z-index:0;"></canvas>
+  <div id="login-pulse" style="position:absolute;inset:0;background:radial-gradient(ellipse at 50% 55%, rgba(124,58,237,0.32) 0%, rgba(76,29,149,0.14) 45%, transparent 70%);pointer-events:none;z-index:0;animation:loginPulse 5s ease-in-out infinite;"></div>
   <div class="login-bg-pattern"></div>
-  <div class="login-hex"></div>
   <div class="login-content">
     <div class="login-header">
       <div class="login-logo-icon">
@@ -763,11 +784,11 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
       <div class="login-error" id="login-error"></div>
       <div class="login-divider"><div class="login-div-line"></div><div class="login-div-txt">ainda não tem acesso?</div><div class="login-div-line"></div></div>
       <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px;">
-        <a href="https://pay.kiwify.com.br/UXuqUFL" style="display:block;text-align:center;background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.25);border-radius:12px;padding:11px 20px;text-decoration:none;">
-          <div style="font-size:13px;font-weight:700;color:#A78BFA;">Mensal — R$ 24,90/mês →</div>
+        <a href="https://pay.kiwify.com.br/UXuqUFL" style="display:block;text-align:center;background:transparent;border:1px solid rgba(124,58,237,0.35);border-radius:12px;padding:11px 20px;text-decoration:none;transition:border-color 0.2s;">
+          <div style="font-size:13px;font-weight:600;color:rgba(255,255,255,0.65);">Mensal — R$ 24,90/mês →</div>
         </a>
-        <a href="https://pay.kiwify.com.br/PJZVD8v" style="display:block;text-align:center;background:rgba(124,58,237,0.2);border:1px solid rgba(124,58,237,0.4);border-radius:12px;padding:11px 20px;text-decoration:none;">
-          <div style="font-size:13px;font-weight:700;color:#A78BFA;">Anual — R$ 179,90 <span style="background:#A78BFA;color:#1e1b4b;border-radius:99px;padding:1px 7px;font-size:10px;font-weight:800;margin-left:4px;">-40%</span> →</div>
+        <a href="https://pay.kiwify.com.br/PJZVD8v" style="display:block;text-align:center;background:transparent;border:1px solid rgba(124,58,237,0.5);border-radius:12px;padding:11px 20px;text-decoration:none;transition:border-color 0.2s;">
+          <div style="font-size:13px;font-weight:600;color:rgba(255,255,255,0.8);">Anual — R$ 179,90 <span style="background:#5b21b6;color:white;border-radius:99px;padding:1px 7px;font-size:10px;font-weight:700;margin-left:4px;">-40%</span> →</div>
         </a>
       </div>
       <div style="margin-top:12px;text-align:center;">
@@ -834,11 +855,17 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
       <div class="frase-ticker-inner" id="frase-ticker"></div>
     </div>
     <button onclick="toggleTheme()" id="theme-btn" style="background:none;border:none;cursor:pointer;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:15px;">🌙</button>
-    <div class="header-user" id="header-user" onclick="toggleMenu(event)">?
+    <div class="header-user" id="header-user" onclick="toggleMenu(event)">
+      <img id="header-avatar" src="" alt="" style="position:absolute;top:0;left:0;width:36px;height:36px;clip-path:circle(50%);object-fit:cover;display:none;z-index:1;pointer-events:none;">
+      <span id="header-initial">?</span>
       <div class="profile-menu" id="profile-menu">
         <div class="profile-menu-header">
           <div class="profile-menu-name" id="menu-nome">—</div>
           <div class="profile-menu-email" id="menu-email">—</div>
+        </div>
+        <div style="padding:10px 10px 8px;border-bottom:1px solid var(--border);">
+          <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">Avatar</div>
+          <div id="avatar-grid" style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;"></div>
         </div>
         <button class="profile-menu-item" onclick="alterarSenha()">
           <div class="profile-menu-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="3.5" y="8" width="9" height="6" rx="1.5" stroke="#7C3AED" stroke-width="1.4"/><path d="M5 8V6a3 3 0 016 0v2" stroke="#7C3AED" stroke-width="1.4" stroke-linecap="round"/></svg></div>Alterar senha
@@ -1480,6 +1507,11 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
 
 <!-- ===== COMPRAS ===== -->
 <div id="tab-compras" class="section-page">
+  <div class="mes-nav" style="margin-bottom:0.75rem;">
+    <button class="mes-nav-btn" onclick="mudarMesCP(-1)">‹</button>
+    <div class="mes-nav-label" id="cp-mes-nav-label"></div>
+    <button class="mes-nav-btn" onclick="mudarMesCP(1)">›</button>
+  </div>
   <div class="compras-hero">
     <div style="font-size:10px;font-weight:700;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px;">Lista de Compras</div>
     <div style="font-size:32px;font-weight:800;color:#fff;line-height:1.1;" id="cp-hero-val">R$ 0,00</div>
@@ -1521,6 +1553,10 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
     style="display:none;width:100%;height:48px;border-radius:12px;border:none;background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:4px;box-shadow:0 4px 16px rgba(124,58,237,0.35);">
     ✓ Finalizar compra
   </button>
+  <div id="cp-btn-extras" style="display:none;display:flex;gap:8px;margin-top:8px;">
+    <button onclick="zerarListaCompras()" style="flex:1;height:42px;border-radius:10px;border:1.5px solid var(--border);background:transparent;color:var(--text-muted);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">🗑️ Zerar lista</button>
+    <button onclick="copiarListaCompras()" style="flex:1;height:42px;border-radius:10px;border:1.5px solid rgba(124,58,237,0.4);background:rgba(124,58,237,0.08);color:#a855f7;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;">📋 Próximo mês</button>
+  </div>
 </div>
 
 </div>
@@ -1680,9 +1716,200 @@ function toggleTheme() {
 }
 const savedTheme = localStorage.getItem('gi_theme') || 'dark';
 document.documentElement.setAttribute('data-theme', savedTheme);
+// ===== AVATAR =====
+const AVATAR_SEEDS = ['Alpha','Beta','Gamma','Delta','Epsilon','Zeta','Eta','Theta','Iota','Kappa','Lambda','Mu'];
+const AVATAR_BASE = 'https://api.dicebear.com/7.x/avataaars/svg?seed=';
+
+function aplicarAvatar(seed) {
+  const img = document.getElementById('header-avatar');
+  const ini = document.getElementById('header-initial');
+  if (!img || !ini) return;
+  if (seed) {
+    img.src = AVATAR_BASE + seed + '&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc&backgroundType=solid';
+    img.style.display = 'block';
+    ini.style.display = 'none';
+  } else {
+    img.style.display = 'none';
+    ini.style.display = '';
+  }
+  document.querySelectorAll('.avatar-opt').forEach(el => {
+    el.style.outline = el.dataset.seed === seed ? '2.5px solid #7c3aed' : '2.5px solid transparent';
+  });
+}
+
+function selecionarAvatar(seed) {
+  localStorage.setItem('gi_avatar_seed', seed);
+  aplicarAvatar(seed);
+  document.getElementById('profile-menu').classList.remove('open');
+  toast('Avatar atualizado!', 'success');
+}
+
+function initAvatarGrid() {
+  const grid = document.getElementById('avatar-grid');
+  if (!grid) return;
+  const saved = localStorage.getItem('gi_avatar_seed') || '';
+  grid.innerHTML = AVATAR_SEEDS.map(s => `
+    <img class="avatar-opt" data-seed="${s}" src="${AVATAR_BASE}${s}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc&backgroundType=solid"
+      onclick="selecionarAvatar('${s}')" alt="${s}"
+      style="width:100%;aspect-ratio:1;border-radius:50%;cursor:pointer;object-fit:cover;outline:${s===saved?'2.5px solid #7c3aed':'2.5px solid transparent'};outline-offset:2px;transition:outline 0.2s,transform 0.15s;"
+      onmouseover="this.style.transform='scale(1.12)'" onmouseout="this.style.transform=''">
+  `).join('');
+  if (saved) aplicarAvatar(saved);
+}
+
+function initLoginConstellation() {
+  const canvas = document.getElementById('login-particles');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const mouse = { x: -999, y: -999 };
+  const screen = document.getElementById('login-screen');
+  if (screen) {
+    screen.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+    screen.addEventListener('touchmove', e => { mouse.x = e.touches[0].clientX; mouse.y = e.touches[0].clientY; }, { passive: true });
+  }
+  function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+  resize();
+  window.addEventListener('resize', resize);
+
+  // Regular small constellation points
+  const pts = Array.from({ length: 170 }, () => ({
+    x: Math.random() * window.innerWidth,
+    y: Math.random() * window.innerHeight,
+    dx: (Math.random() - 0.5) * 0.45,
+    dy: (Math.random() - 0.5) * 0.45,
+    r: Math.random() * 1.4 + 0.5,
+    star: false,
+  }));
+
+  // 30 large pulsing stars with glow
+  const stars = Array.from({ length: 30 }, () => ({
+    x: Math.random() * window.innerWidth,
+    y: Math.random() * window.innerHeight,
+    dx: (Math.random() - 0.5) * 0.28,
+    dy: (Math.random() - 0.5) * 0.28,
+    baseR: Math.random() * 2.5 + 2.5,
+    phase: Math.random() * Math.PI * 2,
+    speed: Math.random() * 0.018 + 0.012,
+    star: true,
+  }));
+
+  const all = [...pts, ...stars];
+  const MAX = 150, MOUSE_MAX = 200;
+  let tick = 0;
+
+  function draw() {
+    tick++;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw lines between close points
+    for (let i = 0; i < all.length; i++) {
+      const p = all[i];
+      for (let j = i + 1; j < all.length; j++) {
+        const q = all[j];
+        const dx = p.x - q.x, dy = p.y - q.y, d = Math.hypot(dx, dy);
+        if (d < MAX) {
+          ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y);
+          ctx.strokeStyle = `rgba(168,85,247,${(1 - d / MAX) * 0.2})`; ctx.lineWidth = 0.8; ctx.stroke();
+        }
+      }
+      const md = Math.hypot(p.x - mouse.x, p.y - mouse.y);
+      if (md < MOUSE_MAX) {
+        ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(mouse.x, mouse.y);
+        ctx.strokeStyle = `rgba(192,132,252,${(1 - md / MOUSE_MAX) * 0.55})`; ctx.lineWidth = 1.2; ctx.stroke();
+      }
+    }
+
+    // Draw regular points
+    ctx.shadowBlur = 0;
+    for (const p of pts) {
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(168,85,247,0.7)'; ctx.fill();
+      p.x += p.dx; p.y += p.dy;
+      if (p.x < 0 || p.x > canvas.width) p.dx *= -1;
+      if (p.y < 0 || p.y > canvas.height) p.dy *= -1;
+    }
+
+    // Draw pulsing stars with glow
+    for (const s of stars) {
+      const pulse = (Math.sin(s.phase + tick * s.speed) + 1) / 2; // 0..1
+      const r = s.baseR * (0.75 + pulse * 0.6);
+      const alpha = 0.5 + pulse * 0.5;
+      const glowSize = 8 + pulse * 18;
+      ctx.save();
+      ctx.shadowBlur = glowSize;
+      ctx.shadowColor = `rgba(124,58,237,${0.5 + pulse * 0.5})`;
+      ctx.beginPath(); ctx.arc(s.x, s.y, r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(180,150,255,${alpha})`; ctx.fill();
+      // Extra inner bright core
+      ctx.shadowBlur = 4;
+      ctx.beginPath(); ctx.arc(s.x, s.y, r * 0.45, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255,255,255,${0.6 + pulse * 0.4})`; ctx.fill();
+      ctx.restore();
+      s.x += s.dx; s.y += s.dy;
+      if (s.x < 0 || s.x > canvas.width) s.dx *= -1;
+      if (s.y < 0 || s.y > canvas.height) s.dy *= -1;
+    }
+
+    requestAnimationFrame(draw);
+  }
+  draw();
+}
+
+function initCardRipple() {
+  document.querySelectorAll('.login-card').forEach(card => {
+    const canvas = document.createElement('canvas');
+    canvas.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:-1;';
+    card.appendChild(canvas);
+    const ctx = canvas.getContext('2d');
+    const ripples = [];
+    let lastRipple = 0;
+
+    function resize() { canvas.width = card.offsetWidth; canvas.height = card.offsetHeight; }
+    resize();
+    new ResizeObserver(resize).observe(card);
+
+    card.addEventListener('mousemove', e => {
+      const now = Date.now();
+      if (now - lastRipple < 90) return;
+      lastRipple = now;
+      const rect = card.getBoundingClientRect();
+      ripples.push({ x: e.clientX - rect.left, y: e.clientY - rect.top, born: now });
+    });
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const now = Date.now();
+      for (let i = ripples.length - 1; i >= 0; i--) {
+        const rp = ripples[i];
+        const age = (now - rp.born) / 1000;
+        const maxAge = 1.5;
+        if (age > maxAge) { ripples.splice(i, 1); continue; }
+        const t = age / maxAge;
+        const r = t * 130;
+        const alpha = (1 - t) * 0.45;
+        ctx.beginPath(); ctx.arc(rp.x, rp.y, r, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(124,58,237,${alpha})`; ctx.lineWidth = 1.5; ctx.stroke();
+        if (r > 18) {
+          ctx.beginPath(); ctx.arc(rp.x, rp.y, r * 0.62, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(160,120,255,${alpha * 0.55})`; ctx.lineWidth = 1; ctx.stroke();
+        }
+        if (r > 40) {
+          ctx.beginPath(); ctx.arc(rp.x, rp.y, r * 0.32, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(255,255,255,${alpha * 0.25})`; ctx.lineWidth = 0.8; ctx.stroke();
+        }
+      }
+      requestAnimationFrame(draw);
+    }
+    draw();
+  });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   const btn = document.getElementById('theme-btn');
   if (btn) btn.textContent = savedTheme==='dark'?'☀️':'🌙';
+  initLoginConstellation();
+  initCardRipple();
+  initAvatarGrid();
 
   // Sticky hero: ajusta top ao header e aplica sombra quando fixado
   function atualizarHeaderH() {
@@ -2827,9 +3054,16 @@ function cpAcKeydown(e) {
   items.forEach((el, i) => { el.style.background = i === _cpAcIdx ? 'rgba(124,58,237,0.15)' : ''; });
 }
 
-const CP_KEY = 'gi_compras';
-function getCompras() { return JSON.parse(localStorage.getItem(CP_KEY) || '[]'); }
-function saveCompras(arr) { localStorage.setItem(CP_KEY, JSON.stringify(arr)); }
+let cpMesSel = now.getMonth(), cpAnoSel = now.getFullYear();
+function cpKey(mes, ano) { return `gi_compras_${ano}_${mes}`; }
+function getCompras() { return JSON.parse(localStorage.getItem(cpKey(cpMesSel, cpAnoSel)) || '[]'); }
+function saveCompras(arr) { localStorage.setItem(cpKey(cpMesSel, cpAnoSel), JSON.stringify(arr)); }
+function mudarMesCP(delta) {
+  cpMesSel += delta;
+  if (cpMesSel < 0) { cpMesSel = 11; cpAnoSel--; }
+  if (cpMesSel > 11) { cpMesSel = 0; cpAnoSel++; }
+  renderCompras();
+}
 
 function addCompraItem() {
   const nome = document.getElementById('cp-nome').value.trim();
@@ -2855,6 +3089,23 @@ function deleteCompraItem(id) {
   renderCompras();
 }
 
+function zerarListaCompras() {
+  if (!confirm('Zerar toda a lista de compras?')) return;
+  saveCompras([]);
+  renderCompras();
+  toast('Lista zerada!', 'info');
+}
+
+function copiarListaCompras() {
+  const arr = getCompras();
+  if (!arr.length) { toast('A lista está vazia.', 'info'); return; }
+  let mesProx = cpMesSel + 1, anoProx = cpAnoSel;
+  if (mesProx > 11) { mesProx = 0; anoProx++; }
+  const copia = arr.map(c => ({ ...c, noCarrinho: false }));
+  localStorage.setItem(cpKey(mesProx, anoProx), JSON.stringify(copia));
+  toast(`📋 Lista copiada para ${MESES[mesProx]}!`, 'success');
+}
+
 function finalizarCompras() {
   const arr = getCompras();
   const totalCarrinho = arr.filter(c => c.noCarrinho).reduce((s, c) => s + (c.preco || 0), 0);
@@ -2870,6 +3121,10 @@ function renderCompras() {
   const totalCarrinho = arr.filter(c => c.noCarrinho).reduce((s, c) => s + (c.preco || 0), 0);
   const totalFalta = totalLista - totalCarrinho;
   const noCarrinhoCount = arr.filter(c => c.noCarrinho).length;
+
+  const isHojeCP = cpMesSel === now.getMonth() && cpAnoSel === now.getFullYear();
+  const elNav = document.getElementById('cp-mes-nav-label');
+  if (elNav) elNav.textContent = MESES[cpMesSel] + ' ' + cpAnoSel + (isHojeCP ? ' · atual' : '');
 
   const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
   set('cp-hero-val', fmtMoney(totalCarrinho));
@@ -2900,6 +3155,8 @@ function renderCompras() {
 
   const fb = document.getElementById('cp-btn-finalizar');
   if (fb) fb.style.display = noCarrinhoCount > 0 ? 'block' : 'none';
+  const extras = document.getElementById('cp-btn-extras');
+  if (extras) extras.style.display = arr.length > 0 ? 'flex' : 'none';
 }
 
 // ===== SIMULADOR =====
@@ -3249,11 +3506,12 @@ function logout(){if(confirm('Deseja sair da sua conta?')){localStorage.removeIt
 (async function verificarAuth(){
   const token=localStorage.getItem('gi_token');const email=localStorage.getItem('gi_email');const nome=localStorage.getItem('gi_nome');
   if(!token){document.getElementById('login-screen').classList.remove('hidden');return;}
-  if(nome||email){document.getElementById('header-user').childNodes[0].textContent=(nome||email).charAt(0).toUpperCase();document.getElementById('menu-nome').textContent=nome||'—';document.getElementById('menu-email').textContent=email||'—';}
+  if(nome||email){const ini=document.getElementById('header-initial');if(ini)ini.textContent=(nome||email).charAt(0).toUpperCase();document.getElementById('menu-nome').textContent=nome||'—';document.getElementById('menu-email').textContent=email||'—';}
+  const savedSeed=localStorage.getItem('gi_avatar_seed');if(savedSeed)aplicarAvatar(savedSeed);
   if(token==='teste-local'){document.getElementById('login-screen').classList.add('hidden');return;}
   try{
     const res=await fetch(`${BACKEND_URL}/me`,{headers:{'Authorization':'Bearer '+token}});
-    if(res.ok){const data=await res.json();if(data.nome||data.name){const n=data.nome||data.name;localStorage.setItem('gi_nome',n);document.getElementById('header-user').childNodes[0].textContent=n.charAt(0).toUpperCase();document.getElementById('menu-nome').textContent=n;}document.getElementById('login-screen').classList.add('hidden');}
+    if(res.ok){const data=await res.json();if(data.nome||data.name){const n=data.nome||data.name;localStorage.setItem('gi_nome',n);const ini=document.getElementById('header-initial');if(ini)ini.textContent=n.charAt(0).toUpperCase();document.getElementById('menu-nome').textContent=n;}document.getElementById('login-screen').classList.add('hidden');}
     else{localStorage.removeItem('gi_token');localStorage.removeItem('gi_email');localStorage.removeItem('gi_nome');}
   }catch(e){console.log('Sem conexão, usando token local.');document.getElementById('login-screen').classList.add('hidden');}
 })();
