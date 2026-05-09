@@ -299,7 +299,7 @@ header {
 /* ===== BOTTOM NAV ===== */
 .bottom-nav {
   position: fixed; bottom: 0; left: 0; right: 0; width: 100%; background: var(--card);
-  border-top: 1px solid var(--border); display: flex; align-items: stretch; z-index: 200;
+  border-top: 1px solid var(--border); display: flex; flex-direction: row; align-items: stretch; z-index: 200;
   padding-bottom: env(safe-area-inset-bottom, 0px); box-shadow: 0 -4px 24px rgba(124,58,237,0.1);
   overflow: visible;
 }
@@ -582,12 +582,19 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
 .gd-label { font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
 .gd-value { font-size: 36px; font-weight: 800; color: white; line-height: 1.1; margin-bottom: 4px; }
 .gd-sub { font-size: 12px; color: rgba(255,255,255,0.5); margin-bottom: 1rem; }
-.gd-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.gd-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .gd-stat { background: rgba(255,255,255,0.08); border-radius: 10px; padding: 10px; text-align: center; }
 .gd-stat-label { font-size: 9px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; }
 .gd-stat-val { font-size: 17px; font-weight: 800; color: white; }
 .gd-stat-val.green { color: #C4B5FD; }
 .gd-stat-val.red { color: #FCA5A5; }
+@keyframes saldoReveal { from { opacity:0; transform:translateY(10px) scale(0.96); } to { opacity:1; transform:none; } }
+.gd-saldo-card { margin-top: 8px; }
+.gd-saldo-locked { background: rgba(255,255,255,0.05); border: 1px dashed rgba(255,255,255,0.15); border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 10px; }
+.gd-saldo-revealed { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 16px; text-align: center; animation: saldoReveal 0.45s cubic-bezier(0.34,1.56,0.64,1) both; }
+.gd-saldo-num { font-size: 32px; font-weight: 800; line-height: 1; transition: color 0.3s ease; }
+.gd-saldo-num.pos { color: #4ade80; }
+.gd-saldo-num.neg { color: #f87171; }
 
 /* Formulário rápido de gasto diário */
 .gd-form { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1rem; }
@@ -774,7 +781,6 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
   .divida-stats { grid-template-columns: 1fr 1fr; }
   .divida-stat:nth-child(2) { border-right: none; }
   .divida-stat:last-child { grid-column: span 2; border-top: 1px solid var(--border); }
-  .gd-stats { grid-template-columns: 1fr 1fr; }
   .mei-stats { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 400px) {
@@ -1208,13 +1214,21 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
           <div class="gd-stat-label">Pendente</div>
           <div class="gd-stat-val" style="color:#f59e0b;" id="gd-hoje-val">R$ 0</div>
         </div>
-        <div class="gd-stat" id="gd-saldo-stat" style="display:none;">
-          <div class="gd-stat-label" style="margin-bottom:4px;">Saldo</div>
-          <div class="gd-stat-val green" id="gd-saldo-val" style="padding-left:2px;">R$ 0</div>
-        </div>
         <div class="gd-stat">
           <div class="gd-stat-label">Orçamento</div>
           <div class="gd-stat-val" id="gd-orcamento-val">—</div>
+        </div>
+      </div>
+      <!-- Card de saldo destacado -->
+      <div class="gd-saldo-card" id="gd-saldo-card" style="display:none;">
+        <div class="gd-saldo-locked" id="gd-saldo-locked">
+          <span style="font-size:20px;">🔒</span>
+          <span style="font-size:12px;color:rgba(255,255,255,0.45);line-height:1.45;">Marque o salário como recebido para ver seu saldo disponível</span>
+        </div>
+        <div class="gd-saldo-revealed" id="gd-saldo-revealed" style="display:none;">
+          <div style="font-size:10px;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;">💰 Saldo disponível</div>
+          <div class="gd-saldo-num pos" id="gd-saldo-val">R$ 0,00</div>
+          <div id="gd-saldo-detalhe" style="font-size:11px;color:rgba(255,255,255,0.3);margin-top:6px;"></div>
         </div>
       </div>
     </div>
@@ -2819,13 +2833,34 @@ function renderGastosDiarios() {
   document.getElementById('gd-hoje-val').textContent=fmtMoney(totalPendente);
   document.getElementById('gd-orcamento-val').textContent=orcamento>0?fmtMoney(orcamento):'—';
 
-  // Saldo: aparece sempre que há salário cadastrado
-  const saldoStat=document.getElementById('gd-saldo-stat');
-  if(saldoStat){
-    saldoStat.style.display=rendaTotal>0?'flex':'none';
-    if(rendaTotal>0){
-      document.getElementById('gd-saldo-val').textContent=fmtMoney(saldo);
-      document.getElementById('gd-saldo-val').className='gd-stat-val '+(saldo<0?'red':'green');
+  // Card de saldo destacado
+  const saldoCard=document.getElementById('gd-saldo-card');
+  const saldoLocked=document.getElementById('gd-saldo-locked');
+  const saldoRevealed=document.getElementById('gd-saldo-revealed');
+  if(saldoCard){
+    if(rendaTotal<=0){
+      saldoCard.style.display='none';
+    } else if(!recebido){
+      saldoCard.style.display='block';
+      saldoLocked.style.display='flex';
+      saldoRevealed.style.display='none';
+    } else {
+      saldoCard.style.display='block';
+      saldoLocked.style.display='none';
+      const wasHidden=saldoRevealed.style.display==='none';
+      saldoRevealed.style.display='block';
+      if(wasHidden){ saldoRevealed.style.animation='none'; requestAnimationFrame(()=>{ saldoRevealed.style.animation=''; }); }
+      const saldoEl=document.getElementById('gd-saldo-val');
+      saldoEl.textContent=fmtMoney(saldo);
+      saldoEl.className='gd-saldo-num '+(saldo<0?'neg':'pos');
+      const det=document.getElementById('gd-saldo-detalhe');
+      if(det){
+        const partes=[];
+        if(salario>0) partes.push('Salário '+fmtMoney(salario));
+        if(rendaExtra>0) partes.push('+ Extra '+fmtMoney(rendaExtra));
+        partes.push('− Pago '+fmtMoney(totalPago));
+        det.textContent=partes.join('  ');
+      }
     }
   }
 
@@ -3788,16 +3823,56 @@ function confirmarGasto(){clearInterval(bloqueioTimer);document.getElementById('
 // ===== LOGIN =====
 const BACKEND_URL='https://grape-invest-backend-production.up.railway.app';
 
+// ===== DATA SYNC =====
+const _origSetItem = localStorage.setItem.bind(localStorage);
+const SYNC_SKIP = new Set(['gi_token','gi_email','gi_nome']);
+localStorage.setItem = function(key, value) {
+  _origSetItem(key, value);
+  if (key.startsWith('gi_') && !SYNC_SKIP.has(key)) scheduleSync();
+};
+let _syncTimer = null;
+function scheduleSync() { clearTimeout(_syncTimer); _syncTimer = setTimeout(uploadData, 3000); }
+async function uploadData() {
+  const token = localStorage.getItem('gi_token');
+  if (!token || token === 'teste-local') return;
+  const data = {};
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k && k.startsWith('gi_') && !SYNC_SKIP.has(k)) data[k] = localStorage.getItem(k);
+  }
+  try {
+    await fetch(`${BACKEND_URL}/user/data`, { method:'PUT',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
+      body: JSON.stringify({ data }) });
+  } catch(e) { /* offline */ }
+}
+async function fetchAndRestoreData(token) {
+  if (!token || token === 'teste-local') return;
+  try {
+    const res = await fetch(`${BACKEND_URL}/user/data`, { headers:{'Authorization':'Bearer '+token} });
+    if (!res.ok) return;
+    const { data } = await res.json();
+    if (!data || !Object.keys(data).length) return;
+    for (const [k, v] of Object.entries(data)) {
+      if (k.startsWith('gi_') && !SYNC_SKIP.has(k)) _origSetItem(k, v);
+    }
+  } catch(e) { /* offline */ }
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') { clearTimeout(_syncTimer); uploadData(); }
+});
+
 function fecharWelcome(){document.getElementById('welcome-screen').classList.add('hidden');}
 function mostrarWelcome(nome){const ws=document.getElementById('welcome-screen');document.getElementById('welcome-nome').textContent=nome?'Olá, '+nome+'!':'';ws.classList.remove('hidden');}
 
-function abrirApp(token,email,nome){
-  localStorage.setItem('gi_token',token);localStorage.setItem('gi_email',email);localStorage.setItem('gi_nome',nome||'');
+async function abrirApp(token,email,nome){
+  _origSetItem('gi_token',token);_origSetItem('gi_email',email);_origSetItem('gi_nome',nome||'');
   document.getElementById('login-screen').classList.add('hidden');
   const inicial=(nome||email).charAt(0).toUpperCase();
   document.getElementById('header-user').childNodes[0].textContent=inicial;
   document.getElementById('menu-nome').textContent=nome||'—';
   document.getElementById('menu-email').textContent=email;
+  fetchAndRestoreData(token).then(()=>renderDashboard());
 }
 
 async function fazerLogin(){
@@ -3860,7 +3935,7 @@ function exportarDados(){
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='grape-invest-dados.json';a.click();
   toast('✓ Dados exportados!','success');
 }
-function logout(){if(confirm('Deseja sair da sua conta?')){localStorage.removeItem('gi_token');localStorage.removeItem('gi_email');localStorage.removeItem('gi_nome');document.getElementById('login-screen').classList.remove('hidden');document.getElementById('profile-menu').classList.remove('open');}}
+async function logout(){if(!confirm('Deseja sair da sua conta?'))return;clearTimeout(_syncTimer);await uploadData();localStorage.removeItem('gi_token');localStorage.removeItem('gi_email');localStorage.removeItem('gi_nome');document.getElementById('login-screen').classList.remove('hidden');document.getElementById('profile-menu').classList.remove('open');}
 
 async function verificarAuth(){
   const token=localStorage.getItem('gi_token');const email=localStorage.getItem('gi_email');const nome=localStorage.getItem('gi_nome');
@@ -3869,10 +3944,13 @@ async function verificarAuth(){
   const savedSeed=localStorage.getItem('gi_avatar_seed');if(savedSeed)aplicarAvatar(savedSeed);
   if(token==='teste-local'){document.getElementById('login-screen').classList.add('hidden');return;}
   try{
-    const res=await fetch(`${BACKEND_URL}/me`,{headers:{'Authorization':'Bearer '+token}});
-    if(res.ok){const data=await res.json();if(data.nome||data.name){const n=data.nome||data.name;localStorage.setItem('gi_nome',n);const ini=document.getElementById('header-initial');if(ini)ini.textContent=n.charAt(0).toUpperCase();document.getElementById('menu-nome').textContent=n;}document.getElementById('login-screen').classList.add('hidden');}
+    const [res]=await Promise.all([
+      fetch(`${BACKEND_URL}/me`,{headers:{'Authorization':'Bearer '+token}}),
+      fetchAndRestoreData(token)
+    ]);
+    if(res.ok){const data=await res.json();if(data.nome||data.name){const n=data.nome||data.name;_origSetItem('gi_nome',n);const ini=document.getElementById('header-initial');if(ini)ini.textContent=n.charAt(0).toUpperCase();document.getElementById('menu-nome').textContent=n;}document.getElementById('login-screen').classList.add('hidden');renderDashboard();}
     else{localStorage.removeItem('gi_token');localStorage.removeItem('gi_email');localStorage.removeItem('gi_nome');}
-  }catch(e){console.log('Sem conexão, usando token local.');document.getElementById('login-screen').classList.add('hidden');}
+  }catch(e){console.log('Sem conexão, usando dados locais.');document.getElementById('login-screen').classList.add('hidden');}
 }
 
 function iniciarApp() {
