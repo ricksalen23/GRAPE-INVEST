@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-visual-viewport">
 <title>Grape Invest — Controle Financeiro</title>
 <meta name="theme-color" content="#000000">
 <meta name="mobile-web-app-capable" content="yes">
@@ -1262,7 +1262,7 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
         <div id="cf-lista"></div>
         <div style="display:flex;gap:8px;margin-top:10px;">
           <input type="text" id="cf-nova-desc" placeholder="Nova conta..." list="gd-desc-list" autocomplete="off" style="flex:1;min-width:0;height:38px;border:1.5px solid var(--border);border-radius:8px;padding:0 10px;font-size:13px;font-family:inherit;background:var(--bg);color:var(--text);outline:none;">
-          <input type="number" id="cf-novo-valor" placeholder="R$" min="0" step="0.01" style="width:80px;flex-shrink:0;height:38px;border:1.5px solid var(--border);border-radius:8px;padding:0 8px;font-size:13px;font-family:inherit;background:var(--bg);color:var(--text);outline:none;">
+          <input type="text" inputmode="decimal" id="cf-novo-valor" placeholder="R$" style="width:80px;flex-shrink:0;height:38px;border:1.5px solid var(--border);border-radius:8px;padding:0 8px;font-size:13px;font-family:inherit;background:var(--bg);color:var(--text);outline:none;">
           <button onclick="addContaFixa()" style="flex-shrink:0;height:38px;padding:0 12px;border-radius:8px;border:none;background:var(--purple);color:white;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;">+</button>
         </div>
       </div>
@@ -1317,7 +1317,7 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
         </div>
         <div class="field" style="margin-bottom:0;">
           <label>Valor (R$)</label>
-          <input type="number" id="gd-valor" placeholder="0,00" min="0" step="0.01" onkeydown="if(event.key==='Enter') addGastoDiario()">
+          <input type="text" inputmode="decimal" id="gd-valor" placeholder="0,00" onkeydown="if(event.key==='Enter') addGastoDiario()">
         </div>
       </div>
       <!-- Categoria rápida -->
@@ -2227,6 +2227,15 @@ document.addEventListener('DOMContentLoaded', () => {
       hero.classList.toggle('is-stuck', !entry.isIntersecting);
     }, { threshold: 0 }).observe(sentinel);
   }
+
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', () => {
+      const el = document.activeElement;
+      if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') && !el.readOnly) {
+        setTimeout(() => el.scrollIntoView({behavior: 'smooth', block: 'center'}), 80);
+      }
+    });
+  }
 });
 
 // ===== DICAS =====
@@ -2699,8 +2708,10 @@ function filtrarExibGD(el, cat) {
 
 function addGastoDiario() {
   const desc=document.getElementById('gd-desc').value.trim();
-  const valor=parseFloat(document.getElementById('gd-valor').value);
-  if(!desc||isNaN(valor)||valor<=0){document.getElementById('gd-desc').focus();toast('Preencha descrição e valor.','error');return;}
+  const valorStr=document.getElementById('gd-valor').value.trim().replace(',','.');
+  const valor=parseFloat(valorStr);
+  if(!desc){toast('Preencha a descrição.','error');return;}
+  if(isNaN(valor)||valor<=0){toast('Informe um valor válido.','error');return;}
   const dados=getGastosDiariosMes(gdMesSel,gdAnoSel);
   const dataStr=gdMesSel===now.getMonth()&&gdAnoSel===now.getFullYear()
     ? now.toISOString().split('T')[0]
@@ -2709,7 +2720,13 @@ function addGastoDiario() {
   saveGastosDiariosMes(gdMesSel,gdAnoSel,dados);
   document.getElementById('gd-desc').value='';
   document.getElementById('gd-valor').value='';
+  gdFiltroExib='todos';
+  document.querySelectorAll('#gd-filtro-exib .gd-filter-btn').forEach(b=>b.classList.remove('active'));
+  const todosBtn=document.querySelector('#gd-filtro-exib .gd-filter-btn');
+  if(todosBtn) todosBtn.classList.add('active');
+  const scrollY=window.scrollY;
   renderGastosDiarios();
+  requestAnimationFrame(()=>window.scrollTo({top:scrollY,behavior:'instant'}));
   toast('✓ Gasto adicionado!','success');
 }
 
@@ -2952,8 +2969,10 @@ function toggleContasFixas() {
 
 function addContaFixa() {
   const desc = document.getElementById('cf-nova-desc').value.trim();
-  const valor = parseFloat(document.getElementById('cf-novo-valor').value)||0;
-  if (!desc) { toast('Digite o nome da conta.','error'); return; }
+  const valorStr = document.getElementById('cf-novo-valor').value.trim().replace(',','.');
+  const valor = parseFloat(valorStr)||0;
+  if (desc.length < 2) { toast('Nome da conta muito curto.','error'); return; }
+  if (valor <= 0) { toast('Informe o valor da conta.','error'); return; }
   const arr = getContasFixas();
   arr.push({id:'cf'+Date.now(), desc, valor, cat:'Outros', emoji:'📋'});
   saveContasFixas(arr);
