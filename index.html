@@ -574,7 +574,7 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
 .gasto-diario-hero {
   border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1rem;
   background: linear-gradient(135deg, #1e1b4b 0%, #4C1D95 100%); position: sticky;
-  top: 0; z-index: 999;
+  top: var(--header-h, 0px); z-index: 999;
   transition: padding 0.3s ease, box-shadow 0.25s ease;
 }
 .gasto-diario-hero.is-stuck {
@@ -2254,9 +2254,19 @@ document.addEventListener('DOMContentLoaded', () => {
   const sentinel = document.getElementById('gd-hero-sentinel');
   const hero = document.querySelector('.gasto-diario-hero');
   if (sentinel && hero) {
-    new IntersectionObserver(([entry]) => {
-      hero.classList.toggle('is-stuck', !entry.isIntersecting);
-    }, { threshold: 0 }).observe(sentinel);
+    function makeStickyObserver() {
+      const headerH = document.querySelector('header')?.offsetHeight || 0;
+      return new IntersectionObserver(([entry]) => {
+        hero.classList.toggle('is-stuck', !entry.isIntersecting);
+      }, { rootMargin: `-${headerH}px 0px 0px 0px`, threshold: 0 });
+    }
+    let stickyObs = makeStickyObserver();
+    stickyObs.observe(sentinel);
+    new ResizeObserver(() => {
+      stickyObs.disconnect();
+      stickyObs = makeStickyObserver();
+      stickyObs.observe(sentinel);
+    }).observe(document.querySelector('header'));
   }
 
   if (window.visualViewport) {
