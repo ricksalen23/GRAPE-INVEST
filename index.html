@@ -578,18 +578,19 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
   transition: padding 0.3s ease, box-shadow 0.25s ease;
 }
 .gasto-diario-hero.is-stuck {
-  padding: 0.9rem 1.5rem;
+  padding: 0.75rem 1.5rem;
   box-shadow: 0 6px 28px rgba(76,29,149,0.55), 0 1px 0 rgba(124,58,237,0.25);
   border-radius: 0 0 var(--radius) var(--radius);
 }
-.gasto-diario-hero.is-stuck .gd-value { font-size: 28px; line-height: 1; margin-bottom: 2px; }
+.gasto-diario-hero.is-stuck .gd-label { display: none; }
+.gasto-diario-hero.is-stuck .gd-value { font-size: 26px; line-height: 1; margin-bottom: 2px; }
 .gasto-diario-hero.is-stuck .gd-sub { display: none; }
-.gasto-diario-hero.is-stuck #gd-hero-geral-row { display: none; }
 .gasto-diario-hero.is-stuck #gd-hero-bar-wrap { display: none; }
-.gasto-diario-hero.is-stuck .gd-saldo-card { display: none !important; }
 .gasto-diario-hero.is-stuck .gd-stats { margin-top: 6px; gap: 6px; }
-.gasto-diario-hero.is-stuck .gd-stat { padding: 7px 10px; }
-.gasto-diario-hero.is-stuck .gd-stat-val { font-size: 14px; }
+.gasto-diario-hero.is-stuck .gd-stat { padding: 6px 10px; }
+.gasto-diario-hero.is-stuck .gd-stat-val { font-size: 13px; }
+.gasto-diario-hero.is-stuck .gd-saldo-num { font-size: 20px; }
+.gasto-diario-hero.is-stuck .gd-saldo-card { padding: 8px 12px; }
 .gasto-diario-hero::before { content:'💳'; position:absolute; right:-10px; top:-10px; font-size:100px; opacity:0.08; pointer-events:none; }
 .gd-label { font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
 .gd-value { font-size: 36px; font-weight: 800; color: white; line-height: 1.1; margin-bottom: 4px; transition: font-size 0.3s ease; }
