@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grape Invest — Acesso Liberado! 🍇</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@400;500;600;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #080412;
+    color: white;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .bg-glow {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(124,58,237,0.2) 0%, transparent 70%);
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .container {
+    position: relative;
+    z-index: 10;
+    max-width: 520px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+  }
+
+  /* LOGO */
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+
+  .logo-icon {
+    width: 52px;
+    height: 52px;
+    background: linear-gradient(135deg, #7c3aed, #5b21b6);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    box-shadow: 0 0 30px rgba(124,58,237,0.5);
+  }
+
+  .logo-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 24px;
+    font-weight: 800;
+    color: white;
+  }
+
+  /* CARD PRINCIPAL */
+  .card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(167,139,250,0.2);
+    border-radius: 24px;
+    padding: 36px 32px;
+    width: 100%;
+    backdrop-filter: blur(20px);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #7c3aed, #a78bfa, transparent);
+  }
+
+  .success-icon {
+    width: 72px;
+    height: 72px;
+    background: linear-gradient(135deg, rgba(124,58,237,0.3), rgba(91,33,182,0.2));
+    border: 2px solid rgba(124,58,237,0.4);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    margin: 0 auto 20px;
+    animation: bounce 1s ease-in-out;
+  }
+
+  @keyframes bounce {
+    0% { transform: scale(0); opacity: 0; }
+    60% { transform: scale(1.1); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  .card h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 26px;
+    font-weight: 800;
+    text-align: center;
+    margin-bottom: 8px;
+    line-height: 1.2;
+  }
+
+  .card h1 span { color: #a78bfa; }
+
+  .card p.subtitle {
+    text-align: center;
+    color: rgba(255,255,255,0.5);
+    font-size: 14px;
+    margin-bottom: 28px;
+    line-height: 1.5;
+  }
+
+  /* PASSOS */
+  .steps {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+
+  .step {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    background: rgba(124,58,237,0.08);
+    border: 1px solid rgba(124,58,237,0.15);
+    border-radius: 14px;
+    padding: 14px 16px;
+    animation: fadeUp 0.5s ease forwards;
+    opacity: 0;
+  }
+
+  .step:nth-child(1) { animation-delay: 0.3s; }
+  .step:nth-child(2) { animation-delay: 0.5s; }
+  .step:nth-child(3) { animation-delay: 0.7s; }
+  .step:nth-child(4) { animation-delay: 0.9s; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .step-num {
+    width: 30px;
+    height: 30px;
+    min-width: 30px;
+    background: linear-gradient(135deg, #7c3aed, #5b21b6);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: white;
+  }
+
+  .step-content h4 {
+    font-size: 14px;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 2px;
+  }
+
+  .step-content p {
+    font-size: 13px;
+    color: rgba(255,255,255,0.5);
+    line-height: 1.4;
+  }
+
+  .step-content a {
+    color: #a78bfa;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  /* BOTÃO */
+  .btn {
+    display: block;
+    width: 100%;
+    background: linear-gradient(135deg, #7c3aed, #5b21b6);
+    color: white;
+    font-family: 'Syne', sans-serif;
+    font-size: 17px;
+    font-weight: 700;
+    padding: 16px;
+    border-radius: 14px;
+    text-align: center;
+    text-decoration: none;
+    box-shadow: 0 8px 32px rgba(124,58,237,0.4);
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(124,58,237,0.5);
+  }
+
+  .btn::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+    animation: shimmer 2.5s ease-in-out infinite;
+  }
+
+  @keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 200%; }
+  }
+
+  /* SUPORTE */
+  .support {
+    text-align: center;
+    font-size: 13px;
+    color: rgba(255,255,255,0.3);
+    line-height: 1.6;
+  }
+
+  .support a {
+    color: rgba(167,139,250,0.7);
+    text-decoration: none;
+  }
+
+  /* FOOTER */
+  .footer {
+    font-size: 12px;
+    color: rgba(255,255,255,0.2);
+    text-align: center;
+  }
+
+  /* PWA INSTALL */
+  .pwa-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(167,139,250,0.2);
+    border-radius: 24px;
+    padding: 28px 32px;
+    width: 100%;
+    backdrop-filter: blur(20px);
+    position: relative;
+    overflow: hidden;
+    animation: fadeUp 0.5s ease 1.1s forwards;
+    opacity: 0;
+  }
+
+  .pwa-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #5b21b6, #7c3aed, transparent);
+  }
+
+  .pwa-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 17px;
+    font-weight: 800;
+    text-align: center;
+    margin-bottom: 6px;
+    color: white;
+  }
+
+  .pwa-subtitle {
+    text-align: center;
+    font-size: 13px;
+    color: rgba(255,255,255,0.4);
+    margin-bottom: 20px;
+    line-height: 1.5;
+  }
+
+  .pwa-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  @media (max-width: 400px) {
+    .pwa-grid { grid-template-columns: 1fr; }
+  }
+
+  .pwa-item {
+    background: rgba(124,58,237,0.08);
+    border: 1px solid rgba(124,58,237,0.18);
+    border-radius: 16px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .pwa-item-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .pwa-phone-icon {
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+  }
+
+  .pwa-phone-icon.ios {
+    background: linear-gradient(135deg, rgba(124,58,237,0.25), rgba(91,33,182,0.15));
+    border: 1px solid rgba(124,58,237,0.3);
+  }
+
+  .pwa-phone-icon.android {
+    background: linear-gradient(135deg, rgba(74,222,128,0.15), rgba(16,185,129,0.1));
+    border: 1px solid rgba(74,222,128,0.25);
+  }
+
+  .pwa-os {
+    font-size: 14px;
+    font-weight: 700;
+    color: white;
+  }
+
+  .pwa-steps-list {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .pwa-step-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 12.5px;
+    color: rgba(255,255,255,0.6);
+    line-height: 1.4;
+  }
+
+  .pwa-step-row .dot {
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+    background: rgba(124,58,237,0.3);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+    color: #c4b5fd;
+    margin-top: 1px;
+  }
+
+  .pwa-step-row .dot.green {
+    background: rgba(74,222,128,0.2);
+    color: #4ade80;
+  }
+
+  .pwa-tag {
+    display: inline-block;
+    background: rgba(167,139,250,0.15);
+    border: 1px solid rgba(167,139,250,0.25);
+    border-radius: 6px;
+    padding: 1px 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #c4b5fd;
+    white-space: nowrap;
+  }
+
+  .pwa-tag.green {
+    background: rgba(74,222,128,0.1);
+    border-color: rgba(74,222,128,0.2);
+    color: #4ade80;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="particles"></canvas>
+<div class="bg-glow"></div>
+
+<div class="container">
+
+  <div class="card">
+    <div class="success-icon">🎉</div>
+
+    <h1>Pagamento confirmado!<br><span>Seu acesso está liberado.</span></h1>
+    <p class="subtitle">Siga os passos abaixo para acessar o Grape Invest agora mesmo.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <h4>Acesse o app</h4>
+          <p>Vá para <a href="https://grapeinvest.com.br" target="_blank">grapeinvest.com.br</a> no seu celular ou computador.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <h4>Clique em "Criar minha conta"</h4>
+          <p>Na tela de login, clique em <strong style="color:rgba(255,255,255,0.8)">"Já assinou? Criar minha conta →"</strong></p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <h4>Use o mesmo e-mail da compra</h4>
+          <p>Digite o e-mail que você usou para pagar e crie uma senha.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <h4>Pronto! 🍇</h4>
+          <p>Seu acesso está ativo. Instale o app na tela inicial do celular para acesso rápido.</p>
+        </div>
+      </div>
+    </div>
+
+    <a href="https://grapeinvest.com.br" class="btn">Acessar o Grape Invest →</a>
+  </div>
+
+  <!-- PWA INSTALL -->
+  <div class="pwa-card">
+    <div class="pwa-title">📲 Instale o app no seu celular</div>
+    <div class="pwa-subtitle">Acesso com um toque — sem precisar abrir o navegador</div>
+
+    <div class="pwa-grid">
+      <!-- iPhone -->
+      <div class="pwa-item">
+        <div class="pwa-item-head">
+          <div class="pwa-phone-icon ios">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="5" y="2" width="14" height="20" rx="3"/>
+              <circle cx="12" cy="18" r="1" fill="#a78bfa" stroke="none"/>
+            </svg>
+          </div>
+          <div class="pwa-os">iPhone</div>
+        </div>
+        <div class="pwa-steps-list">
+          <div class="pwa-step-row">
+            <span class="dot">1</span>
+            <span>Toque em <span class="pwa-tag">compartilhar</span> — ícone de caixa com seta ↑ no Safari</span>
+          </div>
+          <div class="pwa-step-row">
+            <span class="dot">2</span>
+            <span>Toque em <span class="pwa-tag">Adicionar à Tela de Início</span></span>
+          </div>
+          <div class="pwa-step-row">
+            <span class="dot">3</span>
+            <span>Confirme tocando em <span class="pwa-tag">Adicionar</span></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Android -->
+      <div class="pwa-item">
+        <div class="pwa-item-head">
+          <div class="pwa-phone-icon android">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="5" y="2" width="14" height="20" rx="3"/>
+              <line x1="9" y1="7" x2="15" y2="7"/>
+              <circle cx="12" cy="18" r="1" fill="#4ade80" stroke="none"/>
+            </svg>
+          </div>
+          <div class="pwa-os" style="color:#4ade80;">Android</div>
+        </div>
+        <div class="pwa-steps-list">
+          <div class="pwa-step-row">
+            <span class="dot green">1</span>
+            <span>Toque no menu <span class="pwa-tag green">⋮ 3 pontinhos</span> no Chrome</span>
+          </div>
+          <div class="pwa-step-row">
+            <span class="dot green">2</span>
+            <span>Toque em <span class="pwa-tag green">Adicionar à tela inicial</span></span>
+          </div>
+          <div class="pwa-step-row">
+            <span class="dot green">3</span>
+            <span>Confirme tocando em <span class="pwa-tag green">Adicionar</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="support">
+    Algum problema? Entre em contato:<br>
+    <a href="mailto:empresaexpert2@gmail.com">empresaexpert2@gmail.com</a>
+  </div>
+
+  <div class="footer">Grape Invest © 2026 · Controle financeiro para o seu dia a dia</div>
+</div>
+
+<script>
+  const canvas = document.getElementById('particles');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const particles = Array.from({ length: 50 }, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    r: Math.random() * 1.5 + 0.5,
+    vy: -Math.random() * 0.3 - 0.1,
+    alpha: Math.random() * 0.4 + 0.1,
+  }));
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(167,139,250,${p.alpha})`;
+      ctx.fill();
+      p.y += p.vy;
+      if (p.y < -10) { p.y = canvas.height + 10; }
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+
+  window.addEventListener('resize', () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  });
+</script>
+</body>
+</html>
