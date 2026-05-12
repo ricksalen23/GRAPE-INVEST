@@ -3039,12 +3039,18 @@ function addContaFixa() {
   const valor = parseFloat(valorStr)||0;
   if (desc.length < 2) { toast('Nome da conta muito curto.','error'); return; }
   if (valor <= 0) { toast('Informe o valor da conta.','error'); return; }
+  const id = 'cf' + Date.now();
   const arr = getContasFixas();
-  arr.push({id:'cf'+Date.now(), desc, valor, cat:'Outros', emoji:'📋'});
+  arr.push({id, desc, valor, cat:'Outros', emoji:'📋'});
   saveContasFixas(arr);
+  const vals = getCFVals(gdMesSel, gdAnoSel);
+  vals[id] = valor;
+  saveCFVals(gdMesSel, gdAnoSel, vals);
   document.getElementById('cf-nova-desc').value='';
   document.getElementById('cf-novo-valor').value='';
-  renderContasFixas();
+  const scrollY = window.scrollY;
+  renderGastosDiarios();
+  requestAnimationFrame(() => window.scrollTo({top: scrollY, behavior: 'instant'}));
   toast('Conta fixa adicionada!','success');
 }
 
