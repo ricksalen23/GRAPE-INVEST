@@ -150,18 +150,24 @@ body:has(#login-screen:not(.hidden)) footer { display: none !important; }
 }
 
 .login-content { position: relative; z-index: 1; width: 100%; max-width: 360px; display: flex; flex-direction: column; align-items: center; }
-.login-header { display: flex; flex-direction: column; align-items: center; margin-bottom: 1.25rem; position: relative; }
+.login-header { display: flex; flex-direction: column; align-items: center; margin-bottom: 1rem; position: relative; }
 @media (max-width: 480px) { .login-content { padding: 0 14px; } }
 .login-logo-icon {
-  width: 64px; height: 64px; background: #18112b; border: 1px solid rgba(124,58,237,0.4);
-  border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px;
+  width: 52px; height: 52px; background: #18112b; border: 1px solid rgba(124,58,237,0.4);
+  border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px;
   box-shadow: 0 8px 32px rgba(0,0,0,0.4);
   animation: logoPulse 3s ease-in-out infinite;
 }
+@media (max-width: 380px) {
+  .login-logo-icon { width: 44px; height: 44px; border-radius: 13px; margin-bottom: 8px; }
+  .login-logo-icon img { width: 30px; height: 30px; }
+}
 .grape-svg { animation: grapeRotatePulse 2.5s ease-in-out infinite; transform-origin: center top; }
 @keyframes grapeSwing { 0% { transform: rotate(-8deg); } 50% { transform: rotate(8deg); } 100% { transform: rotate(-8deg); } }
-.login-logo-name { font-size: 30px; font-weight: 800; color: white; letter-spacing: -0.03em; margin-bottom: 4px; text-shadow: 0 2px 20px rgba(0,0,0,0.3); }
+.login-logo-name { font-size: 26px; font-weight: 800; color: white; letter-spacing: -0.03em; margin-bottom: 3px; text-shadow: 0 2px 20px rgba(0,0,0,0.3); }
+@media (max-width: 380px) { .login-logo-name { font-size: 22px; } }
 .login-tagline { font-size: 11px; color: rgba(255,255,255,0.5); letter-spacing: 0.12em; text-transform: uppercase; font-weight: 500; }
+@media (max-width: 380px) { .login-tagline { font-size: 10px; letter-spacing: 0.08em; } }
 
 .login-card {
   width: 100%; background: #0e0e12; border-radius: 28px; padding: 2rem 1.75rem;
@@ -922,7 +928,7 @@ input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
       </div>
       <div class="login-divider"><div class="login-div-line"></div><div class="login-div-txt">ainda não tem acesso?</div><div class="login-div-line"></div></div>
       <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px;">
-        <a href="https://kiwify.app/CYXLLdR" style="display:block;text-align:center;background:transparent;border:1px solid rgba(124,58,237,0.35);border-radius:12px;padding:11px 20px;text-decoration:none;transition:border-color 0.2s;">
+        <a href="https://pay.kiwify.com.br/UXuqUFL" style="display:block;text-align:center;background:transparent;border:1px solid rgba(124,58,237,0.35);border-radius:12px;padding:11px 20px;text-decoration:none;transition:border-color 0.2s;">
           <div style="font-size:13px;font-weight:600;color:rgba(255,255,255,0.65);">Mensal — R$ 24,90/mês →</div>
         </a>
         <a href="https://pay.kiwify.com.br/UXuqUFL" style="display:block;text-align:center;background:transparent;border:1px solid rgba(124,58,237,0.5);border-radius:12px;padding:11px 20px;text-decoration:none;transition:border-color 0.2s;">
