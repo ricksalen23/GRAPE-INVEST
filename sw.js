@@ -1,4 +1,4 @@
-const CACHE = 'grape-invest-v9';
+const CACHE = 'warden-v1';
 
 self.addEventListener('install', e => {
   self.skipWaiting();

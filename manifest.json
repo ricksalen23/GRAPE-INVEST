@@ -1,11 +1,11 @@
 {
-  "name": "Grape Invest",
-  "short_name": "Grape Invest",
+  "name": "Warden",
+  "short_name": "Warden",
   "description": "Controle financeiro para o seu dia a dia",
-  "start_url": "/",
+  "start_url": "/app.html",
   "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#000000",
+  "background_color": "#0A0A08",
+  "theme_color": "#0A0A08",
   "orientation": "portrait",
   "icons": [
     {
