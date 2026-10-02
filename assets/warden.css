@@ -1,6 +1,6 @@
 /*
  * WARDEN — base visual compartilhada por todas as páginas (home + /ferramentas/*).
- * Contém: variáveis, reset, tipografia, botões, nav, perfil, mega-menu e menu mobile.
+ * Contém: variáveis, reset, tipografia, botões, nav, perfil, mega-menu, menu mobile e o modelo/componentes das ferramentas.
  * O que for específico de uma página continua no <style> da própria página.
  * Fontes: carregadas no <head> de cada página (Fraunces, Inter, IBM Plex Mono).
  */
@@ -365,4 +365,72 @@ section { padding: 96px 5%; position: relative; }
 /* aviso legal */
 .tool-disclaimer {
   font-size: .82rem; color: var(--muted); border-top: 1px solid var(--border); padding-top: 20px; margin-top: 40px;
+}
+
+/* ===== MODELO DE PÁGINA DE FERRAMENTA (ver CLAUDE.md) ===== */
+/* <section class="tool-top"> → <header class="tool-head"> (crumbs + h1 + lead) → cards da ferramenta */
+.tool-top { --first-gap: 40px; padding-bottom: 64px; }
+.tool-head { margin-bottom: 36px; }
+.tool-crumbs { min-height: 1.2em; }   /* reserva a linha enquanto o tools.js preenche (sem "pulo" de layout) */
+/* observação pequena sob resultados */
+.tool-obs { font-size: .78rem; color: var(--muted); line-height: 1.6; }
+/* seção de texto explicativo (SEO) e seção da ponte para o Warden Cobrança, no fim da página */
+.tool-prose-section { padding-top: 32px; padding-bottom: 56px; border-top: 1px solid var(--border); }
+.tool-bridge { padding-top: 0; }
+.tool-bridge .cobranca-card { padding: 28px 30px; }
+.tool-bridge .cobranca-card h2 { font-family: 'Fraunces', serif; font-weight: 700; font-size: 1.35rem; line-height: 1.25; margin-bottom: 6px; }
+
+/* card de resultado (Warden.cardResultado) — .destaque = borda e valor em --accent */
+.result-card {
+  position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+  padding: 26px 22px 22px; display: flex; flex-direction: column; min-width: 0;
+}
+.result-card.destaque { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent), 0 18px 40px rgba(0,0,0,.35); }
+.result-selo {
+  position: absolute; top: -11px; left: 20px; padding: 3px 10px; border-radius: 99px;
+  background: var(--accent); color: var(--accent-ink);
+  font-size: .64rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+}
+.result-card h3 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 1.3rem; margin-bottom: 4px; }
+.result-desc { font-size: .8rem; color: var(--muted); line-height: 1.5; min-height: 2.4em; margin-bottom: 18px; }
+.result-label { font-size: .7rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+.result-valor { font-family: 'IBM Plex Mono', monospace; font-size: clamp(1.35rem, 2vw, 1.6rem); font-weight: 600; margin-bottom: 18px; overflow-wrap: anywhere; }
+.result-card.destaque .result-valor { color: var(--accent); }
+.result-card dl { border-top: 1px solid var(--border); padding-top: 14px; display: flex; flex-direction: column; gap: 9px; margin-top: auto; }
+.result-card dl div { display: flex; justify-content: space-between; gap: 12px; font-size: .84rem; }
+.result-card dt { color: var(--muted); }
+.result-card dd { font-family: 'IBM Plex Mono', monospace; text-align: right; white-space: nowrap; }
+
+/* card de gráfico (Chart.js) */
+.tool-chart { margin-top: 28px; }
+.tool-chart h2 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 1.25rem; margin-bottom: 4px; }
+.tool-chart p { font-size: .84rem; color: var(--muted); margin-bottom: 18px; }
+.tool-chart-box { position: relative; height: 360px; }
+
+/* perguntas frequentes (o tools.js gera o schema.org FAQPage a partir destes <details>) */
+.tool-faq { max-width: 760px; margin-top: 48px; }
+.tool-faq h2 {
+  font-family: 'Fraunces', serif; font-weight: 600; font-size: clamp(1.5rem, 2.6vw, 2rem); line-height: 1.25; margin-bottom: 10px;
+}
+.tool-faq details { border-bottom: 1px solid var(--border); }
+.tool-faq summary {
+  list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 16px;
+  padding: 18px 0; cursor: pointer; font-weight: 600; font-size: 1rem; line-height: 1.45;
+}
+.tool-faq summary::-webkit-details-marker { display: none; }
+.tool-faq summary::after { content: '+'; font-family: 'IBM Plex Mono', monospace; font-size: 1.2rem; color: var(--accent); transition: transform .18s ease; }
+.tool-faq details[open] summary::after { transform: rotate(45deg); }
+.tool-faq summary:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; border-radius: 4px; }
+.tool-faq details > :not(summary) { color: var(--muted); font-size: .97rem; line-height: 1.75; padding-bottom: 18px; }
+.tool-faq details strong { color: var(--text); font-weight: 600; }
+@media (prefers-reduced-motion: reduce) {
+  .tool-faq summary::after { transition: none; }
+}
+
+@media (max-width: 640px) {
+  .tool-top { --first-gap: 24px; }
+  .tool-card { padding: 22px 18px; }
+  .tool-chart-box { height: 300px; }
+  .tool-bridge .cobranca-card { padding: 22px 18px; }
+  .tool-bridge .cobranca-card .cobranca-card-btn { width: 100%; text-align: center; }
 }
