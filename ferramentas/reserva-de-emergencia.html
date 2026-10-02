@@ -133,9 +133,10 @@
       <p>Evite ações, criptomoedas, fundos com prazo de resgate longo e qualquer coisa que possa valer menos justo quando você precisar. A poupança é segura, mas costuma render menos que as duas opções acima. Compare quanto cada uma rende no <a href="/ferramentas/simulador-renda-fixa.html">simulador de renda fixa</a>.</p>
 
       <h3>Como a calculadora chega no valor por mês</h3>
-      <p>Ela considera que o dinheiro guardado rende <strong>100% do CDI</strong> (taxa buscada no Banco Central) e que você deposita no fim de cada mês. Como o dinheiro rende enquanto você junta, o valor mensal fica um pouco menor do que simplesmente dividir o que falta pelo número de meses. A comparação aparece no card do meio.</p>
+      <p>Ela considera que o dinheiro guardado rende <strong>100% do CDI</strong> (taxa buscada no Banco Central) e que você deposita no fim de cada mês. Como o dinheiro rende enquanto você junta, o valor mensal fica um pouco menor do que simplesmente dividir o que falta pelo número de meses. A comparação aparece no card "Guardar por mês".</p>
+      <p>O rendimento já vem <strong>líquido de Imposto de Renda</strong>. Tesouro Selic e CDB pagam IR sobre o que rendem, numa tabela que diminui com o tempo aplicado: 22,5% até 6 meses, 20% até 1 ano, 17,5% até 2 anos e 15% acima disso. A calculadora usa a alíquota do prazo que você escolheu para completar a reserva e desconta o imposto do rendimento de todo mês, uma conta conservadora: na prática, você deve chegar lá um pouco antes.</p>
 
-      <p class="tool-disclaimer" data-aviso-educativo>A calculadora usa o CDI de hoje como se fosse fixo durante todo o prazo e não desconta Imposto de Renda nem custos. Na prática, o valor por mês pode ficar um pouco maior.</p>
+      <p class="tool-disclaimer" data-aviso-educativo>A calculadora usa o CDI de hoje como se fosse fixo durante todo o prazo, desconta o Imposto de Renda de forma simplificada e não considera custos nem IOF (resgates com menos de 30 dias).</p>
     </article>
 
     <div class="tool-faq" data-faq>
@@ -165,7 +166,7 @@
 
 <script src="/assets/tools.js"></script>
 <script>
-  const { formatBRL: brl, formatPct, parseNumero, campoBRL, cardResultado, getTaxasBCB, fonteTaxa, taxaMensal, aporteNecessario } = Warden;
+  const { formatBRL: brl, formatPct, parseNumero, campoBRL, cardResultado, getTaxasBCB, fonteTaxa, taxaMensal, liquidaDeIR, aporteNecessario } = Warden;
   const $ = id => document.getElementById(id);
 
   // meses sugeridos por perfil (valor de cada pílula) e o nome usado na dica
@@ -187,7 +188,9 @@
 
     const ideal = gastos * meses;
     const falta = Math.max(0, ideal - guardado);
-    const i = taxaMensal(taxas.cdi);                       // 100% do CDI ao mês
+    // 100% do CDI ao mês, líquido de IR com a alíquota do prazo para completar a reserva
+    const ir = liquidaDeIR(taxaMensal(taxas.cdi), prazo);
+    const i = ir.i;
     const aporte = aporteNecessario(ideal, guardado, i, prazo);
     const semRendimento = falta / prazo;
     const jurosAjudam = Math.max(0, falta - aporte * prazo);
@@ -206,7 +209,7 @@
       }),
       cardResultado({
         titulo: 'Guardar por mês',
-        descricao: `Durante ${prazo} ${prazo === 1 ? 'mês' : 'meses'}, rendendo 100% do CDI`,
+        descricao: `Durante ${prazo} ${prazo === 1 ? 'mês' : 'meses'}, rendendo 100% do CDI líquido de IR`,
         rotulo: 'Depósito mensal', valor: brl(aporte),
         linhas: [
           ['Sem rendimento seria', brl(semRendimento)],
@@ -225,7 +228,7 @@
     $('p-pct').textContent = formatPct(pctGuardado, { casas: 0 });
     $('p-legenda').textContent = `${brl(guardado)} de ${brl(ideal)}`;
 
-    $('res-obs').textContent = `Rendimento considerado: 100% do CDI, ${formatPct(taxas.cdi)} ao ano (${fonteTaxa(taxas)}), sem descontar Imposto de Renda. Depósitos no fim de cada mês.`;
+    $('res-obs').textContent = `Rendimento líquido de IR: 100% do CDI (${formatPct(taxas.cdi)} ao ano, ${fonteTaxa(taxas)}) menos ${formatPct(ir.aliquota * 100, { curto: true })} de Imposto de Renda, alíquota para ${prazo} ${prazo === 1 ? 'mês' : 'meses'} aplicados = ${formatPct(i * 100)} ao mês. Depósitos no fim de cada mês.`;
   }
 
   // perfil → preenche os meses sugeridos; mexer nos meses à mão vira "personalizado"

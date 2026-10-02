@@ -242,19 +242,11 @@
   /* =====================================================================
    * CONFIGURAÇÃO — regras de imposto e de cada investimento.
    * Regras mudam: atualize AQUI e o simulador inteiro acompanha.
-   * (As taxas de reserva, usadas quando a API do Banco Central não responde, ficam em
-   *  /assets/tools.js → TAXAS_REFERENCIA, compartilhadas com as outras ferramentas.)
+   * (Ficam em /assets/tools.js, compartilhados com as outras ferramentas: as taxas de reserva,
+   *  usadas quando a API do Banco Central não responde → TAXAS_REFERENCIA, e a tabela
+   *  regressiva do Imposto de Renda → IR_REGRESSIVO / aliquotaIR.)
    * ===================================================================== */
   const CONFIG = {
-    // IR regressivo sobre o RENDIMENTO (CDB e Tesouro Selic).
-    // Cada faixa vale para aplicações de "até X dias corridos". Mantenha em ordem crescente.
-    irRegressivo: [
-      { ateDias: 180,      aliquota: 0.225 },  // até 180 dias: 22,5%
-      { ateDias: 360,      aliquota: 0.20  },  // 181 a 360 dias: 20%
-      { ateDias: 720,      aliquota: 0.175 },  // 361 a 720 dias: 17,5%
-      { ateDias: Infinity, aliquota: 0.15  }   // acima de 720 dias: 15%
-    ],
-
     // IOF: resgates com menos de X dias pagam IOF regressivo. Aqui só mostramos um aviso.
     iofDiasMinimos: 30,
 
@@ -378,9 +370,7 @@
   }));
 
   /* ===== CÁLCULO ===== */
-  function aliquotaIR(dias) {
-    return CONFIG.irRegressivo.find(f => dias <= f.ateDias).aliquota;
-  }
+  const { aliquotaIR } = Warden;   // IR regressivo pelos dias corridos aplicados
 
   function lerEntradas() {
     const num = id => { const v = parseFloat(document.getElementById(id).value); return isFinite(v) && v > 0 ? v : 0; };
@@ -572,8 +562,8 @@
     renderGrafico(ops, deps, e, resultados);
   }
 
-  // tabela de IR gerada a partir do CONFIG (fica sempre igual às regras usadas no cálculo)
-  document.getElementById('ir-tabela-corpo').innerHTML = CONFIG.irRegressivo.map((f, i, arr) => {
+  // tabela de IR gerada a partir do kit (fica sempre igual às regras usadas no cálculo)
+  document.getElementById('ir-tabela-corpo').innerHTML = Warden.IR_REGRESSIVO.map((f, i, arr) => {
     const de = i === 0 ? 0 : arr[i - 1].ateDias + 1;
     const faixa = f.ateDias === Infinity ? `Acima de ${de - 1} dias` : i === 0 ? `Até ${f.ateDias} dias` : `De ${de} a ${f.ateDias} dias`;
     return `<tr><td>${faixa}</td><td>${curto(f.aliquota * 100)}%</td></tr>`;

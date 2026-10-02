@@ -13,7 +13,8 @@
  *   <div class="tool-faq" data-faq><details><summary>Pergunta</summary><div>Resposta</div></details>…</div>
  *                                                         → perguntas ficam no HTML; o kit gera o schema.org FAQPage
  * Funções: formatBRL, formatBRLCompacto, formatPct, formatNumero, parseNumero, campoBRL,
- *          getTaxasBCB (+ TAXAS_REFERENCIA, fonteTaxa), taxaMensal, aporteNecessario, serieAcumulacao,
+ *          getTaxasBCB (+ TAXAS_REFERENCIA, fonteTaxa), IR_REGRESSIVO, aliquotaIR, liquidaDeIR,
+ *          taxaMensal, aporteNecessario, serieAcumulacao,
  *          cardResultado, estiloGrafico.
  */
 (function () {
@@ -155,6 +156,28 @@
     if (t.fonte === 'bcb') return `Banco Central, ${t.datas.cdi.data}`;
     if (t.fonte === 'referencia') return `valor de referência de ${TAXAS_REFERENCIA.mes}, porque não foi possível buscar a taxa de hoje`;
     return 'buscando a taxa de hoje no Banco Central…';
+  }
+
+  /* ===== IMPOSTO DE RENDA (renda fixa: CDB, Tesouro) =====
+   * Tabela regressiva sobre o RENDIMENTO. Cada faixa vale para aplicações de "até X dias corridos".
+   * Regras mudam: atualize AQUI e todas as ferramentas acompanham. Mantenha em ordem crescente. */
+  const IR_REGRESSIVO = Object.freeze([
+    { ateDias: 180,      aliquota: 0.225 },  // até 180 dias: 22,5%
+    { ateDias: 360,      aliquota: 0.20  },  // 181 a 360 dias: 20%
+    { ateDias: 720,      aliquota: 0.175 },  // 361 a 720 dias: 17,5%
+    { ateDias: Infinity, aliquota: 0.15  }   // acima de 720 dias: 15%
+  ]);
+  const aliquotaIR = dias => IR_REGRESSIVO.find(f => dias <= f.ateDias).aliquota;
+  // meses → dias corridos aproximados (ano de 365,25 dias): 6 meses = 183, 12 = 365, 24 = 731
+  const diasDeMeses = meses => Math.round(meses * 365.25 / 12);
+
+  // Taxa mensal LÍQUIDA de IR, de forma conservadora: usa a alíquota do prazo total e tira o IR do rendimento
+  // de todo mês: i_líquida = i_bruta × (1 − alíquota). Dá um pouco menos do que cobrar o IR só no resgate,
+  // e mantém a conta dos depósitos mensais (aporteNecessario) simples. → { i, aliquota, dias }
+  function liquidaDeIR(iMensalBruta, meses) {
+    const dias = diasDeMeses(meses);
+    const aliquota = aliquotaIR(dias);
+    return { i: iMensalBruta * (1 - aliquota), aliquota, dias };
   }
 
   /* ===== MATEMÁTICA FINANCEIRA ===== */
@@ -305,6 +328,7 @@
   window.Warden = {
     formatBRL, formatBRLCompacto, formatNumero, formatPct, parseNumero, campoBRL,
     TAXAS_REFERENCIA, getTaxasBCB, fonteTaxa,
+    IR_REGRESSIVO, aliquotaIR, liquidaDeIR,
     taxaMensal, aporteNecessario, serieAcumulacao,
     cardResultado, estiloGrafico
   };

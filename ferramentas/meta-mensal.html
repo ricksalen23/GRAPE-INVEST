@@ -35,6 +35,9 @@
   .meta-form { display: flex; flex-direction: column; gap: 26px; }
   .meta-taxa { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 26px 28px; border-top: 1px solid var(--border); padding-top: 22px; }
   .meta-select { flex: 1; }
+  .meta-ir { grid-column: 1 / -1; display: flex; gap: 10px; align-items: flex-start; font-size: .84rem; color: var(--muted); line-height: 1.5; cursor: pointer; }
+  .meta-ir input { accent-color: var(--accent); width: 16px; height: 16px; margin-top: 2px; flex-shrink: 0; cursor: pointer; }
+  .meta-ir strong { color: var(--text); font-weight: 600; }
   .meta-aviso { margin-top: 20px; }
   .meta-progresso { margin-top: 20px; }
   .meta-progresso .section-label { margin-bottom: 14px; }
@@ -104,6 +107,10 @@
           </div>
           <span class="tool-hint" id="taxa-dica"></span>
         </div>
+        <label class="meta-ir" id="linha-ir" hidden>
+          <input type="checkbox" id="taxa-ir" checked>
+          <span><strong>Descontar Imposto de Renda</strong> (CDB, Tesouro). Desmarque para LCI, LCA e poupança, que são isentas, ou se a taxa já for líquida.</span>
+        </label>
       </div>
     </form>
 
@@ -144,6 +151,7 @@
       <p>A calculadora usa a fórmula de matemática financeira para depósitos iguais no fim de cada mês:</p>
       <p><strong>depósito mensal = (meta − já guardado × (1 + i)<sup>n</sup>) × i ÷ ((1 + i)<sup>n</sup> − 1)</strong></p>
       <p>Onde <strong>i</strong> é a taxa de rendimento ao mês e <strong>n</strong> é o número de meses. Quando a taxa vem ao ano, ela é convertida para a taxa mensal equivalente: (1 + taxa anual)<sup>1/12</sup> − 1. Por exemplo, 12% ao ano equivalem a cerca de 0,95% ao mês, e não a 1%.</p>
+      <p>Com o CDI (e com "Outra taxa", se a opção de IR estiver marcada), <strong>i</strong> já é o rendimento <strong>líquido de Imposto de Renda</strong>. CDB e Tesouro pagam IR sobre o que rendem, numa tabela que diminui com o tempo aplicado: 22,5% até 6 meses, 20% até 1 ano, 17,5% até 2 anos e 15% acima disso. A calculadora usa a alíquota do prazo da sua meta e desconta o imposto do rendimento de todo mês, uma conta conservadora. LCI, LCA e poupança são isentas.</p>
 
       <h3>Onde deixar o dinheiro da meta</h3>
       <ul>
@@ -155,7 +163,7 @@
       <h3>Dica para não desistir no meio</h3>
       <p>Programe uma transferência automática para o dia em que o salário cai. Dinheiro que nem passa pela conta corrente não vira gasto por impulso.</p>
 
-      <p class="tool-disclaimer" data-aviso-educativo>A calculadora considera a taxa escolhida fixa durante todo o prazo e não desconta Imposto de Renda, custos nem inflação.</p>
+      <p class="tool-disclaimer" data-aviso-educativo>A calculadora considera a taxa escolhida fixa durante todo o prazo, desconta o Imposto de Renda de forma simplificada e não considera custos, IOF nem inflação.</p>
     </article>
 
     <div class="tool-faq" data-faq>
@@ -166,7 +174,7 @@
       </details>
       <details>
         <summary>Qual taxa de rendimento devo usar?</summary>
-        <div><p>Para metas de curto prazo, o CDI de hoje é uma boa referência, porque é quanto rendem o Tesouro Selic e bons CDBs de liquidez diária (antes do Imposto de Renda). Se você já sabe onde vai investir, escolha "Outra taxa" e digite a taxa do produto. Para ser conservador, use uma taxa menor.</p></div>
+        <div><p>Para metas de curto prazo, o CDI de hoje é uma boa referência, porque é quanto rendem o Tesouro Selic e bons CDBs de liquidez diária; a calculadora já desconta o Imposto de Renda. Se você já sabe onde vai investir, escolha "Outra taxa", digite a taxa do produto e desmarque o IR se ele for isento (LCI, LCA, poupança). Para ser conservador, use uma taxa menor.</p></div>
       </details>
       <details>
         <summary>E a inflação?</summary>
@@ -187,7 +195,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script>
   const { formatBRL: brl, formatBRLCompacto, formatPct, parseNumero, campoBRL, cardResultado, estiloGrafico,
-          getTaxasBCB, fonteTaxa, taxaMensal, aporteNecessario, serieAcumulacao } = Warden;
+          getTaxasBCB, fonteTaxa, taxaMensal, liquidaDeIR, aporteNecessario, serieAcumulacao } = Warden;
   const $ = id => document.getElementById(id);
 
   let taxas = { ...Warden.TAXAS_REFERENCIA };   // trocado pelas taxas do Banco Central assim que chegarem
@@ -196,24 +204,37 @@
   campoBRL($('atual'));
   const dinheiro = id => { const v = parseNumero($(id).value); return isFinite(v) && v > 0 ? v : 0; };
 
-  // taxa mensal (decimal) conforme a opção escolhida, e um texto explicando de onde veio
-  function lerTaxa() {
+  // taxa mensal (decimal) conforme a opção escolhida, já líquida de IR quando for o caso, e um texto explicando de onde veio.
+  // IR: alíquota da tabela regressiva para o prazo da meta (n meses), descontada do rendimento de todo mês (conservador).
+  function lerTaxa(n) {
     const tipo = $('rendimento').value;
-    $('campo-taxa').hidden = tipo !== 'outra';
-    if (tipo === 'zero') return { i: 0, texto: 'Sem rendimento: o dinheiro fica parado.' };
+    $('campo-taxa').hidden = $('linha-ir').hidden = tipo !== 'outra';
+    if (tipo === 'zero') return { i: 0, ir: false, texto: 'Sem rendimento: o dinheiro fica parado.' };
+
+    let bruta, texto;
     if (tipo === 'cdi') {
-      const i = taxaMensal(taxas.cdi);
-      return { i, texto: `CDI de ${formatPct(taxas.cdi)} ao ano ≈ ${formatPct(i * 100)} ao mês (${fonteTaxa(taxas)}).` };
+      bruta = taxaMensal(taxas.cdi);
+      texto = `CDI de ${formatPct(taxas.cdi)} ao ano (${fonteTaxa(taxas)})`;
+    } else {
+      const v = Math.max(0, parseFloat($('taxa').value) || 0);
+      if ($('taxa-unidade').value === 'am') {
+        bruta = v / 100;
+        $('taxa-dica').textContent = `Equivale a ${formatPct((Math.pow(1 + bruta, 12) - 1) * 100)} ao ano`;
+        texto = `taxa informada de ${formatPct(v)} ao mês`;
+      } else {
+        bruta = taxaMensal(v);
+        $('taxa-dica').textContent = `Equivale a ${formatPct(bruta * 100)} ao mês`;
+        texto = `taxa informada de ${formatPct(v)} ao ano ≈ ${formatPct(bruta * 100)} ao mês`;
+      }
     }
-    const v = Math.max(0, parseFloat($('taxa').value) || 0);
-    if ($('taxa-unidade').value === 'am') {
-      const i = v / 100;
-      $('taxa-dica').textContent = `Equivale a ${formatPct((Math.pow(1 + i, 12) - 1) * 100)} ao ano`;
-      return { i, texto: `Taxa informada: ${formatPct(v)} ao mês.` };
-    }
-    const i = taxaMensal(v);
-    $('taxa-dica').textContent = `Equivale a ${formatPct(i * 100)} ao mês`;
-    return { i, texto: `Taxa informada: ${formatPct(v)} ao ano ≈ ${formatPct(i * 100)} ao mês.` };
+
+    const descontarIR = tipo === 'cdi' || $('taxa-ir').checked;
+    if (!descontarIR) return { i: bruta, ir: false, texto: `Rendimento: ${texto}, sem desconto de IR.` };
+    const ir = liquidaDeIR(bruta, n);
+    return {
+      i: ir.i, ir: true,
+      texto: `Rendimento líquido de IR: ${texto}, menos ${formatPct(ir.aliquota * 100, { curto: true })} de Imposto de Renda (alíquota para ${n} ${n === 1 ? 'mês' : 'meses'}) = ${formatPct(ir.i * 100)} ao mês.`
+    };
   }
 
   function calcular() {
@@ -221,7 +242,7 @@
     const atual = dinheiro('atual');
     const qtd = Math.max(1, Math.round(parseFloat($('prazo').value) || 1));
     const n = Math.min($('prazo-unidade').value === 'anos' ? qtd * 12 : qtd, 600);
-    const { i, texto } = lerTaxa();
+    const { i, ir, texto } = lerTaxa(n);
     $('rendimento-dica').textContent = $('rendimento').value === 'cdi' ? `${formatPct(taxas.cdi)} ao ano` : '';
 
     const aporte = aporteNecessario(meta, atual, i, n);
@@ -235,7 +256,7 @@
     $('resultados').innerHTML = [
       cardResultado({
         titulo: 'Guardar por mês', destaque: true,
-        descricao: i > 0 ? `Durante ${meses}, com o dinheiro rendendo` : `Durante ${meses}`,
+        descricao: i > 0 ? `Durante ${meses}, com rendimento${ir ? ' líquido de IR' : ''}` : `Durante ${meses}`,
         rotulo: 'Depósito mensal', valor: brl(aporte),
         linhas: [
           ['Sai do seu bolso', brl(depositado)],
@@ -271,7 +292,7 @@
     $('p-pct').textContent = formatPct(pctMeta, { casas: 0 });
     $('p-legenda').textContent = `${brl(atual)} de ${brl(meta)}`;
 
-    $('meta-obs').textContent = `${texto} Depósitos iguais no fim de cada mês, sem descontar Imposto de Renda.`;
+    $('meta-obs').textContent = `${texto} Depósitos iguais no fim de cada mês.`;
     renderGrafico(serieAcumulacao(atual, aporte, i, n), n, i);
   }
 
@@ -319,7 +340,7 @@
   }
 
   ['meta', 'atual', 'prazo', 'taxa'].forEach(id => $(id).addEventListener('input', calcular));
-  ['prazo-unidade', 'rendimento', 'taxa-unidade'].forEach(id => $(id).addEventListener('change', calcular));
+  ['prazo-unidade', 'rendimento', 'taxa-unidade', 'taxa-ir'].forEach(id => $(id).addEventListener('change', calcular));
 
   calcular();
   getTaxasBCB().then(t => { taxas = t; calcular(); });
