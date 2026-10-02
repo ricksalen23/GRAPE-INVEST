@@ -12,10 +12,12 @@
  *   <p class="tool-disclaimer" data-aviso-educativo>texto extra</p>  → começa com "Simulação educativa. Não é recomendação…"
  *   <div class="tool-faq" data-faq><details><summary>Pergunta</summary><div>Resposta</div></details>…</div>
  *                                                         → perguntas ficam no HTML; o kit gera o schema.org FAQPage
+ *   <div class="tool-rendimento" data-rendimento></div>  → seletor de rendimento (CDI líquido de IR / outra taxa / sem);
+ *                                                           ligue com Warden.campoRendimento(el, calcular)
  * Funções: formatBRL, formatBRLCompacto, formatPct, formatNumero, parseNumero, campoBRL,
  *          getTaxasBCB (+ TAXAS_REFERENCIA, fonteTaxa), IR_REGRESSIVO, aliquotaIR, liquidaDeIR,
- *          taxaMensal, aporteNecessario, serieAcumulacao,
- *          cardResultado, estiloGrafico.
+ *          taxaMensal, taxaMensalDe, parcelaPrice, aporteNecessario, serieAcumulacao,
+ *          campoRendimento, copiarTexto, cardResultado, estiloGrafico.
  */
 (function () {
   /* ===== FORMATAÇÃO ===== */
@@ -183,6 +185,14 @@
   /* ===== MATEMÁTICA FINANCEIRA ===== */
   // taxa anual em % → taxa mensal equivalente (decimal). 12% a.a. → 0,009489
   const taxaMensal = anualPct => Math.pow(1 + anualPct / 100, 1 / 12) - 1;
+  // taxa digitada (%) com o período escolhido num <select> ('am' = ao mês, 'aa' = ao ano) → taxa mensal (decimal)
+  const taxaMensalDe = (valorPct, periodo) => periodo === 'aa' ? taxaMensal(valorPct) : valorPct / 100;
+
+  // Tabela Price: parcela fixa = PV × i ÷ (1 − (1 + i)^−n). Sem juros (i = 0): PV ÷ n.
+  function parcelaPrice(pv, i, n) {
+    if (n <= 0) return 0;
+    return i === 0 ? pv / n : pv * i / (1 - Math.pow(1 + i, -n));
+  }
 
   // Aporte mensal (no fim de cada mês) para sair de `atual` e chegar a `meta` em `n` meses, com juros `i` ao mês (decimal):
   //   aporte = (meta − atual·(1+i)^n) · i / ((1+i)^n − 1)        sem juros (i = 0): (meta − atual) / n
@@ -203,6 +213,112 @@
       depositado.push(depositado[m - 1] + aporte);
     }
     return { saldo, depositado };
+  }
+
+  /* ===== SELETOR DE RENDIMENTO =====
+   * <div class="tool-rendimento" data-rendimento></div> dentro do formulário (um por página; os ids são fixos).
+   * O kit desenha: "Rendimento" (CDI de hoje / Sem rendimento / Outra taxa) + taxa com período (% ao mês/ano)
+   * + caixa "Descontar Imposto de Renda" (só em Outra taxa; o CDI sempre desconta).
+   * Na página: const rend = Warden.campoRendimento(el, calcular);   // calcular roda a cada mudança e quando o CDI chega
+   *            const { i, ir, texto } = rend.ler(meses);             // i = taxa mensal (decimal) já líquida de IR quando for o caso */
+  const HTML_RENDIMENTO = `
+        <div class="tool-field">
+          <label for="rendimento">Rendimento</label>
+          <div class="tool-input">
+            <select id="rendimento" class="tool-rendimento-tipo">
+              <option value="cdi" selected>CDI de hoje</option>
+              <option value="zero">Sem rendimento</option>
+              <option value="outra">Outra taxa</option>
+            </select>
+          </div>
+          <span class="tool-hint" id="rendimento-dica"></span>
+        </div>
+        <div class="tool-field" id="campo-taxa" hidden>
+          <label for="taxa">Taxa</label>
+          <div class="tool-input">
+            <input type="number" id="taxa" value="1" min="0" max="100" step="0.01" inputmode="decimal">
+            <select id="taxa-unidade" aria-label="Período da taxa">
+              <option value="am" selected>% ao mês</option>
+              <option value="aa">% ao ano</option>
+            </select>
+          </div>
+          <span class="tool-hint" id="taxa-dica"></span>
+        </div>
+        <label class="tool-ir" id="linha-ir" hidden>
+          <input type="checkbox" id="taxa-ir" checked>
+          <span><strong>Descontar Imposto de Renda</strong> (CDB, Tesouro). Desmarque para LCI, LCA e poupança, que são isentas, ou se a taxa já for líquida.</span>
+        </label>
+      `;
+
+  function montarRendimentos() {
+    document.querySelectorAll('[data-rendimento]').forEach(el => { el.innerHTML = HTML_RENDIMENTO; });
+  }
+
+  function campoRendimento(el, aoMudar) {
+    const q = id => el.querySelector('#' + id);
+    let taxas = { ...TAXAS_REFERENCIA };
+    ['taxa'].forEach(id => q(id).addEventListener('input', aoMudar));
+    ['rendimento', 'taxa-unidade', 'taxa-ir'].forEach(id => q(id).addEventListener('change', aoMudar));
+    getTaxasBCB().then(t => { taxas = t; aoMudar(); });
+
+    // taxa mensal conforme a opção; IR: alíquota da tabela regressiva para `meses`, descontada do rendimento de todo mês
+    function ler(meses) {
+      const tipo = q('rendimento').value;
+      q('campo-taxa').hidden = q('linha-ir').hidden = tipo !== 'outra';
+      q('rendimento-dica').textContent = tipo === 'cdi' ? `${formatPct(taxas.cdi)} ao ano` : '';
+      if (tipo === 'zero') return { i: 0, bruta: 0, ir: false, aliquota: 0, tipo, texto: 'Sem rendimento: o dinheiro fica parado.' };
+
+      let bruta, texto;
+      if (tipo === 'cdi') {
+        bruta = taxaMensal(taxas.cdi);
+        texto = `CDI de ${formatPct(taxas.cdi)} ao ano (${fonteTaxa(taxas)})`;
+      } else {
+        const v = Math.max(0, parseFloat(q('taxa').value) || 0);
+        if (q('taxa-unidade').value === 'am') {
+          bruta = v / 100;
+          q('taxa-dica').textContent = `Equivale a ${formatPct((Math.pow(1 + bruta, 12) - 1) * 100)} ao ano`;
+          texto = `taxa informada de ${formatPct(v)} ao mês`;
+        } else {
+          bruta = taxaMensal(v);
+          q('taxa-dica').textContent = `Equivale a ${formatPct(bruta * 100)} ao mês`;
+          texto = `taxa informada de ${formatPct(v)} ao ano ≈ ${formatPct(bruta * 100)} ao mês`;
+        }
+      }
+
+      if (tipo !== 'cdi' && !q('taxa-ir').checked) return { i: bruta, bruta, ir: false, aliquota: 0, tipo, texto: `Rendimento: ${texto}, sem desconto de IR.` };
+      const liq = liquidaDeIR(bruta, meses);
+      return {
+        i: liq.i, bruta, ir: true, aliquota: liq.aliquota, tipo,
+        texto: `Rendimento líquido de IR: ${texto}, menos ${formatPct(liq.aliquota * 100, { curto: true })} de Imposto de Renda (alíquota para ${meses} ${meses === 1 ? 'mês' : 'meses'}) = ${formatPct(liq.i * 100)} ao mês.`
+      };
+    }
+    return { ler };
+  }
+
+  /* ===== COPIAR TEXTO ===== */
+  // Copia para a área de transferência; em navegadores sem permissão/API, usa um <textarea> temporário.
+  // A API pode ficar esperando uma permissão que nunca chega: depois de 1,5 s, desiste e usa o plano B.
+  // Retorna Promise<boolean> (true = copiou).
+  async function copiarTexto(texto) {
+    try {
+      await Promise.race([
+        navigator.clipboard.writeText(texto),
+        new Promise((_, falhar) => setTimeout(() => falhar(new Error('clipboard sem resposta')), 1500))
+      ]);
+      return true;
+    } catch (err) {
+      const ta = document.createElement('textarea');
+      ta.value = texto;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      let ok = false;
+      try { ok = document.execCommand('copy'); } catch (e) { /* sem cópia */ }
+      ta.remove();
+      return ok;
+    }
   }
 
   /* ===== COMPONENTES ===== */
@@ -321,6 +437,7 @@
   }
 
   montarCrumbs();
+  montarRendimentos();
   montarPontes();
   montarAvisos();
   montarFaq();
@@ -329,7 +446,8 @@
     formatBRL, formatBRLCompacto, formatNumero, formatPct, parseNumero, campoBRL,
     TAXAS_REFERENCIA, getTaxasBCB, fonteTaxa,
     IR_REGRESSIVO, aliquotaIR, liquidaDeIR,
-    taxaMensal, aporteNecessario, serieAcumulacao,
+    taxaMensal, taxaMensalDe, parcelaPrice, aporteNecessario, serieAcumulacao,
+    campoRendimento, copiarTexto,
     cardResultado, estiloGrafico
   };
 })();

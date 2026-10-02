@@ -467,3 +467,42 @@ section { padding: 96px 5%; position: relative; }
 @media (prefers-reduced-motion: reduce) {
   .tool-pill span, .tool-progress > span { transition: none; }
 }
+
+/* seletor de rendimento (o tools.js desenha o conteúdo de [data-rendimento]) */
+.tool-rendimento { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 26px 28px; border-top: 1px solid var(--border); padding-top: 22px; }
+.tool-rendimento:empty { min-height: 98px; }   /* reserva o espaço até o kit desenhar */
+.tool-rendimento-tipo { flex: 1; }
+.tool-ir { grid-column: 1 / -1; display: flex; gap: 10px; align-items: flex-start; font-size: .84rem; color: var(--muted); line-height: 1.5; cursor: pointer; }
+.tool-ir input { accent-color: var(--accent); width: 16px; height: 16px; margin-top: 2px; flex-shrink: 0; cursor: pointer; }
+.tool-ir strong { color: var(--text); font-weight: 600; }
+
+/* tabela recolhível (amortização, mês a mês): <details class="tool-details"><summary>…</summary><div class="tool-table-wrap"><table class="tool-table">… */
+.tool-details { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; margin-top: 16px; }
+.tool-details > summary {
+  list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 16px;
+  padding: 18px 24px; cursor: pointer; font-weight: 600; font-size: .95rem;
+}
+.tool-details > summary::-webkit-details-marker { display: none; }
+.tool-details > summary::after { content: '+'; font-family: 'IBM Plex Mono', monospace; font-size: 1.2rem; color: var(--accent); transition: transform .18s ease; }
+.tool-details[open] > summary::after { transform: rotate(45deg); }
+.tool-details > summary:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; border-radius: 16px; }
+.tool-table-wrap { overflow-x: auto; max-height: 480px; overflow-y: auto; border-top: 1px solid var(--border); }
+.tool-table { width: 100%; border-collapse: collapse; font-size: .84rem; }
+.tool-table th, .tool-table td { padding: 9px 24px; text-align: right; white-space: nowrap; border-bottom: 1px solid var(--border); }
+.tool-table th:first-child, .tool-table td:first-child { text-align: left; }
+.tool-table thead th {
+  position: sticky; top: 0; background: var(--surface2); color: var(--muted);
+  font-size: .7rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+}
+.tool-table td { font-family: 'IBM Plex Mono', monospace; }
+.tool-table td:first-child { font-family: 'Inter', sans-serif; color: var(--muted); }
+.tool-table tr.destaque td { color: var(--accent); }
+
+@media (max-width: 640px) {
+  .tool-rendimento { grid-template-columns: 1fr; gap: 22px; }
+  .tool-details > summary { padding: 16px 18px; }
+  .tool-table th, .tool-table td { padding: 8px 14px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tool-details > summary::after { transition: none; }
+}

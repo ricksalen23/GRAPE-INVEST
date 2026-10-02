@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>À vista ou parcelado? Calculadora que diz qual compensa | Warden</title>
+<meta name="description" content="Desconto à vista ou parcelas sem juros? Compare o preço à vista com o valor presente das parcelas, com o rendimento do CDI de hoje, e veja quanto você economiza.">
+<link rel="canonical" href="https://wardenfinance.com.br/ferramentas/a-vista-ou-parcelado.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="À vista ou parcelado? | Warden">
+<meta property="og:description" content="Descubra se vale mais pagar à vista ou parcelar, levando em conta quanto o seu dinheiro rende.">
+<meta property="og:url" content="https://wardenfinance.com.br/ferramentas/a-vista-ou-parcelado.html">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/warden.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Calculadora À Vista ou Parcelado",
+  "url": "https://wardenfinance.com.br/ferramentas/a-vista-ou-parcelado.html",
+  "applicationCategory": "FinanceApplication",
+  "operatingSystem": "Any",
+  "inLanguage": "pt-BR",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "BRL" },
+  "publisher": { "@type": "Organization", "name": "Warden", "url": "https://wardenfinance.com.br/" }
+}
+</script>
+<style>
+  /* ===== À VISTA OU PARCELADO (só desta página; estrutura e componentes vêm do /assets/warden.css) ===== */
+  .av-form { display: flex; flex-direction: column; gap: 26px; }
+  .av-linha { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 26px 28px; }
+  .av-parcelas { border-top: 1px solid var(--border); padding-top: 22px; }
+
+  /* veredito: a resposta em uma frase grande */
+  .av-veredito { margin-top: 28px; border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .av-veredito .section-label { margin-bottom: 8px; }
+  .av-veredito h2 { font-family: 'Fraunces', serif; font-weight: 600; font-size: clamp(1.6rem, 3.4vw, 2.3rem); line-height: 1.15; letter-spacing: -.01em; }
+  .av-veredito h2 em { font-style: normal; color: var(--accent); }
+  .av-veredito p { margin-top: 10px; color: var(--muted); font-size: .95rem; line-height: 1.6; max-width: 760px; }
+  .av-veredito p strong { color: var(--text); font-weight: 600; }
+  .av-obs { margin-top: 16px; }
+
+  @media (max-width: 640px) {
+    .av-linha { grid-template-columns: 1fr; gap: 22px; }
+  }
+</style>
+</head>
+<body>
+
+<script src="/assets/nav.js"></script>
+
+<section class="tool-top">
+  <div class="section-inner">
+
+    <header class="tool-head">
+      <div class="tool-crumbs" data-crumbs></div>
+      <h1 class="tool-title">À vista ou parcelado: qual vale mais a pena?</h1>
+      <p class="tool-lead">"12x sem juros" ou desconto no Pix? A resposta depende de quanto o seu dinheiro rende enquanto as parcelas não vencem. Coloque as duas ofertas e veja qual sai mais barata de verdade.</p>
+    </header>
+
+    <!-- ENTRADAS -->
+    <form class="tool-card av-form" id="av-form" onsubmit="return false">
+      <fieldset class="tool-pillset">
+        <legend class="tool-field"><span class="tool-label">Como é a oferta à vista?</span></legend>
+        <div class="tool-pills">
+          <label class="tool-pill"><input type="radio" name="modo" value="valor" checked><span>Tenho o preço à vista</span></label>
+          <label class="tool-pill"><input type="radio" name="modo" value="desconto"><span>Tenho o % de desconto</span></label>
+        </div>
+      </fieldset>
+
+      <div class="av-linha">
+        <div class="tool-field" id="campo-avista">
+          <label for="avista">Preço à vista</label>
+          <div class="tool-input"><span class="pre">R$</span><input type="text" id="avista" value="1100"></div>
+        </div>
+        <div class="tool-field" id="campo-desconto" hidden>
+          <label for="desconto">Desconto à vista</label>
+          <div class="tool-input"><input type="number" id="desconto" value="5" min="0" max="99" step="0.5" inputmode="decimal"><span class="suf">% sobre o parcelado</span></div>
+        </div>
+      </div>
+
+      <div class="av-parcelas">
+        <div class="tool-fields">
+          <div class="tool-field">
+            <label for="n">Número de parcelas</label>
+            <div class="tool-input"><input type="number" id="n" value="12" min="1" max="120" step="1" inputmode="numeric"><span class="suf">vezes</span></div>
+          </div>
+          <div class="tool-field">
+            <label for="parcela">Valor de cada parcela</label>
+            <div class="tool-input"><span class="pre">R$</span><input type="text" id="parcela" value="100"></div>
+            <span class="tool-hint" id="parcela-dica"></span>
+          </div>
+        </div>
+      </div>
+
+      <fieldset class="tool-pillset">
+        <legend class="tool-field"><span class="tool-label">Quando vence a primeira parcela?</span></legend>
+        <div class="tool-pills">
+          <label class="tool-pill"><input type="radio" name="primeira" value="1" checked><span>Daqui a 1 mês</span></label>
+          <label class="tool-pill"><input type="radio" name="primeira" value="0"><span>Hoje, na compra</span></label>
+        </div>
+      </fieldset>
+
+      <div class="tool-rendimento" id="rendimento-campos" data-rendimento></div>
+    </form>
+
+    <!-- VEREDITO -->
+    <div class="tool-card av-veredito" aria-live="polite">
+      <p class="section-label">Veredito</p>
+      <h2 id="veredito"></h2>
+      <p id="veredito-texto"></p>
+    </div>
+
+    <div class="result-grid" id="resultados"></div>
+    <p class="tool-obs av-obs" id="av-obs"></p>
+
+  </div>
+</section>
+
+<!-- EXPLICAÇÃO + FAQ -->
+<section class="tool-prose-section">
+  <div class="section-inner">
+    <article class="tool-prose">
+      <h2>Como a calculadora decide</h2>
+      <p>R$ 100 daqui a um ano valem menos que R$ 100 hoje, porque o dinheiro que fica com você pode render nesse meio-tempo. Por isso não basta comparar o preço à vista com a soma das parcelas: é preciso trazer cada parcela para o <strong>valor de hoje</strong>.</p>
+      <p>Esse é o <strong>valor presente</strong> das parcelas: quanto você precisaria ter aplicado hoje para pagar todas elas na data, com o dinheiro rendendo. A conta é <strong>valor presente = Σ parcela ÷ (1 + i)<sup>t</sup></strong>, onde i é o rendimento mensal e t é o mês de cada parcela (0 se a primeira for hoje).</p>
+      <ul>
+        <li><strong>Valor presente maior que o preço à vista:</strong> pagar à vista sai mais barato.</li>
+        <li><strong>Valor presente menor que o preço à vista:</strong> vale parcelar e deixar o dinheiro rendendo até cada vencimento.</li>
+      </ul>
+
+      <h3>Os "juros embutidos" no parcelado</h3>
+      <p>Se a loja dá desconto à vista, o "sem juros" do parcelado não é bem sem juros: a diferença de preço funciona como juros. A calculadora mostra quanto é essa taxa ao mês. Se ela for maior que o rendimento do seu dinheiro, pague à vista.</p>
+
+      <h3>O rendimento usado</h3>
+      <p>O padrão é o <strong>CDI de hoje, líquido de Imposto de Renda</strong> (alíquota da tabela regressiva para o prazo do parcelamento), que é quanto rende, mais ou menos, um CDB de liquidez diária ou o Tesouro Selic. Se o seu dinheiro rende outra taxa, escolha "Outra taxa". Uma condição importante: parcelar só compensa se o dinheiro do à vista <strong>ficar de fato investido</strong> até as parcelas vencerem.</p>
+
+      <p class="tool-disclaimer" data-aviso-educativo>A calculadora considera o rendimento fixo durante o parcelamento e não inclui IOF de compras parceladas com juros, cashback, pontos ou frete, que podem mudar a conta.</p>
+    </article>
+
+    <div class="tool-faq" data-faq>
+      <h2>Perguntas frequentes</h2>
+      <details>
+        <summary>"12x sem juros" é mesmo sem juros?</summary>
+        <div><p>Só se o preço à vista for igual à soma das parcelas. Se existe desconto para pagar à vista, os juros estão embutidos no preço parcelado. A calculadora mostra quanto eles representam ao mês, para você comparar com o que o seu dinheiro rende.</p></div>
+      </details>
+      <details>
+        <summary>Se não há desconto à vista, vale sempre parcelar?</summary>
+        <div><p>Em termos de dinheiro, sim: você paga o mesmo valor e deixa o dinheiro rendendo até cada vencimento. Mas só vale se você realmente guardar e investir esse dinheiro, e se as parcelas não apertarem o orçamento dos próximos meses.</p></div>
+      </details>
+      <details>
+        <summary>Que rendimento devo considerar?</summary>
+        <div><p>O que o seu dinheiro renderia de verdade nesse período. Para quem guarda em CDB de liquidez diária ou Tesouro Selic, o CDI líquido de IR (o padrão) é uma boa referência. Se o dinheiro fica na conta corrente, sem render, escolha "Sem rendimento": aí só o desconto conta.</p></div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- PONTE PARA O WARDEN COBRANÇA -->
+<section class="tool-bridge">
+  <div class="section-inner">
+    <div data-ponte-cobranca data-titulo="Vende parcelado e o cliente atrasa?" data-texto="O Warden Cobrança manda cada parcela no WhatsApp, com Pix, lembra antes do vencimento e confirma o pagamento sozinho."></div>
+  </div>
+</section>
+
+<script src="/assets/tools.js"></script>
+<script>
+  const { formatBRL: brl, formatPct, formatNumero, parseNumero, campoBRL, cardResultado, campoRendimento } = Warden;
+  const $ = id => document.getElementById(id);
+
+  campoBRL($('avista'));
+  campoBRL($('parcela'));
+  const dinheiro = id => { const v = parseNumero($(id).value); return isFinite(v) && v > 0 ? v : 0; };
+  const rendimento = campoRendimento($('rendimento-campos'), () => calcular());
+  const TOLERANCIA = 0.5;   // diferenças de até R$ 0,50 = "tanto faz"
+
+  // valor presente de n parcelas iguais, com juros i ao mês; a primeira vence no mês `inicio` (0 = hoje, 1 = daqui a 1 mês)
+  function valorPresente(parcela, n, i, inicio) {
+    let vp = 0;
+    for (let t = inicio; t < inicio + n; t++) vp += parcela / Math.pow(1 + i, t);
+    return vp;
+  }
+
+  // juros mensais embutidos no parcelado: a taxa r que faz o valor presente das parcelas igualar o preço à vista (busca binária)
+  // null quando não existe prazo para cobrar juros (parcela única paga hoje: é só um preço maior)
+  function jurosEmbutidos(avista, parcela, n, inicio) {
+    if (avista <= 0 || parcela * n <= avista + 0.005) return 0;
+    if (inicio === 0 && n === 1) return null;
+    let lo = 0, hi = 1;
+    for (let k = 0; k < 100; k++) {
+      const mid = (lo + hi) / 2;
+      if (valorPresente(parcela, n, mid, inicio) > avista) lo = mid; else hi = mid;
+    }
+    return (lo + hi) / 2;
+  }
+
+  function calcular() {
+    const modo = document.querySelector('input[name="modo"]:checked').value;
+    $('campo-avista').hidden = modo !== 'valor';
+    $('campo-desconto').hidden = modo !== 'desconto';
+
+    const n = Math.min(120, Math.max(1, Math.round(parseFloat($('n').value) || 1)));
+    const parcela = dinheiro('parcela');
+    const inicio = parseInt(document.querySelector('input[name="primeira"]:checked').value, 10);
+    const total = parcela * n;
+    const desconto = Math.min(99, Math.max(0, parseFloat($('desconto').value) || 0));
+    const avista = modo === 'valor' ? dinheiro('avista') : total * (1 - desconto / 100);
+    $('parcela-dica').textContent = `Total parcelado: ${brl(total)}`;
+
+    const { i, texto } = rendimento.ler(n);
+    const vp = valorPresente(parcela, n, i, inicio);
+    const r = jurosEmbutidos(avista, parcela, n, inicio);
+    const diferenca = vp - avista;   // > 0: à vista mais barato
+    const aVista = diferenca > TOLERANCIA, parcelado = diferenca < -TOLERANCIA;
+    const descontoReal = total > 0 ? (1 - avista / total) * 100 : 0;
+    const rendeAoMes = formatPct(i * 100);
+
+    if (aVista) {
+      $('veredito').innerHTML = `Pague <em>à vista</em>. Você economiza ${brl(diferenca)}.`;
+      $('veredito-texto').innerHTML = `As parcelas valem <strong>${brl(vp)}</strong> em dinheiro de hoje, mais que os ${brl(avista)} à vista. ${r === null ? `Pagando na hora, o à vista é simplesmente mais barato.` : `O parcelado embute juros de <strong>${formatPct(r * 100)} ao mês</strong>, mais do que o seu dinheiro rende (${rendeAoMes} ao mês).`}`;
+    } else if (parcelado) {
+      $('veredito').innerHTML = `<em>Parcele</em> e deixe o dinheiro rendendo. Você ganha ${brl(-diferenca)}.`;
+      $('veredito-texto').innerHTML = `As parcelas valem só <strong>${brl(vp)}</strong> em dinheiro de hoje, menos que os ${brl(avista)} à vista. ${r > 0 ? `Os juros embutidos (${formatPct(r * 100)} ao mês) são menores que o rendimento do seu dinheiro (${rendeAoMes} ao mês).` : 'Não há desconto à vista, então parcelar e deixar o dinheiro investido sai na frente.'} Isso só vale se o dinheiro ficar investido até a última parcela.`;
+    } else {
+      $('veredito').innerHTML = '<em>Tanto faz</em>: as duas opções custam o mesmo.';
+      $('veredito-texto').innerHTML = `As parcelas valem ${brl(vp)} em dinheiro de hoje, praticamente o preço à vista (${brl(avista)}). Escolha o que for mais confortável para o seu orçamento.`;
+    }
+
+    $('resultados').innerHTML = [
+      cardResultado({
+        titulo: 'À vista', descricao: descontoReal > 0.005 ? `${formatPct(descontoReal, { casas: 1 })} de desconto sobre o parcelado` : 'Sem desconto sobre o parcelado',
+        rotulo: 'Você paga hoje', valor: brl(avista),
+        destaque: aVista, selo: aVista ? 'Vale mais a pena' : ''
+      }),
+      cardResultado({
+        titulo: 'Parcelado', descricao: `${n}x de ${brl(parcela)}, a primeira ${inicio === 0 ? 'hoje' : 'daqui a 1 mês'}`,
+        rotulo: 'Valor presente das parcelas', valor: brl(vp),
+        destaque: parcelado, selo: parcelado ? 'Vale mais a pena' : '',
+        linhas: [
+          ['Soma das parcelas', brl(total)],
+          ['Juros embutidos', r === null ? '—' : r > 0 ? `${formatPct(r * 100)} ao mês` : 'nenhum'],
+          ['Seu dinheiro rende', `${rendeAoMes} ao mês`]
+        ]
+      })
+    ].join('');
+
+    $('av-obs').textContent = `${texto} Valor presente = quanto valem hoje as parcelas futuras, descontadas pelo rendimento do seu dinheiro.`;
+  }
+
+  ['avista', 'desconto', 'n', 'parcela'].forEach(id => $(id).addEventListener('input', calcular));
+  document.querySelectorAll('input[name="modo"], input[name="primeira"]').forEach(el => el.addEventListener('change', calcular));
+  calcular();
+</script>
+
+</body>
+</html>

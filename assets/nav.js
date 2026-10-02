@@ -44,12 +44,12 @@ const FERRAMENTAS = [
     { nome: 'Gerador de orçamento', url: '/ferramentas/gerador-orcamento.html', disponivel: false }
   ] },
   { categoria: 'Dívidas e consumo', icone: 'dividas', itens: [
-    { nome: 'Plano de quitação', url: '/ferramentas/plano-de-quitacao.html', disponivel: false },
-    { nome: 'SAC x Price', url: '/ferramentas/sac-x-price.html', disponivel: false },
-    { nome: 'Consórcio x financiamento', url: '/ferramentas/consorcio-x-financiamento.html', disponivel: false },
-    { nome: 'Juros do cartão', url: '/ferramentas/juros-do-cartao.html', disponivel: false },
-    { nome: 'À vista ou parcelado?', url: '/ferramentas/a-vista-ou-parcelado.html', disponivel: false },
-    { nome: 'Custo real em horas', url: '/ferramentas/custo-em-horas.html', disponivel: false }
+    { nome: 'Plano de quitação', url: '/ferramentas/plano-de-quitacao.html', disponivel: true },
+    { nome: 'SAC x Price', url: '/ferramentas/sac-x-price.html', disponivel: true },
+    { nome: 'Consórcio x financiamento', url: '/ferramentas/consorcio-x-financiamento.html', disponivel: true },
+    { nome: 'Juros do cartão', url: '/ferramentas/juros-do-cartao.html', disponivel: true },
+    { nome: 'À vista ou parcelado?', url: '/ferramentas/a-vista-ou-parcelado.html', disponivel: true },
+    { nome: 'Custo real em horas', url: '/ferramentas/custo-real-em-horas.html', disponivel: true }
   ] },
   { categoria: 'Planejamento', icone: 'plano', itens: [
     { nome: 'Reserva de emergência', url: '/ferramentas/reserva-de-emergencia.html', disponivel: true },

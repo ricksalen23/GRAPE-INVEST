@@ -644,12 +644,11 @@
   $('btn-copiar').addEventListener('click', async () => {
     if (!atual) return;
     const btn = $('btn-copiar');
-    try {
-      await navigator.clipboard.writeText(atual.payload);
-    } catch (err) {
-      // navegadores antigos / sem permissão: seleciona e usa o comando de copiar
-      $('copia-cola').select();
-      document.execCommand('copy');
+    if (!await Warden.copiarTexto(atual.payload)) {
+      // o navegador não deixou copiar: deixa o código selecionado para a pessoa copiar na mão
+      $('copia-cola').focus();
+      status('Não foi possível copiar sozinho. O código está selecionado: copie com Ctrl+C ou segurando o dedo.');
+      return;
     }
     btn.textContent = 'Copiado!';
     status('Pix copia e cola copiado. É só colar para o cliente.');

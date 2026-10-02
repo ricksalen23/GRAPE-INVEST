@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>SAC ou Price? Simulador de financiamento com tabela | Warden</title>
+<meta name="description" content="Compare SAC e Tabela Price: primeira e última parcela, total pago, juros de cada sistema e a tabela de amortização completa, mês a mês. Simulador grátis.">
+<link rel="canonical" href="https://wardenfinance.com.br/ferramentas/sac-x-price.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="SAC ou Price? Simulador de financiamento | Warden">
+<meta property="og:description" content="Veja lado a lado as parcelas, o total pago e os juros no SAC e na Tabela Price.">
+<meta property="og:url" content="https://wardenfinance.com.br/ferramentas/sac-x-price.html">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/warden.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Simulador SAC x Price",
+  "url": "https://wardenfinance.com.br/ferramentas/sac-x-price.html",
+  "applicationCategory": "FinanceApplication",
+  "operatingSystem": "Any",
+  "inLanguage": "pt-BR",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "BRL" },
+  "publisher": { "@type": "Organization", "name": "Warden", "url": "https://wardenfinance.com.br/" }
+}
+</script>
+<style>
+  /* ===== SAC x PRICE (só desta página; estrutura e componentes vêm do /assets/warden.css) ===== */
+  .sp-resumo { margin-top: 20px; }
+  .sp-tabelas { margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<script src="/assets/nav.js"></script>
+
+<section class="tool-top">
+  <div class="section-inner">
+
+    <header class="tool-head">
+      <div class="tool-crumbs" data-crumbs></div>
+      <h1 class="tool-title">SAC ou Price: qual financiamento sai mais barato?</h1>
+      <p class="tool-lead">Os dois sistemas emprestam o mesmo dinheiro, mas devolvem de jeitos diferentes. Na Price as parcelas são iguais; no SAC elas começam maiores e vão caindo. Veja quanto você paga em cada um.</p>
+    </header>
+
+    <!-- ENTRADAS -->
+    <form class="tool-card" id="sp-form" onsubmit="return false">
+      <div class="tool-fields">
+        <div class="tool-field">
+          <label for="valor">Valor financiado</label>
+          <div class="tool-input"><span class="pre">R$</span><input type="text" id="valor" value="100000"></div>
+          <span class="tool-hint">O valor do bem menos a entrada</span>
+        </div>
+        <div class="tool-field">
+          <label for="juros">Juros</label>
+          <div class="tool-input">
+            <input type="number" id="juros" value="1" min="0" max="100" step="0.01" inputmode="decimal">
+            <select id="juros-periodo" aria-label="Período dos juros">
+              <option value="am" selected>% ao mês</option>
+              <option value="aa">% ao ano</option>
+            </select>
+          </div>
+          <span class="tool-hint" id="juros-dica"></span>
+        </div>
+        <div class="tool-field">
+          <label for="prazo">Prazo</label>
+          <div class="tool-input"><input type="number" id="prazo" value="120" min="1" max="600" step="1" inputmode="numeric"><span class="suf">meses</span></div>
+        </div>
+      </div>
+    </form>
+
+    <!-- RESULTADO -->
+    <div class="result-grid" id="resultados" aria-live="polite"></div>
+    <div class="tool-note sp-resumo" id="resumo" role="status">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>
+      <span id="resumo-texto"></span>
+    </div>
+
+    <div class="tool-card tool-chart">
+      <h2>Parcelas ao longo do tempo</h2>
+      <p>Na Price a parcela é a mesma do começo ao fim; no SAC ela cai um pouco todo mês.</p>
+      <div class="tool-chart-box"><canvas id="grafico" role="img" aria-label="Gráfico de linha com o valor das parcelas mês a mês no SAC e na Price"></canvas></div>
+    </div>
+
+    <div class="sp-tabelas">
+      <details class="tool-details">
+        <summary id="t-price-titulo">Tabela de amortização: Price</summary>
+        <div class="tool-table-wrap"><table class="tool-table">
+          <thead><tr><th>Mês</th><th>Parcela</th><th>Juros</th><th>Amortização</th><th>Saldo devedor</th></tr></thead>
+          <tbody id="t-price"></tbody>
+        </table></div>
+      </details>
+      <details class="tool-details">
+        <summary id="t-sac-titulo">Tabela de amortização: SAC</summary>
+        <div class="tool-table-wrap"><table class="tool-table">
+          <thead><tr><th>Mês</th><th>Parcela</th><th>Juros</th><th>Amortização</th><th>Saldo devedor</th></tr></thead>
+          <tbody id="t-sac"></tbody>
+        </table></div>
+      </details>
+    </div>
+
+  </div>
+</section>
+
+<!-- EXPLICAÇÃO + FAQ -->
+<section class="tool-prose-section">
+  <div class="section-inner">
+    <article class="tool-prose">
+      <h2>Como funcionam o SAC e a Tabela Price</h2>
+      <p>Toda parcela de financiamento tem duas partes: os <strong>juros</strong> do mês, calculados sobre o que você ainda deve, e a <strong>amortização</strong>, que é o pedaço da dívida que você efetivamente paga. A diferença entre os sistemas está em como essas partes se combinam.</p>
+
+      <h3>Tabela Price: parcelas iguais</h3>
+      <p>A parcela é fixa do primeiro ao último mês: <strong>parcela = valor × i ÷ (1 − (1 + i)<sup>−n</sup>)</strong>, onde i é a taxa de juros ao mês e n o número de parcelas. No começo, quase toda a parcela é juros e a dívida cai devagar. É o sistema mais comum em financiamento de carro, empréstimo pessoal e crediário.</p>
+
+      <h3>SAC: amortização constante</h3>
+      <p>A dívida cai sempre o mesmo valor por mês: <strong>amortização = valor ÷ n</strong>. Os juros são calculados sobre o saldo, que vai diminuindo, então a parcela começa maior e cai todo mês. Como a dívida diminui mais rápido, você paga <strong>menos juros no total</strong>. É o sistema mais usado no financiamento imobiliário.</p>
+
+      <h3>Qual escolher?</h3>
+      <ul>
+        <li><strong>SAC</strong> se a primeira parcela cabe no seu orçamento com folga: você paga menos juros e as parcelas ficam mais leves com o tempo.</li>
+        <li><strong>Price</strong> se você precisa da menor parcela possível no começo. Você paga mais juros, mas o orçamento fica previsível.</li>
+      </ul>
+      <p>Em qualquer um, adiantar parcelas ou amortizar com dinheiro extra reduz os juros. Se for amortizar, prefira reduzir o prazo em vez da parcela: a economia costuma ser maior.</p>
+
+      <p class="tool-disclaimer" data-aviso-educativo>O cálculo considera juros fixos e não inclui seguros obrigatórios (MIP e DFI), taxas de administração, IOF nem correção pela TR ou pela inflação, que existem em muitos financiamentos. Para o custo completo, peça ao banco o CET (Custo Efetivo Total).</p>
+    </article>
+
+    <div class="tool-faq" data-faq>
+      <h2>Perguntas frequentes</h2>
+      <details>
+        <summary>Por que no SAC eu pago menos juros?</summary>
+        <div><p>Porque a dívida cai mais rápido. No SAC você amortiza o mesmo valor todo mês desde o início; na Price, as primeiras parcelas são quase só juros. Como os juros são cobrados sobre o saldo devedor, quem deve menos por menos tempo paga menos juros.</p></div>
+      </details>
+      <details>
+        <summary>A Tabela Price é ilegal ou abusiva?</summary>
+        <div><p>Não. A Price é um método de cálculo aceito e muito usado. Ela não esconde juros: as parcelas são maiores no total porque a dívida é paga mais devagar. O que importa é comparar a taxa de juros e o CET entre as propostas.</p></div>
+      </details>
+      <details>
+        <summary>Posso trocar de SAC para Price no meio do financiamento?</summary>
+        <div><p>Depende do contrato e do banco. Alguns permitem renegociar; outros não. A forma mais simples de reduzir juros em qualquer sistema é amortizar com dinheiro extra, o que todo banco é obrigado a aceitar, com desconto proporcional dos juros.</p></div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- PONTE PARA O WARDEN COBRANÇA -->
+<section class="tool-bridge">
+  <div class="section-inner">
+    <div data-ponte-cobranca data-titulo="Parcela em dia depende de dinheiro entrando em dia." data-texto="O Warden Cobrança cobra seus clientes no WhatsApp, com Pix, e lembra quem atrasou. Sua renda fica previsível."></div>
+  </div>
+</section>
+
+<script src="/assets/tools.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+  const { formatBRL: brl, formatBRLCompacto, formatPct, parseNumero, campoBRL, cardResultado, estiloGrafico, taxaMensalDe, parcelaPrice } = Warden;
+  const $ = id => document.getElementById(id);
+
+  campoBRL($('valor'));
+
+  function lerEntradas() {
+    const pv = Math.max(0, parseNumero($('valor').value) || 0);
+    const taxa = Math.max(0, parseFloat($('juros').value) || 0);
+    const periodo = $('juros-periodo').value;
+    const i = taxaMensalDe(taxa, periodo);
+    const n = Math.min(600, Math.max(1, Math.round(parseFloat($('prazo').value) || 1)));
+    $('juros-dica').textContent = periodo === 'am'
+      ? `Equivale a ${formatPct((Math.pow(1 + i, 12) - 1) * 100)} ao ano`
+      : `Equivale a ${formatPct(i * 100)} ao mês`;
+    return { pv, i, n };
+  }
+
+  // Price: parcela fixa; juros = saldo × i; amortização = parcela − juros
+  function tabelaPrice(pv, i, n) {
+    const parcela = parcelaPrice(pv, i, n);
+    let saldo = pv;
+    const linhas = [];
+    for (let k = 1; k <= n; k++) {
+      const juros = saldo * i;
+      const amort = k === n ? saldo : parcela - juros;   // última parcela zera o saldo (sem resto de arredondamento)
+      saldo -= amort;
+      linhas.push({ k, parcela: amort + juros, juros, amort, saldo: Math.max(0, saldo) });
+    }
+    return linhas;
+  }
+
+  // SAC: amortização fixa = PV ÷ n; juros = saldo × i; parcela = amortização + juros
+  function tabelaSAC(pv, i, n) {
+    const amort = pv / n;
+    let saldo = pv;
+    const linhas = [];
+    for (let k = 1; k <= n; k++) {
+      const juros = saldo * i;
+      saldo -= amort;
+      linhas.push({ k, parcela: amort + juros, juros, amort, saldo: Math.max(0, saldo) });
+    }
+    return linhas;
+  }
+
+  const resumo = linhas => {
+    const total = linhas.reduce((s, l) => s + l.parcela, 0);
+    const juros = linhas.reduce((s, l) => s + l.juros, 0);
+    return { primeira: linhas[0].parcela, ultima: linhas[linhas.length - 1].parcela, total, juros };
+  };
+
+  const linhasTabela = linhas => linhas.map(l =>
+    `<tr><td>${l.k}</td><td>${brl(l.parcela)}</td><td>${brl(l.juros)}</td><td>${brl(l.amort)}</td><td>${brl(l.saldo)}</td></tr>`).join('');
+
+  function calcular() {
+    const { pv, i, n } = lerEntradas();
+    const price = tabelaPrice(pv, i, n), sac = tabelaSAC(pv, i, n);
+    const rp = resumo(price), rs = resumo(sac);
+    const economia = rp.juros - rs.juros;
+    const sacMelhor = economia > 0.005;
+    // mês em que a parcela do SAC fica menor ou igual à da Price
+    const cruzamento = sac.findIndex(l => l.parcela <= rp.primeira + 0.005) + 1;
+
+    $('resultados').innerHTML = [
+      cardResultado({
+        titulo: 'Tabela Price', descricao: 'Parcelas iguais do começo ao fim',
+        rotulo: 'Parcela', valor: brl(rp.primeira),
+        linhas: [
+          ['Primeira parcela', brl(rp.primeira)],
+          ['Última parcela', brl(rp.ultima)],
+          ['Total pago', brl(rp.total)],
+          ['Juros totais', brl(rp.juros)]
+        ]
+      }),
+      cardResultado({
+        titulo: 'SAC', descricao: 'Parcelas que começam maiores e vão caindo',
+        rotulo: 'Primeira parcela', valor: brl(rs.primeira),
+        destaque: sacMelhor, selo: sacMelhor ? 'Menos juros' : '',
+        linhas: [
+          ['Primeira parcela', brl(rs.primeira)],
+          ['Última parcela', brl(rs.ultima)],
+          ['Total pago', brl(rs.total)],
+          ['Juros totais', brl(rs.juros)]
+        ]
+      }),
+      cardResultado({
+        titulo: 'Diferença', descricao: 'Quanto o SAC economiza de juros em relação à Price',
+        rotulo: 'Economia no SAC', valor: brl(Math.max(0, economia)),
+        linhas: [
+          ['1ª parcela do SAC', `${brl(rs.primeira - rp.primeira)} a mais`],
+          ['SAC fica mais barato a partir do mês', cruzamento > 0 ? String(cruzamento) : '—']
+        ]
+      })
+    ].join('');
+
+    $('resumo-texto').innerHTML = sacMelhor
+      ? `No SAC você paga <strong>${brl(economia)} a menos de juros</strong>, mas a primeira parcela é ${brl(rs.primeira - rp.primeira)} maior. A partir do mês ${cruzamento}, a parcela do SAC fica menor que a da Price.`
+      : 'Sem juros, os dois sistemas dão o mesmo total: a diferença está só no formato das parcelas.';
+
+    $('t-price-titulo').textContent = `Tabela de amortização: Price (${n} parcelas)`;
+    $('t-sac-titulo').textContent = `Tabela de amortização: SAC (${n} parcelas)`;
+    $('t-price').innerHTML = linhasTabela(price);
+    $('t-sac').innerHTML = linhasTabela(sac);
+
+    renderGrafico(price, sac, sacMelhor);
+  }
+
+  let grafico = null;
+  function renderGrafico(price, sac, sacMelhor) {
+    if (!window.Chart) {
+      document.querySelector('.tool-chart-box').innerHTML = '<p class="tool-obs">Não foi possível carregar o gráfico agora.</p>';
+      return;
+    }
+    const g = estiloGrafico();
+    const labels = price.map(l => String(l.k));
+    // destaque (--accent) no sistema com menos juros; o outro em tom claro neutro
+    const datasets = [
+      { label: 'SAC', data: sac.map(l => l.parcela), borderColor: sacMelhor ? g.cor('--accent') : g.cor('--text'), backgroundColor: sacMelhor ? g.cor('--accent') : g.cor('--text'),
+        borderWidth: 3, pointRadius: 0, pointHoverRadius: 4, tension: 0 },
+      { label: 'Price', data: price.map(l => l.parcela), borderColor: g.cor('--text'), backgroundColor: g.cor('--text'),
+        borderDash: [7, 4], borderWidth: 1.8, pointRadius: 0, pointHoverRadius: 4, tension: 0 }
+    ];
+    if (grafico) {
+      grafico.data.labels = labels;
+      grafico.data.datasets = datasets;
+      grafico.update('none');
+      return;
+    }
+    grafico = new Chart($('grafico'), {
+      type: 'line',
+      data: { labels, datasets },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        animation: g.animacao,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: g.legenda,
+          tooltip: { ...g.tooltip, callbacks: {
+            title: items => `Parcela ${items[0].label}`,
+            label: ctx => ` ${ctx.dataset.label}: ${brl(ctx.parsed.y)}`
+          } }
+        },
+        scales: {
+          x: { title: { display: true, text: 'mês' }, grid: { display: false }, ticks: { maxTicksLimit: 12, maxRotation: 0 } },
+          y: { grid: { color: g.grade }, ticks: { callback: v => formatBRLCompacto(v) } }
+        }
+      }
+    });
+  }
+
+  ['valor', 'juros', 'prazo'].forEach(id => $(id).addEventListener('input', calcular));
+  $('juros-periodo').addEventListener('change', calcular);
+  calcular();
+</script>
+
+</body>
+</html>

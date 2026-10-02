@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Juros do cartão de crédito: simule o rotativo mês a mês | Warden</title>
+<meta name="description" content="Veja quanto sua dívida no rotativo do cartão cresce mês a mês se você pagar só uma parte da fatura, já com o teto de juros da Lei 14.690/2023. Simulador grátis.">
+<link rel="canonical" href="https://wardenfinance.com.br/ferramentas/juros-do-cartao.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Juros do cartão: simule o rotativo | Warden">
+<meta property="og:description" content="Quanto a fatura que você não pagou vira em 1, 6 e 12 meses, com o teto de juros da lei.">
+<meta property="og:url" content="https://wardenfinance.com.br/ferramentas/juros-do-cartao.html">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/warden.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Simulador de Juros do Cartão de Crédito",
+  "url": "https://wardenfinance.com.br/ferramentas/juros-do-cartao.html",
+  "applicationCategory": "FinanceApplication",
+  "operatingSystem": "Any",
+  "inLanguage": "pt-BR",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "BRL" },
+  "publisher": { "@type": "Organization", "name": "Warden", "url": "https://wardenfinance.com.br/" }
+}
+</script>
+<style>
+  /* ===== JUROS DO CARTÃO (só desta página; estrutura e componentes vêm do /assets/warden.css) ===== */
+  .jc-nota { margin-top: 20px; }
+  .jc-obs { margin-top: 16px; }
+</style>
+</head>
+<body>
+
+<script src="/assets/nav.js"></script>
+
+<section class="tool-top">
+  <div class="section-inner">
+
+    <header class="tool-head">
+      <div class="tool-crumbs" data-crumbs></div>
+      <h1 class="tool-title">Juros do cartão: quanto a fatura vira no rotativo</h1>
+      <p class="tool-lead">Pagou só uma parte da fatura? O que ficou para trás entra no rotativo, um dos juros mais caros do Brasil. Veja mês a mês quanto essa dívida cresce se você não pagar o restante.</p>
+    </header>
+
+    <!-- ENTRADAS -->
+    <form class="tool-card" id="jc-form" onsubmit="return false">
+      <div class="tool-fields">
+        <div class="tool-field">
+          <label for="fatura">Valor da fatura</label>
+          <div class="tool-input"><span class="pre">R$</span><input type="text" id="fatura" value="2000"></div>
+        </div>
+        <div class="tool-field">
+          <label for="pago">Vou pagar agora</label>
+          <div class="tool-input"><span class="pre">R$</span><input type="text" id="pago" value="300"></div>
+          <span class="tool-hint" id="pago-dica"></span>
+        </div>
+        <div class="tool-field">
+          <label for="juros">Juros do rotativo</label>
+          <div class="tool-input"><input type="number" id="juros" value="14" min="0" max="50" step="0.1" inputmode="decimal"><span class="suf">% ao mês</span></div>
+          <span class="tool-hint">Está na sua fatura, em "juros do rotativo" ou "encargos"</span>
+        </div>
+      </div>
+    </form>
+
+    <div class="tool-note jc-nota" id="jc-quitada" role="status" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+      <span><strong>Você vai pagar a fatura inteira.</strong> Assim não entra nada no rotativo e não há juros. É o melhor jeito de usar o cartão.</span>
+    </div>
+
+    <div id="jc-resultado">
+      <!-- RESULTADO -->
+      <div class="result-grid" id="resultados" aria-live="polite"></div>
+
+      <div class="tool-note jc-nota" id="jc-teto" role="status">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/></svg>
+        <span id="jc-teto-texto"></span>
+      </div>
+
+      <div class="tool-card tool-chart">
+        <h2>Sua dívida mês a mês</h2>
+        <p>Se você não pagar mais nada. Com o teto da lei, os encargos param quando chegam ao valor da dívida original.</p>
+        <div class="tool-chart-box"><canvas id="grafico" role="img" aria-label="Gráfico de linha com a dívida do cartão mês a mês, com e sem o teto de juros da lei"></canvas></div>
+      </div>
+
+      <details class="tool-details">
+        <summary>Tabela mês a mês</summary>
+        <div class="tool-table-wrap"><table class="tool-table">
+          <thead><tr><th>Mês</th><th>Juros do mês</th><th>Dívida</th><th>Sem o teto da lei</th></tr></thead>
+          <tbody id="tabela"></tbody>
+        </table></div>
+      </details>
+
+      <p class="tool-obs jc-obs">Simulação simplificada: considera a mesma taxa todo mês e nenhum pagamento depois de hoje. Não inclui IOF, que é imposto e fica fora do teto.</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- EXPLICAÇÃO + FAQ -->
+<section class="tool-prose-section">
+  <div class="section-inner">
+    <article class="tool-prose">
+      <h2>Como funcionam os juros do cartão</h2>
+      <p>Quando você paga menos que o total da fatura, o restante entra no <strong>crédito rotativo</strong>: o banco "empresta" a diferença e cobra juros sobre ela no mês seguinte. Os juros são compostos: no mês seguinte, você paga juros também sobre os juros do mês anterior. Com taxas que passam de 10% ao mês, a dívida pode dobrar em poucos meses.</p>
+
+      <h3>O teto da Lei 14.690/2023</h3>
+      <p>Desde janeiro de 2024, a <strong>Lei 14.690/2023</strong> (a lei do Desenrola) limita os juros e encargos do rotativo e do parcelamento da fatura a <strong>100% do valor original da dívida</strong>. Na prática: se você ficou devendo R$ 1.700, os juros e encargos somados não podem passar de R$ 1.700, e a dívida nunca passa de R$ 3.400 (fora o IOF, que é imposto).</p>
+      <p>A simulação aplica esse teto: a partir do mês em que os encargos chegam ao valor original, a dívida para de crescer. A linha "sem o teto da lei" mostra quanto seria sem essa proteção.</p>
+
+      <h3>O rotativo dura só um mês</h3>
+      <p>Pelas regras do Banco Central, o rotativo só pode ser usado até o vencimento da fatura seguinte. Depois disso, o banco precisa oferecer um parcelamento da dívida, normalmente com juros menores (mas ainda altos). A simulação usa a mesma taxa todo mês para mostrar o pior cenário de forma simples.</p>
+
+      <h3>Como sair do rotativo</h3>
+      <ul>
+        <li>Pague o máximo que puder agora: cada real que não entra no rotativo deixa de render juros contra você.</li>
+        <li>Troque a dívida cara por uma mais barata: empréstimo consignado ou pessoal costuma ter juros bem menores que o cartão.</li>
+        <li>Se você tem várias dívidas, monte um <a href="/ferramentas/plano-de-quitacao.html">plano de quitação</a> para saber qual atacar primeiro.</li>
+      </ul>
+
+      <p class="tool-disclaimer" data-aviso-educativo>Simulação simplificada para fins educativos. Taxas, encargos e regras de parcelamento variam entre bancos; confira na sua fatura e no app do banco o CET e as opções de parcelamento.</p>
+    </article>
+
+    <div class="tool-faq" data-faq>
+      <h2>Perguntas frequentes</h2>
+      <details>
+        <summary>Pagar o mínimo da fatura é uma boa ideia?</summary>
+        <div><p>Só em emergência. Pagar o mínimo evita atraso e negativação, mas o restante entra no rotativo, com juros altíssimos. Se não der para pagar tudo, pague o máximo possível e procure trocar o saldo por uma dívida mais barata o quanto antes.</p></div>
+      </details>
+      <details>
+        <summary>O que é o teto de juros do cartão?</summary>
+        <div><p>É o limite criado pela Lei 14.690/2023: os juros e encargos do rotativo e do parcelamento da fatura não podem ultrapassar 100% do valor original da dívida. Uma dívida de R$ 1.000 pode chegar, no máximo, a R$ 2.000 com juros e encargos (sem contar o IOF).</p></div>
+      </details>
+      <details>
+        <summary>Parcelar a fatura é melhor que ficar no rotativo?</summary>
+        <div><p>Quase sempre sim, porque os juros do parcelamento costumam ser menores que os do rotativo. Mas ainda são caros. Compare a taxa do parcelamento com a de um empréstimo pessoal ou consignado e, se puder, use a reserva de emergência para quitar.</p></div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- PONTE PARA O WARDEN COBRANÇA -->
+<section class="tool-bridge">
+  <div class="section-inner">
+    <div data-ponte-cobranca data-titulo="Fatura apertada porque cliente atrasou o pagamento?" data-texto="O Warden Cobrança cobra seus clientes no WhatsApp, com Pix, e lembra quem atrasou. Dinheiro em dia, cartão sem rotativo."></div>
+  </div>
+</section>
+
+<script src="/assets/tools.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+  const { formatBRL: brl, formatBRLCompacto, formatPct, parseNumero, campoBRL, cardResultado, estiloGrafico } = Warden;
+  const $ = id => document.getElementById(id);
+
+  const MESES = 12;          // horizonte do gráfico e da tabela
+  const TETO_ENCARGOS = 1;   // Lei 14.690/2023: juros + encargos ≤ 100% da dívida original
+
+  campoBRL($('fatura'));
+  campoBRL($('pago'));
+  const dinheiro = id => { const v = parseNumero($(id).value); return isFinite(v) && v > 0 ? v : 0; };
+
+  // dívida depois de k meses sem pagar nada: juros compostos, limitados ao teto (original × 2)
+  const semTeto = (d0, i, k) => d0 * Math.pow(1 + i, k);
+  const comTeto = (d0, i, k) => Math.min(semTeto(d0, i, k), d0 * (1 + TETO_ENCARGOS));
+  // primeiro mês em que os encargos batem no teto: (1+i)^k ≥ 2  →  k = ln 2 ÷ ln(1+i)
+  const mesDoTeto = i => i > 0 ? Math.ceil(Math.log(1 + TETO_ENCARGOS) / Math.log(1 + i) - 1e-9) : Infinity;
+
+  function calcular() {
+    const fatura = dinheiro('fatura');
+    const pago = Math.min(dinheiro('pago'), fatura);
+    const i = Math.max(0, parseFloat($('juros').value) || 0) / 100;
+    const d0 = fatura - pago;
+    $('pago-dica').textContent = fatura > 0 ? `O mínimo costuma ser 15% da fatura (${brl(fatura * 0.15)})` : '';
+
+    const quitada = d0 <= 0.005;
+    $('jc-quitada').hidden = !quitada;
+    $('jc-resultado').hidden = quitada;
+    if (quitada) return;
+
+    const teto = d0 * (1 + TETO_ENCARGOS);
+    const kTeto = mesDoTeto(i);
+    const em1 = comTeto(d0, i, 1), em6 = comTeto(d0, i, 6), em12 = comTeto(d0, i, 12);
+
+    $('resultados').innerHTML = [
+      cardResultado({
+        titulo: 'Fica no rotativo', descricao: 'O que você não pagar da fatura vira dívida',
+        rotulo: 'Dívida original', valor: brl(d0),
+        linhas: [['Juros no 1º mês', brl(em1 - d0)], ['Daqui a 1 mês', brl(em1)]]
+      }),
+      cardResultado({
+        titulo: 'Em 12 meses', descricao: 'Sem pagar mais nada, já com o teto da lei',
+        rotulo: 'Você vai dever', valor: brl(em12), destaque: true,
+        linhas: [['Em 6 meses', brl(em6)], ['Sem o teto da lei seria', brl(semTeto(d0, i, 12))]]
+      }),
+      cardResultado({
+        titulo: 'Teto da lei', descricao: 'Juros e encargos limitados a 100% da dívida original',
+        rotulo: 'A dívida para em', valor: brl(teto),
+        linhas: [['Teto atingido no mês', isFinite(kTeto) ? String(kTeto) : 'nunca (sem juros)']]
+      })
+    ].join('');
+
+    $('jc-teto-texto').innerHTML = isFinite(kTeto)
+      ? `Com juros de ${formatPct(i * 100, { curto: true })} ao mês, os encargos chegam ao teto da Lei 14.690/2023 no <strong>mês ${kTeto}</strong>: a dívida de ${brl(d0)} vira ${brl(teto)} e para de crescer.${kTeto <= MESES ? ` Sem a lei, em 12 meses seriam ${brl(semTeto(d0, i, 12))}.` : ''}`
+      : 'Sem juros, a dívida não cresce.';
+
+    let linhas = '';
+    for (let k = 1; k <= MESES; k++) {
+      const atual = comTeto(d0, i, k), antes = comTeto(d0, i, k - 1);
+      linhas += `<tr${k === kTeto ? ' class="destaque"' : ''}><td>${k}${k === kTeto ? ' · teto' : ''}</td><td>${brl(atual - antes)}</td><td>${brl(atual)}</td><td>${brl(semTeto(d0, i, k))}</td></tr>`;
+    }
+    $('tabela').innerHTML = linhas;
+
+    renderGrafico(d0, i);
+  }
+
+  let grafico = null;
+  function renderGrafico(d0, i) {
+    if (!window.Chart) {
+      document.querySelector('.tool-chart-box').innerHTML = '<p class="tool-obs">Não foi possível carregar o gráfico agora.</p>';
+      return;
+    }
+    const g = estiloGrafico();
+    const meses = Array.from({ length: MESES + 1 }, (_, k) => k);
+    const datasets = [
+      { label: 'Com o teto da lei', data: meses.map(k => comTeto(d0, i, k)), borderColor: g.cor('--accent'), backgroundColor: g.cor('--accent'),
+        borderWidth: 3, pointRadius: 0, pointHoverRadius: 4, tension: 0 },
+      { label: 'Sem o teto da lei', data: meses.map(k => semTeto(d0, i, k)), borderColor: g.cor('--muted'), backgroundColor: g.cor('--muted'),
+        borderDash: [2, 4], borderWidth: 1.8, pointRadius: 0, pointHoverRadius: 4, tension: 0.15 }
+    ];
+    const labels = meses.map(String);
+    if (grafico) {
+      grafico.data.labels = labels;
+      grafico.data.datasets = datasets;
+      grafico.update('none');
+      return;
+    }
+    grafico = new Chart($('grafico'), {
+      type: 'line',
+      data: { labels, datasets },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        animation: g.animacao,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: g.legenda,
+          tooltip: { ...g.tooltip, callbacks: {
+            title: items => items[0].label === '0' ? 'Hoje' : `Mês ${items[0].label}`,
+            label: ctx => ` ${ctx.dataset.label}: ${brl(ctx.parsed.y)}`
+          } }
+        },
+        scales: {
+          x: { title: { display: true, text: 'meses' }, grid: { display: false }, ticks: { maxRotation: 0 } },
+          y: { grid: { color: g.grade }, ticks: { callback: v => formatBRLCompacto(v) } }
+        }
+      }
+    });
+  }
+
+  ['fatura', 'pago', 'juros'].forEach(id => $(id).addEventListener('input', calcular));
+  calcular();
+</script>
+
+</body>
+</html>

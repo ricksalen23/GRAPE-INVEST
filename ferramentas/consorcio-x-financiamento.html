@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Consórcio ou financiamento? Compare o custo total | Warden</title>
+<meta name="description" content="Compare consórcio e financiamento: parcela, total pago e custo efetivo de cada um, com taxa de administração, fundo de reserva e juros. Calculadora grátis.">
+<link rel="canonical" href="https://wardenfinance.com.br/ferramentas/consorcio-x-financiamento.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Consórcio ou financiamento? | Warden">
+<meta property="og:description" content="Quanto você paga no total em cada um, e o que a conta não mostra.">
+<meta property="og:url" content="https://wardenfinance.com.br/ferramentas/consorcio-x-financiamento.html">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/warden.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Comparador Consórcio x Financiamento",
+  "url": "https://wardenfinance.com.br/ferramentas/consorcio-x-financiamento.html",
+  "applicationCategory": "FinanceApplication",
+  "operatingSystem": "Any",
+  "inLanguage": "pt-BR",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "BRL" },
+  "publisher": { "@type": "Organization", "name": "Warden", "url": "https://wardenfinance.com.br/" }
+}
+</script>
+<style>
+  /* ===== CONSÓRCIO x FINANCIAMENTO (só desta página; estrutura e componentes vêm do /assets/warden.css) ===== */
+  .cf-form { display: flex; flex-direction: column; gap: 26px; }
+  .cf-bloco { border-top: 1px solid var(--border); padding-top: 22px; }
+  .cf-bloco > .section-label { margin-bottom: 18px; }
+  .cf-avisos { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; margin-top: 20px; }
+  .cf-avisos .tool-note { align-items: flex-start; }
+  .cf-avisos strong { display: block; margin-bottom: 4px; }
+  .cf-obs { margin-top: 16px; }
+
+  @media (max-width: 900px) {
+    .cf-avisos { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<script src="/assets/nav.js"></script>
+
+<section class="tool-top">
+  <div class="section-inner">
+
+    <header class="tool-head">
+      <div class="tool-crumbs" data-crumbs></div>
+      <h1 class="tool-title">Consórcio ou financiamento: qual custa menos?</h1>
+      <p class="tool-lead">No consórcio você paga taxa de administração; no financiamento, juros. Coloque os números das duas propostas e veja quanto sai cada uma no total, e o que a conta sozinha não mostra.</p>
+    </header>
+
+    <!-- ENTRADAS -->
+    <form class="tool-card cf-form" id="cf-form" onsubmit="return false">
+      <div class="tool-fields">
+        <div class="tool-field">
+          <label for="valor">Valor do bem (carta de crédito)</label>
+          <div class="tool-input"><span class="pre">R$</span><input type="text" id="valor" value="60000"></div>
+        </div>
+        <div class="tool-field">
+          <label for="prazo">Prazo</label>
+          <div class="tool-input"><input type="number" id="prazo" value="72" min="1" max="420" step="1" inputmode="numeric"><span class="suf">meses</span></div>
+          <span class="tool-hint">O mesmo nas duas opções</span>
+        </div>
+      </div>
+
+      <div class="cf-bloco">
+        <p class="section-label">Consórcio</p>
+        <div class="tool-fields">
+          <div class="tool-field">
+            <label for="adm">Taxa de administração</label>
+            <div class="tool-input"><input type="number" id="adm" value="16" min="0" max="100" step="0.1" inputmode="decimal"><span class="suf">% total</span></div>
+            <span class="tool-hint">Para o prazo todo, não ao ano</span>
+          </div>
+          <div class="tool-field">
+            <label for="fundo">Fundo de reserva</label>
+            <div class="tool-input"><input type="number" id="fundo" value="2" min="0" max="100" step="0.1" inputmode="decimal"><span class="suf">% total</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cf-bloco">
+        <p class="section-label">Financiamento</p>
+        <div class="tool-fields">
+          <div class="tool-field">
+            <label for="juros">Juros</label>
+            <div class="tool-input">
+              <input type="number" id="juros" value="1.6" min="0" max="100" step="0.01" inputmode="decimal">
+              <select id="juros-periodo" aria-label="Período dos juros">
+                <option value="am" selected>% ao mês</option>
+                <option value="aa">% ao ano</option>
+              </select>
+            </div>
+            <span class="tool-hint" id="juros-dica"></span>
+          </div>
+        </div>
+      </div>
+    </form>
+
+    <!-- RESULTADO -->
+    <div class="result-grid" id="resultados" aria-live="polite"></div>
+
+    <div class="cf-avisos">
+      <div class="tool-note">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        <span><strong>No consórcio, você só recebe quando for contemplado.</strong> A contemplação é por sorteio ou por lance, e pode sair no primeiro mês ou só na última parcela. Você começa a pagar hoje sem saber quando vai ter o bem. No financiamento, o bem é seu na hora.</span>
+      </div>
+      <div class="tool-note">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>
+        <span><strong>As parcelas do consórcio são reajustadas.</strong> Todo ano a carta (e a parcela) é corrigida por um índice, como o INCC (imóveis), o IPCA ou o preço do bem. <strong>O cálculo acima não inclui esse reajuste</strong>, então o total real do consórcio tende a ser maior.</span>
+      </div>
+    </div>
+
+    <p class="tool-obs cf-obs" id="cf-obs"></p>
+
+  </div>
+</section>
+
+<!-- EXPLICAÇÃO + FAQ -->
+<section class="tool-prose-section">
+  <div class="section-inner">
+    <article class="tool-prose">
+      <h2>Como a comparação é feita</h2>
+      <h3>Consórcio</h3>
+      <p>Não há juros: o grupo junta dinheiro todo mês e, a cada mês, alguns participantes são contemplados e recebem a carta de crédito. O custo vem das taxas, cobradas sobre o valor da carta e diluídas nas parcelas:</p>
+      <p><strong>parcela = carta × (1 + taxa de administração + fundo de reserva) ÷ número de meses</strong></p>
+      <p>O fundo de reserva cobre inadimplência do grupo; o que sobrar dele costuma ser devolvido no fim. Alguns grupos também cobram seguro, que não está na conta.</p>
+
+      <h3>Financiamento</h3>
+      <p>O banco paga o bem hoje e você devolve com juros, em parcelas iguais (Tabela Price): <strong>parcela = valor × i ÷ (1 − (1 + i)<sup>−n</sup>)</strong>. Quer ver parcelas que diminuem? Use o <a href="/ferramentas/sac-x-price.html">simulador SAC x Price</a>.</p>
+
+      <h3>Custo efetivo</h3>
+      <p>Aqui, <strong>custo efetivo</strong> é quanto você paga além do valor do bem, em porcentagem: (total pago − valor do bem) ÷ valor do bem. Ele permite comparar taxa de administração com juros na mesma régua.</p>
+
+      <h3>Então, qual escolher?</h3>
+      <ul>
+        <li><strong>Precisa do bem agora?</strong> O consórcio não garante isso. Financiamento (ou juntar uma entrada maior) é o caminho.</li>
+        <li><strong>Pode esperar?</strong> O consórcio costuma ter custo menor que o financiamento, mas compare também com <strong>juntar o dinheiro investindo</strong>: aí, em vez de pagar taxa, você recebe rendimento. Faça a conta na <a href="/ferramentas/meta-mensal.html">calculadora de meta mensal</a>.</li>
+      </ul>
+
+      <p class="tool-disclaimer" data-aviso-educativo>A comparação não inclui reajuste anual da carta, seguros, IOF, tarifas nem lances. Peça às empresas o valor total e o CET por escrito antes de assinar.</p>
+    </article>
+
+    <div class="tool-faq" data-faq>
+      <h2>Perguntas frequentes</h2>
+      <details>
+        <summary>Consórcio tem juros?</summary>
+        <div><p>Não tem juros, mas tem custo: taxa de administração, fundo de reserva e, às vezes, seguro. Somadas, essas taxas costumam ficar entre 10% e 25% do valor da carta. Além disso, a parcela é reajustada todo ano por um índice, o que aumenta o total pago.</p></div>
+      </details>
+      <details>
+        <summary>Dar lance no consórcio vale a pena?</summary>
+        <div><p>O lance antecipa a contemplação, mas é pago com seu dinheiro (ou com parte da própria carta, no lance embutido, o que reduz o crédito que você recebe). Só vale se você precisa do bem antes e tem o dinheiro parado. Compare: o valor do lance poderia render ou servir de entrada num financiamento.</p></div>
+      </details>
+      <details>
+        <summary>Posso desistir do consórcio?</summary>
+        <div><p>Pode, mas o dinheiro não volta na hora. Em geral, quem desiste recebe o que pagou (com descontos de multa e taxas) quando for sorteado como desistente ou quando o grupo terminar. Leia as regras de desistência do contrato antes de entrar.</p></div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- PONTE PARA O WARDEN COBRANÇA -->
+<section class="tool-bridge">
+  <div class="section-inner">
+    <div data-ponte-cobranca data-titulo="Parcela longa pede renda que entra em dia." data-texto="O Warden Cobrança cobra seus clientes no WhatsApp, com Pix, e confirma o pagamento sozinho."></div>
+  </div>
+</section>
+
+<script src="/assets/tools.js"></script>
+<script>
+  const { formatBRL: brl, formatPct, parseNumero, campoBRL, cardResultado, taxaMensalDe, parcelaPrice } = Warden;
+  const $ = id => document.getElementById(id);
+
+  campoBRL($('valor'));
+  const num = (id, min, max) => { const v = parseFloat($(id).value); return isFinite(v) ? Math.min(Math.max(v, min), max) : min; };
+
+  function calcular() {
+    const valor = Math.max(0, parseNumero($('valor').value) || 0);
+    const n = Math.round(num('prazo', 1, 420));
+    const adm = num('adm', 0, 100), fundo = num('fundo', 0, 100);
+    const taxa = num('juros', 0, 100), periodo = $('juros-periodo').value;
+    const i = taxaMensalDe(taxa, periodo);
+    $('juros-dica').textContent = periodo === 'am'
+      ? `Equivale a ${formatPct((Math.pow(1 + i, 12) - 1) * 100)} ao ano`
+      : `Equivale a ${formatPct(i * 100)} ao mês`;
+
+    // consórcio: parcela = carta × (1 + adm + fundo) ÷ n
+    const pConsorcio = valor * (1 + (adm + fundo) / 100) / n;
+    const totalConsorcio = pConsorcio * n;
+    const custoConsorcio = totalConsorcio - valor;
+    // financiamento: Price
+    const pFinanc = parcelaPrice(valor, i, n);
+    const totalFinanc = pFinanc * n;
+    const custoFinanc = totalFinanc - valor;
+
+    const pct = c => valor > 0 ? formatPct(c / valor * 100, { casas: 1 }) : '—';
+    const dif = totalFinanc - totalConsorcio;
+    const consorcioMenor = dif > 0.005, financMenor = dif < -0.005;
+
+    $('resultados').innerHTML = [
+      cardResultado({
+        titulo: 'Consórcio', descricao: `${formatPct(adm + fundo, { curto: true })} de taxas sobre a carta, sem juros`,
+        rotulo: 'Parcela', valor: brl(pConsorcio),
+        destaque: consorcioMenor, selo: consorcioMenor ? 'Menor custo' : '',
+        linhas: [
+          ['Total pago', brl(totalConsorcio)],
+          ['Custo (taxas)', brl(custoConsorcio)],
+          ['Custo efetivo', pct(custoConsorcio)]
+        ]
+      }),
+      cardResultado({
+        titulo: 'Financiamento', descricao: `${formatPct(i * 100)} ao mês, parcelas iguais (Price)`,
+        rotulo: 'Parcela', valor: brl(pFinanc),
+        destaque: financMenor, selo: financMenor ? 'Menor custo' : '',
+        linhas: [
+          ['Total pago', brl(totalFinanc)],
+          ['Custo (juros)', brl(custoFinanc)],
+          ['Custo efetivo', pct(custoFinanc)]
+        ]
+      }),
+      cardResultado({
+        titulo: 'Diferença',
+        descricao: consorcioMenor ? 'O consórcio sai mais barato no papel' : financMenor ? 'O financiamento sai mais barato' : 'Os dois custam o mesmo',
+        rotulo: 'No total', valor: brl(Math.abs(dif)),
+        linhas: [['Por mês', brl(Math.abs(pFinanc - pConsorcio))]]
+      })
+    ].join('');
+
+    $('cf-obs').textContent = `Custo efetivo = (total pago − valor do bem) ÷ valor do bem. Consórcio sem reajuste anual; financiamento sem seguros, IOF e tarifas.`;
+  }
+
+  ['valor', 'prazo', 'adm', 'fundo', 'juros'].forEach(id => $(id).addEventListener('input', calcular));
+  $('juros-periodo').addEventListener('change', calcular);
+  calcular();
+</script>
+
+</body>
+</html>

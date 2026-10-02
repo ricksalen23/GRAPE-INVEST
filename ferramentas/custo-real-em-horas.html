@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Quantas horas de trabalho custa? Calculadora de custo real | Warden</title>
+<meta name="description" content="Descubra quantas horas e dias de trabalho custa aquilo que você quer comprar, e quanto esse dinheiro viraria se fosse investido. Calcule e compartilhe.">
+<link rel="canonical" href="https://wardenfinance.com.br/ferramentas/custo-real-em-horas.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Quantas horas de trabalho isso custa? | Warden">
+<meta property="og:description" content="Antes de comprar, veja o preço em horas da sua vida. E quanto esse dinheiro viraria investido.">
+<meta property="og:url" content="https://wardenfinance.com.br/ferramentas/custo-real-em-horas.html">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/warden.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Calculadora de Custo Real em Horas de Trabalho",
+  "url": "https://wardenfinance.com.br/ferramentas/custo-real-em-horas.html",
+  "applicationCategory": "FinanceApplication",
+  "operatingSystem": "Any",
+  "inLanguage": "pt-BR",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "BRL" },
+  "publisher": { "@type": "Organization", "name": "Warden", "url": "https://wardenfinance.com.br/" }
+}
+</script>
+<style>
+  /* ===== CUSTO REAL EM HORAS (só desta página; estrutura e componentes vêm do /assets/warden.css) ===== */
+  .ch-form { display: flex; flex-direction: column; gap: 26px; }
+  .ch-item { max-width: 520px; }
+  .ch-item .tool-input input { font-family: 'Inter', sans-serif; font-size: 1.05rem; }
+  .ch-invest { border-top: 1px solid var(--border); padding-top: 22px; }
+
+  /* resposta em frase grande: é o que a pessoa vai compartilhar */
+  .ch-hero { margin-top: 28px; border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); padding: 36px 32px; }
+  .ch-frase { font-family: 'Fraunces', serif; font-weight: 600; font-size: clamp(1.8rem, 4.2vw, 3rem); line-height: 1.12; letter-spacing: -.02em; }
+  .ch-frase em { font-style: normal; color: var(--accent); }
+  .ch-sub { margin-top: 12px; color: var(--muted); font-size: 1rem; line-height: 1.6; }
+  .ch-sub strong { color: var(--text); font-weight: 600; }
+  .ch-frase2 { margin-top: 26px; padding-top: 22px; border-top: 1px solid var(--border); font-family: 'Fraunces', serif; font-weight: 600; font-size: clamp(1.25rem, 2.6vw, 1.7rem); line-height: 1.3; }
+  .ch-frase2 em { font-style: normal; color: var(--accent); }
+  .ch-compartilhar { margin-top: 28px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; }
+  .ch-status { font-size: .84rem; color: var(--muted); }
+  .ch-previa { margin-top: 14px; font-size: .84rem; line-height: 1.6; color: var(--muted); background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+
+  @media (max-width: 640px) {
+    .ch-hero { padding: 26px 20px; }
+    .ch-compartilhar .btn { width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<script src="/assets/nav.js"></script>
+
+<section class="tool-top">
+  <div class="section-inner">
+
+    <header class="tool-head">
+      <div class="tool-crumbs" data-crumbs></div>
+      <h1 class="tool-title">Quantas horas de trabalho isso custa?</h1>
+      <p class="tool-lead">Antes de comprar, troque o preço em reais pelo preço em tempo da sua vida. E veja quanto esse dinheiro viraria se, em vez de gastar, você investisse.</p>
+    </header>
+
+    <!-- ENTRADAS -->
+    <form class="tool-card ch-form" id="ch-form" onsubmit="return false">
+      <div class="tool-field ch-item">
+        <label for="item">O que você quer comprar? <span class="opc">(opcional)</span></label>
+        <div class="tool-input"><input type="text" id="item" maxlength="40" placeholder="um celular novo" autocomplete="off"></div>
+      </div>
+      <div class="tool-fields">
+        <div class="tool-field">
+          <label for="preco">Preço</label>
+          <div class="tool-input"><span class="pre">R$</span><input type="text" id="preco" value="3000"></div>
+        </div>
+        <div class="tool-field">
+          <label for="renda">Sua renda líquida por mês</label>
+          <div class="tool-input"><span class="pre">R$</span><input type="text" id="renda" value="3500"></div>
+          <span class="tool-hint">O que cai na conta</span>
+        </div>
+        <div class="tool-field">
+          <label for="horas">Horas trabalhadas por mês</label>
+          <div class="tool-input"><input type="number" id="horas" value="220" min="1" max="744" step="1" inputmode="numeric"><span class="suf">horas</span></div>
+          <span class="tool-hint">220 é a jornada CLT de 44h por semana</span>
+        </div>
+      </div>
+      <div class="tool-fields ch-invest">
+        <div class="tool-field">
+          <label for="anos">Se eu investisse por</label>
+          <div class="tool-input"><input type="number" id="anos" value="10" min="1" max="60" step="1" inputmode="numeric"><span class="suf">anos</span></div>
+        </div>
+        <div class="tool-field">
+          <label for="real">Rentabilidade real</label>
+          <div class="tool-input"><input type="number" id="real" value="4" min="0" max="20" step="0.1" inputmode="decimal"><span class="suf">% ao ano acima da inflação</span></div>
+        </div>
+      </div>
+    </form>
+
+    <!-- RESPOSTA -->
+    <div class="tool-card ch-hero" aria-live="polite">
+      <p class="ch-frase" id="frase"></p>
+      <p class="ch-sub" id="sub"></p>
+      <p class="ch-frase2" id="frase2"></p>
+      <div class="ch-compartilhar">
+        <button type="button" class="btn btn-primary" id="btn-compartilhar">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg>
+          Compartilhar resultado
+        </button>
+        <span class="ch-status" id="status" role="status"></span>
+      </div>
+      <p class="ch-previa" id="previa"></p>
+    </div>
+
+    <div class="result-grid" id="resultados"></div>
+
+  </div>
+</section>
+
+<!-- EXPLICAÇÃO + FAQ -->
+<section class="tool-prose-section">
+  <div class="section-inner">
+    <article class="tool-prose">
+      <h2>Por que pensar no preço em horas</h2>
+      <p>R$ 3.000 é um número abstrato. "Quase um mês inteiro de trabalho" não é. A ideia vem do livro <em>Your Money or Your Life</em>, de Vicki Robin e Joe Dominguez: dinheiro é a energia de vida que você troca pelo seu trabalho. Quando o preço vira horas, fica mais fácil perguntar se aquela compra vale esse pedaço do seu tempo.</p>
+
+      <h3>Como a conta é feita</h3>
+      <ul>
+        <li><strong>Valor da sua hora</strong> = renda líquida do mês ÷ horas trabalhadas no mês.</li>
+        <li><strong>Custo em horas</strong> = preço ÷ valor da sua hora. Os dias consideram jornadas de 8 horas.</li>
+        <li><strong>Se investisse</strong> = preço × (1 + rentabilidade real)<sup>anos</sup>. Como a rentabilidade é a real (acima da inflação), o resultado está em reais de hoje: é poder de compra de verdade.</li>
+      </ul>
+
+      <h3>Para chegar mais perto do seu valor real por hora</h3>
+      <p>Some ao tempo de trabalho o que você gasta só por causa dele, como o deslocamento. E desconte da renda os custos do trabalho, como transporte e alimentação fora de casa. O valor da hora costuma cair, e o custo em horas de cada compra sobe.</p>
+      <p>Isso não significa nunca comprar nada. Significa comprar sabendo o preço inteiro. Se quiser transformar a compra em meta, use a <a href="/ferramentas/meta-mensal.html">calculadora de meta mensal</a>.</p>
+
+      <p class="tool-disclaimer" data-aviso-educativo>O valor investido considera rentabilidade real constante e não desconta Imposto de Renda nem custos. Rentabilidade passada não garante rentabilidade futura.</p>
+    </article>
+
+    <div class="tool-faq" data-faq>
+      <h2>Perguntas frequentes</h2>
+      <details>
+        <summary>Por que o padrão é 220 horas por mês?</summary>
+        <div><p>É a jornada da CLT de 44 horas semanais convertida para o mês, o mesmo número que as empresas usam para calcular o valor da sua hora. Se você trabalha mais ou menos que isso, ou é autônomo, coloque as horas que realmente trabalha.</p></div>
+      </details>
+      <details>
+        <summary>Devo usar a renda bruta ou a líquida?</summary>
+        <div><p>A líquida, que é o dinheiro que realmente sobra para gastar depois de impostos e descontos. Usar a bruta faria cada hora parecer mais valiosa do que é, e as compras parecerem mais baratas.</p></div>
+      </details>
+      <details>
+        <summary>Por que mostrar quanto o dinheiro viraria investido?</summary>
+        <div><p>Porque todo gasto tem um custo de oportunidade: o dinheiro que sai hoje deixa de crescer. A conta usa rentabilidade real (acima da inflação), então o valor mostrado já é em poder de compra de hoje.</p></div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- PONTE PARA O WARDEN COBRANÇA -->
+<section class="tool-bridge">
+  <div class="section-inner">
+    <div data-ponte-cobranca data-titulo="Autônomo? Sua hora vale mais quando o cliente paga em dia." data-texto="O Warden Cobrança cobra seus clientes no WhatsApp, com Pix, e lembra quem atrasou. Menos tempo correndo atrás de pagamento."></div>
+  </div>
+</section>
+
+<script src="/assets/tools.js"></script>
+<script>
+  const { formatBRL: brl, formatNumero, formatPct, parseNumero, campoBRL, cardResultado, copiarTexto } = Warden;
+  const $ = id => document.getElementById(id);
+
+  const HORAS_POR_DIA = 8;
+  const URL_PAGINA = 'https://wardenfinance.com.br/ferramentas/custo-real-em-horas.html';
+
+  campoBRL($('preco'));
+  campoBRL($('renda'));
+  const dinheiro = id => { const v = parseNumero($(id).value); return isFinite(v) && v > 0 ? v : 0; };
+  const num = (id, min, max) => { const v = parseFloat($(id).value); return isFinite(v) ? Math.min(Math.max(v, min), max) : min; };
+  const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+  // "36,7 horas" / "1 hora" / "45 minutos"
+  function textoHoras(h) {
+    if (h < 1) { const m = Math.max(1, Math.round(h * 60)); return `${m} ${m === 1 ? 'minuto' : 'minutos'}`; }
+    const v = formatNumero(h, { casas: h < 10 ? 1 : 0 });
+    return `${v} ${v === '1' || v === '1,0' ? 'hora' : 'horas'}`;
+  }
+  const textoDias = d => { const v = formatNumero(d, { casas: 1 }); return `${v} ${v === '1,0' ? 'dia' : 'dias'}`; };
+
+  let fraseAtual = '';
+
+  function calcular() {
+    const item = $('item').value.trim();
+    const preco = dinheiro('preco'), renda = dinheiro('renda');
+    const horasMes = num('horas', 1, 744);
+    const anos = Math.round(num('anos', 1, 60));
+    const real = num('real', 0, 20);
+
+    const valorHora = renda / horasMes;
+    const horas = valorHora > 0 ? preco / valorHora : 0;
+    const dias = horas / HORAS_POR_DIA;
+    const pctSalario = renda > 0 ? preco / renda * 100 : 0;
+    const futuro = preco * Math.pow(1 + real / 100, anos);
+    const maiuscula = s => s.charAt(0).toUpperCase() + s.slice(1);
+    const oQue = item ? esc(maiuscula(item)) : 'Isso';
+
+    if (renda <= 0 || preco <= 0) {
+      $('frase').textContent = 'Preencha o preço e a sua renda.';
+      $('sub').textContent = $('frase2').textContent = $('previa').textContent = '';
+      $('resultados').innerHTML = '';
+      fraseAtual = '';
+      return;
+    }
+
+    $('frase').innerHTML = `${oQue} custa <em>${textoHoras(horas)}</em> do seu trabalho.`;
+    $('sub').innerHTML = `São <strong>${textoDias(dias)}</strong> de 8 horas, ou <strong>${formatPct(pctSalario, { casas: 0 })} do seu salário</strong> do mês.`;
+    $('frase2').innerHTML = `Se você investisse ${brl(preco)} por ${anos} ${anos === 1 ? 'ano' : 'anos'}, teria <em>${brl(futuro)}</em>.`;
+
+    $('resultados').innerHTML = [
+      cardResultado({ titulo: 'Sua hora vale', descricao: `${brl(renda)} ÷ ${formatNumero(horasMes, { curto: true })} horas`, rotulo: 'Por hora', valor: brl(valorHora) }),
+      cardResultado({ titulo: 'Em tempo', descricao: `Dias de ${HORAS_POR_DIA} horas`, rotulo: 'Horas de trabalho', valor: formatNumero(horas, { casas: 1 }),
+        linhas: [['Dias de trabalho', formatNumero(dias, { casas: 1 })], ['Do salário do mês', formatPct(pctSalario, { casas: 0 })]] }),
+      cardResultado({ titulo: 'Se investisse', descricao: `${formatPct(real, { curto: true })} ao ano acima da inflação, em reais de hoje`, rotulo: `Em ${anos} ${anos === 1 ? 'ano' : 'anos'}`, valor: brl(futuro), destaque: true,
+        linhas: [['Ganho', brl(futuro - preco)], ['Multiplica por', `${formatNumero(futuro / preco, { casas: 1 })}×`]] })
+    ].join('');
+
+    // frase pronta para compartilhar (texto puro)
+    const sujeito = item ? `${maiuscula(item)} de ${brl(preco)}` : `Uma compra de ${brl(preco)}`;
+    fraseAtual = `${sujeito} me custaria ${textoHoras(horas)} de trabalho (${textoDias(dias)}). Se eu investisse esse dinheiro por ${anos} ${anos === 1 ? 'ano' : 'anos'}, teria ${brl(futuro)}. Quanto custa pra você? ${URL_PAGINA}`;
+    $('previa').textContent = fraseAtual;
+  }
+
+  $('btn-compartilhar').addEventListener('click', async () => {
+    if (!fraseAtual) return;
+    const ok = await copiarTexto(fraseAtual);
+    $('status').textContent = ok ? 'Frase copiada! Cole no WhatsApp, Instagram ou onde quiser.' : 'Não foi possível copiar sozinho. Selecione a frase abaixo e copie.';
+    clearTimeout($('status').t);
+    $('status').t = setTimeout(() => { $('status').textContent = ''; }, 4000);
+  });
+
+  ['item', 'preco', 'renda', 'horas', 'anos', 'real'].forEach(id => $(id).addEventListener('input', calcular));
+  calcular();
+</script>
+
+</body>
+</html>

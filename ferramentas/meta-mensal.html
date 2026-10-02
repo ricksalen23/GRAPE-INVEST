@@ -33,19 +33,10 @@
 <style>
   /* ===== META MENSAL (só desta página; estrutura e componentes vêm do /assets/warden.css) ===== */
   .meta-form { display: flex; flex-direction: column; gap: 26px; }
-  .meta-taxa { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 26px 28px; border-top: 1px solid var(--border); padding-top: 22px; }
-  .meta-select { flex: 1; }
-  .meta-ir { grid-column: 1 / -1; display: flex; gap: 10px; align-items: flex-start; font-size: .84rem; color: var(--muted); line-height: 1.5; cursor: pointer; }
-  .meta-ir input { accent-color: var(--accent); width: 16px; height: 16px; margin-top: 2px; flex-shrink: 0; cursor: pointer; }
-  .meta-ir strong { color: var(--text); font-weight: 600; }
   .meta-aviso { margin-top: 20px; }
   .meta-progresso { margin-top: 20px; }
   .meta-progresso .section-label { margin-bottom: 14px; }
   .meta-obs { margin-top: 16px; }
-
-  @media (max-width: 640px) {
-    .meta-taxa { grid-template-columns: 1fr; gap: 22px; }
-  }
 </style>
 </head>
 <body>
@@ -84,34 +75,7 @@
         </div>
       </div>
 
-      <div class="meta-taxa">
-        <div class="tool-field">
-          <label for="rendimento">Rendimento</label>
-          <div class="tool-input">
-            <select id="rendimento" class="meta-select">
-              <option value="cdi" selected>CDI de hoje</option>
-              <option value="zero">Sem rendimento</option>
-              <option value="outra">Outra taxa</option>
-            </select>
-          </div>
-          <span class="tool-hint" id="rendimento-dica"></span>
-        </div>
-        <div class="tool-field" id="campo-taxa" hidden>
-          <label for="taxa">Taxa</label>
-          <div class="tool-input">
-            <input type="number" id="taxa" value="1" min="0" max="100" step="0.01" inputmode="decimal">
-            <select id="taxa-unidade" aria-label="Período da taxa">
-              <option value="am" selected>% ao mês</option>
-              <option value="aa">% ao ano</option>
-            </select>
-          </div>
-          <span class="tool-hint" id="taxa-dica"></span>
-        </div>
-        <label class="meta-ir" id="linha-ir" hidden>
-          <input type="checkbox" id="taxa-ir" checked>
-          <span><strong>Descontar Imposto de Renda</strong> (CDB, Tesouro). Desmarque para LCI, LCA e poupança, que são isentas, ou se a taxa já for líquida.</span>
-        </label>
-      </div>
+      <div class="tool-rendimento" id="rendimento-campos" data-rendimento></div>
     </form>
 
     <!-- RESULTADO -->
@@ -195,55 +159,22 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script>
   const { formatBRL: brl, formatBRLCompacto, formatPct, parseNumero, campoBRL, cardResultado, estiloGrafico,
-          getTaxasBCB, fonteTaxa, taxaMensal, liquidaDeIR, aporteNecessario, serieAcumulacao } = Warden;
+          campoRendimento, aporteNecessario, serieAcumulacao } = Warden;
   const $ = id => document.getElementById(id);
-
-  let taxas = { ...Warden.TAXAS_REFERENCIA };   // trocado pelas taxas do Banco Central assim que chegarem
 
   campoBRL($('meta'));
   campoBRL($('atual'));
   const dinheiro = id => { const v = parseNumero($(id).value); return isFinite(v) && v > 0 ? v : 0; };
 
-  // taxa mensal (decimal) conforme a opção escolhida, já líquida de IR quando for o caso, e um texto explicando de onde veio.
-  // IR: alíquota da tabela regressiva para o prazo da meta (n meses), descontada do rendimento de todo mês (conservador).
-  function lerTaxa(n) {
-    const tipo = $('rendimento').value;
-    $('campo-taxa').hidden = $('linha-ir').hidden = tipo !== 'outra';
-    if (tipo === 'zero') return { i: 0, ir: false, texto: 'Sem rendimento: o dinheiro fica parado.' };
-
-    let bruta, texto;
-    if (tipo === 'cdi') {
-      bruta = taxaMensal(taxas.cdi);
-      texto = `CDI de ${formatPct(taxas.cdi)} ao ano (${fonteTaxa(taxas)})`;
-    } else {
-      const v = Math.max(0, parseFloat($('taxa').value) || 0);
-      if ($('taxa-unidade').value === 'am') {
-        bruta = v / 100;
-        $('taxa-dica').textContent = `Equivale a ${formatPct((Math.pow(1 + bruta, 12) - 1) * 100)} ao ano`;
-        texto = `taxa informada de ${formatPct(v)} ao mês`;
-      } else {
-        bruta = taxaMensal(v);
-        $('taxa-dica').textContent = `Equivale a ${formatPct(bruta * 100)} ao mês`;
-        texto = `taxa informada de ${formatPct(v)} ao ano ≈ ${formatPct(bruta * 100)} ao mês`;
-      }
-    }
-
-    const descontarIR = tipo === 'cdi' || $('taxa-ir').checked;
-    if (!descontarIR) return { i: bruta, ir: false, texto: `Rendimento: ${texto}, sem desconto de IR.` };
-    const ir = liquidaDeIR(bruta, n);
-    return {
-      i: ir.i, ir: true,
-      texto: `Rendimento líquido de IR: ${texto}, menos ${formatPct(ir.aliquota * 100, { curto: true })} de Imposto de Renda (alíquota para ${n} ${n === 1 ? 'mês' : 'meses'}) = ${formatPct(ir.i * 100)} ao mês.`
-    };
-  }
+  // rendimento (CDI líquido de IR / outra taxa / sem): componente do kit; IR com a alíquota do prazo da meta
+  const rendimento = campoRendimento($('rendimento-campos'), () => calcular());
 
   function calcular() {
     const meta = dinheiro('meta');
     const atual = dinheiro('atual');
     const qtd = Math.max(1, Math.round(parseFloat($('prazo').value) || 1));
     const n = Math.min($('prazo-unidade').value === 'anos' ? qtd * 12 : qtd, 600);
-    const { i, ir, texto } = lerTaxa(n);
-    $('rendimento-dica').textContent = $('rendimento').value === 'cdi' ? `${formatPct(taxas.cdi)} ao ano` : '';
+    const { i, ir, texto } = rendimento.ler(n);
 
     const aporte = aporteNecessario(meta, atual, i, n);
     const semRendimento = Math.max(0, (meta - atual) / n);
@@ -339,11 +270,10 @@
     });
   }
 
-  ['meta', 'atual', 'prazo', 'taxa'].forEach(id => $(id).addEventListener('input', calcular));
-  ['prazo-unidade', 'rendimento', 'taxa-unidade', 'taxa-ir'].forEach(id => $(id).addEventListener('change', calcular));
+  ['meta', 'atual', 'prazo'].forEach(id => $(id).addEventListener('input', calcular));
+  $('prazo-unidade').addEventListener('change', calcular);
 
   calcular();
-  getTaxasBCB().then(t => { taxas = t; calcular(); });
 </script>
 
 </body>

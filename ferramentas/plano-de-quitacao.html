@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Plano de quitação de dívidas: descubra sua data da liberdade | Warden</title>
+<meta name="description" content="Liste suas dívidas e veja quando fica livre de todas: compare o método avalanche e a bola de neve, os juros de cada um e a ordem certa de quitar. Grátis.">
+<link rel="canonical" href="https://wardenfinance.com.br/ferramentas/plano-de-quitacao.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Plano de quitação: sua data da liberdade | Warden">
+<meta property="og:description" content="Em que mês você fica livre das dívidas, e qual ordem de pagamento economiza mais juros.">
+<meta property="og:url" content="https://wardenfinance.com.br/ferramentas/plano-de-quitacao.html">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/warden.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Plano de Quitação de Dívidas",
+  "url": "https://wardenfinance.com.br/ferramentas/plano-de-quitacao.html",
+  "applicationCategory": "FinanceApplication",
+  "operatingSystem": "Any",
+  "inLanguage": "pt-BR",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "BRL" },
+  "publisher": { "@type": "Organization", "name": "Warden", "url": "https://wardenfinance.com.br/" }
+}
+</script>
+<style>
+  /* ===== PLANO DE QUITAÇÃO (só desta página; estrutura e componentes vêm do /assets/warden.css) ===== */
+  .pq-form { display: flex; flex-direction: column; gap: 22px; }
+  .pq-form > .section-label { margin: 0; }
+
+  /* lista de dívidas: cabeçalho de colunas no desktop, rótulo em cada campo no celular */
+  .pq-cols, .pq-divida { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, .8fr) minmax(0, 1fr) 36px; gap: 18px; align-items: end; }
+  .pq-cols span { font-size: .74rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .pq-lista { display: flex; flex-direction: column; gap: 14px; }
+  .pq-rot { display: none; font-size: .7rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+  .pq-divida .tool-input input { font-size: 1.02rem; }
+  .pq-divida .pq-nome input { font-family: 'Inter', sans-serif; }
+  .pq-remover {
+    width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--border); background: none; color: var(--muted);
+    font-size: 1.2rem; line-height: 1; cursor: pointer; transition: border-color .2s, color .2s;
+  }
+  .pq-remover:hover { border-color: var(--text); color: var(--text); }
+  .pq-remover:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
+  .pq-remover:disabled { opacity: .35; cursor: default; }
+  .pq-add { align-self: flex-start; padding: 10px 18px; font-size: .88rem; }
+  .pq-orcamento { border-top: 1px solid var(--border); padding-top: 22px; max-width: 420px; }
+
+  .pq-alerta { margin-top: 20px; }
+  .pq-alerta.forte { border-color: var(--accent); }
+  .pq-resumo { margin-top: 20px; }
+
+  .pq-ordens { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; margin-top: 20px; }
+  .pq-ordem h2 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 1.2rem; margin-bottom: 4px; }
+  .pq-ordem > p { font-size: .84rem; color: var(--muted); margin-bottom: 16px; }
+  .pq-ordem ol { list-style: none; counter-reset: ordem; display: flex; flex-direction: column; gap: 10px; }
+  .pq-ordem li { counter-increment: ordem; display: flex; gap: 12px; align-items: baseline; font-size: .92rem; }
+  .pq-ordem li::before {
+    content: counter(ordem); flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+    border: 1px solid var(--border); font-family: 'IBM Plex Mono', monospace; font-size: .74rem; color: var(--muted);
+  }
+  .pq-ordem li span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+  .pq-ordem li small { font-family: 'IBM Plex Mono', monospace; font-size: .8rem; color: var(--muted); white-space: nowrap; }
+
+  @media (max-width: 900px) {
+    .pq-ordens { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 760px) {
+    .pq-cols { display: none; }
+    .pq-rot { display: block; }
+    .pq-divida { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px 18px; padding-bottom: 18px; border-bottom: 1px solid var(--border); }
+    .pq-divida .pq-nome { grid-column: 1 / 2; }
+    .pq-remover { justify-self: end; grid-column: 2; grid-row: 1; align-self: start; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pq-remover { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<script src="/assets/nav.js"></script>
+
+<section class="tool-top">
+  <div class="section-inner">
+
+    <header class="tool-head">
+      <div class="tool-crumbs" data-crumbs></div>
+      <h1 class="tool-title">Plano de quitação: sua data da liberdade</h1>
+      <p class="tool-lead">Liste suas dívidas e diga quanto consegue pagar por mês, no total. A gente simula mês a mês duas estratégias de quitação e mostra quando você fica livre de todas, quanto paga de juros e por qual dívida começar.</p>
+    </header>
+
+    <!-- ENTRADAS -->
+    <form class="tool-card pq-form" id="pq-form" onsubmit="return false">
+      <p class="section-label">Suas dívidas</p>
+      <div class="pq-cols" aria-hidden="true"><span>Dívida</span><span>Quanto deve hoje</span><span>Juros</span><span>Parcela mínima</span><span></span></div>
+      <div class="pq-lista" id="lista"></div>
+      <button type="button" class="btn btn-secondary pq-add" id="btn-add">+ Adicionar dívida</button>
+
+      <div class="tool-field pq-orcamento">
+        <label for="orcamento">Quanto consigo pagar por mês, no total</label>
+        <div class="tool-input"><span class="pre">R$</span><input type="text" id="orcamento" value="1500"></div>
+        <span class="tool-hint" id="orcamento-dica"></span>
+      </div>
+    </form>
+
+    <div class="tool-note pq-alerta" id="alerta" role="alert" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+      <span id="alerta-texto"></span>
+    </div>
+
+    <div id="pq-resultado">
+      <!-- RESULTADO -->
+      <div class="result-grid" id="resultados" aria-live="polite"></div>
+
+      <div class="tool-note pq-resumo" id="resumo" role="status">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+        <span id="resumo-texto"></span>
+      </div>
+
+      <div class="pq-ordens">
+        <div class="tool-card pq-ordem">
+          <h2>Ordem da avalanche</h2>
+          <p>A sobra vai para a dívida de juros mais altos.</p>
+          <ol id="ordem-avalanche"></ol>
+        </div>
+        <div class="tool-card pq-ordem">
+          <h2>Ordem da bola de neve</h2>
+          <p>A sobra vai para a dívida de menor saldo.</p>
+          <ol id="ordem-bola"></ol>
+        </div>
+      </div>
+
+      <div class="tool-card tool-chart">
+        <h2>Seu saldo devedor caindo</h2>
+        <p>Total de todas as dívidas, mês a mês, em cada estratégia.</p>
+        <div class="tool-chart-box"><canvas id="grafico" role="img" aria-label="Gráfico de linha com o saldo total das dívidas mês a mês nas estratégias avalanche e bola de neve"></canvas></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- EXPLICAÇÃO + FAQ -->
+<section class="tool-prose-section">
+  <div class="section-inner">
+    <article class="tool-prose">
+      <h2>Avalanche ou bola de neve: como funciona cada uma</h2>
+      <p>Nas duas estratégias, você paga todo mês a <strong>parcela mínima de todas as dívidas</strong> e coloca o que sobrar do seu orçamento numa dívida só. Quando ela acaba, a parcela que ia para ela passa a reforçar a próxima, e o pagamento vai crescendo como uma bola de neve. A diferença está na ordem:</p>
+      <ul>
+        <li><strong>Avalanche:</strong> a sobra vai primeiro para a dívida com os <strong>juros mais altos</strong>. É a matemática pura: você sempre paga menos juros (ou empata) com ela.</li>
+        <li><strong>Bola de neve:</strong> a sobra vai primeiro para a dívida de <strong>menor saldo</strong>. Você quita a primeira dívida mais rápido, e essa vitória ajuda muita gente a manter o plano.</li>
+      </ul>
+      <p>Se a diferença de juros entre as duas for pequena, escolha a que te deixa mais motivado. Plano que você segue vale mais que plano perfeito que você abandona.</p>
+
+      <h3>Antes de começar</h3>
+      <ul>
+        <li><strong>Negocie.</strong> Bancos e lojas costumam dar desconto grande para quitar à vista ou trocar dívida cara por parcelamento mais barato. Feirões como o Desenrola e o Serasa Limpa Nome reúnem essas ofertas.</li>
+        <li><strong>Troque dívida cara por barata.</strong> Cartão e cheque especial cobram juros muito maiores que um consignado ou a portabilidade de crédito para outro banco.</li>
+        <li><strong>Pare de criar dívida nova.</strong> Veja quanto o rotativo cresce na <a href="/ferramentas/juros-do-cartao.html">calculadora de juros do cartão</a>.</li>
+        <li><strong>Junte um pouco de reserva.</strong> Um mês de gastos guardado evita voltar para o cartão no primeiro imprevisto. Veja na <a href="/ferramentas/reserva-de-emergencia.html">calculadora de reserva de emergência</a>.</li>
+      </ul>
+
+      <p class="tool-disclaimer" data-aviso-educativo>A simulação considera juros fixos, pagamentos sempre no mesmo dia e nenhuma dívida nova. Não inclui multas, IOF, seguros nem descontos de negociação.</p>
+    </article>
+
+    <div class="tool-faq" data-faq>
+      <h2>Perguntas frequentes</h2>
+      <details>
+        <summary>Avalanche ou bola de neve: qual escolher?</summary>
+        <div><p>A avalanche sempre paga menos juros ou empata, porque ataca primeiro a dívida mais cara. A bola de neve dá vitórias rápidas, o que ajuda a manter a disciplina. Compare as duas na simulação: se a diferença de juros for pequena, vá de bola de neve sem culpa.</p></div>
+      </details>
+      <details>
+        <summary>Vale a pena pegar um empréstimo para quitar dívidas?</summary>
+        <div><p>Vale quando o empréstimo novo tem juros bem menores que as dívidas que ele vai quitar, como trocar cartão de crédito (mais de 10% ao mês) por consignado (perto de 2% ao mês). Só funciona se você não voltar a usar o cartão no rotativo depois.</p></div>
+      </details>
+      <details>
+        <summary>E se eu não consigo pagar nem os juros?</summary>
+        <div><p>Então a dívida cresce todo mês, mesmo pagando. O caminho é renegociar: procure o credor, um feirão de renegociação ou o Procon. A Lei do Superendividamento (Lei 14.181/2021) permite pedir na Justiça ou no Procon um plano de pagamento de todas as dívidas que preserve o mínimo para você viver.</p></div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- PONTE PARA O WARDEN COBRANÇA -->
+<section class="tool-bridge">
+  <div class="section-inner">
+    <div data-ponte-cobranca data-titulo="Dívida apertando porque cliente não paga você?" data-texto="O Warden Cobrança cobra seus clientes no WhatsApp, com Pix, e lembra quem atrasou. Dinheiro entrando em dia para sair do vermelho."></div>
+  </div>
+</section>
+
+<script src="/assets/tools.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+  const { formatBRL: brl, formatBRLCompacto, formatPct, parseNumero, campoBRL, cardResultado, estiloGrafico } = Warden;
+  const $ = id => document.getElementById(id);
+
+  const MAX_MESES = 600;   // simula até 50 anos
+  const QUITADO = 0.005;   // saldo abaixo de meio centavo = quitado
+  const EXEMPLOS = [
+    { nome: 'Cartão de crédito', saldo: 3000, juros: 12, min: 450 },
+    { nome: 'Empréstimo pessoal', saldo: 8000, juros: 4, min: 450 },
+    { nome: 'Cheque especial', saldo: 1500, juros: 8, min: 150 }
+  ];
+
+  campoBRL($('orcamento'));
+  const dinheiro = el => { const v = parseNumero(el.value); return isFinite(v) && v > 0 ? v : 0; };
+
+  /* ===== LISTA DE DÍVIDAS ===== */
+  let contador = 0;
+  function adicionarDivida(d = { nome: '', saldo: '', juros: '', min: '' }) {
+    const k = ++contador;
+    const linha = document.createElement('div');
+    linha.className = 'pq-divida';
+    linha.innerHTML = `
+      <label class="pq-nome"><span class="pq-rot">Dívida</span><div class="tool-input"><input type="text" class="d-nome" maxlength="40" placeholder="Ex.: cartão de crédito" aria-label="Nome da dívida ${k}"></div></label>
+      <label><span class="pq-rot">Quanto deve hoje</span><div class="tool-input"><span class="pre">R$</span><input type="text" class="d-saldo" aria-label="Quanto deve hoje na dívida ${k}"></div></label>
+      <label><span class="pq-rot">Juros</span><div class="tool-input"><input type="number" class="d-juros" min="0" max="50" step="0.1" inputmode="decimal" aria-label="Juros ao mês da dívida ${k}"><span class="suf">% a.m.</span></div></label>
+      <label><span class="pq-rot">Parcela mínima</span><div class="tool-input"><span class="pre">R$</span><input type="text" class="d-min" aria-label="Parcela mínima da dívida ${k}"></div></label>
+      <button type="button" class="pq-remover" aria-label="Remover dívida ${k}">×</button>`;
+    linha.querySelector('.d-nome').value = d.nome;
+    linha.querySelector('.d-saldo').value = d.saldo;
+    linha.querySelector('.d-juros').value = d.juros;
+    linha.querySelector('.d-min').value = d.min;
+    campoBRL(linha.querySelector('.d-saldo'));
+    campoBRL(linha.querySelector('.d-min'));
+    linha.querySelectorAll('input').forEach(el => el.addEventListener('input', calcular));
+    linha.querySelector('.pq-remover').addEventListener('click', () => { linha.remove(); atualizarRemover(); calcular(); });
+    $('lista').appendChild(linha);
+    atualizarRemover();
+    return linha;
+  }
+  // sempre sobra pelo menos uma linha
+  function atualizarRemover() {
+    const botoes = document.querySelectorAll('.pq-remover');
+    botoes.forEach(b => b.disabled = botoes.length === 1);
+  }
+
+  function lerDividas() {
+    return [...document.querySelectorAll('.pq-divida')].map((linha, k) => ({
+      nome: linha.querySelector('.d-nome').value.trim() || `Dívida ${k + 1}`,
+      saldo: dinheiro(linha.querySelector('.d-saldo')),
+      i: Math.max(0, parseFloat(linha.querySelector('.d-juros').value) || 0) / 100,
+      min: dinheiro(linha.querySelector('.d-min'))
+    })).filter(d => d.saldo > 0);
+  }
+
+  /* ===== SIMULAÇÃO MÊS A MÊS =====
+   * Todo mês: 1) cada dívida cobra juros sobre o saldo; 2) paga-se a parcela mínima de cada uma (na ordem de
+   * prioridade, se o dinheiro não der para todas); 3) a sobra do orçamento vai inteira para a primeira dívida
+   * ainda aberta na ordem da estratégia. Quando uma dívida acaba, o que era a parcela dela vira sobra e reforça a próxima. */
+  function simular(dividas, orcamento, ordem) {
+    const saldo = dividas.map(d => d.saldo);
+    const quitadaEm = dividas.map(() => null);
+    const serie = [saldo.reduce((a, b) => a + b, 0)];
+    let juros = 0, pago = 0, mes = 0;
+    const aberto = () => saldo.some(s => s > QUITADO);
+    while (aberto() && mes < MAX_MESES) {
+      mes++;
+      dividas.forEach((d, k) => { if (saldo[k] > QUITADO) { const j = saldo[k] * d.i; saldo[k] += j; juros += j; } });
+      let disp = orcamento;
+      for (const k of ordem) {                                       // parcelas mínimas
+        if (saldo[k] <= QUITADO) continue;
+        const p = Math.min(dividas[k].min, saldo[k], disp);
+        saldo[k] -= p; disp -= p; pago += p;
+      }
+      for (const k of ordem) {                                       // sobra, na ordem da estratégia
+        if (disp <= QUITADO) break;
+        if (saldo[k] <= QUITADO) continue;
+        const p = Math.min(saldo[k], disp);
+        saldo[k] -= p; disp -= p; pago += p;
+      }
+      saldo.forEach((s, k) => { if (s <= QUITADO && quitadaEm[k] === null) { quitadaEm[k] = mes; saldo[k] = 0; } });
+      serie.push(saldo.reduce((a, b) => a + Math.max(0, b), 0));
+    }
+    return { quitou: !aberto(), meses: mes, juros, pago, serie, quitadaEm };
+  }
+
+  // ordem de prioridade (índices): avalanche = maior juros primeiro; bola de neve = menor saldo primeiro
+  const ordemAvalanche = ds => ds.map((_, k) => k).sort((a, b) => ds[b].i - ds[a].i || ds[a].saldo - ds[b].saldo);
+  const ordemBola = ds => ds.map((_, k) => k).sort((a, b) => ds[a].saldo - ds[b].saldo || ds[b].i - ds[a].i);
+
+  // "abr/2028": mês corrente + n
+  const MESES_ABREV = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+  function mesAno(n) {
+    const d = new Date();
+    const total = d.getFullYear() * 12 + d.getMonth() + n;
+    return `${MESES_ABREV[total % 12]}/${Math.floor(total / 12)}`;
+  }
+  const textoMeses = n => n < 12 ? `${n} ${n === 1 ? 'mês' : 'meses'}`
+    : `${n} meses (${Math.floor(n / 12)} ${Math.floor(n / 12) === 1 ? 'ano' : 'anos'}${n % 12 ? ` e ${n % 12} ${n % 12 === 1 ? 'mês' : 'meses'}` : ''})`;
+  const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+  /* ===== RENDER ===== */
+  function alerta(html, forte) {
+    $('alerta').hidden = !html;
+    $('alerta').classList.toggle('forte', !!forte);
+    $('alerta-texto').innerHTML = html || '';
+  }
+
+  function calcular() {
+    const dividas = lerDividas();
+    const orcamento = dinheiro($('orcamento'));
+    const somaMin = dividas.reduce((s, d) => s + Math.min(d.min, d.saldo), 0);
+    const jurosMes1 = dividas.reduce((s, d) => s + d.saldo * d.i, 0);
+    $('orcamento-dica').textContent = dividas.length
+      ? `Soma das parcelas mínimas: ${brl(somaMin)} · juros do 1º mês: ${brl(jurosMes1)}`
+      : '';
+
+    if (!dividas.length) {
+      alerta('Adicione pelo menos uma dívida com o valor que você deve hoje.');
+      $('pq-resultado').hidden = true;
+      return;
+    }
+    // não cobre nem os juros: a dívida cresce todo mês e nenhuma estratégia resolve
+    if (orcamento <= jurosMes1 + QUITADO) {
+      alerta(`<strong>Com ${brl(orcamento)} por mês você não cobre nem os juros (${brl(jurosMes1)} no primeiro mês).</strong> A dívida vai crescer todo mês, mesmo pagando. Antes de qualquer estratégia, é preciso renegociar para reduzir os juros ou aumentar o valor mensal. Veja as dicas abaixo.`, true);
+      $('pq-resultado').hidden = true;
+      return;
+    }
+
+    const av = simular(dividas, orcamento, ordemAvalanche(dividas));
+    const bn = simular(dividas, orcamento, ordemBola(dividas));
+
+    if (!av.quitou && !bn.quitou) {
+      alerta(`<strong>Com ${brl(orcamento)} por mês as dívidas não acabam em ${MAX_MESES / 12} anos.</strong> O valor mal passa dos juros. Aumente o pagamento mensal ou renegocie os juros.`, true);
+      $('pq-resultado').hidden = true;
+      return;
+    }
+    alerta(orcamento < somaMin - QUITADO
+      ? `Atenção: ${brl(orcamento)} não cobre a soma das parcelas mínimas (${brl(somaMin)}). Na simulação, as dívidas fora da prioridade ficam com parcela menor que a mínima, o que na vida real gera atraso, multa e juros de mora.`
+      : '');
+    $('pq-resultado').hidden = false;
+
+    // melhor estratégia = menos juros (empate: a avalanche)
+    const avMelhor = av.quitou && (!bn.quitou || av.juros <= bn.juros + 0.005);
+    const diferenca = Math.abs(av.juros - bn.juros);
+    const empate = av.quitou && bn.quitou && diferenca < 0.5 && av.meses === bn.meses;
+    const card = (titulo, descricao, r, melhor) => cardResultado({
+      titulo, descricao, rotulo: 'Livre de todas as dívidas em', valor: r.quitou ? mesAno(r.meses) : 'mais de 50 anos',
+      destaque: melhor && !empate, selo: melhor && !empate ? 'Menos juros' : '',
+      linhas: r.quitou ? [['Tempo', textoMeses(r.meses)], ['Juros pagos', brl(r.juros)], ['Total pago', brl(r.pago)]] : []
+    });
+    $('resultados').innerHTML = [
+      card('Avalanche', 'Sobra vai para a dívida de juros mais altos', av, avMelhor),
+      card('Bola de neve', 'Sobra vai para a dívida de menor saldo', bn, !avMelhor)
+    ].join('');
+
+    const melhor = avMelhor ? av : bn, pior = avMelhor ? bn : av;
+    const nomeMelhor = avMelhor ? 'avalanche' : 'bola de neve';
+    const antes = pior.meses - melhor.meses;
+    $('resumo-texto').innerHTML = empate
+      ? `As duas estratégias dão o mesmo resultado aqui: você fica livre em <strong>${mesAno(av.meses)}</strong>, pagando ${brl(av.juros)} de juros.`
+      : `Com a <strong>${nomeMelhor}</strong> você paga <strong>${brl(diferenca)} a menos de juros</strong>${antes > 0 ? ` e fica livre ${textoMeses(antes)} antes` : antes < 0 ? `, mas fica livre ${textoMeses(-antes)} depois` : ', no mesmo mês'}. Sua data da liberdade: <strong>${mesAno(melhor.meses)}</strong>.`;
+
+    const ordemHTML = (r, ordem) => ordem.map(k =>
+      `<li><span>${esc(dividas[k].nome)}</span><small>${r.quitadaEm[k] !== null ? `${mesAno(r.quitadaEm[k])} · mês ${r.quitadaEm[k]}` : 'não quita'}</small></li>`).join('');
+    // lista na ordem em que as dívidas acabam de fato
+    const porQuitacao = r => dividas.map((_, k) => k).sort((a, b) => (r.quitadaEm[a] ?? Infinity) - (r.quitadaEm[b] ?? Infinity));
+    $('ordem-avalanche').innerHTML = ordemHTML(av, porQuitacao(av));
+    $('ordem-bola').innerHTML = ordemHTML(bn, porQuitacao(bn));
+
+    renderGrafico(av, bn, avMelhor);
+  }
+
+  let grafico = null;
+  function renderGrafico(av, bn, avMelhor) {
+    if (!window.Chart) {
+      document.querySelector('.tool-chart-box').innerHTML = '<p class="tool-obs">Não foi possível carregar o gráfico agora.</p>';
+      return;
+    }
+    const g = estiloGrafico();
+    const n = Math.max(av.serie.length, bn.serie.length);
+    const labels = Array.from({ length: n }, (_, k) => String(k));
+    const linha = (label, r, melhor) => ({
+      label, data: r.serie, borderColor: melhor ? g.cor('--accent') : g.cor('--text'), backgroundColor: melhor ? g.cor('--accent') : g.cor('--text'),
+      borderDash: melhor ? [] : [7, 4], borderWidth: melhor ? 3 : 1.8, pointRadius: 0, pointHoverRadius: 4, tension: 0
+    });
+    const datasets = [linha('Avalanche', av, avMelhor), linha('Bola de neve', bn, !avMelhor)];
+    if (grafico) {
+      grafico.data.labels = labels;
+      grafico.data.datasets = datasets;
+      grafico.update('none');
+      return;
+    }
+    grafico = new Chart($('grafico'), {
+      type: 'line',
+      data: { labels, datasets },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        animation: g.animacao,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: g.legenda,
+          tooltip: { ...g.tooltip, callbacks: {
+            title: items => items[0].label === '0' ? 'Hoje' : `Mês ${items[0].label} · ${mesAno(+items[0].label)}`,
+            label: ctx => ` ${ctx.dataset.label}: ${brl(ctx.parsed.y ?? 0)}`
+          } }
+        },
+        scales: {
+          x: { title: { display: true, text: 'meses' }, grid: { display: false }, ticks: { maxTicksLimit: 12, maxRotation: 0 } },
+          y: { grid: { color: g.grade }, ticks: { callback: v => formatBRLCompacto(v) }, min: 0 }
+        }
+      }
+    });
+  }
+
+  $('btn-add').addEventListener('click', () => { adicionarDivida().querySelector('.d-nome').focus(); calcular(); });
+  $('orcamento').addEventListener('input', calcular);
+  EXEMPLOS.forEach(d => adicionarDivida(d));
+  calcular();
+</script>
+
+</body>
+</html>
