@@ -361,6 +361,8 @@ section { padding: 96px 5%; position: relative; }
 .tool-prose p + p { margin-top: 12px; }
 .tool-prose ul { padding-left: 20px; margin-top: 8px; }
 .tool-prose strong { color: var(--text); font-weight: 600; }
+.tool-prose a { color: var(--text); text-underline-offset: 3px; }
+.tool-prose a:hover { color: var(--accent); }
 
 /* aviso legal */
 .tool-disclaimer {
@@ -433,4 +435,35 @@ section { padding: 96px 5%; position: relative; }
   .tool-chart-box { height: 300px; }
   .tool-bridge .cobranca-card { padding: 22px 18px; }
   .tool-bridge .cobranca-card .cobranca-card-btn { width: 100%; text-align: center; }
+}
+
+/* "(opcional)" dentro do rótulo do campo */
+.tool-field label .opc { text-transform: none; letter-spacing: 0; font-weight: 400; }
+
+/* escolha em pílulas (radio): <fieldset class="tool-pillset"><legend class="tool-field"><span class="tool-label">…</span></legend>
+   <div class="tool-pills"><label class="tool-pill"><input type="radio" …><span>Opção</span></label>…</div></fieldset> */
+.tool-pillset { border: none; padding: 0; margin: 0; min-width: 0; }
+.tool-pillset legend { padding: 0; }
+.tool-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+.tool-pill { position: relative; }
+.tool-pill input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.tool-pill span {
+  display: block; padding: 8px 14px; border: 1px solid var(--border); border-radius: 99px;
+  font-size: .86rem; font-weight: 500; color: var(--muted); transition: border-color .2s, color .2s, background .2s;
+}
+.tool-pill input:hover + span { border-color: var(--text); color: var(--text); }
+.tool-pill input:checked + span { background: var(--text); border-color: var(--text); color: var(--bg); font-weight: 600; }
+.tool-pill input:focus-visible + span { outline: 2px solid var(--text); outline-offset: 3px; }
+
+/* grade de cards de resultado (.result-card) */
+.result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; margin-top: 28px; }
+
+/* barra de progresso: <div class="tool-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100"><span style="width:40%"></span></div> */
+.tool-progress { height: 10px; border-radius: 99px; background: var(--surface2); border: 1px solid var(--border); overflow: hidden; }
+.tool-progress > span { display: block; height: 100%; width: 0; background: var(--accent); border-radius: 99px; transition: width .4s ease; }
+.tool-progress-legenda { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px 16px; margin-top: 10px; font-size: .8rem; color: var(--muted); }
+.tool-progress-legenda strong { color: var(--text); font-family: 'IBM Plex Mono', monospace; font-weight: 600; }
+
+@media (prefers-reduced-motion: reduce) {
+  .tool-pill span, .tool-progress > span { transition: none; }
 }

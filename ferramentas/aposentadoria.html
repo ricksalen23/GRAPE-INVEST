@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Calculadora de Aposentadoria: quanto juntar para viver de renda | Warden</title>
+<meta name="description" content="Descubra quanto patrimônio você precisa para se aposentar com a renda que deseja (regra dos 4%) e quanto investir por mês até lá, em valores de hoje.">
+<link rel="canonical" href="https://wardenfinance.com.br/ferramentas/aposentadoria.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Calculadora de Aposentadoria | Warden">
+<meta property="og:description" content="Quanto juntar para se aposentar com a renda que você quer e quanto investir por mês, em valores de hoje.">
+<meta property="og:url" content="https://wardenfinance.com.br/ferramentas/aposentadoria.html">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/warden.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Calculadora de Aposentadoria",
+  "url": "https://wardenfinance.com.br/ferramentas/aposentadoria.html",
+  "applicationCategory": "FinanceApplication",
+  "operatingSystem": "Any",
+  "inLanguage": "pt-BR",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "BRL" },
+  "publisher": { "@type": "Organization", "name": "Warden", "url": "https://wardenfinance.com.br/" }
+}
+</script>
+<style>
+  /* ===== APOSENTADORIA (só desta página; estrutura e componentes vêm do /assets/warden.css) ===== */
+  .apo-form { display: flex; flex-direction: column; gap: 26px; }
+  .apo-premissas { border-top: 1px solid var(--border); padding-top: 22px; }
+  .apo-hoje { margin-top: 20px; }
+  .apo-erro { margin-top: 20px; }
+  .apo-obs { margin-top: 16px; }
+</style>
+</head>
+<body>
+
+<script src="/assets/nav.js"></script>
+
+<section class="tool-top">
+  <div class="section-inner">
+
+    <header class="tool-head">
+      <div class="tool-crumbs" data-crumbs></div>
+      <h1 class="tool-title">Calculadora de aposentadoria: quanto juntar para viver de renda</h1>
+      <p class="tool-lead">Quanto dinheiro você precisa ter investido para receber a renda que quer todo mês, sem trabalhar? E quanto investir por mês para chegar lá? Tudo em valores de hoje, para você comparar com o seu custo de vida atual.</p>
+    </header>
+
+    <!-- ENTRADAS -->
+    <form class="tool-card apo-form" id="apo-form" onsubmit="return false">
+      <div class="tool-fields">
+        <div class="tool-field">
+          <label for="idade">Sua idade hoje</label>
+          <div class="tool-input"><input type="number" id="idade" value="30" min="14" max="99" step="1" inputmode="numeric"><span class="suf">anos</span></div>
+        </div>
+        <div class="tool-field">
+          <label for="idade-apo">Quer se aposentar com</label>
+          <div class="tool-input"><input type="number" id="idade-apo" value="60" min="15" max="100" step="1" inputmode="numeric"><span class="suf">anos</span></div>
+        </div>
+        <div class="tool-field">
+          <label for="renda">Renda mensal desejada</label>
+          <div class="tool-input"><span class="pre">R$</span><input type="text" id="renda" value="5000"></div>
+          <span class="tool-hint">Em valores de hoje</span>
+        </div>
+        <div class="tool-field">
+          <label for="atual">Já tenho investido <span class="opc">(opcional)</span></label>
+          <div class="tool-input"><span class="pre">R$</span><input type="text" id="atual" placeholder="0,00"></div>
+        </div>
+      </div>
+
+      <div class="tool-fields apo-premissas">
+        <div class="tool-field">
+          <label for="real">Rentabilidade real</label>
+          <div class="tool-input"><input type="number" id="real" value="4" min="0" max="20" step="0.1" inputmode="decimal"><span class="suf">% ao ano acima da inflação</span></div>
+          <span class="tool-hint">Quanto o dinheiro rende além da inflação até você se aposentar</span>
+        </div>
+        <div class="tool-field">
+          <label for="retirada">Taxa de retirada</label>
+          <div class="tool-input"><input type="number" id="retirada" value="4" min="0.5" max="20" step="0.1" inputmode="decimal"><span class="suf">% do patrimônio por ano</span></div>
+          <span class="tool-hint">A "regra dos 4%", explicada abaixo</span>
+        </div>
+      </div>
+    </form>
+
+    <div class="tool-note apo-hoje">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+      <span><strong>Todos os valores estão em reais de hoje.</strong> A inflação já está descontada: R$ 5.000 aqui significam o poder de compra de R$ 5.000 hoje, mesmo que daqui a 30 anos o número na conta seja bem maior.</span>
+    </div>
+
+    <div class="tool-note apo-erro" id="apo-erro" role="alert" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+      <span id="apo-erro-texto"></span>
+    </div>
+
+    <!-- RESULTADO -->
+    <div class="result-grid" id="resultados" aria-live="polite"></div>
+
+    <div class="tool-card tool-chart">
+      <h2>Seu patrimônio até a aposentadoria</h2>
+      <p>Em valores de hoje, ano a ano, investindo o valor mensal calculado.</p>
+      <div class="tool-chart-box"><canvas id="grafico" role="img" aria-label="Gráfico de linha com o patrimônio acumulado por idade, o total investido e o patrimônio necessário"></canvas></div>
+    </div>
+
+    <p class="tool-obs apo-obs" id="apo-obs"></p>
+
+  </div>
+</section>
+
+<!-- EXPLICAÇÃO + FAQ -->
+<section class="tool-prose-section">
+  <div class="section-inner">
+    <article class="tool-prose">
+      <h2>Como calcular quanto você precisa para se aposentar</h2>
+      <p>A conta tem duas partes. Primeiro, <strong>quanto patrimônio</strong> é preciso para pagar a renda que você quer. Depois, <strong>quanto investir por mês</strong> para juntar esse patrimônio até a idade escolhida.</p>
+
+      <h3>A regra dos 4%</h3>
+      <p>Ela vem de um estudo americano dos anos 1990 (o "Trinity Study"), que testou carteiras de ações e títulos em décadas de crises e de crescimento. A conclusão: quem retira <strong>4% do patrimônio no primeiro ano</strong> e depois corrige esse valor pela inflação teve dinheiro para pelo menos 30 anos na grande maioria dos cenários.</p>
+      <p>Na prática, a regra vira uma conta simples: <strong>patrimônio necessário = renda anual ÷ 4%</strong>, que é o mesmo que <strong>renda mensal × 300</strong>. Para tirar R$ 5.000 por mês (R$ 60.000 por ano), você precisa de R$ 1.500.000.</p>
+      <p>Ela é uma referência, não uma garantia. Se você vai se aposentar cedo e precisa que o dinheiro dure mais de 30 anos, ou se quer mais segurança, use uma taxa de retirada menor, como 3% ou 3,5%. O patrimônio necessário sobe, mas o risco de o dinheiro acabar cai.</p>
+
+      <h3>Por que usar rentabilidade real</h3>
+      <p>Rentabilidade real é quanto o investimento rende <strong>acima da inflação</strong>. Usando ela, a calculadora trabalha em "reais de hoje" e você não precisa adivinhar a inflação dos próximos 30 anos. Os 4% ao ano sugeridos são uma premissa conservadora para uma carteira diversificada de longo prazo. Títulos como o Tesouro IPCA+ mostram a taxa real que estão pagando no dia; consulte no site do Tesouro Direto.</p>
+
+      <h3>E o INSS?</h3>
+      <p>A calculadora não considera aposentadoria do INSS nem previdência da empresa. Se você espera receber algo, <strong>desconte esse valor da renda desejada</strong>. Exemplo: quer R$ 5.000 e espera R$ 2.000 do INSS? Digite R$ 3.000.</p>
+
+      <p class="tool-disclaimer" data-aviso-educativo>A calculadora considera rentabilidade real e taxa de retirada constantes e não desconta Imposto de Renda nem custos. Rentabilidade passada não garante rentabilidade futura.</p>
+    </article>
+
+    <div class="tool-faq" data-faq>
+      <h2>Perguntas frequentes</h2>
+      <details>
+        <summary>O que é a regra dos 4%?</summary>
+        <div><p>É uma referência de quanto dá para retirar por ano de um patrimônio investido sem que ele acabe: 4% no primeiro ano, corrigidos pela inflação depois. Ela leva a uma conta fácil: você precisa de 25 vezes a renda anual (ou 300 vezes a renda mensal) investidos.</p></div>
+      </details>
+      <details>
+        <summary>Por que a calculadora usa valores de hoje?</summary>
+        <div><p>Porque é mais fácil pensar em poder de compra atual. R$ 5.000 por mês daqui a 30 anos, com inflação, serão um número muito maior na conta, mas o que importa é o que eles compram. Usando rentabilidade real (acima da inflação), todos os valores ficam comparáveis ao seu custo de vida de hoje.</p></div>
+      </details>
+      <details>
+        <summary>Preciso investir o mesmo valor todo mês até me aposentar?</summary>
+        <div><p>O cálculo considera o mesmo valor em reais de hoje, ou seja, corrigido pela inflação todo ano. Na prática, a maioria das pessoas começa com menos e aumenta conforme a renda cresce. Se começar menor, refaça a conta de tempos em tempos para ver o ajuste necessário.</p></div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- PONTE PARA O WARDEN COBRANÇA -->
+<section class="tool-bridge">
+  <div class="section-inner">
+    <div data-ponte-cobranca data-titulo="Aposentadoria se constrói com dinheiro entrando todo mês." data-texto="Com o Warden Cobrança, seus clientes são cobrados no WhatsApp, com Pix, no automático, e você investe sem depender de lembrar quem atrasou."></div>
+  </div>
+</section>
+
+<script src="/assets/tools.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+  const { formatBRL: brl, formatBRLCompacto, formatPct, formatNumero, parseNumero, campoBRL, cardResultado, estiloGrafico,
+          taxaMensal, aporteNecessario, serieAcumulacao } = Warden;
+  const $ = id => document.getElementById(id);
+
+  campoBRL($('renda'));
+  campoBRL($('atual'));
+  const dinheiro = id => { const v = parseNumero($(id).value); return isFinite(v) && v > 0 ? v : 0; };
+  const numero = (id, min, max) => { const v = parseFloat($(id).value); return isFinite(v) ? Math.min(Math.max(v, min), max) : min; };
+
+  // patrimônio que permite retirar `renda` por mês com `retiradaPct` ao ano: renda × 12 ÷ taxa de retirada
+  const patrimonioNecessario = (renda, retiradaPct) => renda * 12 / (retiradaPct / 100);
+
+  function calcular() {
+    const idade = Math.round(numero('idade', 14, 99));
+    const idadeApo = Math.round(numero('idade-apo', 15, 100));
+    const renda = dinheiro('renda');
+    const atual = dinheiro('atual');
+    const real = numero('real', 0, 20);
+    const retirada = numero('retirada', 0.5, 20);
+
+    const erro = idadeApo <= idade;
+    $('apo-erro').hidden = !erro;
+    $('apo-erro-texto').textContent = 'A idade para se aposentar precisa ser maior que a sua idade hoje.';
+
+    const necessario = patrimonioNecessario(renda, retirada);
+    const anos = Math.max(0, idadeApo - idade);
+    const n = anos * 12;
+    const i = taxaMensal(real);
+    const aporte = erro ? 0 : aporteNecessario(necessario, atual, i, n);
+    const atualNoFim = atual * Math.pow(1 + i, n);
+    const depositado = atual + aporte * n;
+    const final = atualNoFim + (i > 0 ? aporte * (Math.pow(1 + i, n) - 1) / i : aporte * n);
+    const jaCobre = !erro && atualNoFim >= necessario;
+
+    $('resultados').innerHTML = [
+      cardResultado({
+        titulo: 'Patrimônio necessário', destaque: true,
+        descricao: `Para tirar ${brl(renda)} por mês com retirada de ${formatPct(retirada, { curto: true })} ao ano`,
+        rotulo: 'Ter investido', valor: brl(necessario),
+        linhas: [['Equivale a', `${formatNumero(necessario / (renda || 1), { casas: 0 })}× a renda mensal`]]
+      }),
+      cardResultado({
+        titulo: 'Investir por mês',
+        descricao: erro ? 'Ajuste as idades acima' : jaCobre ? 'O que você já tem é suficiente' : `Dos ${idade} aos ${idadeApo} anos (${anos} ${anos === 1 ? 'ano' : 'anos'})`,
+        rotulo: 'Aporte mensal', valor: brl(aporte),
+        linhas: erro ? [] : [
+          ['Sai do seu bolso', brl(depositado)],
+          ['Os rendimentos pagam', brl(Math.max(0, final - depositado))]
+        ]
+      }),
+      cardResultado({
+        titulo: 'O que você já tem',
+        descricao: erro ? '—' : `${brl(atual)} hoje, rendendo ${formatPct(real, { curto: true })} ao ano acima da inflação`,
+        rotulo: `Vale aos ${idadeApo} anos`, valor: brl(erro ? atual : atualNoFim),
+        linhas: [['Cobre do necessário', necessario > 0 ? formatPct(Math.min(100, (erro ? atual : atualNoFim) / necessario * 100), { casas: 0 }) : '—']]
+      })
+    ].join('');
+
+    $('apo-obs').textContent = `Rentabilidade real de ${formatPct(real, { curto: true })} ao ano ≈ ${formatPct(i * 100)} ao mês. Aportes iguais (em reais de hoje) no fim de cada mês, sem Imposto de Renda nem custos.`;
+    renderGrafico(erro ? null : serieAcumulacao(atual, aporte, i, n), idade, anos, necessario);
+  }
+
+  let grafico = null;
+  function renderGrafico(serie, idade, anos, necessario) {
+    if (!window.Chart) {
+      document.querySelector('.tool-chart-box').innerHTML = '<p class="tool-obs">Não foi possível carregar o gráfico agora.</p>';
+      return;
+    }
+    const g = estiloGrafico();
+    // um ponto por ano (mês 0, 12, 24…), rotulado pela idade
+    const pontos = serie ? Array.from({ length: anos + 1 }, (_, a) => a * 12) : [];
+    const labels = pontos.map(m => String(idade + m / 12));
+    const datasets = [
+      { label: 'Seu patrimônio', data: pontos.map(m => serie.saldo[m]), borderColor: g.cor('--accent'), backgroundColor: g.cor('--accent'),
+        borderWidth: 3, pointRadius: 0, pointHoverRadius: 4, tension: 0.15 },
+      { label: 'Total investido', data: pontos.map(m => serie.depositado[m]), borderColor: g.cor('--muted'), backgroundColor: g.cor('--muted'),
+        borderDash: [2, 4], borderWidth: 1.8, pointRadius: 0, pointHoverRadius: 4, tension: 0 },
+      { label: 'Patrimônio necessário', data: pontos.map(() => necessario), borderColor: g.cor('--text'), backgroundColor: g.cor('--text'),
+        borderDash: [7, 4], borderWidth: 1.4, pointRadius: 0, pointHoverRadius: 0 }
+    ];
+
+    if (grafico) {
+      grafico.data.labels = labels;
+      grafico.data.datasets = datasets;
+      grafico.update('none');
+      return;
+    }
+    grafico = new Chart($('grafico'), {
+      type: 'line',
+      data: { labels, datasets },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        animation: g.animacao,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: g.legenda,
+          tooltip: { ...g.tooltip, callbacks: {
+            title: items => `${items[0].label} anos`,
+            label: ctx => ` ${ctx.dataset.label}: ${brl(ctx.parsed.y)}`
+          } }
+        },
+        scales: {
+          x: { title: { display: true, text: 'idade' }, grid: { display: false }, ticks: { maxTicksLimit: 12, maxRotation: 0 } },
+          y: { grid: { color: g.grade }, ticks: { callback: v => formatBRLCompacto(v) } }
+        }
+      }
+    });
+  }
+
+  ['idade', 'idade-apo', 'renda', 'atual', 'real', 'retirada'].forEach(id => $(id).addEventListener('input', calcular));
+  calcular();
+</script>
+
+</body>
+</html>

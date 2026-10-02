@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Quanto guardar por mês para atingir uma meta: calculadora | Warden</title>
+<meta name="description" content="Diga quanto quer juntar e em quanto tempo e veja quanto guardar por mês, com o rendimento do CDI de hoje, e quanto os juros pagam por você.">
+<link rel="canonical" href="https://wardenfinance.com.br/ferramentas/meta-mensal.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Quanto guardar por mês para atingir uma meta | Warden">
+<meta property="og:description" content="Quanto guardar por mês para chegar no valor da sua meta, com e sem rendimento.">
+<meta property="og:url" content="https://wardenfinance.com.br/ferramentas/meta-mensal.html">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/warden.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Calculadora de Meta Mensal",
+  "url": "https://wardenfinance.com.br/ferramentas/meta-mensal.html",
+  "applicationCategory": "FinanceApplication",
+  "operatingSystem": "Any",
+  "inLanguage": "pt-BR",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "BRL" },
+  "publisher": { "@type": "Organization", "name": "Warden", "url": "https://wardenfinance.com.br/" }
+}
+</script>
+<style>
+  /* ===== META MENSAL (só desta página; estrutura e componentes vêm do /assets/warden.css) ===== */
+  .meta-form { display: flex; flex-direction: column; gap: 26px; }
+  .meta-taxa { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 26px 28px; border-top: 1px solid var(--border); padding-top: 22px; }
+  .meta-select { flex: 1; }
+  .meta-aviso { margin-top: 20px; }
+  .meta-progresso { margin-top: 20px; }
+  .meta-progresso .section-label { margin-bottom: 14px; }
+  .meta-obs { margin-top: 16px; }
+
+  @media (max-width: 640px) {
+    .meta-taxa { grid-template-columns: 1fr; gap: 22px; }
+  }
+</style>
+</head>
+<body>
+
+<script src="/assets/nav.js"></script>
+
+<section class="tool-top">
+  <div class="section-inner">
+
+    <header class="tool-head">
+      <div class="tool-crumbs" data-crumbs></div>
+      <h1 class="tool-title">Quanto guardar por mês para chegar na sua meta</h1>
+      <p class="tool-lead">Uma viagem, a entrada de um carro ou de um apartamento, um curso. Diga quanto quer juntar e em quanto tempo, e veja quanto separar todo mês, com o dinheiro rendendo enquanto você guarda.</p>
+    </header>
+
+    <!-- ENTRADAS -->
+    <form class="tool-card meta-form" id="meta-form" onsubmit="return false">
+      <div class="tool-fields">
+        <div class="tool-field">
+          <label for="meta">Valor da meta</label>
+          <div class="tool-input"><span class="pre">R$</span><input type="text" id="meta" value="20000"></div>
+        </div>
+        <div class="tool-field">
+          <label for="prazo">Prazo</label>
+          <div class="tool-input">
+            <input type="number" id="prazo" value="2" min="1" step="1" inputmode="numeric">
+            <select id="prazo-unidade" aria-label="Unidade do prazo">
+              <option value="meses">meses</option>
+              <option value="anos" selected>anos</option>
+            </select>
+          </div>
+        </div>
+        <div class="tool-field">
+          <label for="atual">Já tenho guardado <span class="opc">(opcional)</span></label>
+          <div class="tool-input"><span class="pre">R$</span><input type="text" id="atual" placeholder="0,00"></div>
+        </div>
+      </div>
+
+      <div class="meta-taxa">
+        <div class="tool-field">
+          <label for="rendimento">Rendimento</label>
+          <div class="tool-input">
+            <select id="rendimento" class="meta-select">
+              <option value="cdi" selected>CDI de hoje</option>
+              <option value="zero">Sem rendimento</option>
+              <option value="outra">Outra taxa</option>
+            </select>
+          </div>
+          <span class="tool-hint" id="rendimento-dica"></span>
+        </div>
+        <div class="tool-field" id="campo-taxa" hidden>
+          <label for="taxa">Taxa</label>
+          <div class="tool-input">
+            <input type="number" id="taxa" value="1" min="0" max="100" step="0.01" inputmode="decimal">
+            <select id="taxa-unidade" aria-label="Período da taxa">
+              <option value="am" selected>% ao mês</option>
+              <option value="aa">% ao ano</option>
+            </select>
+          </div>
+          <span class="tool-hint" id="taxa-dica"></span>
+        </div>
+      </div>
+    </form>
+
+    <!-- RESULTADO -->
+    <div class="result-grid" id="resultados" aria-live="polite"></div>
+
+    <div class="tool-note meta-aviso" id="meta-aviso" role="status" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+      <span id="meta-aviso-texto"></span>
+    </div>
+
+    <div class="tool-card meta-progresso">
+      <p class="section-label">Quanto da meta você já tem</p>
+      <div class="tool-progress" id="barra" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-label="Quanto da meta você já tem"><span></span></div>
+      <div class="tool-progress-legenda">
+        <span><strong id="p-pct">0%</strong> da meta</span>
+        <span id="p-legenda"></span>
+      </div>
+    </div>
+
+    <div class="tool-card tool-chart">
+      <h2>Evolução até a meta</h2>
+      <p>O que você terá a cada mês, comparado com o que saiu do seu bolso.</p>
+      <div class="tool-chart-box"><canvas id="grafico" role="img" aria-label="Gráfico de linha com o saldo acumulado com rendimento e o total depositado ao longo do prazo"></canvas></div>
+    </div>
+
+    <p class="tool-obs meta-obs" id="meta-obs"></p>
+
+  </div>
+</section>
+
+<!-- EXPLICAÇÃO + FAQ -->
+<section class="tool-prose-section">
+  <div class="section-inner">
+    <article class="tool-prose">
+      <h2>Como a conta é feita</h2>
+      <p>Se você guarda o mesmo valor todo mês e esse dinheiro rende, cada depósito ganha juros pelo tempo que fica aplicado, e os juros também passam a render. São os <strong>juros compostos</strong>. Por isso, para chegar na mesma meta, você precisa guardar <strong>menos</strong> por mês do que se deixasse o dinheiro parado.</p>
+      <p>A calculadora usa a fórmula de matemática financeira para depósitos iguais no fim de cada mês:</p>
+      <p><strong>depósito mensal = (meta − já guardado × (1 + i)<sup>n</sup>) × i ÷ ((1 + i)<sup>n</sup> − 1)</strong></p>
+      <p>Onde <strong>i</strong> é a taxa de rendimento ao mês e <strong>n</strong> é o número de meses. Quando a taxa vem ao ano, ela é convertida para a taxa mensal equivalente: (1 + taxa anual)<sup>1/12</sup> − 1. Por exemplo, 12% ao ano equivalem a cerca de 0,95% ao mês, e não a 1%.</p>
+
+      <h3>Onde deixar o dinheiro da meta</h3>
+      <ul>
+        <li><strong>Meta para menos de 2 anos:</strong> algo seguro e com liquidez, como Tesouro Selic ou CDB que pague perto de 100% do CDI. Compare no <a href="/ferramentas/simulador-renda-fixa.html">simulador de renda fixa</a>.</li>
+        <li><strong>Meta mais longa:</strong> vale olhar títulos que protegem da inflação, como o Tesouro IPCA+, com vencimento perto da data da meta.</li>
+        <li><strong>Ainda não tem reserva de emergência?</strong> Ela vem primeiro. Calcule a sua na <a href="/ferramentas/reserva-de-emergencia.html">calculadora de reserva de emergência</a>.</li>
+      </ul>
+
+      <h3>Dica para não desistir no meio</h3>
+      <p>Programe uma transferência automática para o dia em que o salário cai. Dinheiro que nem passa pela conta corrente não vira gasto por impulso.</p>
+
+      <p class="tool-disclaimer" data-aviso-educativo>A calculadora considera a taxa escolhida fixa durante todo o prazo e não desconta Imposto de Renda, custos nem inflação.</p>
+    </article>
+
+    <div class="tool-faq" data-faq>
+      <h2>Perguntas frequentes</h2>
+      <details>
+        <summary>Por que o valor por mês com rendimento é menor?</summary>
+        <div><p>Porque o dinheiro que você guarda nos primeiros meses fica rendendo até o fim do prazo. Uma parte da meta é paga pelos juros, e não pelo seu bolso. Quanto maior o prazo e a taxa, maior essa ajuda: compare os cards "Guardar por mês" e "Sem rendimento".</p></div>
+      </details>
+      <details>
+        <summary>Qual taxa de rendimento devo usar?</summary>
+        <div><p>Para metas de curto prazo, o CDI de hoje é uma boa referência, porque é quanto rendem o Tesouro Selic e bons CDBs de liquidez diária (antes do Imposto de Renda). Se você já sabe onde vai investir, escolha "Outra taxa" e digite a taxa do produto. Para ser conservador, use uma taxa menor.</p></div>
+      </details>
+      <details>
+        <summary>E a inflação?</summary>
+        <div><p>A conta usa valores nominais: R$ 20.000 daqui a dois anos compram menos do que R$ 20.000 hoje. Se a meta é algo cujo preço sobe com o tempo (uma viagem, um carro), aumente um pouco o valor da meta ou use como taxa só o rendimento acima da inflação (por exemplo, 4% ao ano).</p></div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- PONTE PARA O WARDEN COBRANÇA -->
+<section class="tool-bridge">
+  <div class="section-inner">
+    <div data-ponte-cobranca data-titulo="Guardar todo mês fica mais fácil quando o cliente paga em dia." data-texto="O Warden Cobrança envia o Pix, lembra no WhatsApp e confirma o pagamento sozinho."></div>
+  </div>
+</section>
+
+<script src="/assets/tools.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+  const { formatBRL: brl, formatBRLCompacto, formatPct, parseNumero, campoBRL, cardResultado, estiloGrafico,
+          getTaxasBCB, fonteTaxa, taxaMensal, aporteNecessario, serieAcumulacao } = Warden;
+  const $ = id => document.getElementById(id);
+
+  let taxas = { ...Warden.TAXAS_REFERENCIA };   // trocado pelas taxas do Banco Central assim que chegarem
+
+  campoBRL($('meta'));
+  campoBRL($('atual'));
+  const dinheiro = id => { const v = parseNumero($(id).value); return isFinite(v) && v > 0 ? v : 0; };
+
+  // taxa mensal (decimal) conforme a opção escolhida, e um texto explicando de onde veio
+  function lerTaxa() {
+    const tipo = $('rendimento').value;
+    $('campo-taxa').hidden = tipo !== 'outra';
+    if (tipo === 'zero') return { i: 0, texto: 'Sem rendimento: o dinheiro fica parado.' };
+    if (tipo === 'cdi') {
+      const i = taxaMensal(taxas.cdi);
+      return { i, texto: `CDI de ${formatPct(taxas.cdi)} ao ano ≈ ${formatPct(i * 100)} ao mês (${fonteTaxa(taxas)}).` };
+    }
+    const v = Math.max(0, parseFloat($('taxa').value) || 0);
+    if ($('taxa-unidade').value === 'am') {
+      const i = v / 100;
+      $('taxa-dica').textContent = `Equivale a ${formatPct((Math.pow(1 + i, 12) - 1) * 100)} ao ano`;
+      return { i, texto: `Taxa informada: ${formatPct(v)} ao mês.` };
+    }
+    const i = taxaMensal(v);
+    $('taxa-dica').textContent = `Equivale a ${formatPct(i * 100)} ao mês`;
+    return { i, texto: `Taxa informada: ${formatPct(v)} ao ano ≈ ${formatPct(i * 100)} ao mês.` };
+  }
+
+  function calcular() {
+    const meta = dinheiro('meta');
+    const atual = dinheiro('atual');
+    const qtd = Math.max(1, Math.round(parseFloat($('prazo').value) || 1));
+    const n = Math.min($('prazo-unidade').value === 'anos' ? qtd * 12 : qtd, 600);
+    const { i, texto } = lerTaxa();
+    $('rendimento-dica').textContent = $('rendimento').value === 'cdi' ? `${formatPct(taxas.cdi)} ao ano` : '';
+
+    const aporte = aporteNecessario(meta, atual, i, n);
+    const semRendimento = Math.max(0, (meta - atual) / n);
+    const atualNoFim = atual * Math.pow(1 + i, n);       // o que já tem, rendendo até o fim do prazo
+    const depositado = atual + aporte * n;
+    const final = atualNoFim + (i > 0 ? aporte * (Math.pow(1 + i, n) - 1) / i : aporte * n);
+    const juros = Math.max(0, final - depositado);
+    const meses = `${n} ${n === 1 ? 'mês' : 'meses'}`;
+
+    $('resultados').innerHTML = [
+      cardResultado({
+        titulo: 'Guardar por mês', destaque: true,
+        descricao: i > 0 ? `Durante ${meses}, com o dinheiro rendendo` : `Durante ${meses}`,
+        rotulo: 'Depósito mensal', valor: brl(aporte),
+        linhas: [
+          ['Sai do seu bolso', brl(depositado)],
+          ['Os juros pagam', brl(juros)]
+        ]
+      }),
+      cardResultado({
+        titulo: 'Sem rendimento',
+        descricao: 'Guardando o dinheiro parado, sem investir',
+        rotulo: 'Depósito mensal', valor: brl(semRendimento),
+        linhas: [
+          ['A mais por mês', brl(Math.max(0, semRendimento - aporte))],
+          ['A mais no total', brl(Math.max(0, semRendimento - aporte) * n)]
+        ]
+      })
+    ].join('');
+
+    // a meta já está garantida?
+    const aviso = $('meta-aviso');
+    if (meta > 0 && atual >= meta) {
+      aviso.hidden = false;
+      $('meta-aviso-texto').textContent = `Você já tem o valor da meta: ${brl(atual)} de ${brl(meta)}.`;
+    } else if (meta > 0 && atual > 0 && atualNoFim >= meta) {
+      aviso.hidden = false;
+      $('meta-aviso-texto').textContent = `Você já chega lá sem guardar mais nada: os ${brl(atual)} que você tem, rendendo, viram ${brl(atualNoFim)} em ${meses}.`;
+    } else {
+      aviso.hidden = true;
+    }
+
+    const pctMeta = meta > 0 ? Math.min(100, atual / meta * 100) : 0;
+    $('barra').firstElementChild.style.width = pctMeta + '%';
+    $('barra').setAttribute('aria-valuenow', Math.round(pctMeta));
+    $('p-pct').textContent = formatPct(pctMeta, { casas: 0 });
+    $('p-legenda').textContent = `${brl(atual)} de ${brl(meta)}`;
+
+    $('meta-obs').textContent = `${texto} Depósitos iguais no fim de cada mês, sem descontar Imposto de Renda.`;
+    renderGrafico(serieAcumulacao(atual, aporte, i, n), n, i);
+  }
+
+  let grafico = null;
+  function renderGrafico(serie, n, i) {
+    if (!window.Chart) {
+      document.querySelector('.tool-chart-box').innerHTML = '<p class="tool-obs">Não foi possível carregar o gráfico agora.</p>';
+      return;
+    }
+    const g = estiloGrafico();
+    const labels = serie.saldo.map((_, m) => String(m));
+    const datasets = [
+      { label: i > 0 ? 'Com rendimento' : 'Saldo', data: serie.saldo, borderColor: g.cor('--accent'), backgroundColor: g.cor('--accent'),
+        borderWidth: 3, pointRadius: 0, pointHoverRadius: 4, tension: 0.15 }
+    ];
+    if (i > 0) datasets.push({ label: 'Só o que você depositou', data: serie.depositado, borderColor: g.cor('--muted'), backgroundColor: g.cor('--muted'),
+      borderDash: [2, 4], borderWidth: 1.8, pointRadius: 0, pointHoverRadius: 4, tension: 0 });
+
+    if (grafico) {
+      grafico.data.labels = labels;
+      grafico.data.datasets = datasets;
+      grafico.update('none');
+      return;
+    }
+    grafico = new Chart($('grafico'), {
+      type: 'line',
+      data: { labels, datasets },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        animation: g.animacao,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: g.legenda,
+          tooltip: { ...g.tooltip, callbacks: {
+            title: items => `Mês ${items[0].label}`,
+            label: ctx => ` ${ctx.dataset.label}: ${brl(ctx.parsed.y)}`
+          } }
+        },
+        scales: {
+          x: { title: { display: true, text: 'meses' }, grid: { display: false }, ticks: { maxTicksLimit: 12, maxRotation: 0 } },
+          y: { grid: { color: g.grade }, ticks: { callback: v => formatBRLCompacto(v) } }
+        }
+      }
+    });
+  }
+
+  ['meta', 'atual', 'prazo', 'taxa'].forEach(id => $(id).addEventListener('input', calcular));
+  ['prazo-unidade', 'rendimento', 'taxa-unidade'].forEach(id => $(id).addEventListener('change', calcular));
+
+  calcular();
+  getTaxasBCB().then(t => { taxas = t; calcular(); });
+</script>
+
+</body>
+</html>

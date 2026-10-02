@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Regra 50-30-20: calculadora para dividir seu salário | Warden</title>
+<meta name="description" content="Digite sua renda e veja quanto vai para necessidades (50%), desejos (30%) e futuro (20%). Compare com seus gastos e descubra o que ajustar.">
+<link rel="canonical" href="https://wardenfinance.com.br/ferramentas/regra-50-30-20.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Regra 50-30-20: calculadora para dividir seu salário | Warden">
+<meta property="og:description" content="Quanto da sua renda vai para necessidades, desejos e futuro, e o que ajustar no seu orçamento.">
+<meta property="og:url" content="https://wardenfinance.com.br/ferramentas/regra-50-30-20.html">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/warden.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Calculadora da Regra 50-30-20",
+  "url": "https://wardenfinance.com.br/ferramentas/regra-50-30-20.html",
+  "applicationCategory": "FinanceApplication",
+  "operatingSystem": "Any",
+  "inLanguage": "pt-BR",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "BRL" },
+  "publisher": { "@type": "Organization", "name": "Warden", "url": "https://wardenfinance.com.br/" }
+}
+</script>
+<style>
+  /* ===== REGRA 50-30-20 (só desta página; estrutura e componentes vêm do /assets/warden.css) ===== */
+  .reg-form { display: flex; flex-direction: column; gap: 26px; }
+  .reg-renda { max-width: 360px; }
+  .reg-compara { border-top: 1px solid var(--border); padding-top: 22px; }
+  .reg-compara > p { font-size: .84rem; color: var(--muted); line-height: 1.55; margin-bottom: 18px; }
+  .reg-compara > p strong { color: var(--text); font-weight: 600; }
+
+  .reg-baixo { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; margin-top: 20px; align-items: start; }
+  .reg-baixo .tool-chart { margin-top: 0; }
+  .reg-baixo .tool-chart-box { height: 320px; }
+  .reg-ajustes h2 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 1.25rem; margin-bottom: 4px; }
+  .reg-ajustes > p { font-size: .84rem; color: var(--muted); margin-bottom: 18px; line-height: 1.55; }
+  .reg-ajustes ul { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+  .reg-ajustes li { display: flex; gap: 12px; align-items: flex-start; font-size: .92rem; line-height: 1.55; }
+  .reg-ajustes li::before { content: ''; flex-shrink: 0; width: 8px; height: 8px; border-radius: 50%; margin-top: .5em; background: var(--muted); }
+  .reg-ajustes li.ok::before { background: var(--accent); }
+  .reg-ajustes li strong { font-weight: 600; }
+  .reg-ajustes .valor { font-family: 'IBM Plex Mono', monospace; }
+
+  @media (max-width: 900px) {
+    .reg-baixo { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<script src="/assets/nav.js"></script>
+
+<section class="tool-top">
+  <div class="section-inner">
+
+    <header class="tool-head">
+      <div class="tool-crumbs" data-crumbs></div>
+      <h1 class="tool-title">Regra 50-30-20: divida seu salário</h1>
+      <p class="tool-lead">Um jeito simples de organizar o dinheiro do mês: metade para o que é essencial, 30% para o que você gosta e 20% para o seu futuro. Digite sua renda e, se quiser, compare com o que você gasta hoje.</p>
+    </header>
+
+    <!-- ENTRADAS -->
+    <form class="tool-card reg-form" id="reg-form" onsubmit="return false">
+      <div class="tool-field reg-renda">
+        <label for="renda">Renda líquida por mês</label>
+        <div class="tool-input"><span class="pre">R$</span><input type="text" id="renda" value="5000"></div>
+        <span class="tool-hint">O que cai na conta, já sem impostos e descontos</span>
+      </div>
+
+      <div class="reg-compara">
+        <p><strong>Compare com seus gastos de hoje (opcional).</strong> Some, mais ou menos, quanto vai para cada grupo num mês normal.</p>
+        <div class="tool-fields">
+          <div class="tool-field">
+            <label for="g-nec">Necessidades <span class="opc">(opcional)</span></label>
+            <div class="tool-input"><span class="pre">R$</span><input type="text" id="g-nec" placeholder="0,00"></div>
+            <span class="tool-hint">Aluguel, contas, mercado, transporte, saúde</span>
+          </div>
+          <div class="tool-field">
+            <label for="g-des">Desejos <span class="opc">(opcional)</span></label>
+            <div class="tool-input"><span class="pre">R$</span><input type="text" id="g-des" placeholder="0,00"></div>
+            <span class="tool-hint">Lazer, delivery, streaming, compras</span>
+          </div>
+          <div class="tool-field">
+            <label for="g-fut">Futuro <span class="opc">(opcional)</span></label>
+            <div class="tool-input"><span class="pre">R$</span><input type="text" id="g-fut" placeholder="0,00"></div>
+            <span class="tool-hint">Investimentos, reserva, quitar dívidas</span>
+          </div>
+        </div>
+      </div>
+    </form>
+
+    <!-- RESULTADO -->
+    <div class="result-grid" id="resultados" aria-live="polite"></div>
+
+    <div class="reg-baixo">
+      <div class="tool-card tool-chart">
+        <h2>Como fica a divisão</h2>
+        <p id="grafico-sub">Anel de fora: a regra 50-30-20.</p>
+        <div class="tool-chart-box"><canvas id="grafico" role="img" aria-label="Gráfico de rosca com a divisão da renda em necessidades, desejos e futuro"></canvas></div>
+      </div>
+      <div class="tool-card reg-ajustes" aria-live="polite">
+        <h2>O que ajustar</h2>
+        <p id="ajustes-sub"></p>
+        <ul id="ajustes"></ul>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- EXPLICAÇÃO + FAQ -->
+<section class="tool-prose-section">
+  <div class="section-inner">
+    <article class="tool-prose">
+      <h2>Como funciona a regra 50-30-20</h2>
+      <p>A regra ficou famosa com o livro <em>All Your Worth</em>, da senadora americana Elizabeth Warren e da filha, Amelia Tyagi. A ideia é dividir a renda líquida, ou seja, o que realmente cai na conta, em três grupos:</p>
+      <ul>
+        <li><strong>50% para necessidades:</strong> o que você precisa pagar de qualquer jeito. Aluguel ou prestação da casa, condomínio, luz, água, internet, mercado, transporte, plano de saúde, remédios, escola e o mínimo das dívidas.</li>
+        <li><strong>30% para desejos:</strong> o que deixa a vida melhor, mas dá para cortar se for preciso. Restaurantes, delivery, viagens, streaming, roupas além do básico, hobbies.</li>
+        <li><strong>20% para o futuro:</strong> montar a <a href="/ferramentas/reserva-de-emergencia.html">reserva de emergência</a>, investir para metas e para a aposentadoria e pagar dívidas além do mínimo.</li>
+      </ul>
+
+      <h3>Por que funciona</h3>
+      <p>Porque é fácil de lembrar e não obriga a anotar cada centavo. Basta conferir, no fim do mês, se cada grupo ficou perto da sua parte. O segredo está nos 20%: separe esse dinheiro <strong>assim que o salário cair</strong>, antes de gastar com o resto. Quem deixa para investir "o que sobrar" quase nunca vê sobrar nada.</p>
+
+      <h3>E se a conta não fecha?</h3>
+      <p>Com renda mais baixa ou aluguel caro, é comum as necessidades passarem de 50%. Tudo bem: a regra é um ponto de partida, não uma lei. Uma adaptação frequente é 60-20-20, tirando dos desejos. O que vale a pena proteger é a parte do futuro, nem que comece com 5% e vá subindo aos poucos.</p>
+
+      <p class="tool-disclaimer" data-aviso-educativo>A regra 50-30-20 é uma referência geral de orçamento e não considera a sua situação específica, como dívidas, dependentes ou renda variável.</p>
+    </article>
+
+    <div class="tool-faq" data-faq>
+      <h2>Perguntas frequentes</h2>
+      <details>
+        <summary>A regra 50-30-20 usa a renda bruta ou a líquida?</summary>
+        <div><p>A líquida: o que sobra depois do INSS, do Imposto de Renda e de outros descontos em folha. É o dinheiro que você de fato tem para dividir. Para autônomos, use a média do que entra por mês depois dos impostos.</p></div>
+      </details>
+      <details>
+        <summary>E se minhas necessidades passam de 50%?</summary>
+        <div><p>É comum, principalmente com aluguel alto. Primeiro veja se dá para reduzir algo grande (aluguel, plano de celular, carro). Se não der, tire dos desejos e mantenha pelo menos um pouco para o futuro, mesmo que seja menos de 20% no começo.</p></div>
+      </details>
+      <details>
+        <summary>Em qual grupo entram as dívidas?</summary>
+        <div><p>A parcela mínima obrigatória entra em necessidades, porque você precisa pagá-la. O que você paga a mais para quitar antes entra em futuro: livrar-se de juros caros é um dos melhores "investimentos" que existem.</p></div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- PONTE PARA O WARDEN COBRANÇA -->
+<section class="tool-bridge">
+  <div class="section-inner">
+    <div data-ponte-cobranca data-titulo="Renda que atrasa bagunça qualquer orçamento." data-texto="O Warden Cobrança cobra seus clientes no WhatsApp, com Pix e no automático, para o dinheiro cair no dia certo."></div>
+  </div>
+</section>
+
+<script src="/assets/tools.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+  const { formatBRL: brl, formatPct, parseNumero, campoBRL, cardResultado, estiloGrafico } = Warden;
+  const $ = id => document.getElementById(id);
+
+  // os três grupos da regra; mude as porcentagens aqui se um dia quiser outra divisão (ex.: 60-20-20)
+  const GRUPOS = [
+    { id: 'nec', nome: 'Necessidades', pct: 50, desc: 'Moradia, contas, mercado, transporte, saúde', tipo: 'gasto' },
+    { id: 'des', nome: 'Desejos', pct: 30, desc: 'Lazer, delivery, viagens, compras', tipo: 'gasto' },
+    { id: 'fut', nome: 'Futuro', pct: 20, desc: 'Investir, reserva de emergência, quitar dívidas', tipo: 'futuro' }
+  ];
+  const TOLERANCIA = 1;   // diferenças de até R$ 1 contam como "no alvo"
+
+  ['renda', 'g-nec', 'g-des', 'g-fut'].forEach(id => campoBRL($(id)));
+  const dinheiro = id => { const v = parseNumero($(id).value); return isFinite(v) && v > 0 ? v : 0; };
+  const preenchido = id => isFinite(parseNumero($(id).value));
+
+  // texto de ajuste para um grupo; gastos: passar do ideal é ruim; futuro: ficar abaixo é ruim
+  function ajuste(g, ideal, seu) {
+    const dif = seu - ideal;
+    if (g.tipo === 'futuro') {
+      if (dif < -TOLERANCIA) return { ok: false, curto: `Aumente ${brl(-dif)}`, texto: `<strong>Futuro:</strong> separe mais <span class="valor">${brl(-dif)}</span> por mês para chegar aos ${g.pct}%.` };
+      return { ok: true, curto: 'No alvo', texto: `<strong>Futuro:</strong> você já separa ${dif > TOLERANCIA ? 'mais que os' : 'os'} ${g.pct}% recomendados. Ótimo.` };
+    }
+    if (dif > TOLERANCIA) return { ok: false, curto: `Reduza ${brl(dif)}`, texto: `<strong>${g.nome}:</strong> reduza <span class="valor">${brl(dif)}</span> por mês para caber nos ${g.pct}%.` };
+    return { ok: true, curto: dif < -TOLERANCIA ? `Folga de ${brl(-dif)}` : 'No alvo', texto: `<strong>${g.nome}:</strong> dentro dos ${g.pct}%${dif < -TOLERANCIA ? `, com folga de <span class="valor">${brl(-dif)}</span>` : ''}.` };
+  }
+
+  function calcular() {
+    const renda = dinheiro('renda');
+    const comparando = GRUPOS.some(g => preenchido('g-' + g.id));
+    const seus = GRUPOS.map(g => dinheiro('g-' + g.id));
+    const ideais = GRUPOS.map(g => renda * g.pct / 100);
+
+    $('resultados').innerHTML = GRUPOS.map((g, k) => {
+      const a = comparando ? ajuste(g, ideais[k], seus[k]) : null;
+      return cardResultado({
+        titulo: `${g.nome} · ${g.pct}%`, descricao: g.desc, rotulo: 'Até', valor: brl(ideais[k]),
+        destaque: g.tipo === 'futuro',
+        linhas: comparando ? [
+          ['Você gasta hoje', brl(seus[k])],
+          ['Da sua renda', renda > 0 ? formatPct(seus[k] / renda * 100, { casas: 0 }) : '—'],
+          ['Ajuste', a.curto]
+        ] : []
+      });
+    }).join('');
+
+    // lista "o que ajustar"
+    const lista = $('ajustes');
+    if (!comparando) {
+      $('ajustes-sub').textContent = 'Preencha quanto você gasta hoje em cada grupo (campos opcionais acima) para ver o que mudar.';
+      lista.innerHTML = '';
+    } else {
+      const soma = seus.reduce((a, b) => a + b, 0);
+      const itens = GRUPOS.map((g, k) => ajuste(g, ideais[k], seus[k]));
+      const sobra = renda - soma;
+      $('ajustes-sub').textContent = `Seus gastos informados somam ${brl(soma)} de uma renda de ${brl(renda)}.`;
+      lista.innerHTML = itens.map(a => `<li class="${a.ok ? 'ok' : ''}"><span>${a.texto}</span></li>`).join('') +
+        (sobra < -TOLERANCIA
+          ? `<li><span><strong>Atenção:</strong> você gasta <span class="valor">${brl(-sobra)}</span> a mais do que ganha. Esse buraco costuma virar dívida no cartão.</span></li>`
+          : sobra > TOLERANCIA
+            ? `<li><span><strong>Sem destino:</strong> <span class="valor">${brl(sobra)}</span> por mês não entraram em nenhum grupo. Se esse dinheiro está sobrando de verdade, mande para o futuro.</span></li>`
+            : '');
+    }
+
+    renderGrafico(renda, ideais, comparando ? seus : null);
+  }
+
+  let grafico = null;
+  function renderGrafico(renda, ideais, seus) {
+    if (!window.Chart) {
+      document.querySelector('.tool-chart-box').innerHTML = '<p class="tool-obs">Não foi possível carregar o gráfico agora.</p>';
+      return;
+    }
+    const g = estiloGrafico();
+    // futuro em --accent (a parte que mais importa proteger); necessidades e desejos em tons neutros
+    const cores = [g.neutros[0], g.neutros[1], g.cor('--accent')];
+    const datasets = [{ label: 'Regra 50-30-20', data: ideais, backgroundColor: cores, borderColor: g.cor('--surface'), borderWidth: 3 }];
+    let labels = GRUPOS.map(x => x.nome);
+    if (seus) {
+      const soma = seus.reduce((a, b) => a + b, 0);
+      const semDestino = Math.max(0, renda - soma);
+      labels = [...labels, 'Sem destino'];
+      datasets[0].data = [...ideais, 0];
+      datasets[0].backgroundColor = [...cores, g.cor('--surface2')];
+      datasets.push({ label: 'Você hoje', data: [...seus, semDestino], backgroundColor: [...cores, g.cor('--surface2')], borderColor: g.cor('--surface'), borderWidth: 3 });
+    }
+    $('grafico-sub').textContent = seus ? 'Anel de fora: a regra 50-30-20. Anel de dentro: como você gasta hoje.' : 'A divisão recomendada da sua renda.';
+
+    if (grafico) {
+      grafico.data.labels = labels;
+      grafico.data.datasets = datasets;
+      grafico.update('none');
+      return;
+    }
+    grafico = new Chart($('grafico'), {
+      type: 'doughnut',
+      data: { labels, datasets },
+      options: {
+        responsive: true, maintainAspectRatio: false, cutout: '48%',
+        animation: g.animacao,
+        plugins: {
+          legend: { ...g.legenda, labels: { ...g.legenda.labels, pointStyle: 'circle', boxWidth: 10,
+            filter: (item, data) => item.text !== 'Sem destino' || data.datasets.length > 1 } },
+          tooltip: {
+            ...g.tooltip,
+            callbacks: {
+              title: items => items[0].dataset.label,
+              label: ctx => {
+                const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                return ` ${ctx.label}: ${brl(ctx.parsed)} (${formatPct(total > 0 ? ctx.parsed / total * 100 : 0, { casas: 0 })})`;
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  ['renda', 'g-nec', 'g-des', 'g-fut'].forEach(id => $(id).addEventListener('input', calcular));
+  calcular();
+</script>
+
+</body>
+</html>

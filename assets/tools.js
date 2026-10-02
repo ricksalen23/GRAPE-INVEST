@@ -13,7 +13,8 @@
  *   <div class="tool-faq" data-faq><details><summary>Pergunta</summary><div>Resposta</div></details>…</div>
  *                                                         → perguntas ficam no HTML; o kit gera o schema.org FAQPage
  * Funções: formatBRL, formatBRLCompacto, formatPct, formatNumero, parseNumero, campoBRL,
- *          getTaxasBCB (+ TAXAS_REFERENCIA), taxaMensal, aporteNecessario, cardResultado, estiloGrafico.
+ *          getTaxasBCB (+ TAXAS_REFERENCIA, fonteTaxa), taxaMensal, aporteNecessario, serieAcumulacao,
+ *          cardResultado, estiloGrafico.
  */
 (function () {
   /* ===== FORMATAÇÃO ===== */
@@ -148,6 +149,14 @@
     return promessaTaxas;
   }
 
+  // de onde veio a taxa, para mostrar ao usuário: "Banco Central, 01/10/2026" / "valor de referência (set/2026)…"
+  // t sem `fonte` (ainda carregando, ex.: TAXAS_REFERENCIA) → "buscando no Banco Central…"
+  function fonteTaxa(t) {
+    if (t.fonte === 'bcb') return `Banco Central, ${t.datas.cdi.data}`;
+    if (t.fonte === 'referencia') return `valor de referência de ${TAXAS_REFERENCIA.mes}, porque não foi possível buscar a taxa de hoje`;
+    return 'buscando a taxa de hoje no Banco Central…';
+  }
+
   /* ===== MATEMÁTICA FINANCEIRA ===== */
   // taxa anual em % → taxa mensal equivalente (decimal). 12% a.a. → 0,009489
   const taxaMensal = anualPct => Math.pow(1 + anualPct / 100, 1 / 12) - 1;
@@ -160,6 +169,17 @@
     if (i === 0) return Math.max(0, (meta - atual) / n);
     const f = Math.pow(1 + i, n);
     return Math.max(0, (meta - atual * f) * i / (f - 1));
+  }
+
+  // Evolução mês a mês (para gráficos): começa com `atual`, rende `i` ao mês e recebe `aporte` no fim de cada mês.
+  // → { saldo: [mês 0 … meses], depositado: [mês 0 … meses] }  (depositado = atual + aportes, sem juros)
+  function serieAcumulacao(atual, aporte, i, meses) {
+    const saldo = [atual], depositado = [atual];
+    for (let m = 1; m <= meses; m++) {
+      saldo.push(saldo[m - 1] * (1 + i) + aporte);
+      depositado.push(depositado[m - 1] + aporte);
+    }
+    return { saldo, depositado };
   }
 
   /* ===== COMPONENTES ===== */
@@ -284,8 +304,8 @@
 
   window.Warden = {
     formatBRL, formatBRLCompacto, formatNumero, formatPct, parseNumero, campoBRL,
-    TAXAS_REFERENCIA, getTaxasBCB,
-    taxaMensal, aporteNecessario,
+    TAXAS_REFERENCIA, getTaxasBCB, fonteTaxa,
+    taxaMensal, aporteNecessario, serieAcumulacao,
     cardResultado, estiloGrafico
   };
 })();

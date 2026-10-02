@@ -52,10 +52,10 @@ const FERRAMENTAS = [
     { nome: 'Custo real em horas', url: '/ferramentas/custo-em-horas.html', disponivel: false }
   ] },
   { categoria: 'Planejamento', icone: 'plano', itens: [
-    { nome: 'Reserva de emergência', url: '/ferramentas/reserva-de-emergencia.html', disponivel: false },
-    { nome: 'Regra 50-30-20', url: '/ferramentas/regra-50-30-20.html', disponivel: false },
-    { nome: 'Meta mensal', url: '/ferramentas/meta-mensal.html', disponivel: false },
-    { nome: 'Aposentadoria', url: '/ferramentas/aposentadoria.html', disponivel: false }
+    { nome: 'Reserva de emergência', url: '/ferramentas/reserva-de-emergencia.html', disponivel: true },
+    { nome: 'Regra 50-30-20', url: '/ferramentas/regra-50-30-20.html', disponivel: true },
+    { nome: 'Meta mensal', url: '/ferramentas/meta-mensal.html', disponivel: true },
+    { nome: 'Aposentadoria', url: '/ferramentas/aposentadoria.html', disponivel: true }
   ] }
 ];
 window.WARDEN_FERRAMENTAS = FERRAMENTAS;

@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Calculadora de Reserva de Emergência: quanto guardar | Warden</title>
+<meta name="description" content="Descubra o tamanho ideal da sua reserva de emergência (CLT, autônomo, MEI ou servidor), quanto falta e quanto guardar por mês rendendo 100% do CDI.">
+<link rel="canonical" href="https://wardenfinance.com.br/ferramentas/reserva-de-emergencia.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Calculadora de Reserva de Emergência | Warden">
+<meta property="og:description" content="Quanto você precisa ter guardado para imprevistos, quanto falta e quanto guardar por mês para chegar lá.">
+<meta property="og:url" content="https://wardenfinance.com.br/ferramentas/reserva-de-emergencia.html">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/warden.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Calculadora de Reserva de Emergência",
+  "url": "https://wardenfinance.com.br/ferramentas/reserva-de-emergencia.html",
+  "applicationCategory": "FinanceApplication",
+  "operatingSystem": "Any",
+  "inLanguage": "pt-BR",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "BRL" },
+  "publisher": { "@type": "Organization", "name": "Warden", "url": "https://wardenfinance.com.br/" }
+}
+</script>
+<style>
+  /* ===== RESERVA DE EMERGÊNCIA (só desta página; estrutura e componentes vêm do /assets/warden.css) ===== */
+  .res-form { display: flex; flex-direction: column; gap: 26px; }
+  .res-progresso { margin-top: 20px; }
+  .res-progresso .section-label { margin-bottom: 14px; }
+  .res-obs { margin-top: 16px; }
+  .res-completa { margin-top: 20px; }
+</style>
+</head>
+<body>
+
+<script src="/assets/nav.js"></script>
+
+<section class="tool-top">
+  <div class="section-inner">
+
+    <header class="tool-head">
+      <div class="tool-crumbs" data-crumbs></div>
+      <h1 class="tool-title">Calculadora de reserva de emergência</h1>
+      <p class="tool-lead">Quanto você precisa ter guardado para atravessar um imprevisto (perder o emprego, ficar sem clientes, uma doença) sem se endividar? Responda quatro perguntas e veja o tamanho da sua reserva, quanto falta e quanto guardar por mês.</p>
+    </header>
+
+    <!-- ENTRADAS -->
+    <form class="tool-card res-form" id="res-form" onsubmit="return false">
+      <fieldset class="tool-pillset">
+        <legend class="tool-field"><span class="tool-label">Como você ganha a vida?</span></legend>
+        <div class="tool-pills" id="perfis">
+          <label class="tool-pill"><input type="radio" name="perfil" value="6" checked><span>CLT (emprego estável)</span></label>
+          <label class="tool-pill"><input type="radio" name="perfil" value="12"><span>Autônomo ou MEI</span></label>
+          <label class="tool-pill"><input type="radio" name="perfil" value="3"><span>Servidor público</span></label>
+        </div>
+      </fieldset>
+
+      <div class="tool-fields">
+        <div class="tool-field">
+          <label for="gastos">Gastos essenciais por mês</label>
+          <div class="tool-input"><span class="pre">R$</span><input type="text" id="gastos" value="3000"></div>
+          <span class="tool-hint">Moradia, contas, mercado, transporte, saúde</span>
+        </div>
+        <div class="tool-field">
+          <label for="meses">Meses de reserva</label>
+          <div class="tool-input"><input type="number" id="meses" value="6" min="1" max="36" step="1" inputmode="numeric"><span class="suf">meses</span></div>
+          <span class="tool-hint" id="meses-dica">Sugestão para CLT · pode mudar</span>
+        </div>
+        <div class="tool-field">
+          <label for="guardado">Já tenho guardado <span class="opc">(opcional)</span></label>
+          <div class="tool-input"><span class="pre">R$</span><input type="text" id="guardado" value="2000"></div>
+        </div>
+        <div class="tool-field">
+          <label for="prazo">Quero completar em</label>
+          <div class="tool-input"><input type="number" id="prazo" value="12" min="1" max="120" step="1" inputmode="numeric"><span class="suf">meses</span></div>
+        </div>
+      </div>
+    </form>
+
+    <!-- RESULTADO -->
+    <div class="result-grid" id="resultados" aria-live="polite"></div>
+
+    <div class="tool-note res-completa" id="res-completa" role="status" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+      <span id="res-completa-texto"></span>
+    </div>
+
+    <div class="tool-card res-progresso">
+      <p class="section-label">Seu progresso</p>
+      <div class="tool-progress" id="barra" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-label="Quanto da reserva você já tem"><span></span></div>
+      <div class="tool-progress-legenda">
+        <span><strong id="p-pct">0%</strong> da reserva já guardado</span>
+        <span id="p-legenda"></span>
+      </div>
+    </div>
+
+    <p class="tool-obs res-obs" id="res-obs"></p>
+
+  </div>
+</section>
+
+<!-- EXPLICAÇÃO + FAQ -->
+<section class="tool-prose-section">
+  <div class="section-inner">
+    <article class="tool-prose">
+      <h2>O que é a reserva de emergência</h2>
+      <p>É um dinheiro guardado <strong>só para imprevistos</strong>: perder o emprego, ficar alguns meses sem clientes, um problema de saúde, o carro que quebrou. Com ela, você paga as contas sem entrar no cheque especial ou no rotativo do cartão, que estão entre os juros mais caros do Brasil.</p>
+      <p>Ela vem <strong>antes de qualquer outro investimento</strong>. Primeiro você monta a reserva; depois pensa em investir para objetivos maiores.</p>
+
+      <h3>Quantos meses guardar?</h3>
+      <p>A conta é simples: <strong>gastos essenciais por mês × número de meses</strong>. O número de meses depende de quão estável é a sua renda:</p>
+      <ul>
+        <li><strong>Servidor público: 3 meses.</strong> A estabilidade no emprego torna improvável ficar sem salário.</li>
+        <li><strong>CLT: 6 meses.</strong> É, em média, o tempo para se recolocar. Seguro-desemprego e FGTS ajudam, mas não cobrem tudo.</li>
+        <li><strong>Autônomo e MEI: 12 meses.</strong> A renda varia de um mês para o outro e não existe seguro-desemprego.</li>
+      </ul>
+      <p>Esses números são um ponto de partida. Se você tem filhos, é a única renda da casa ou trabalha num setor instável, vale guardar mais.</p>
+
+      <h3>Onde guardar a reserva</h3>
+      <p>A reserva precisa de três coisas: <strong>segurança</strong> (não pode cair de valor), <strong>liquidez diária</strong> (dá para sacar no mesmo dia ou no dia seguinte) e <strong>render pelo menos a inflação</strong>. As opções mais indicadas:</p>
+      <ul>
+        <li><strong>Tesouro Selic:</strong> título do governo federal, o investimento mais seguro do país, com resgate em qualquer dia útil.</li>
+        <li><strong>CDB com liquidez diária</strong> que pague 100% do CDI ou mais, de banco grande e dentro da garantia do FGC (até R$ 250 mil por banco).</li>
+      </ul>
+      <p>Evite ações, criptomoedas, fundos com prazo de resgate longo e qualquer coisa que possa valer menos justo quando você precisar. A poupança é segura, mas costuma render menos que as duas opções acima. Compare quanto cada uma rende no <a href="/ferramentas/simulador-renda-fixa.html">simulador de renda fixa</a>.</p>
+
+      <h3>Como a calculadora chega no valor por mês</h3>
+      <p>Ela considera que o dinheiro guardado rende <strong>100% do CDI</strong> (taxa buscada no Banco Central) e que você deposita no fim de cada mês. Como o dinheiro rende enquanto você junta, o valor mensal fica um pouco menor do que simplesmente dividir o que falta pelo número de meses. A comparação aparece no card do meio.</p>
+
+      <p class="tool-disclaimer" data-aviso-educativo>A calculadora usa o CDI de hoje como se fosse fixo durante todo o prazo e não desconta Imposto de Renda nem custos. Na prática, o valor por mês pode ficar um pouco maior.</p>
+    </article>
+
+    <div class="tool-faq" data-faq>
+      <h2>Perguntas frequentes</h2>
+      <details>
+        <summary>A reserva de emergência pode ficar na poupança?</summary>
+        <div><p>Pode, porque a poupança é segura e tem saque imediato. Mas ela costuma render menos que o Tesouro Selic e que um CDB de liquidez diária a 100% do CDI, e só paga rendimento no "aniversário" do depósito. Se puder, prefira uma das duas outras opções.</p></div>
+      </details>
+      <details>
+        <summary>Quando posso usar a reserva de emergência?</summary>
+        <div><p>Só em imprevistos que ameaçam o seu orçamento: perda de renda, saúde, um conserto urgente. Viagem, presente ou promoção não são emergência. Se usar a reserva, a prioridade passa a ser recompô-la antes de voltar a investir em outras coisas.</p></div>
+      </details>
+      <details>
+        <summary>Devo quitar dívidas antes de montar a reserva?</summary>
+        <div><p>Dívidas caras, como cartão de crédito e cheque especial, cobram muito mais juros do que a reserva rende. O caminho mais comum é juntar uma reserva pequena (um mês de gastos), atacar as dívidas caras e só então completar a reserva. Dívidas baratas, como um financiamento imobiliário, podem continuar sendo pagas normalmente.</p></div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- PONTE PARA O WARDEN COBRANÇA -->
+<section class="tool-bridge">
+  <div class="section-inner">
+    <div data-ponte-cobranca data-titulo="Autônomo ou MEI? A reserva enche mais rápido com cliente pagando em dia." data-texto="O Warden Cobrança cobra seus clientes no WhatsApp, com Pix, e lembra quem atrasou. Você só acompanha."></div>
+  </div>
+</section>
+
+<script src="/assets/tools.js"></script>
+<script>
+  const { formatBRL: brl, formatPct, parseNumero, campoBRL, cardResultado, getTaxasBCB, fonteTaxa, taxaMensal, aporteNecessario } = Warden;
+  const $ = id => document.getElementById(id);
+
+  // meses sugeridos por perfil (valor de cada pílula) e o nome usado na dica
+  const PERFIS = { 3: 'servidor público', 6: 'CLT', 12: 'autônomo e MEI' };
+
+  let taxas = { ...Warden.TAXAS_REFERENCIA };   // trocado pelas taxas do Banco Central assim que chegarem
+
+  campoBRL($('gastos'));
+  campoBRL($('guardado'));
+
+  const inteiro = (id, min, max) => { const v = Math.round(parseFloat($(id).value)); return isFinite(v) ? Math.min(Math.max(v, min), max) : min; };
+  const dinheiro = id => { const v = parseNumero($(id).value); return isFinite(v) && v > 0 ? v : 0; };
+
+  function calcular() {
+    const gastos = dinheiro('gastos');
+    const meses = inteiro('meses', 1, 36);
+    const guardado = dinheiro('guardado');
+    const prazo = inteiro('prazo', 1, 120);
+
+    const ideal = gastos * meses;
+    const falta = Math.max(0, ideal - guardado);
+    const i = taxaMensal(taxas.cdi);                       // 100% do CDI ao mês
+    const aporte = aporteNecessario(ideal, guardado, i, prazo);
+    const semRendimento = falta / prazo;
+    const jurosAjudam = Math.max(0, falta - aporte * prazo);
+    const pctGuardado = ideal > 0 ? Math.min(100, guardado / ideal * 100) : 0;
+
+    $('resultados').innerHTML = [
+      cardResultado({
+        titulo: 'Reserva ideal', destaque: true,
+        descricao: `${meses} ${meses === 1 ? 'mês' : 'meses'} × ${brl(gastos)} de gastos essenciais`,
+        rotulo: 'Ter guardado', valor: brl(ideal)
+      }),
+      cardResultado({
+        titulo: 'Quanto falta',
+        descricao: falta > 0 ? `Você já tem ${formatPct(pctGuardado, { casas: 0 })} da reserva` : 'Nada: sua reserva está completa',
+        rotulo: 'Para completar', valor: brl(falta)
+      }),
+      cardResultado({
+        titulo: 'Guardar por mês',
+        descricao: `Durante ${prazo} ${prazo === 1 ? 'mês' : 'meses'}, rendendo 100% do CDI`,
+        rotulo: 'Depósito mensal', valor: brl(aporte),
+        linhas: [
+          ['Sem rendimento seria', brl(semRendimento)],
+          ['O rendimento cobre', brl(jurosAjudam)]
+        ]
+      })
+    ].join('');
+
+    $('res-completa').hidden = !(ideal > 0 && guardado >= ideal);
+    $('res-completa-texto').textContent = guardado > ideal
+      ? `Sua reserva está completa e ainda sobram ${brl(guardado - ideal)}. Esse excedente pode ir para investimentos de prazo mais longo.`
+      : 'Sua reserva está completa. Agora é manter o valor atualizado se os seus gastos mudarem.';
+
+    $('barra').firstElementChild.style.width = pctGuardado + '%';
+    $('barra').setAttribute('aria-valuenow', Math.round(pctGuardado));
+    $('p-pct').textContent = formatPct(pctGuardado, { casas: 0 });
+    $('p-legenda').textContent = `${brl(guardado)} de ${brl(ideal)}`;
+
+    $('res-obs').textContent = `Rendimento considerado: 100% do CDI, ${formatPct(taxas.cdi)} ao ano (${fonteTaxa(taxas)}), sem descontar Imposto de Renda. Depósitos no fim de cada mês.`;
+  }
+
+  // perfil → preenche os meses sugeridos; mexer nos meses à mão vira "personalizado"
+  document.querySelectorAll('input[name="perfil"]').forEach(r => r.addEventListener('change', () => {
+    $('meses').value = r.value;
+    $('meses-dica').textContent = `Sugestão para ${PERFIS[r.value]} · pode mudar`;
+    calcular();
+  }));
+  $('meses').addEventListener('input', () => {
+    const perfil = document.querySelector('input[name="perfil"]:checked');
+    $('meses-dica').textContent = perfil && perfil.value === $('meses').value
+      ? `Sugestão para ${PERFIS[perfil.value]} · pode mudar`
+      : 'Valor personalizado';
+    calcular();
+  });
+  ['gastos', 'guardado', 'prazo'].forEach(id => $(id).addEventListener('input', calcular));
+
+  calcular();
+  getTaxasBCB().then(t => { taxas = t; calcular(); });
+</script>
+
+</body>
+</html>

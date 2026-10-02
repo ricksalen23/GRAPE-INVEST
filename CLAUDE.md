@@ -76,9 +76,10 @@ Cada ferramenta é uma página em `/ferramentas/<slug>.html`. Para lançar: crie
 
 - **Formatação:** `formatBRL`, `formatBRLCompacto` (eixos), `formatPct(v, {casas, curto, sinal})`, `formatNumero`, `parseNumero` (aceita "1.500,50", "1.500", "150.00").
 - **Campos de dinheiro:** `<input type="text">` + `Warden.campoBRL(input)` (máscara de R$), lido com `parseNumero(input.value)`. Chame antes de registrar os listeners da página.
-- **Taxas:** `await Warden.getTaxasBCB()` → `{ selic, cdi, ipca, fonte: 'bcb'|'referencia' }` (API SGS, cache 12h, nunca falha). Renderize primeiro com `Warden.TAXAS_REFERENCIA` e atualize quando a promessa resolver; mostre ao usuário de onde veio a taxa. Os valores de reserva ficam só no `tools.js`.
-- **Matemática:** `taxaMensal(anualPct)`, `aporteNecessario(meta, atual, iMensal, meses)`.
+- **Taxas:** `await Warden.getTaxasBCB()` → `{ selic, cdi, ipca, fonte: 'bcb'|'referencia' }` (API SGS, cache 12h, nunca falha). Renderize primeiro com `Warden.TAXAS_REFERENCIA` e atualize quando a promessa resolver; mostre ao usuário de onde veio a taxa. Os valores de reserva ficam só no `tools.js`. Para o texto da fonte use `fonteTaxa(t)`.
+- **Matemática:** `taxaMensal(anualPct)`, `aporteNecessario(meta, atual, iMensal, meses)` (depósitos no fim do mês), `serieAcumulacao(atual, aporte, iMensal, meses)` (série mês a mês para gráfico).
 - **Componentes:** `cardResultado({ titulo, descricao, rotulo, valor, linhas, destaque, selo })` (HTML do `.result-card`); `estiloGrafico()` (cores, tooltip, legenda, `prefers-reduced-motion` do Chart.js: o destaque é sempre `--accent`, o resto em `--text`/`--muted`/`neutros`).
+- **Classes prontas (warden.css):** `.result-grid` (grade de cards), `.tool-progress` + `.tool-progress-legenda` (barra de progresso), `.tool-pillset`/`.tool-pills`/`.tool-pill` (escolha em pílulas), `.tool-chart` + `.tool-chart-box` (card de gráfico), `.tool-note` (aviso), `.tool-obs` (nota pequena), `<span class="opc">(opcional)</span>` no rótulo.
 - **Componentes declarados no HTML** (o kit completa ao carregar): `data-crumbs` (+ schema BreadcrumbList), `data-ponte-cobranca`, `data-aviso-educativo` ("Simulação educativa. Não é recomendação de investimento." + texto do elemento), `data-faq` (gera o schema FAQPage a partir dos `<details>`; o texto fica no HTML para o Google).
 
 ### Conteúdo

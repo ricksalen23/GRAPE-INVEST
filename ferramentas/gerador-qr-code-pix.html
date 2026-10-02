@@ -38,19 +38,6 @@
   .pix-form { display: flex; flex-direction: column; gap: 26px; }
   .pix-form .tool-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .pix-form .tool-input input { font-size: 1.05rem; }
-  .pix-tipos { border: none; padding: 0; margin: 0; min-width: 0; }
-  .pix-tipos legend { padding: 0; }
-  .tool-field label .opc { text-transform: none; letter-spacing: 0; font-weight: 400; }
-  .pix-tipos-opcoes { display: flex; flex-wrap: wrap; gap: 8px; }
-  .pix-tipo { position: relative; }
-  .pix-tipo input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
-  .pix-tipo span {
-    display: block; padding: 8px 14px; border: 1px solid var(--border); border-radius: 99px;
-    font-size: .86rem; font-weight: 500; color: var(--muted); transition: border-color .2s, color .2s, background .2s;
-  }
-  .pix-tipo input:hover + span { border-color: var(--text); color: var(--text); }
-  .pix-tipo input:checked + span { background: var(--text); border-color: var(--text); color: var(--bg); font-weight: 600; }
-  .pix-tipo input:focus-visible + span { outline: 2px solid var(--text); outline-offset: 3px; }
 
   /* dica sob o campo: neutra, "ok" ou erro (sem cor nova: erro em --text com marcador) */
   .tool-field .pix-hint { display: flex; justify-content: space-between; gap: 10px; }
@@ -130,10 +117,6 @@
     .pix-depois:not([hidden]) { animation: pix-entra .35s ease-out; }
     @keyframes pix-entra { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
   }
-  @media (prefers-reduced-motion: reduce) {
-    .pix-tipo span { transition: none; }
-  }
-
   @media (max-width: 900px) {
     .pix-grid, .pix-depois { grid-template-columns: 1fr; }
   }
@@ -162,14 +145,14 @@
 
       <!-- ENTRADAS -->
       <form class="tool-card pix-form" id="pix-form" onsubmit="return false" novalidate>
-        <fieldset class="pix-tipos">
+        <fieldset class="tool-pillset">
           <legend class="tool-field"><span class="tool-label">Tipo de chave</span></legend>
-          <div class="pix-tipos-opcoes">
-            <label class="pix-tipo"><input type="radio" name="tipo" value="cpf"><span>CPF</span></label>
-            <label class="pix-tipo"><input type="radio" name="tipo" value="cnpj"><span>CNPJ</span></label>
-            <label class="pix-tipo"><input type="radio" name="tipo" value="celular"><span>Celular</span></label>
-            <label class="pix-tipo"><input type="radio" name="tipo" value="email" checked><span>E-mail</span></label>
-            <label class="pix-tipo"><input type="radio" name="tipo" value="aleatoria"><span>Chave aleatória</span></label>
+          <div class="tool-pills">
+            <label class="tool-pill"><input type="radio" name="tipo" value="cpf"><span>CPF</span></label>
+            <label class="tool-pill"><input type="radio" name="tipo" value="cnpj"><span>CNPJ</span></label>
+            <label class="tool-pill"><input type="radio" name="tipo" value="celular"><span>Celular</span></label>
+            <label class="tool-pill"><input type="radio" name="tipo" value="email" checked><span>E-mail</span></label>
+            <label class="tool-pill"><input type="radio" name="tipo" value="aleatoria"><span>Chave aleatória</span></label>
           </div>
         </fieldset>
 
