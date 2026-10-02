@@ -511,3 +511,55 @@ section { padding: 96px 5%; position: relative; }
 @media (prefers-reduced-motion: reduce) {
   .tool-details > summary::after { transition: none; }
 }
+
+/* listas editáveis (dívidas, itens de orçamento): botão "+ adicionar" e botão "×" de remover linha */
+.tool-add { align-self: flex-start; padding: 10px 18px; font-size: .88rem; }
+.tool-remover {
+  width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--border); background: none; color: var(--muted);
+  font-size: 1.2rem; line-height: 1; cursor: pointer; transition: border-color .2s, color .2s;
+}
+.tool-remover:hover { border-color: var(--text); color: var(--text); }
+.tool-remover:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
+.tool-remover:disabled { opacity: .35; cursor: default; }
+
+/* fileira de botões de ação (baixar, imprimir, enviar) */
+.tool-acoes { display: flex; flex-wrap: wrap; gap: 10px; }
+.tool-acoes .btn svg { width: 18px; height: 18px; flex-shrink: 0; }
+.tool-acoes .btn:disabled,
+.tool-acoes .btn[aria-disabled="true"] { opacity: .45; cursor: not-allowed; transform: none; }
+
+/* documento em "papel" (recibo, orçamento): prévia clara, como sai no PDF e na impressão */
+.tool-papel {
+  position: relative; overflow: hidden; background: #FFFFFF; color: #141412; border-radius: 12px;
+  padding: 44px 44px 28px; font-family: 'Inter', sans-serif; font-size: .92rem; line-height: 1.6;
+  box-shadow: 0 18px 40px rgba(0,0,0,.35);
+}
+.tool-papel::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 6px; background: var(--accent); }
+.tool-papel .papel-muted { color: #6F6D64; }
+.tool-papel-rodape { margin-top: 32px; padding-top: 14px; border-top: 1px solid #E6E4DC; font-size: .7rem; color: #8A887E; text-align: center; }
+@media (max-width: 640px) {
+  .tool-papel { padding: 32px 20px 22px; font-size: .86rem; }
+}
+
+/* impressão de um documento só (Warden.imprimir): o resto da página some e o papel ocupa a folha */
+.tool-impressao { display: none; }
+@media print {
+  @page { margin: 14mm; }
+  html, body { background: #FFFFFF !important; }
+  body.imprimindo > *:not(.tool-impressao) { display: none !important; }
+  body.imprimindo > .tool-impressao { display: block !important; }
+  body.imprimindo .tool-papel { box-shadow: none; border-radius: 0; padding: 0; font-size: 11pt; }
+  body.imprimindo .tool-papel::before { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tool-remover { transition: none; }
+}
+
+/* página de documento (recibo, orçamento): formulário à esquerda, prévia em papel à direita, presa ao rolar */
+.tool-doc { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+.tool-doc-previa { position: sticky; top: calc(100px + env(safe-area-inset-top, 0px)); display: flex; flex-direction: column; gap: 16px; }
+.tool-doc-previa > .section-label { margin: 0; }
+@media (max-width: 1000px) {
+  .tool-doc { grid-template-columns: 1fr; }
+  .tool-doc-previa { position: static; }
+}

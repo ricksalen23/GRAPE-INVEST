@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Quanto cobrar por hora? Calculadora para freelancer e MEI | Warden</title>
+<meta name="description" content="Descubra seu valor por hora como autônomo, freelancer ou MEI, com custos do negócio, tempo que não dá para cobrar e férias. Veja também por dia e por projeto.">
+<link rel="canonical" href="https://wardenfinance.com.br/ferramentas/quanto-cobrar-por-hora.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Quanto cobrar por hora? | Warden">
+<meta property="og:description" content="Seu valor por hora, por dia e por projeto, com custos, tempo não faturável e férias.">
+<meta property="og:url" content="https://wardenfinance.com.br/ferramentas/quanto-cobrar-por-hora.html">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/warden.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Calculadora: Quanto Cobrar por Hora",
+  "url": "https://wardenfinance.com.br/ferramentas/quanto-cobrar-por-hora.html",
+  "applicationCategory": "FinanceApplication",
+  "operatingSystem": "Any",
+  "inLanguage": "pt-BR",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "BRL" },
+  "publisher": { "@type": "Organization", "name": "Warden", "url": "https://wardenfinance.com.br/" }
+}
+</script>
+<style>
+  /* ===== QUANTO COBRAR POR HORA (só desta página; estrutura e componentes vêm do /assets/warden.css) ===== */
+  .qc-form { display: flex; flex-direction: column; gap: 26px; }
+  .qc-bloco { border-top: 1px solid var(--border); padding-top: 22px; }
+  .qc-bloco > .section-label { margin-bottom: 18px; }
+  .qc-erro { margin-top: 20px; }
+  .qc-obs { margin-top: 16px; }
+</style>
+</head>
+<body>
+
+<script src="/assets/nav.js"></script>
+
+<section class="tool-top">
+  <div class="section-inner">
+
+    <header class="tool-head">
+      <div class="tool-crumbs" data-crumbs></div>
+      <h1 class="tool-title">Quanto cobrar por hora como autônomo</h1>
+      <p class="tool-lead">Seu valor por hora não é o salário dividido pelas horas do mês. Ele precisa pagar os custos do negócio, o tempo que você trabalha sem poder cobrar e as suas férias. Coloque seus números e veja quanto cobrar.</p>
+    </header>
+
+    <!-- ENTRADAS -->
+    <form class="tool-card qc-form" id="qc-form" onsubmit="return false">
+      <div class="tool-fields">
+        <div class="tool-field">
+          <label for="renda">Quero ganhar por mês (líquido)</label>
+          <div class="tool-input"><span class="pre">R$</span><input type="text" id="renda" value="5000"></div>
+          <span class="tool-hint">O que vai para o seu bolso, como um salário</span>
+        </div>
+        <div class="tool-field">
+          <label for="custos">Custos do negócio por mês</label>
+          <div class="tool-input"><span class="pre">R$</span><input type="text" id="custos" value="1000"></div>
+          <span class="tool-hint">Internet, aluguel, ferramentas, contador, DAS ou outro imposto, INSS</span>
+        </div>
+      </div>
+
+      <div class="qc-bloco">
+        <p class="section-label">Sua rotina</p>
+        <div class="tool-fields">
+          <div class="tool-field">
+            <label for="dias">Dias trabalhados por mês</label>
+            <div class="tool-input"><input type="number" id="dias" value="20" min="1" max="31" step="1" inputmode="numeric"><span class="suf">dias</span></div>
+          </div>
+          <div class="tool-field">
+            <label for="horas">Horas por dia</label>
+            <div class="tool-input"><input type="number" id="horas" value="8" min="1" max="24" step="0.5" inputmode="decimal"><span class="suf">horas</span></div>
+          </div>
+          <div class="tool-field">
+            <label for="faturavel">Tempo faturável</label>
+            <div class="tool-input"><input type="number" id="faturavel" value="70" min="1" max="100" step="1" inputmode="numeric"><span class="suf">% das horas</span></div>
+            <span class="tool-hint">Parte do tempo vai para tarefas que você não cobra</span>
+          </div>
+          <div class="tool-field">
+            <label for="ferias">Férias por ano</label>
+            <div class="tool-input"><input type="number" id="ferias" value="1" min="0" max="11" step="0.5" inputmode="decimal"><span class="suf">meses</span></div>
+            <span class="tool-hint">Meses sem trabalhar (e sem faturar)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="qc-bloco">
+        <div class="tool-fields">
+          <div class="tool-field">
+            <label for="projeto">Um projeto de</label>
+            <div class="tool-input"><input type="number" id="projeto" value="40" min="1" max="10000" step="1" inputmode="numeric"><span class="suf">horas</span></div>
+            <span class="tool-hint">Para ver quanto cobrar por um trabalho fechado</span>
+          </div>
+        </div>
+      </div>
+    </form>
+
+    <div class="tool-note qc-erro" id="erro" role="alert" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+      <span id="erro-texto"></span>
+    </div>
+
+    <!-- RESULTADO -->
+    <div class="result-grid" id="resultados" aria-live="polite"></div>
+    <p class="tool-obs qc-obs" id="qc-obs"></p>
+
+  </div>
+</section>
+
+<!-- EXPLICAÇÃO + FAQ -->
+<section class="tool-prose-section">
+  <div class="section-inner">
+    <article class="tool-prose">
+      <h2>Como chegar no seu valor por hora</h2>
+      <p>O erro mais comum de quem começa a trabalhar por conta é pegar o salário que tinha na CLT e dividir pelas horas do mês. Esse valor fica baixo demais, porque ignora três coisas que o empregador pagava por você:</p>
+      <ul>
+        <li><strong>Os custos do negócio.</strong> Computador, internet, softwares, contador, o DAS do MEI ou outro imposto, a contribuição para o INSS. Tudo isso sai do que o cliente paga.</li>
+        <li><strong>O tempo que não dá para cobrar.</strong> Responder mensagens, fazer orçamento, prospectar clientes, emitir nota, estudar, se deslocar. É comum só 60% a 75% das horas virarem trabalho cobrado: esse é o <strong>tempo faturável</strong>.</li>
+        <li><strong>As férias.</strong> Ninguém paga suas férias nem seu 13º. Se você quer um mês de descanso, os outros 11 precisam cobrir o ano inteiro.</li>
+      </ul>
+
+      <h3>A fórmula</h3>
+      <p><strong>valor por hora = (renda desejada + custos) × 12 ÷ (12 − meses de férias) ÷ (dias × horas × % faturável)</strong></p>
+      <p>Primeiro a calculadora descobre quanto você precisa faturar por ano. Depois divide pelos meses em que você trabalha e, por fim, pelas horas do mês que você realmente consegue cobrar.</p>
+
+      <h3>Imposto que é porcentagem do faturamento</h3>
+      <p>O DAS do MEI tem valor fixo por mês, então entra nos custos. Se você paga imposto como porcentagem do que fatura (Simples Nacional, por exemplo), calcule o preço final com a <a href="/ferramentas/markup-e-margem.html">calculadora de markup e margem</a>, que soma impostos e taxas em cima do custo.</p>
+      <p>E não esqueça de você: parte da renda desejada deveria ir para a <a href="/ferramentas/reserva-de-emergencia.html">reserva de emergência</a> e para a <a href="/ferramentas/aposentadoria.html">aposentadoria</a>, que ninguém mais vai fazer por você.</p>
+
+      <p class="tool-disclaimer" data-aviso-educativo>O resultado é uma referência de quanto você precisa cobrar para fechar a conta. O preço final também depende do mercado, da sua experiência e do valor que você entrega ao cliente.</p>
+    </article>
+
+    <div class="tool-faq" data-faq>
+      <h2>Perguntas frequentes</h2>
+      <details>
+        <summary>Quanto um freelancer deve cobrar por hora?</summary>
+        <div><p>O mínimo é o valor que paga a sua renda desejada, os custos do negócio, o tempo não faturável e as férias, que é o que esta calculadora mostra. Abaixo disso você está pagando para trabalhar. Acima dele, o limite é o que o mercado aceita pelo seu nível de experiência e resultado.</p></div>
+      </details>
+      <details>
+        <summary>O que é tempo faturável?</summary>
+        <div><p>É a parte das suas horas de trabalho que você consegue cobrar de um cliente. O resto vai para administração, vendas, propostas, mensagens e estudo. Para a maioria dos autônomos fica entre 60% e 75%. Se você não sabe o seu, comece com 70% e ajuste depois de anotar suas horas por algumas semanas.</p></div>
+      </details>
+      <details>
+        <summary>É melhor cobrar por hora ou por projeto?</summary>
+        <div><p>Por projeto costuma ser melhor para você e para o cliente: ele sabe quanto vai pagar, e você ganha mais se trabalhar rápido. Use o valor por hora para estimar: horas previstas × valor por hora, com uma folga para imprevistos. O card "Por projeto" faz essa conta.</p></div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- PONTE PARA O WARDEN COBRANÇA -->
+<section class="tool-bridge">
+  <div class="section-inner">
+    <div data-ponte-cobranca data-titulo="Cobrar o preço certo é metade. A outra é receber." data-texto="O Warden Cobrança cobra seus clientes no WhatsApp, com Pix, lembra quem atrasou e confirma o pagamento sozinho."></div>
+  </div>
+</section>
+
+<script src="/assets/tools.js"></script>
+<script>
+  const { formatBRL: brl, formatNumero, parseNumero, campoBRL, cardResultado } = Warden;
+  const $ = id => document.getElementById(id);
+
+  campoBRL($('renda'));
+  campoBRL($('custos'));
+  const dinheiro = id => { const v = parseNumero($(id).value); return isFinite(v) && v > 0 ? v : 0; };
+  const num = id => { const v = parseFloat($(id).value); return isFinite(v) ? v : 0; };
+
+  function calcular() {
+    const renda = dinheiro('renda'), custos = dinheiro('custos');
+    const dias = num('dias'), horas = num('horas'), fat = num('faturavel') / 100, ferias = num('ferias');
+    const projeto = Math.max(0, num('projeto'));
+
+    // validações: sem elas a conta divide por zero
+    const erros = [];
+    if (ferias >= 12) erros.push('Com 12 meses de férias não sobra mês para trabalhar. Use menos de 12.');
+    if (ferias < 0) erros.push('Os meses de férias não podem ser negativos.');
+    if (dias <= 0 || horas <= 0) erros.push('Informe quantos dias por mês e quantas horas por dia você trabalha.');
+    if (fat <= 0 || fat > 1) erros.push('O tempo faturável precisa ficar entre 1% e 100%.');
+    $('erro').hidden = !erros.length;
+    $('erro-texto').textContent = erros.join(' ');
+    if (erros.length) { $('resultados').innerHTML = ''; $('qc-obs').textContent = ''; return; }
+
+    const faturamentoAno = (renda + custos) * 12;
+    const mesesTrabalho = 12 - ferias;
+    const faturamentoMes = faturamentoAno / mesesTrabalho;   // por mês trabalhado
+    const horasFaturaveis = dias * horas * fat;
+    // valor/hora = (renda + custos) × 12 ÷ (12 − férias) ÷ (dias × horas × % faturável)
+    const valorHora = faturamentoMes / horasFaturaveis;
+    const h = v => formatNumero(v, { curto: true });
+
+    $('resultados').innerHTML = [
+      cardResultado({
+        titulo: 'Por hora', destaque: true,
+        descricao: `Para ganhar ${brl(renda)} líquidos por mês`,
+        rotulo: 'Cobre no mínimo', valor: brl(valorHora),
+        linhas: [
+          ['Horas faturáveis por mês', h(horasFaturaveis)],
+          ['Faturar por mês trabalhado', brl(faturamentoMes)],
+          ['Faturar por ano', brl(faturamentoAno)]
+        ]
+      }),
+      cardResultado({
+        titulo: 'Por dia', descricao: `Diária de ${h(horas)} horas cobradas`,
+        rotulo: 'Diária', valor: brl(valorHora * horas),
+        linhas: [['Meio período', `${brl(valorHora * horas / 2)} (${h(horas / 2)} h)`]]
+      }),
+      cardResultado({
+        titulo: 'Por projeto', descricao: `Um trabalho de ${h(projeto)} horas`,
+        rotulo: 'Valor do projeto', valor: brl(valorHora * projeto),
+        linhas: [['Com 20% de folga para imprevistos', brl(valorHora * projeto * 1.2)]]
+      })
+    ].join('');
+
+    $('qc-obs').textContent = `Conta: (${brl(renda)} + ${brl(custos)}) × 12 ÷ ${h(mesesTrabalho)} meses trabalhados ÷ (${h(dias)} dias × ${h(horas)} h × ${h(fat * 100)}% faturável) = ${brl(valorHora)} por hora.`;
+  }
+
+  ['renda', 'custos', 'dias', 'horas', 'faturavel', 'ferias', 'projeto'].forEach(id => $(id).addEventListener('input', calcular));
+  calcular();
+</script>
+
+</body>
+</html>

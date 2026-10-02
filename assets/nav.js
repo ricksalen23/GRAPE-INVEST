@@ -36,12 +36,12 @@ const FERRAMENTAS = [
     { nome: 'CLT x PJ', url: '/ferramentas/clt-x-pj.html', disponivel: false }
   ] },
   { categoria: 'MEI e autônomo', icone: 'mei', itens: [
-    { nome: 'Quanto cobrar por hora', url: '/ferramentas/valor-hora.html', disponivel: false },
-    { nome: 'Markup e margem', url: '/ferramentas/markup-margem.html', disponivel: false },
-    { nome: 'Ponto de equilíbrio', url: '/ferramentas/ponto-de-equilibrio.html', disponivel: false },
-    { nome: 'Gerador de recibo', url: '/ferramentas/gerador-recibo.html', disponivel: false },
+    { nome: 'Quanto cobrar por hora', url: '/ferramentas/quanto-cobrar-por-hora.html', disponivel: true },
+    { nome: 'Markup e margem', url: '/ferramentas/markup-e-margem.html', disponivel: true },
+    { nome: 'Ponto de equilíbrio', url: '/ferramentas/ponto-de-equilibrio.html', disponivel: true },
+    { nome: 'Gerador de recibo', url: '/ferramentas/gerador-de-recibo.html', disponivel: true },
     { nome: 'Gerador de QR Code Pix', url: '/ferramentas/gerador-qr-code-pix.html', disponivel: true },
-    { nome: 'Gerador de orçamento', url: '/ferramentas/gerador-orcamento.html', disponivel: false }
+    { nome: 'Gerador de orçamento', url: '/ferramentas/gerador-de-orcamento.html', disponivel: true }
   ] },
   { categoria: 'Dívidas e consumo', icone: 'dividas', itens: [
     { nome: 'Plano de quitação', url: '/ferramentas/plano-de-quitacao.html', disponivel: true },

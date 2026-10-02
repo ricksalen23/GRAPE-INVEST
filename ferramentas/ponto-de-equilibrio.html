@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Ponto de equilíbrio: quantas vendas pagam suas contas | Warden</title>
+<meta name="description" content="Calcule o ponto de equilíbrio do seu negócio: quantas unidades vender por mês para pagar os custos fixos, em unidades e em reais, com gráfico de receita x custo.">
+<link rel="canonical" href="https://wardenfinance.com.br/ferramentas/ponto-de-equilibrio.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Calculadora de ponto de equilíbrio | Warden">
+<meta property="og:description" content="Quantas vendas por mês pagam seus custos fixos, e a partir de quando você tem lucro.">
+<meta property="og:url" content="https://wardenfinance.com.br/ferramentas/ponto-de-equilibrio.html">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/warden.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Calculadora de Ponto de Equilíbrio",
+  "url": "https://wardenfinance.com.br/ferramentas/ponto-de-equilibrio.html",
+  "applicationCategory": "FinanceApplication",
+  "operatingSystem": "Any",
+  "inLanguage": "pt-BR",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "BRL" },
+  "publisher": { "@type": "Organization", "name": "Warden", "url": "https://wardenfinance.com.br/" }
+}
+</script>
+<style>
+  /* ===== PONTO DE EQUILÍBRIO (só desta página; estrutura e componentes vêm do /assets/warden.css) ===== */
+  .pe-form { display: flex; flex-direction: column; gap: 26px; }
+  .pe-opcional { border-top: 1px solid var(--border); padding-top: 22px; max-width: 420px; }
+  .pe-erro { margin-top: 20px; }
+  .pe-obs { margin-top: 16px; }
+</style>
+</head>
+<body>
+
+<script src="/assets/nav.js"></script>
+
+<section class="tool-top">
+  <div class="section-inner">
+
+    <header class="tool-head">
+      <div class="tool-crumbs" data-crumbs></div>
+      <h1 class="tool-title">Ponto de equilíbrio: quantas vendas pagam suas contas</h1>
+      <p class="tool-lead">O ponto de equilíbrio é quanto você precisa vender por mês para não ter nem lucro nem prejuízo. Abaixo dele, o negócio perde dinheiro; acima, cada venda vira lucro.</p>
+    </header>
+
+    <!-- ENTRADAS -->
+    <form class="tool-card pe-form" id="pe-form" onsubmit="return false">
+      <div class="tool-fields">
+        <div class="tool-field">
+          <label for="fixos">Custos fixos por mês</label>
+          <div class="tool-input"><span class="pre">R$</span><input type="text" id="fixos" value="5000"></div>
+          <span class="tool-hint">Aluguel, salários, pró-labore, contador, sistemas</span>
+        </div>
+        <div class="tool-field">
+          <label for="preco">Preço de venda por unidade</label>
+          <div class="tool-input"><span class="pre">R$</span><input type="text" id="preco" value="100"></div>
+        </div>
+        <div class="tool-field">
+          <label for="variavel">Custo variável por unidade</label>
+          <div class="tool-input"><span class="pre">R$</span><input type="text" id="variavel" value="60"></div>
+          <span class="tool-hint">Material, embalagem, frete, impostos e taxas da venda</span>
+        </div>
+      </div>
+      <div class="tool-field pe-opcional">
+        <label for="vendas">Quanto você vende hoje por mês <span class="opc">(opcional)</span></label>
+        <div class="tool-input"><input type="number" id="vendas" min="0" step="1" inputmode="numeric" placeholder="0"><span class="suf">unidades</span></div>
+        <span class="tool-hint">Para ver se você está acima ou abaixo do equilíbrio</span>
+      </div>
+    </form>
+
+    <div class="tool-note pe-erro" id="erro" role="alert" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+      <span id="erro-texto"></span>
+    </div>
+
+    <div id="pe-resultado">
+      <!-- RESULTADO -->
+      <div class="result-grid" id="resultados" aria-live="polite"></div>
+
+      <div class="tool-card tool-chart">
+        <h2>Receita x custo total</h2>
+        <p>Onde as linhas se cruzam, o negócio empata. À direita do cruzamento, cada venda dá lucro.</p>
+        <div class="tool-chart-box"><canvas id="grafico" role="img" aria-label="Gráfico com a receita e o custo total por quantidade vendida, marcando o ponto de equilíbrio"></canvas></div>
+      </div>
+      <p class="tool-obs pe-obs" id="pe-obs"></p>
+    </div>
+
+  </div>
+</section>
+
+<!-- EXPLICAÇÃO + FAQ -->
+<section class="tool-prose-section">
+  <div class="section-inner">
+    <article class="tool-prose">
+      <h2>Como funciona o ponto de equilíbrio</h2>
+      <p>Todo negócio tem dois tipos de custo:</p>
+      <ul>
+        <li><strong>Custos fixos</strong> não mudam com a quantidade vendida: aluguel, salários, seu pró-labore, contador, internet, sistemas. Vendendo zero ou mil, você paga.</li>
+        <li><strong>Custos variáveis</strong> aparecem a cada venda: matéria-prima, embalagem, frete, comissão, a taxa da maquininha e os impostos sobre a venda.</li>
+      </ul>
+      <p>O que sobra do preço depois do custo variável é a <strong>margem de contribuição</strong>: o quanto cada venda ajuda a pagar os custos fixos. O ponto de equilíbrio é o número de vendas em que essas contribuições somadas pagam todos os custos fixos:</p>
+      <p><strong>ponto de equilíbrio (unidades) = custos fixos ÷ (preço − custo variável)</strong></p>
+      <p>O resultado é arredondado para cima, porque não dá para vender meia unidade. Em reais, é esse número de unidades vezes o preço.</p>
+
+      <h3>Como baixar o seu ponto de equilíbrio</h3>
+      <ul>
+        <li><strong>Aumentar a margem de contribuição:</strong> subir o preço ou negociar o custo variável. Veja o preço certo na <a href="/ferramentas/markup-e-margem.html">calculadora de markup e margem</a>.</li>
+        <li><strong>Cortar custos fixos:</strong> cada real a menos por mês reduz o número de vendas necessárias.</li>
+      </ul>
+      <p>Se o preço de venda é menor ou igual ao custo variável, não existe ponto de equilíbrio: cada venda dá prejuízo e vender mais só piora.</p>
+
+      <p class="tool-disclaimer" data-aviso-educativo>O cálculo considera preço e custos constantes, um produto (ou um preço médio) e não inclui investimentos, empréstimos nem sazonalidade.</p>
+    </article>
+
+    <div class="tool-faq" data-faq>
+      <h2>Perguntas frequentes</h2>
+      <details>
+        <summary>O que é margem de contribuição?</summary>
+        <div><p>É o preço de venda menos o custo variável de cada unidade. Se você vende por R$ 100 e gasta R$ 60 para produzir e vender, cada venda contribui com R$ 40 para pagar os custos fixos. Depois que os custos fixos estão pagos, essa contribuição vira lucro.</p></div>
+      </details>
+      <details>
+        <summary>E se eu vendo vários produtos com preços diferentes?</summary>
+        <div><p>Use um preço médio e um custo variável médio, ponderados pelo quanto cada produto vende. Por exemplo: se 70% das vendas são de um produto e 30% de outro, faça a média com esses pesos. O resultado é o número de vendas totais no mês.</p></div>
+      </details>
+      <details>
+        <summary>Meu pró-labore entra nos custos fixos?</summary>
+        <div><p>Sim. O que você precisa tirar todo mês para viver é um custo fixo do negócio. Se ele ficar de fora, o ponto de equilíbrio mostra quando a empresa empata, mas você continua trabalhando de graça.</p></div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- PONTE PARA O WARDEN COBRANÇA -->
+<section class="tool-bridge">
+  <div class="section-inner">
+    <div data-ponte-cobranca data-titulo="Venda feita não paga conta. Venda recebida paga." data-texto="O Warden Cobrança cobra seus clientes no WhatsApp, com Pix, e confirma o pagamento sozinho. Seu caixa chega ao equilíbrio de verdade."></div>
+  </div>
+</section>
+
+<script src="/assets/tools.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+  const { formatBRL: brl, formatBRLCompacto, formatPct, formatNumero, parseNumero, campoBRL, cardResultado, estiloGrafico } = Warden;
+  const $ = id => document.getElementById(id);
+
+  ['fixos', 'preco', 'variavel'].forEach(id => campoBRL($(id)));
+  const dinheiro = id => { const v = parseNumero($(id).value); return isFinite(v) && v > 0 ? v : 0; };
+  const un = n => `${formatNumero(n, { casas: 0 })} ${n === 1 ? 'unidade' : 'unidades'}`;
+
+  function calcular() {
+    const fixos = dinheiro('fixos'), preco = dinheiro('preco'), variavel = dinheiro('variavel');
+    const vendasTxt = $('vendas').value.trim();
+    const vendas = vendasTxt === '' ? null : Math.max(0, Math.round(parseFloat(vendasTxt) || 0));
+    const mc = preco - variavel;   // margem de contribuição por unidade
+
+    if (mc <= 0) {
+      $('erro').hidden = false;
+      $('erro-texto').innerHTML = preco > 0
+        ? `<strong>Não existe ponto de equilíbrio:</strong> o preço (${brl(preco)}) não é maior que o custo variável (${brl(variavel)}). Cada venda dá prejuízo, e vender mais só aumenta a perda. Suba o preço ou reduza o custo variável.`
+        : 'Informe o preço de venda por unidade.';
+      $('pe-resultado').hidden = true;
+      return;
+    }
+    $('erro').hidden = true;
+    $('pe-resultado').hidden = false;
+
+    // PE (unidades) = custos fixos ÷ margem de contribuição, arredondado para cima; PE (R$) = unidades × preço
+    const peUn = Math.ceil(fixos / mc - 1e-9);
+    const peReais = peUn * preco;
+    const cards = [
+      cardResultado({
+        titulo: 'Ponto de equilíbrio', destaque: true,
+        descricao: 'Vendas por mês para não ter lucro nem prejuízo',
+        rotulo: 'Vender por mês', valor: un(peUn),
+        linhas: [['Em faturamento', brl(peReais)]]
+      }),
+      cardResultado({
+        titulo: 'Margem de contribuição', descricao: 'O que cada venda deixa para pagar os custos fixos',
+        rotulo: 'Por unidade', valor: brl(mc),
+        linhas: [['Em % do preço', formatPct(mc / preco * 100, { casas: 1 })]]
+      })
+    ];
+    if (vendas !== null) {
+      const resultado = vendas * mc - fixos;
+      const folga = vendas - peUn;
+      cards.push(cardResultado({
+        titulo: 'Hoje', descricao: `Vendendo ${un(vendas)} por mês`,
+        rotulo: resultado >= 0 ? 'Lucro por mês' : 'Prejuízo por mês', valor: brl(Math.abs(resultado)),
+        linhas: [[folga >= 0 ? 'Acima do equilíbrio' : 'Faltam para o equilíbrio', un(Math.abs(folga))]]
+      }));
+    }
+    $('resultados').innerHTML = cards.join('');
+    $('pe-obs').textContent = `Conta: ${brl(fixos)} ÷ (${brl(preco)} − ${brl(variavel)}) = ${formatNumero(fixos / mc, { casas: 2 })} → ${un(peUn)} (arredondado para cima) × ${brl(preco)} = ${brl(peReais)}.`;
+
+    renderGrafico(fixos, preco, variavel, peUn, vendas);
+  }
+
+  let grafico = null;
+  function renderGrafico(fixos, preco, variavel, peUn, vendas) {
+    if (!window.Chart) {
+      document.querySelector('.tool-chart-box').innerHTML = '<p class="tool-obs">Não foi possível carregar o gráfico agora.</p>';
+      return;
+    }
+    const g = estiloGrafico();
+    const maxQ = Math.max(10, Math.ceil(Math.max(peUn * 2, (vendas || 0) * 1.2)));
+    const reta = f => [{ x: 0, y: f(0) }, { x: maxQ, y: f(maxQ) }];
+    // cruzamento exato (antes do arredondamento), para o ponto cair em cima das linhas
+    const qExato = fixos / (preco - variavel);
+    const datasets = [
+      { label: 'Receita', data: reta(q => q * preco), borderColor: g.cor('--accent'), backgroundColor: g.cor('--accent'), borderWidth: 3, pointRadius: 0, pointHoverRadius: 0 },
+      { label: 'Custo total', data: reta(q => fixos + q * variavel), borderColor: g.cor('--text'), backgroundColor: g.cor('--text'), borderWidth: 1.8, pointRadius: 0, pointHoverRadius: 0 },
+      { label: 'Custos fixos', data: reta(() => fixos), borderColor: g.cor('--muted'), backgroundColor: g.cor('--muted'), borderDash: [2, 4], borderWidth: 1.4, pointRadius: 0, pointHoverRadius: 0 },
+      { label: 'Ponto de equilíbrio', type: 'scatter', data: [{ x: qExato, y: qExato * preco }], borderColor: g.cor('--accent'), backgroundColor: g.cor('--bg'),
+        borderWidth: 3, pointRadius: 7, pointHoverRadius: 9 }
+    ];
+    if (grafico) {
+      grafico.data.datasets = datasets;
+      grafico.options.scales.x.max = maxQ;
+      grafico.update('none');
+      return;
+    }
+    grafico = new Chart($('grafico'), {
+      type: 'line',
+      data: { datasets },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        animation: g.animacao,
+        interaction: { mode: 'nearest', intersect: false },
+        plugins: {
+          legend: { ...g.legenda, labels: { ...g.legenda.labels, filter: item => item.text !== 'Ponto de equilíbrio' } },
+          tooltip: { ...g.tooltip, callbacks: {
+            title: items => items[0].dataset.label === 'Ponto de equilíbrio' ? `Ponto de equilíbrio: ${un(peUn)}` : `${formatNumero(items[0].parsed.x, { casas: 0 })} unidades`,
+            label: ctx => ` ${ctx.dataset.label === 'Ponto de equilíbrio' ? 'Receita = custo' : ctx.dataset.label}: ${brl(ctx.parsed.y)}`
+          } }
+        },
+        scales: {
+          x: { type: 'linear', min: 0, max: maxQ, title: { display: true, text: 'unidades vendidas por mês' }, grid: { display: false }, ticks: { maxTicksLimit: 10 } },
+          y: { min: 0, grid: { color: g.grade }, ticks: { callback: v => formatBRLCompacto(v) } }
+        }
+      }
+    });
+  }
+
+  ['fixos', 'preco', 'variavel', 'vendas'].forEach(id => $(id).addEventListener('input', calcular));
+  calcular();
+</script>
+
+</body>
+</html>

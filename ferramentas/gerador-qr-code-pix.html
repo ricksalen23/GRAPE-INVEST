@@ -364,26 +364,9 @@
   // descrição / txid: só letras e números
   const limparDescricao = s => semAcento(s).replace(/[^A-Za-z0-9]/g, '');
 
-  function cpfValido(d) {
-    if (d.length !== 11 || /^(\d)\1+$/.test(d)) return false;
-    for (const n of [9, 10]) {
-      let soma = 0;
-      for (let i = 0; i < n; i++) soma += +d[i] * (n + 1 - i);
-      if ((soma * 10) % 11 % 10 !== +d[n]) return false;
-    }
-    return true;
-  }
-
-  function cnpjValido(d) {
-    if (d.length !== 14 || /^(\d)\1+$/.test(d)) return false;
-    for (const n of [12, 13]) {
-      let soma = 0;
-      for (let i = 0; i < n; i++) soma += +d[i] * ((n - 1 - i) % 8 + 2);
-      const dv = soma % 11 < 2 ? 0 : 11 - (soma % 11);
-      if (dv !== +d[n]) return false;
-    }
-    return true;
-  }
+  // dígitos verificadores de CPF/CNPJ: kit (/assets/tools.js)
+  const cpfValido = Warden.validarCpf;
+  const cnpjValido = Warden.validarCnpj;
 
   // DDDs que existem no Brasil
   const DDDS = new Set('11 12 13 14 15 16 17 18 19 21 22 24 27 28 31 32 33 34 35 37 38 41 42 43 44 45 46 47 48 49 51 53 54 55 61 62 63 64 65 66 67 68 69 71 73 74 75 77 79 81 82 83 84 85 86 87 88 89 91 92 93 94 95 96 97 98 99'.split(' '));
@@ -392,15 +375,8 @@
 
   // máscaras só para exibir no campo
   function mascara(tipo, valor) {
-    if (tipo === 'cpf') {
-      const d = soDigitos(valor).slice(0, 11);
-      return d.replace(/^(\d{3})(\d)/, '$1.$2').replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3').replace(/\.(\d{3})(\d{1,2})$/, '.$1-$2');
-    }
-    if (tipo === 'cnpj') {
-      const d = soDigitos(valor).slice(0, 14);
-      return d.replace(/^(\d{2})(\d)/, '$1.$2').replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
-              .replace(/^(\d{2})\.(\d{3})\.(\d{3})(\d)/, '$1.$2.$3/$4').replace(/\/(\d{4})(\d{1,2})$/, '/$1-$2');
-    }
+    if (tipo === 'cpf') return Warden.mascaraCpf(valor);
+    if (tipo === 'cnpj') return Warden.mascaraCnpj(valor);
     if (tipo === 'celular') {
       const d = digitosCelular(valor);
       if (d.length <= 2) return d.length ? '(' + d : '';
@@ -556,7 +532,7 @@
     $('r-valor').textContent = dados.valor ? brl(dados.valor) : 'quem paga digita';
     $('r-desc').textContent = dados.descricao;
     $('r-desc-linha').hidden = !dados.descricao;
-    $('btn-whatsapp').href = 'https://wa.me/?text=' + encodeURIComponent(mensagemWhatsApp(atual));
+    $('btn-whatsapp').href = Warden.linkWhatsApp(mensagemWhatsApp(atual));
 
     // pré-visualização do cartão
     $('c-nome').textContent = dados.nome;

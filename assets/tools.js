@@ -17,7 +17,9 @@
  * Funções: formatBRL, formatBRLCompacto, formatPct, formatNumero, parseNumero, campoBRL,
  *          getTaxasBCB (+ TAXAS_REFERENCIA, fonteTaxa), IR_REGRESSIVO, aliquotaIR, liquidaDeIR,
  *          taxaMensal, taxaMensalDe, parcelaPrice, aporteNecessario, serieAcumulacao,
- *          campoRendimento, copiarTexto, cardResultado, estiloGrafico.
+ *          campoRendimento, copiarTexto, cardResultado, estiloGrafico,
+ *          validarCpf/validarCnpj/validarDocumento + máscaras, valorPorExtenso, formatDataLonga, linkWhatsApp,
+ *          novoPdf/textoPdf/rodapePdf (jsPDF) e imprimir(elemento).
  */
 (function () {
   /* ===== FORMATAÇÃO ===== */
@@ -295,6 +297,154 @@
     return { ler };
   }
 
+  /* ===== DOCUMENTOS: CPF / CNPJ ===== */
+  const soDigitos = v => String(v == null ? '' : v).replace(/\D/g, '');
+
+  // dígitos verificadores do CPF (11 dígitos; rejeita sequências repetidas como 111.111.111-11)
+  function validarCpf(v) {
+    const d = soDigitos(v);
+    if (d.length !== 11 || /^(\d)\1+$/.test(d)) return false;
+    for (const n of [9, 10]) {
+      let soma = 0;
+      for (let i = 0; i < n; i++) soma += +d[i] * (n + 1 - i);
+      if ((soma * 10) % 11 % 10 !== +d[n]) return false;
+    }
+    return true;
+  }
+
+  // dígitos verificadores do CNPJ (14 dígitos, pesos 2 a 9 da direita para a esquerda)
+  function validarCnpj(v) {
+    const d = soDigitos(v);
+    if (d.length !== 14 || /^(\d)\1+$/.test(d)) return false;
+    for (const n of [12, 13]) {
+      let soma = 0;
+      for (let i = 0; i < n; i++) soma += +d[i] * ((n - 1 - i) % 8 + 2);
+      const dv = soma % 11 < 2 ? 0 : 11 - (soma % 11);
+      if (dv !== +d[n]) return false;
+    }
+    return true;
+  }
+
+  // máscaras progressivas (funcionam enquanto a pessoa digita): 000.000.000-00 / 00.000.000/0000-00
+  const mascaraCpf = v => soDigitos(v).slice(0, 11)
+    .replace(/^(\d{3})(\d)/, '$1.$2').replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3').replace(/\.(\d{3})(\d{1,2})$/, '.$1-$2');
+  const mascaraCnpj = v => soDigitos(v).slice(0, 14)
+    .replace(/^(\d{2})(\d)/, '$1.$2').replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
+    .replace(/^(\d{2})\.(\d{3})\.(\d{3})(\d)/, '$1.$2.$3/$4').replace(/\/(\d{4})(\d{1,2})$/, '/$1-$2');
+  // campo que aceita CPF ou CNPJ: até 11 dígitos é CPF, acima disso vira CNPJ
+  const mascaraDocumento = v => soDigitos(v).length <= 11 ? mascaraCpf(v) : mascaraCnpj(v);
+
+  // → { vazio, ok, tipo: 'CPF' | 'CNPJ' | null, erro }
+  function validarDocumento(v) {
+    const d = soDigitos(v);
+    if (!d) return { vazio: true, ok: false, tipo: null, erro: '' };
+    if (d.length < 11) return { vazio: false, ok: false, tipo: null, erro: 'CPF tem 11 números e CNPJ tem 14' };
+    if (d.length === 11) return validarCpf(d) ? { vazio: false, ok: true, tipo: 'CPF', erro: '' } : { vazio: false, ok: false, tipo: 'CPF', erro: 'CPF inválido: confira os números' };
+    if (d.length < 14) return { vazio: false, ok: false, tipo: 'CNPJ', erro: 'CNPJ incompleto' };
+    return validarCnpj(d) ? { vazio: false, ok: true, tipo: 'CNPJ', erro: '' } : { vazio: false, ok: false, tipo: 'CNPJ', erro: 'CNPJ inválido: confira os números' };
+  }
+
+  /* ===== TEXTO: VALOR POR EXTENSO E DATAS ===== */
+  const UNIDADES = ['', 'um', 'dois', 'três', 'quatro', 'cinco', 'seis', 'sete', 'oito', 'nove', 'dez', 'onze', 'doze', 'treze',
+                    'quatorze', 'quinze', 'dezesseis', 'dezessete', 'dezoito', 'dezenove'];
+  const DEZENAS = ['', '', 'vinte', 'trinta', 'quarenta', 'cinquenta', 'sessenta', 'setenta', 'oitenta', 'noventa'];
+  const CENTENAS = ['', 'cento', 'duzentos', 'trezentos', 'quatrocentos', 'quinhentos', 'seiscentos', 'setecentos', 'oitocentos', 'novecentos'];
+  // escalas de 3 em 3 dígitos: [singular, plural]
+  const ESCALAS = [['', ''], ['mil', 'mil'], ['milhão', 'milhões'], ['bilhão', 'bilhões'], ['trilhão', 'trilhões']];
+
+  // 0 a 999 por extenso ("cem" sozinho, "cento e um", "duzentos e trinta e quatro")
+  function extenso999(n) {
+    if (n === 100) return 'cem';
+    const c = Math.floor(n / 100), resto = n % 100;
+    const partes = [];
+    if (c) partes.push(CENTENAS[c]);
+    if (resto) partes.push(resto < 20 ? UNIDADES[resto] : DEZENAS[Math.floor(resto / 10)] + (resto % 10 ? ' e ' + UNIDADES[resto % 10] : ''));
+    return partes.join(' e ');
+  }
+
+  // inteiro por extenso: "mil duzentos e trinta e quatro", "um milhão e duzentos mil", "dois mil e quinhentos"
+  function inteiroPorExtenso(n) {
+    if (n === 0) return 'zero';
+    const grupos = [];   // [valor do grupo, escala], do maior para o menor
+    for (let e = 0; n > 0; e++, n = Math.floor(n / 1000)) if (n % 1000) grupos.unshift([n % 1000, e]);
+    return grupos.map(([g, e], k) => {
+      const nome = e === 1 && g === 1 ? 'mil' : (extenso999(g) + (e ? ' ' + ESCALAS[e][g === 1 ? 0 : 1] : ''));
+      if (k === 0) return nome;
+      // "e" antes do último grupo quando ele é menor que 100 ou centena redonda (mil e cem, mil e vinte); senão vírgula/espaço
+      const ultimo = k === grupos.length - 1;
+      const sep = ultimo && (g < 100 || g % 100 === 0) ? ' e ' : e === 0 ? ' ' : ', ';
+      return sep + nome;
+    }).join('');
+  }
+
+  // R$ por extenso: 1234.56 → "mil duzentos e trinta e quatro reais e cinquenta e seis centavos"
+  //                  1 → "um real" · 0.5 → "cinquenta centavos" · 1000000 → "um milhão de reais"
+  function valorPorExtenso(valor) {
+    const centavosTotal = Math.round(Math.abs(Number(valor) || 0) * 100);
+    const reais = Math.floor(centavosTotal / 100), centavos = centavosTotal % 100;
+    const partes = [];
+    if (reais > 0) {
+      // "de reais" quando termina em milhão/bilhão redondo: "um milhão de reais", mas "um milhão e duzentos mil reais"
+      const de = reais >= 1e6 && reais % 1e6 === 0 ? ' de' : '';
+      partes.push(inteiroPorExtenso(reais) + de + (reais === 1 ? ' real' : ' reais'));
+    }
+    if (centavos > 0) partes.push(inteiroPorExtenso(centavos) + (centavos === 1 ? ' centavo' : ' centavos'));
+    return partes.length ? partes.join(' e ') : 'zero real';
+  }
+
+  // Date ou 'aaaa-mm-dd' (data local, sem fuso) → "2 de outubro de 2026"
+  function formatDataLonga(data) {
+    const d = typeof data === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(data)
+      ? new Date(+data.slice(0, 4), +data.slice(5, 7) - 1, +data.slice(8, 10))
+      : new Date(data);
+    return isNaN(d) ? '' : d.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
+  }
+
+  /* ===== WHATSAPP ===== */
+  // link que abre o WhatsApp com a mensagem pronta; sem número, a pessoa escolhe o contato
+  const linkWhatsApp = (texto, numero = '') => `https://wa.me/${soDigitos(numero)}?text=${encodeURIComponent(texto)}`;
+
+  /* ===== PDF (jsPDF) E IMPRESSÃO =====
+   * A página carrega o jsPDF: <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+   * const doc = Warden.novoPdf();  … doc.text(Warden.textoPdf('…'), x, y) …;  Warden.rodapePdf(doc);  doc.save('nome.pdf')
+   * Medidas em mm, A4 retrato (210 × 297). Fontes padrão do PDF (Helvetica): passe todo texto por textoPdf. */
+  const PDF = { largura: 210, altura: 297, margem: 20 };
+  function novoPdf() {
+    const doc = new window.jspdf.jsPDF({ unit: 'mm', format: 'a4' });
+    doc.setFillColor(200, 242, 107);           // faixa no verde-limão da marca (--accent)
+    doc.rect(0, 0, PDF.largura, 4, 'F');
+    doc.setTextColor(20, 20, 18);
+    return doc;
+  }
+  // as fontes padrão do PDF só têm o alfabeto latino básico: troca o espaço estreito pelo não separável (que a fonte tem e evita quebrar "R$ 10" no meio), travessões, aspas curvas etc.
+  const textoPdf = s => String(s)
+    .replace(/\u202f/g, '\u00a0').replace(/[–—−]/g, '-').replace(/[“”]/g, '"').replace(/[‘’]/g, "'")
+    .replace(/…/g, '...').replace(/→/g, '->').replace(/•/g, '-');
+  // rodapé discreto em todas as páginas
+  function rodapePdf(doc) {
+    const n = doc.getNumberOfPages();
+    for (let p = 1; p <= n; p++) {
+      doc.setPage(p);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(138, 136, 126);
+      doc.text(textoPdf('Gerado com Warden · wardenfinance.com.br' + (n > 1 ? `   ·   ${p}/${n}` : '')), PDF.largura / 2, PDF.altura - 10, { align: 'center' });
+    }
+    doc.setTextColor(20, 20, 18);
+  }
+
+  // Imprime só um elemento (ex.: a prévia .tool-papel): copia para um contêiner no topo do body e
+  // esconde o resto só durante a impressão (ver .tool-impressao no warden.css). Evita páginas em branco.
+  function imprimir(elemento) {
+    const alvo = document.createElement('div');
+    alvo.className = 'tool-impressao';
+    alvo.appendChild(elemento.cloneNode(true));
+    document.body.appendChild(alvo);
+    document.body.classList.add('imprimindo');
+    const limpar = () => { alvo.remove(); document.body.classList.remove('imprimindo'); window.removeEventListener('afterprint', limpar); };
+    window.addEventListener('afterprint', limpar);
+    window.print();
+    setTimeout(limpar, 1000);   // navegadores que não disparam afterprint
+  }
+
   /* ===== COPIAR TEXTO ===== */
   // Copia para a área de transferência; em navegadores sem permissão/API, usa um <textarea> temporário.
   // A API pode ficar esperando uma permissão que nunca chega: depois de 1,5 s, desiste e usa o plano B.
@@ -448,6 +598,9 @@
     IR_REGRESSIVO, aliquotaIR, liquidaDeIR,
     taxaMensal, taxaMensalDe, parcelaPrice, aporteNecessario, serieAcumulacao,
     campoRendimento, copiarTexto,
+    validarCpf, validarCnpj, validarDocumento, mascaraCpf, mascaraCnpj, mascaraDocumento,
+    valorPorExtenso, formatDataLonga, linkWhatsApp,
+    PDF, novoPdf, textoPdf, rodapePdf, imprimir,
     cardResultado, estiloGrafico
   };
 })();

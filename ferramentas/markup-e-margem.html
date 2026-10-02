@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Calculadora de markup e margem: preço de venda certo | Warden</title>
+<meta name="description" content="Calcule o preço de venda com a margem de lucro que você quer, já somando impostos, taxas de cartão e comissão. Veja o markup e entenda a diferença para a margem.">
+<link rel="canonical" href="https://wardenfinance.com.br/ferramentas/markup-e-margem.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Calculadora de markup e margem | Warden">
+<meta property="og:description" content="O preço de venda que garante a sua margem, com impostos, taxas e comissão.">
+<meta property="og:url" content="https://wardenfinance.com.br/ferramentas/markup-e-margem.html">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/warden.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Calculadora de Markup e Margem",
+  "url": "https://wardenfinance.com.br/ferramentas/markup-e-margem.html",
+  "applicationCategory": "FinanceApplication",
+  "operatingSystem": "Any",
+  "inLanguage": "pt-BR",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "BRL" },
+  "publisher": { "@type": "Organization", "name": "Warden", "url": "https://wardenfinance.com.br/" }
+}
+</script>
+<style>
+  /* ===== MARKUP E MARGEM (só desta página; estrutura e componentes vêm do /assets/warden.css) ===== */
+  .mk-form { display: flex; flex-direction: column; gap: 26px; }
+  .mk-pcts { border-top: 1px solid var(--border); padding-top: 22px; }
+  .mk-pcts > p { font-size: .84rem; color: var(--muted); margin-bottom: 18px; line-height: 1.55; }
+  .mk-erro { margin-top: 20px; }
+
+  /* composição do preço: uma barra dividida em partes proporcionais */
+  .mk-comp { margin-top: 20px; }
+  .mk-comp h2 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 1.25rem; margin-bottom: 4px; }
+  .mk-comp > p { font-size: .84rem; color: var(--muted); margin-bottom: 18px; }
+  .mk-barra { display: flex; height: 28px; border-radius: 8px; overflow: hidden; background: var(--surface2); }
+  .mk-barra span { display: block; height: 100%; min-width: 0; border-right: 2px solid var(--surface); }
+  .mk-barra span:last-child { border-right: none; }
+  .mk-legenda { list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px 20px; margin-top: 16px; }
+  .mk-legenda li { display: flex; flex-direction: column; gap: 2px; font-size: .8rem; color: var(--muted); }
+  .mk-legenda li::before { content: ''; width: 12px; height: 12px; border-radius: 3px; background: var(--cor); margin-bottom: 4px; }
+  .mk-legenda strong { font-family: 'IBM Plex Mono', monospace; font-weight: 600; font-size: .92rem; color: var(--text); }
+</style>
+</head>
+<body>
+
+<script src="/assets/nav.js"></script>
+
+<section class="tool-top">
+  <div class="section-inner">
+
+    <header class="tool-head">
+      <div class="tool-crumbs" data-crumbs></div>
+      <h1 class="tool-title">Calculadora de markup e margem de lucro</h1>
+      <p class="tool-lead">Diga quanto custa o seu produto ou serviço e qual margem de lucro você quer. A calculadora soma impostos, taxa do cartão e comissão e mostra o preço de venda que garante essa margem de verdade.</p>
+    </header>
+
+    <!-- ENTRADAS -->
+    <form class="tool-card mk-form" id="mk-form" onsubmit="return false">
+      <div class="tool-fields">
+        <div class="tool-field">
+          <label for="custo">Custo do produto ou serviço</label>
+          <div class="tool-input"><span class="pre">R$</span><input type="text" id="custo" value="100"></div>
+          <span class="tool-hint">Material, mercadoria, frete de compra, mão de obra direta</span>
+        </div>
+        <div class="tool-field">
+          <label for="margem">Margem de lucro desejada</label>
+          <div class="tool-input"><input type="number" id="margem" value="20" min="0" max="99" step="0.5" inputmode="decimal"><span class="suf">% do preço</span></div>
+          <span class="tool-hint">Quanto do preço de venda sobra para você</span>
+        </div>
+      </div>
+      <div class="mk-pcts">
+        <p>Tudo que é cobrado como <strong>porcentagem do preço de venda</strong>:</p>
+        <div class="tool-fields">
+          <div class="tool-field">
+            <label for="impostos">Impostos</label>
+            <div class="tool-input"><input type="number" id="impostos" value="6" min="0" max="99" step="0.1" inputmode="decimal"><span class="suf">%</span></div>
+            <span class="tool-hint">Ex.: alíquota do Simples Nacional</span>
+          </div>
+          <div class="tool-field">
+            <label for="taxas">Taxas</label>
+            <div class="tool-input"><input type="number" id="taxas" value="3" min="0" max="99" step="0.1" inputmode="decimal"><span class="suf">%</span></div>
+            <span class="tool-hint">Maquininha, cartão, marketplace</span>
+          </div>
+          <div class="tool-field">
+            <label for="comissao">Comissão</label>
+            <div class="tool-input"><input type="number" id="comissao" value="0" min="0" max="99" step="0.5" inputmode="decimal"><span class="suf">%</span></div>
+            <span class="tool-hint">De vendedor ou parceiro</span>
+          </div>
+        </div>
+      </div>
+    </form>
+
+    <div class="tool-note mk-erro" id="erro" role="alert" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+      <span id="erro-texto"></span>
+    </div>
+
+    <div id="mk-resultado">
+      <!-- RESULTADO -->
+      <div class="result-grid" id="resultados" aria-live="polite"></div>
+
+      <div class="tool-card mk-comp">
+        <h2>Para onde vai cada venda</h2>
+        <p>Como o preço de venda se divide.</p>
+        <div class="mk-barra" id="barra" role="img" aria-label="Barra com a composição do preço de venda"></div>
+        <ul class="mk-legenda" id="legenda"></ul>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- EXPLICAÇÃO + FAQ -->
+<section class="tool-prose-section">
+  <div class="section-inner">
+    <article class="tool-prose">
+      <h2>Margem e markup não são a mesma coisa</h2>
+      <p>É a confusão mais comum na hora de formar preço, e ela come o lucro sem você perceber.</p>
+      <ul>
+        <li><strong>Margem</strong> é quanto do <strong>preço de venda</strong> sobra de lucro. Se você vende por R$ 100 e lucra R$ 30, a margem é 30%.</li>
+        <li><strong>Markup</strong> é quanto você aplica <strong>sobre o custo</strong> para chegar no preço. Pode vir como multiplicador (custo × 1,4) ou como porcentagem (custo + 40%).</li>
+      </ul>
+
+      <h3>Um exemplo</h3>
+      <p>Um produto custa R$ 100 e você quer "30% de lucro".</p>
+      <ul>
+        <li>Se aplicar <strong>30% sobre o custo</strong>, vende por R$ 130. O lucro é R$ 30, mas isso é só <strong>23,1% do preço</strong>. A margem ficou menor que a pretendida.</li>
+        <li>Para ter <strong>30% de margem</strong> de verdade, o preço precisa ser R$ 100 ÷ (1 − 0,30) = <strong>R$ 142,86</strong>. Aí o lucro é R$ 42,86, que é 30% de R$ 142,86. O markup é 1,4286 (ou 42,86% sobre o custo).</li>
+      </ul>
+
+      <h3>A fórmula</h3>
+      <p><strong>preço de venda = custo ÷ (1 − (margem + impostos + taxas + comissão))</strong></p>
+      <p>Impostos, taxas e comissão também são porcentagens do preço final, então entram na mesma conta. Por isso a soma de todas elas precisa ficar abaixo de 100%: se chegar a 100%, nenhum preço cobre o custo.</p>
+      <p>Vende serviço e cobra por hora? Calcule o custo da sua hora na <a href="/ferramentas/quanto-cobrar-por-hora.html">calculadora de quanto cobrar por hora</a>. E veja quantas vendas pagam suas contas fixas no <a href="/ferramentas/ponto-de-equilibrio.html">ponto de equilíbrio</a>.</p>
+
+      <p class="tool-disclaimer" data-aviso-educativo>A calculadora considera impostos, taxas e comissão como porcentagens do preço de venda. Regimes de imposto têm regras próprias; confirme a alíquota com o seu contador.</p>
+    </article>
+
+    <div class="tool-faq" data-faq>
+      <h2>Perguntas frequentes</h2>
+      <details>
+        <summary>Qual a diferença entre markup e margem?</summary>
+        <div><p>A margem é o lucro como porcentagem do preço de venda; o markup é o quanto você multiplica o custo para chegar no preço. Um markup de 30% sobre o custo dá uma margem de só 23,1%. Para ter 30% de margem, o markup precisa ser de 42,86%.</p></div>
+      </details>
+      <details>
+        <summary>Como colocar os impostos no preço de venda?</summary>
+        <div><p>Se o imposto é uma porcentagem do que você fatura (como no Simples Nacional), some essa porcentagem à margem, às taxas e à comissão e divida o custo por 1 menos esse total. É o que a calculadora faz. Somar o imposto em cima do custo deixa o preço baixo demais.</p></div>
+      </details>
+      <details>
+        <summary>Qual é uma boa margem de lucro?</summary>
+        <div><p>Depende muito do setor: comércio costuma trabalhar com margens menores e volume maior; serviços e produtos artesanais, com margens maiores. O importante é que a margem pague seus custos fixos (veja o ponto de equilíbrio) e ainda sobre lucro. Compare também com o preço dos concorrentes.</p></div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- PONTE PARA O WARDEN COBRANÇA -->
+<section class="tool-bridge">
+  <div class="section-inner">
+    <div data-ponte-cobranca data-titulo="Margem boa só vira lucro quando o cliente paga." data-texto="O Warden Cobrança cobra seus clientes no WhatsApp, com Pix, e lembra quem atrasou. Sem dinheiro parado na mão dos outros."></div>
+  </div>
+</section>
+
+<script src="/assets/tools.js"></script>
+<script>
+  const { formatBRL: brl, formatPct, formatNumero, parseNumero, campoBRL, cardResultado, estiloGrafico } = Warden;
+  const $ = id => document.getElementById(id);
+
+  campoBRL($('custo'));
+  const pct = id => { const v = parseFloat($(id).value); return isFinite(v) && v > 0 ? v : 0; };
+
+  function calcular() {
+    const custo = Math.max(0, parseNumero($('custo').value) || 0);
+    const margem = pct('margem'), impostos = pct('impostos'), taxas = pct('taxas'), comissao = pct('comissao');
+    const soma = margem + impostos + taxas + comissao;
+
+    if (soma >= 100) {
+      $('erro').hidden = false;
+      $('erro-texto').innerHTML = `<strong>Margem, impostos, taxas e comissão somam ${formatPct(soma, { curto: true })} do preço.</strong> Com 100% ou mais, não sobra nada para pagar o custo, e nenhum preço fecha a conta. Reduza a margem ou alguma das porcentagens.`;
+      $('mk-resultado').hidden = true;
+      return;
+    }
+    $('erro').hidden = true;
+    $('mk-resultado').hidden = false;
+
+    // preço de venda = custo ÷ (1 − soma das porcentagens do preço); markup = preço ÷ custo
+    const preco = custo / (1 - soma / 100);
+    const markup = custo > 0 ? preco / custo : 0;
+    const parte = p => preco * p / 100;
+
+    $('resultados').innerHTML = [
+      cardResultado({
+        titulo: 'Preço de venda', destaque: true,
+        descricao: `Para ${formatPct(margem, { curto: true })} de margem, já com impostos, taxas e comissão`,
+        rotulo: 'Venda por', valor: brl(preco),
+        linhas: [
+          ['Markup (multiplicador)', custo > 0 ? formatNumero(markup, { casas: 4 }) : '—'],
+          ['Markup sobre o custo', custo > 0 ? formatPct((markup - 1) * 100) : '—']
+        ]
+      }),
+      cardResultado({
+        titulo: 'Lucro por venda', descricao: `${formatPct(margem, { curto: true })} do preço de venda`,
+        rotulo: 'Sobra para você', valor: brl(parte(margem)),
+        linhas: [['Sobre o custo', custo > 0 ? formatPct(parte(margem) / custo * 100) : '—']]
+      }),
+      cardResultado({
+        titulo: 'Descontos da venda', descricao: 'Impostos, taxas e comissão',
+        rotulo: 'Sai de cada venda', valor: brl(parte(impostos + taxas + comissao)),
+        linhas: [['Impostos', brl(parte(impostos))], ['Taxas', brl(parte(taxas))], ['Comissão', brl(parte(comissao))]]
+      })
+    ].join('');
+
+    // barra de composição: lucro em --accent (o que importa); o resto em tons neutros
+    const g = estiloGrafico();
+    const partes = [
+      { nome: 'Custo', valor: custo, cor: g.cor('--text') },
+      { nome: 'Impostos', valor: parte(impostos), cor: g.neutros[0] },
+      { nome: 'Taxas', valor: parte(taxas), cor: g.neutros[1] },
+      { nome: 'Comissão', valor: parte(comissao), cor: g.cor('--subtle') },
+      { nome: 'Lucro', valor: parte(margem), cor: g.cor('--accent') }
+    ].filter(p => p.valor > 0.005);
+    $('barra').innerHTML = partes.map(p => `<span style="width:${preco > 0 ? p.valor / preco * 100 : 0}%;background:${p.cor}" title="${p.nome}"></span>`).join('');
+    $('legenda').innerHTML = partes.map(p =>
+      `<li style="--cor:${p.cor}">${p.nome}<strong>${brl(p.valor)}</strong>${preco > 0 ? formatPct(p.valor / preco * 100, { casas: 1 }) : ''}</li>`).join('');
+  }
+
+  ['custo', 'margem', 'impostos', 'taxas', 'comissao'].forEach(id => $(id).addEventListener('input', calcular));
+  calcular();
+</script>
+
+</body>
+</html>

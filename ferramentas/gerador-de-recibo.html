@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Gerador de recibo grátis em PDF, com valor por extenso | Warden</title>
+<meta name="description" content="Preencha e baixe um recibo de pagamento em PDF, com valor por extenso automático, CPF ou CNPJ e assinatura. Grátis, sem cadastro, e seus dados não saem do aparelho.">
+<link rel="canonical" href="https://wardenfinance.com.br/ferramentas/gerador-de-recibo.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Gerador de recibo grátis em PDF | Warden">
+<meta property="og:description" content="Recibo de pagamento pronto em PDF, com valor por extenso automático.">
+<meta property="og:url" content="https://wardenfinance.com.br/ferramentas/gerador-de-recibo.html">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/warden.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Gerador de Recibo",
+  "url": "https://wardenfinance.com.br/ferramentas/gerador-de-recibo.html",
+  "applicationCategory": "FinanceApplication",
+  "operatingSystem": "Any",
+  "inLanguage": "pt-BR",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "BRL" },
+  "publisher": { "@type": "Organization", "name": "Warden", "url": "https://wardenfinance.com.br/" }
+}
+</script>
+<style>
+  /* ===== GERADOR DE RECIBO (só desta página; estrutura e componentes vêm do /assets/warden.css) ===== */
+  .rc-form { display: flex; flex-direction: column; gap: 22px; }
+  .rc-bloco { display: flex; flex-direction: column; gap: 18px; }
+  .rc-bloco + .rc-bloco { border-top: 1px solid var(--border); padding-top: 22px; }
+  .rc-bloco > .section-label { margin: 0; }
+  .rc-form .tool-fields { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 20px 24px; }
+  .rc-form .tool-input input { font-size: 1.02rem; }
+  .rc-form .tool-input .texto { font-family: 'Inter', sans-serif; }
+  .rc-form .tool-input select { flex: 1; font-size: .98rem; }
+  .rc-form input[type="date"] { color-scheme: dark; }
+  .tool-hint.erro { color: var(--text); }
+  .tool-hint.erro::before { content: '! '; font-weight: 700; color: var(--accent); }
+  .rc-extenso { font-style: italic; }
+  .rc-falta { font-size: .84rem; color: var(--muted); }
+
+  /* o recibo em papel */
+  .rc-papel-topo { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; margin-bottom: 26px; }
+  .rc-papel-topo h2 { font-family: 'Fraunces', serif; font-weight: 700; font-size: 1.9rem; letter-spacing: .04em; line-height: 1; }
+  .rc-papel-valor { border: 1.5px solid #141412; border-radius: 8px; padding: 8px 14px; font-family: 'IBM Plex Mono', monospace; font-weight: 600; font-size: 1.1rem; white-space: nowrap; }
+  .rc-papel p + p { margin-top: 12px; }
+  .rc-papel strong { font-weight: 600; }
+  .rc-papel .falta { color: #A8A69C; font-style: italic; font-weight: 400; }
+  .rc-papel-data { text-align: right; margin-top: 22px !important; }
+  .rc-assinatura { margin: 46px auto 0; max-width: 300px; text-align: center; }
+  .rc-assinatura .linha { border-top: 1px solid #141412; padding-top: 8px; font-weight: 600; }
+  .rc-assinatura .doc { font-size: .82rem; color: #6F6D64; }
+</style>
+</head>
+<body>
+
+<script src="/assets/nav.js"></script>
+
+<section class="tool-top">
+  <div class="section-inner">
+
+    <header class="tool-head">
+      <div class="tool-crumbs" data-crumbs></div>
+      <h1 class="tool-title">Gerador de recibo</h1>
+      <p class="tool-lead">Preencha os dados e baixe um recibo de pagamento em PDF, com o valor por extenso escrito sozinho. Grátis, sem cadastro.</p>
+    </header>
+
+    <div class="tool-doc">
+      <!-- ENTRADAS -->
+      <form class="tool-card rc-form" id="rc-form" onsubmit="return false" novalidate>
+        <div class="rc-bloco">
+          <p class="section-label">Quem recebe</p>
+          <div class="tool-fields">
+            <div class="tool-field">
+              <label for="rec-nome">Nome</label>
+              <div class="tool-input"><input type="text" id="rec-nome" class="texto" maxlength="80" autocomplete="name" placeholder="Seu nome ou da empresa"></div>
+            </div>
+            <div class="tool-field">
+              <label for="rec-doc">CPF ou CNPJ</label>
+              <div class="tool-input"><input type="text" id="rec-doc" inputmode="numeric" autocomplete="off" placeholder="000.000.000-00"></div>
+              <span class="tool-hint" id="rec-doc-dica"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="rc-bloco">
+          <p class="section-label">Quem paga</p>
+          <div class="tool-fields">
+            <div class="tool-field">
+              <label for="pag-nome">Nome</label>
+              <div class="tool-input"><input type="text" id="pag-nome" class="texto" maxlength="80" autocomplete="off" placeholder="Nome do cliente"></div>
+            </div>
+            <div class="tool-field">
+              <label for="pag-doc">CPF ou CNPJ <span class="opc">(opcional)</span></label>
+              <div class="tool-input"><input type="text" id="pag-doc" inputmode="numeric" autocomplete="off" placeholder="000.000.000-00"></div>
+              <span class="tool-hint" id="pag-doc-dica"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="rc-bloco">
+          <p class="section-label">Pagamento</p>
+          <div class="tool-fields">
+            <div class="tool-field">
+              <label for="valor">Valor</label>
+              <div class="tool-input"><span class="pre">R$</span><input type="text" id="valor" placeholder="0,00"></div>
+              <span class="tool-hint rc-extenso" id="extenso"></span>
+            </div>
+            <div class="tool-field">
+              <label for="forma">Forma de pagamento</label>
+              <div class="tool-input">
+                <select id="forma">
+                  <option>Pix</option>
+                  <option>dinheiro</option>
+                  <option>transferência bancária</option>
+                  <option>cartão de crédito</option>
+                  <option>cartão de débito</option>
+                  <option>boleto</option>
+                  <option>cheque</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="tool-field">
+            <label for="referente">Referente a</label>
+            <div class="tool-input"><input type="text" id="referente" class="texto" maxlength="160" autocomplete="off" placeholder="Ex.: criação de logotipo, aluguel de outubro"></div>
+          </div>
+          <div class="tool-fields">
+            <div class="tool-field">
+              <label for="cidade">Cidade</label>
+              <div class="tool-input"><input type="text" id="cidade" class="texto" maxlength="60" autocomplete="address-level2" placeholder="São Paulo"></div>
+            </div>
+            <div class="tool-field">
+              <label for="data">Data</label>
+              <div class="tool-input"><input type="date" id="data"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tool-note">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+          <span><strong>Seus dados não saem do seu aparelho.</strong> O recibo e o PDF são montados aqui mesmo, no seu navegador. Nada é enviado para servidor nenhum, nem para a Warden.</span>
+        </div>
+      </form>
+
+      <!-- PRÉVIA + AÇÕES -->
+      <div class="tool-doc-previa">
+        <p class="section-label">Prévia do recibo</p>
+        <div class="tool-papel rc-papel" id="papel">
+          <div class="rc-papel-topo">
+            <h2>RECIBO</h2>
+            <span class="rc-papel-valor" id="p-valor"></span>
+          </div>
+          <p id="p-corpo"></p>
+          <p>Para clareza, firmo o presente recibo.</p>
+          <p class="rc-papel-data" id="p-data"></p>
+          <div class="rc-assinatura">
+            <div class="linha" id="p-rec-nome"></div>
+            <div class="doc" id="p-rec-doc"></div>
+          </div>
+          <p class="tool-papel-rodape">Gerado com Warden · wardenfinance.com.br</p>
+        </div>
+        <div class="tool-acoes">
+          <button type="button" class="btn btn-primary" id="btn-pdf" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>
+            Baixar PDF
+          </button>
+          <button type="button" class="btn btn-secondary" id="btn-imprimir" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9V3h10v6M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2"/><rect x="7" y="14" width="10" height="7"/></svg>
+            Imprimir
+          </button>
+        </div>
+        <p class="rc-falta" id="falta" role="status"></p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- EXPLICAÇÃO + FAQ -->
+<section class="tool-prose-section">
+  <div class="section-inner">
+    <article class="tool-prose">
+      <h2>Para que serve um recibo</h2>
+      <p>O recibo é a prova de que um pagamento foi feito. Quem paga guarda o recibo para mostrar que quitou; quem recebe usa para organizar as entradas. Ele é comum em aluguel, prestação de serviço por autônomo, venda entre pessoas e pagamentos em dinheiro, que não deixam registro no banco.</p>
+
+      <h3>O que um recibo precisa ter</h3>
+      <ul>
+        <li><strong>Quem recebe e quem paga</strong>, com nome completo e, de preferência, CPF ou CNPJ.</li>
+        <li><strong>O valor em números e por extenso.</strong> O extenso evita rasuras e mal-entendidos: este gerador escreve sozinho.</li>
+        <li><strong>A que se refere o pagamento</strong>, de forma clara (o serviço, o produto, o mês do aluguel).</li>
+        <li><strong>Forma de pagamento, cidade, data e assinatura</strong> de quem recebe.</li>
+      </ul>
+
+      <h3>Recibo não é nota fiscal</h3>
+      <p>O recibo comprova o pagamento, mas não substitui a nota fiscal quando ela é obrigatória. O MEI, por exemplo, precisa emitir nota fiscal para vendas e serviços prestados a empresas (pessoa jurídica). Para clientes pessoa física, a nota é opcional, e o recibo costuma bastar.</p>
+
+      <p class="tool-disclaimer" data-aviso-educativo>Este gerador cria um modelo simples de recibo. Para situações específicas (aluguel com regras de contrato, prestação de serviço com retenção de impostos), confirme com um contador o que precisa constar.</p>
+    </article>
+
+    <div class="tool-faq" data-faq>
+      <h2>Perguntas frequentes</h2>
+      <details>
+        <summary>Recibo tem validade jurídica?</summary>
+        <div><p>Sim. Um recibo assinado por quem recebeu, com valor, data e a que se refere o pagamento, é uma prova de quitação aceita pela lei (o Código Civil fala na "quitação" no artigo 320). Quanto mais completo, com CPF ou CNPJ e descrição clara, mais forte ele é.</p></div>
+      </details>
+      <details>
+        <summary>Preciso assinar o recibo?</summary>
+        <div><p>Sim, quem recebe o dinheiro assina. Imprima o PDF e assine à mão, ou assine digitalmente (por exemplo, com a assinatura gov.br, que é gratuita) antes de enviar ao cliente.</p></div>
+      </details>
+      <details>
+        <summary>Meus dados ficam salvos em algum lugar?</summary>
+        <div><p>Não. O recibo é montado no seu próprio navegador e nada é enviado para a internet. Quando você fecha a página, os dados somem. Guarde o PDF que baixou.</p></div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- PONTE PARA O WARDEN COBRANÇA -->
+<section class="tool-bridge">
+  <div class="section-inner">
+    <div data-ponte-cobranca data-titulo="Recibo é o fim da história. E o começo, a cobrança?" data-texto="O Warden Cobrança cobra seus clientes no WhatsApp, com Pix, lembra quem atrasou e confirma o pagamento sozinho."></div>
+  </div>
+</section>
+
+<script src="/assets/tools.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+  const { formatBRL: brl, parseNumero, campoBRL, valorPorExtenso, formatDataLonga, validarDocumento, mascaraDocumento,
+          novoPdf, textoPdf, rodapePdf, PDF, imprimir } = Warden;
+  const $ = id => document.getElementById(id);
+  const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+  campoBRL($('valor'));
+  // data de hoje (local) no campo de data
+  const hoje = new Date();
+  $('data').value = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`;
+
+  // CPF/CNPJ: máscara enquanto digita (só com o cursor no fim) e validação dos dígitos
+  ['rec-doc', 'pag-doc'].forEach(id => {
+    $(id).addEventListener('input', e => {
+      if (e.target.selectionStart === e.target.value.length) e.target.value = mascaraDocumento(e.target.value);
+      atualizar();
+    });
+    $(id).addEventListener('blur', e => { e.target.value = mascaraDocumento(e.target.value); atualizar(); });
+  });
+
+  function dicaDoc(id, r, obrigatorio) {
+    const el = $(id + '-dica');
+    el.classList.toggle('erro', !!r.erro || (obrigatorio && r.vazio && tocados.has(id)));
+    el.textContent = r.ok ? `✓ ${r.tipo} válido` : r.erro || (obrigatorio && r.vazio && tocados.has(id) ? 'Obrigatório' : '');
+  }
+  const tocados = new Set();
+  ['rec-doc', 'rec-nome', 'pag-nome', 'valor', 'referente'].forEach(id => $(id).addEventListener('blur', () => { tocados.add(id); atualizar(); }));
+
+  function lerDados() {
+    const valor = parseNumero($('valor').value);
+    return {
+      recNome: $('rec-nome').value.trim(), recDoc: validarDocumento($('rec-doc').value), recDocTxt: mascaraDocumento($('rec-doc').value),
+      pagNome: $('pag-nome').value.trim(), pagDoc: validarDocumento($('pag-doc').value), pagDocTxt: mascaraDocumento($('pag-doc').value),
+      valor: isFinite(valor) && valor > 0 ? Math.round(valor * 100) / 100 : 0,
+      referente: $('referente').value.trim().replace(/\.$/, ''),
+      forma: $('forma').value, cidade: $('cidade').value.trim(), data: $('data').value
+    };
+  }
+
+  // o que falta para o recibo ficar completo (os botões só liberam sem pendências)
+  function pendencias(d) {
+    const f = [];
+    if (!d.recNome) f.push('nome de quem recebe');
+    if (!d.recDoc.ok) f.push(d.recDoc.vazio ? 'CPF ou CNPJ de quem recebe' : 'um CPF/CNPJ válido de quem recebe');
+    if (!d.pagNome) f.push('nome de quem paga');
+    if (!d.pagDoc.vazio && !d.pagDoc.ok) f.push('um CPF/CNPJ válido de quem paga (ou deixe em branco)');
+    if (!d.valor) f.push('valor');
+    if (!d.referente) f.push('a que se refere o pagamento');
+    if (!d.cidade) f.push('cidade');
+    if (!d.data) f.push('data');
+    return f;
+  }
+
+  // frases do recibo, usadas na prévia (HTML) e no PDF (texto puro)
+  function frases(d) {
+    const pagador = d.pagNome + (d.pagDoc.ok ? `, ${d.pagDoc.tipo} ${d.pagDocTxt}` : '');
+    return {
+      corpo: `Recebi de ${pagador} a importância de ${brl(d.valor)} (${valorPorExtenso(d.valor)}), referente a ${d.referente}, paga via ${d.forma}.`,
+      data: `${d.cidade}, ${formatDataLonga(d.data)}.`,
+      recDoc: d.recDoc.ok ? `${d.recDoc.tipo} ${d.recDocTxt}` : ''
+    };
+  }
+
+  function atualizar() {
+    const d = lerDados();
+    dicaDoc('rec-doc', d.recDoc, true);
+    dicaDoc('pag-doc', d.pagDoc, false);
+    $('extenso').textContent = d.valor ? valorPorExtenso(d.valor) : '';
+
+    // prévia: campos vazios aparecem como lacunas em cinza
+    const ou = (v, lacuna) => v ? `<strong>${esc(v)}</strong>` : `<span class="falta">[${lacuna}]</span>`;
+    const pagador = ou(d.pagNome, 'nome de quem paga') + (d.pagDoc.ok ? `, ${d.pagDoc.tipo} ${d.pagDocTxt}` : '');
+    $('p-valor').textContent = d.valor ? brl(d.valor) : 'R$ 0,00';
+    $('p-corpo').innerHTML = `Recebi de ${pagador} a importância de ${d.valor ? `<strong>${brl(d.valor)}</strong> (${valorPorExtenso(d.valor)})` : '<span class="falta">[valor]</span>'}, referente a ${ou(d.referente, 'descrição')}, paga via ${esc(d.forma)}.`;
+    $('p-data').innerHTML = `${d.cidade ? esc(d.cidade) : '<span class="falta">[cidade]</span>'}, ${d.data ? formatDataLonga(d.data) : '<span class="falta">[data]</span>'}.`;
+    $('p-rec-nome').innerHTML = d.recNome ? esc(d.recNome) : '<span class="falta">[nome de quem recebe]</span>';
+    $('p-rec-doc').textContent = d.recDoc.ok ? `${d.recDoc.tipo} ${d.recDocTxt}` : '';
+
+    const f = pendencias(d);
+    $('btn-pdf').disabled = $('btn-imprimir').disabled = f.length > 0;
+    $('falta').textContent = f.length ? `Para baixar, falta: ${f.join(', ')}.` : 'Recibo completo. Baixe o PDF ou imprima e assine.';
+  }
+
+  /* ===== PDF (jsPDF, A4, mm) ===== */
+  function gerarPdf() {
+    const d = lerDados(), fr = frases(d);
+    const doc = novoPdf();
+    const m = PDF.margem, larg = PDF.largura - 2 * m;
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(26);
+    doc.text('RECIBO', m, 32);
+    // valor em destaque, numa caixa à direita
+    const valorTxt = textoPdf(brl(d.valor));
+    doc.setFont('courier', 'bold'); doc.setFontSize(14);
+    const w = doc.getTextWidth(valorTxt) + 10;
+    doc.setDrawColor(20, 20, 18); doc.setLineWidth(0.4);
+    doc.roundedRect(PDF.largura - m - w, 23, w, 12, 2, 2);
+    doc.text(valorTxt, PDF.largura - m - w / 2, 31, { align: 'center' });
+
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(12);
+    let y = 54;
+    const paragrafo = (t, espaco = 7) => { const linhas = doc.splitTextToSize(textoPdf(t), larg); doc.text(linhas, m, y, { lineHeightFactor: 1.5 }); y += linhas.length * 12 * 1.5 * 0.3528 + espaco; };
+    paragrafo(fr.corpo);
+    paragrafo('Para clareza, firmo o presente recibo.');
+    y += 6;
+    doc.text(textoPdf(fr.data), PDF.largura - m, y, { align: 'right' });
+
+    // assinatura
+    y += 34;
+    doc.setLineWidth(0.3);
+    doc.line(PDF.largura / 2 - 45, y, PDF.largura / 2 + 45, y);
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
+    doc.text(textoPdf(d.recNome), PDF.largura / 2, y + 6, { align: 'center' });
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(111, 109, 100);
+    doc.text(textoPdf(fr.recDoc), PDF.largura / 2, y + 11.5, { align: 'center' });
+    rodapePdf(doc);
+    return doc;
+  }
+
+  const nomeArquivo = d => 'recibo-' + (d.pagNome || 'cliente').normalize('NFD').replace(/[^\w\s-]/g, '').trim().toLowerCase().replace(/\s+/g, '-').slice(0, 40) + '-' + d.data + '.pdf';
+
+  $('btn-pdf').addEventListener('click', () => {
+    if (!window.jspdf) { $('falta').textContent = 'Não foi possível carregar o gerador de PDF. Verifique a conexão e recarregue a página, ou use Imprimir.'; return; }
+    gerarPdf().save(nomeArquivo(lerDados()));
+  });
+  $('btn-imprimir').addEventListener('click', () => imprimir($('papel')));
+
+  ['rec-nome', 'pag-nome', 'valor', 'referente', 'cidade', 'data'].forEach(id => $(id).addEventListener('input', atualizar));
+  $('forma').addEventListener('change', atualizar);
+  atualizar();
+</script>
+
+</body>
+</html>

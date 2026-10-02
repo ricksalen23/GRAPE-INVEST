@@ -42,14 +42,6 @@
   .pq-rot { display: none; font-size: .7rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
   .pq-divida .tool-input input { font-size: 1.02rem; }
   .pq-divida .pq-nome input { font-family: 'Inter', sans-serif; }
-  .pq-remover {
-    width: 36px; height: 36px; border-radius: 8px; border: 1px solid var(--border); background: none; color: var(--muted);
-    font-size: 1.2rem; line-height: 1; cursor: pointer; transition: border-color .2s, color .2s;
-  }
-  .pq-remover:hover { border-color: var(--text); color: var(--text); }
-  .pq-remover:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
-  .pq-remover:disabled { opacity: .35; cursor: default; }
-  .pq-add { align-self: flex-start; padding: 10px 18px; font-size: .88rem; }
   .pq-orcamento { border-top: 1px solid var(--border); padding-top: 22px; max-width: 420px; }
 
   .pq-alerta { margin-top: 20px; }
@@ -76,10 +68,7 @@
     .pq-rot { display: block; }
     .pq-divida { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px 18px; padding-bottom: 18px; border-bottom: 1px solid var(--border); }
     .pq-divida .pq-nome { grid-column: 1 / 2; }
-    .pq-remover { justify-self: end; grid-column: 2; grid-row: 1; align-self: start; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .pq-remover { transition: none; }
+    .tool-remover { justify-self: end; grid-column: 2; grid-row: 1; align-self: start; }
   }
 </style>
 </head>
@@ -101,7 +90,7 @@
       <p class="section-label">Suas dívidas</p>
       <div class="pq-cols" aria-hidden="true"><span>Dívida</span><span>Quanto deve hoje</span><span>Juros</span><span>Parcela mínima</span><span></span></div>
       <div class="pq-lista" id="lista"></div>
-      <button type="button" class="btn btn-secondary pq-add" id="btn-add">+ Adicionar dívida</button>
+      <button type="button" class="btn btn-secondary tool-add" id="btn-add">+ Adicionar dívida</button>
 
       <div class="tool-field pq-orcamento">
         <label for="orcamento">Quanto consigo pagar por mês, no total</label>
@@ -223,7 +212,7 @@
       <label><span class="pq-rot">Quanto deve hoje</span><div class="tool-input"><span class="pre">R$</span><input type="text" class="d-saldo" aria-label="Quanto deve hoje na dívida ${k}"></div></label>
       <label><span class="pq-rot">Juros</span><div class="tool-input"><input type="number" class="d-juros" min="0" max="50" step="0.1" inputmode="decimal" aria-label="Juros ao mês da dívida ${k}"><span class="suf">% a.m.</span></div></label>
       <label><span class="pq-rot">Parcela mínima</span><div class="tool-input"><span class="pre">R$</span><input type="text" class="d-min" aria-label="Parcela mínima da dívida ${k}"></div></label>
-      <button type="button" class="pq-remover" aria-label="Remover dívida ${k}">×</button>`;
+      <button type="button" class="tool-remover" aria-label="Remover dívida ${k}">×</button>`;
     linha.querySelector('.d-nome').value = d.nome;
     linha.querySelector('.d-saldo').value = d.saldo;
     linha.querySelector('.d-juros').value = d.juros;
@@ -231,14 +220,14 @@
     campoBRL(linha.querySelector('.d-saldo'));
     campoBRL(linha.querySelector('.d-min'));
     linha.querySelectorAll('input').forEach(el => el.addEventListener('input', calcular));
-    linha.querySelector('.pq-remover').addEventListener('click', () => { linha.remove(); atualizarRemover(); calcular(); });
+    linha.querySelector('.tool-remover').addEventListener('click', () => { linha.remove(); atualizarRemover(); calcular(); });
     $('lista').appendChild(linha);
     atualizarRemover();
     return linha;
   }
   // sempre sobra pelo menos uma linha
   function atualizarRemover() {
-    const botoes = document.querySelectorAll('.pq-remover');
+    const botoes = document.querySelectorAll('.tool-remover');
     botoes.forEach(b => b.disabled = botoes.length === 1);
   }
 

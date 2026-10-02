@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Gerador de orçamento grátis em PDF e WhatsApp | Warden</title>
+<meta name="description" content="Monte um orçamento profissional com seus itens, desconto, validade e logo, baixe em PDF ou envie pelo WhatsApp. Grátis, sem cadastro, direto no navegador.">
+<link rel="canonical" href="https://wardenfinance.com.br/ferramentas/gerador-de-orcamento.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Gerador de orçamento grátis | Warden">
+<meta property="og:description" content="Orçamento com seus itens, desconto e logo, em PDF ou no WhatsApp.">
+<meta property="og:url" content="https://wardenfinance.com.br/ferramentas/gerador-de-orcamento.html">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/warden.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Gerador de Orçamento",
+  "url": "https://wardenfinance.com.br/ferramentas/gerador-de-orcamento.html",
+  "applicationCategory": "FinanceApplication",
+  "operatingSystem": "Any",
+  "inLanguage": "pt-BR",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "BRL" },
+  "publisher": { "@type": "Organization", "name": "Warden", "url": "https://wardenfinance.com.br/" }
+}
+</script>
+<style>
+  /* ===== GERADOR DE ORÇAMENTO (só desta página; estrutura e componentes vêm do /assets/warden.css) ===== */
+  .oc-form { display: flex; flex-direction: column; gap: 22px; }
+  .oc-bloco { display: flex; flex-direction: column; gap: 18px; }
+  .oc-bloco + .oc-bloco { border-top: 1px solid var(--border); padding-top: 22px; }
+  .oc-bloco > .section-label { margin: 0; }
+  .oc-form .tool-fields { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 20px 24px; }
+  .oc-form .tool-input input { font-size: 1.02rem; }
+  .oc-form .tool-input .texto, .oc-form textarea { font-family: 'Inter', sans-serif; }
+  .oc-form .tool-input select { font-size: .95rem; }
+  .oc-form textarea {
+    width: 100%; min-height: 70px; resize: vertical; background: none; color: var(--text); border: none; border-bottom: 1px solid var(--border);
+    font-size: .98rem; line-height: 1.5; padding: 4px 0 8px; outline: none;
+  }
+  .oc-form textarea:focus { border-color: var(--white); }
+
+  /* logo */
+  .oc-logo { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .oc-logo img { max-height: 48px; max-width: 140px; background: #FFFFFF; border-radius: 6px; padding: 4px; }
+  .oc-logo-btn { position: relative; overflow: hidden; padding: 9px 16px; font-size: .85rem; }
+  .oc-logo-btn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .oc-logo .tool-hint { font-size: .74rem; color: var(--muted); }
+  .oc-link { background: none; border: none; padding: 0; color: var(--muted); text-decoration: underline; cursor: pointer; font-family: 'Inter', sans-serif; font-size: .82rem; }
+  .oc-link:hover { color: var(--text); }
+
+  /* itens */
+  .oc-cols, .oc-item { display: grid; grid-template-columns: minmax(0, 2.2fr) minmax(0, .6fr) minmax(0, 1fr) minmax(0, 1fr) 36px; gap: 14px; align-items: end; }
+  .oc-cols span { font-size: .7rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .oc-cols span:nth-child(4) { text-align: right; }
+  .oc-itens { display: flex; flex-direction: column; gap: 12px; }
+  .oc-rot { display: none; font-size: .68rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+  .oc-sub { font-family: 'IBM Plex Mono', monospace; font-size: .92rem; text-align: right; padding-bottom: 10px; white-space: nowrap; }
+  .oc-totais { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; font-size: .9rem; color: var(--muted); }
+  .oc-totais strong { font-family: 'IBM Plex Mono', monospace; color: var(--text); }
+  .oc-totais .total { font-size: 1.1rem; color: var(--text); }
+  .oc-totais .total strong { color: var(--accent); }
+  .oc-falta { font-size: .84rem; color: var(--muted); }
+
+  /* o orçamento em papel */
+  .oc-papel-topo { display: flex; justify-content: space-between; gap: 18px; flex-wrap: wrap; margin-bottom: 22px; }
+  .oc-papel-prestador img { max-height: 44px; max-width: 160px; display: block; margin-bottom: 8px; }
+  .oc-papel-prestador strong { display: block; font-size: 1.05rem; }
+  .oc-papel-num { text-align: right; }
+  .oc-papel-num h2 { font-family: 'Fraunces', serif; font-weight: 700; font-size: 1.5rem; letter-spacing: .03em; line-height: 1.1; }
+  .oc-papel-cliente { background: #F4F3EE; border-radius: 8px; padding: 10px 14px; margin-bottom: 18px; }
+  .oc-papel table { width: 100%; border-collapse: collapse; font-size: .84rem; }
+  .oc-papel th { text-align: left; font-size: .66rem; letter-spacing: .08em; text-transform: uppercase; color: #6F6D64; border-bottom: 1.5px solid #141412; padding: 6px 4px; }
+  .oc-papel td { padding: 7px 4px; border-bottom: 1px solid #E6E4DC; vertical-align: top; }
+  .oc-papel th:not(:first-child), .oc-papel td:not(:first-child) { text-align: right; white-space: nowrap; font-family: 'IBM Plex Mono', monospace; }
+  .oc-papel th:not(:first-child) { font-family: 'Inter', sans-serif; }
+  .oc-papel-totais { margin: 14px 0 0 auto; max-width: 280px; display: flex; flex-direction: column; gap: 4px; font-size: .86rem; }
+  .oc-papel-totais div { display: flex; justify-content: space-between; gap: 16px; }
+  .oc-papel-totais span:last-child { font-family: 'IBM Plex Mono', monospace; }
+  .oc-papel-totais .total { border-top: 1.5px solid #141412; padding-top: 6px; margin-top: 4px; font-weight: 700; font-size: 1rem; }
+  .oc-papel-extenso { text-align: right; font-size: .76rem; color: #6F6D64; font-style: italic; margin-top: 4px; }
+  .oc-papel-info { margin-top: 18px; font-size: .84rem; }
+  .oc-papel-info p + p { margin-top: 6px; }
+  .oc-papel .falta { color: #A8A69C; font-style: italic; }
+
+  .oc-ponte.cobranca-card { margin-top: 4px; }
+  .oc-ponte h2 { font-family: 'Fraunces', serif; font-weight: 700; font-size: 1.25rem; line-height: 1.25; margin-bottom: 4px; }
+
+  @media (max-width: 760px) {
+    .oc-cols { display: none; }
+    .oc-rot { display: block; }
+    .oc-item { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 14px 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+    .oc-item .oc-desc { grid-column: 1 / 2; }
+    .oc-item .tool-remover { grid-column: 2; grid-row: 1; justify-self: end; align-self: start; }
+    .oc-sub { text-align: left; padding: 0; }
+  }
+</style>
+</head>
+<body>
+
+<script src="/assets/nav.js"></script>
+
+<section class="tool-top">
+  <div class="section-inner">
+
+    <header class="tool-head">
+      <div class="tool-crumbs" data-crumbs></div>
+      <h1 class="tool-title">Gerador de orçamento</h1>
+      <p class="tool-lead">Monte um orçamento com cara de empresa: seus itens, desconto, validade e até a sua logo. Baixe em PDF ou mande direto no WhatsApp do cliente. Grátis e sem cadastro.</p>
+    </header>
+
+    <div class="tool-doc">
+      <!-- ENTRADAS -->
+      <form class="tool-card oc-form" id="oc-form" onsubmit="return false" novalidate>
+        <div class="oc-bloco">
+          <p class="section-label">Seus dados</p>
+          <div class="tool-fields">
+            <div class="tool-field">
+              <label for="pre-nome">Seu nome ou empresa</label>
+              <div class="tool-input"><input type="text" id="pre-nome" class="texto" maxlength="80" autocomplete="organization" placeholder="Ex.: Ana Design"></div>
+            </div>
+            <div class="tool-field">
+              <label for="pre-contato">Contato <span class="opc">(opcional)</span></label>
+              <div class="tool-input"><input type="text" id="pre-contato" class="texto" maxlength="100" autocomplete="off" placeholder="(11) 98765-4321 · ana@email.com"></div>
+            </div>
+          </div>
+          <div class="oc-logo">
+            <img id="logo-previa" alt="Sua logo" hidden>
+            <label class="btn btn-secondary oc-logo-btn"><span id="logo-rotulo">Adicionar logo</span><input type="file" id="logo" accept="image/png,image/jpeg,image/webp"></label>
+            <button type="button" class="oc-link" id="logo-remover" hidden>remover logo</button>
+            <span class="tool-hint" id="logo-dica">Opcional · PNG ou JPG. Fica só no seu aparelho.</span>
+          </div>
+        </div>
+
+        <div class="oc-bloco">
+          <p class="section-label">Cliente</p>
+          <div class="tool-fields">
+            <div class="tool-field">
+              <label for="cli-nome">Nome do cliente</label>
+              <div class="tool-input"><input type="text" id="cli-nome" class="texto" maxlength="80" autocomplete="off" placeholder="Nome ou empresa"></div>
+            </div>
+            <div class="tool-field">
+              <label for="cli-contato">Contato <span class="opc">(opcional)</span></label>
+              <div class="tool-input"><input type="text" id="cli-contato" class="texto" maxlength="100" autocomplete="off"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="oc-bloco">
+          <p class="section-label">Itens</p>
+          <div class="oc-cols" aria-hidden="true"><span>Descrição</span><span>Qtd.</span><span>Valor unitário</span><span>Subtotal</span><span></span></div>
+          <div class="oc-itens" id="itens"></div>
+          <button type="button" class="btn btn-secondary tool-add" id="btn-add">+ Adicionar item</button>
+        </div>
+
+        <div class="oc-bloco">
+          <div class="tool-fields">
+            <div class="tool-field">
+              <label for="desconto">Desconto <span class="opc">(opcional)</span></label>
+              <div class="tool-input">
+                <input type="number" id="desconto" min="0" step="0.01" inputmode="decimal" placeholder="0">
+                <select id="desconto-tipo" aria-label="Tipo de desconto">
+                  <option value="pct" selected>%</option>
+                  <option value="reais">R$</option>
+                </select>
+              </div>
+            </div>
+            <div class="tool-field">
+              <label for="validade">Validade</label>
+              <div class="tool-input"><input type="number" id="validade" value="15" min="1" max="365" step="1" inputmode="numeric"><span class="suf">dias</span></div>
+              <span class="tool-hint" id="validade-dica"></span>
+            </div>
+            <div class="tool-field">
+              <label for="numero">Nº do orçamento</label>
+              <div class="tool-input"><input type="text" id="numero" maxlength="12" inputmode="numeric"></div>
+              <span class="tool-hint">Sequencial neste aparelho</span>
+            </div>
+          </div>
+          <div class="oc-totais" aria-live="polite">
+            <span>Subtotal <strong id="t-sub"></strong></span>
+            <span id="t-desc-linha">Desconto <strong id="t-desc"></strong></span>
+            <span class="total">Total <strong id="t-total"></strong></span>
+          </div>
+        </div>
+
+        <div class="oc-bloco">
+          <div class="tool-field">
+            <label for="condicoes">Condições de pagamento <span class="opc">(opcional)</span></label>
+            <div class="tool-input"><input type="text" id="condicoes" class="texto" maxlength="160" autocomplete="off" placeholder="Ex.: 50% na aprovação e 50% na entrega, via Pix"></div>
+          </div>
+          <div class="tool-field">
+            <label for="obs">Observações <span class="opc">(opcional)</span></label>
+            <textarea id="obs" maxlength="600" placeholder="Prazo de entrega, o que está incluso, o que não está…"></textarea>
+          </div>
+        </div>
+
+        <div class="tool-note">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+          <span><strong>Seus dados não saem do seu aparelho.</strong> O orçamento e o PDF são montados no seu navegador. Seu nome, contato, logo e o número do último orçamento ficam guardados só neste aparelho, para você não digitar de novo.</span>
+        </div>
+      </form>
+
+      <!-- PRÉVIA + AÇÕES -->
+      <div class="tool-doc-previa">
+        <p class="section-label">Prévia do orçamento</p>
+        <div class="tool-papel oc-papel" id="papel"></div>
+        <div class="tool-acoes">
+          <button type="button" class="btn btn-primary" id="btn-pdf" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>
+            Baixar PDF
+          </button>
+          <a class="btn btn-secondary" id="btn-whatsapp" href="https://wa.me/" target="_blank" rel="noopener" aria-disabled="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>
+            Enviar no WhatsApp
+          </a>
+        </div>
+        <p class="oc-falta" id="falta" role="status"></p>
+        <div class="oc-ponte" data-ponte-cobranca data-titulo="Orçamento aprovado? O Warden Cobrança cobra seu cliente no WhatsApp até ele pagar." data-texto="Lembra antes do vencimento, manda o Pix e confirma o pagamento sozinho."></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- EXPLICAÇÃO + FAQ -->
+<section class="tool-prose-section">
+  <div class="section-inner">
+    <article class="tool-prose">
+      <h2>Como fazer um orçamento que o cliente aprova</h2>
+      <p>Um bom orçamento responde, sem o cliente precisar perguntar: <strong>o que</strong> vai ser feito, <strong>quanto</strong> custa, <strong>até quando</strong> o preço vale e <strong>como</strong> pagar. Quanto menos dúvida, mais rápido vem o "pode fazer".</p>
+      <ul>
+        <li><strong>Descreva os itens com clareza.</strong> "Site institucional com 5 páginas" é melhor que "site". Separe em itens o que pode ser contratado à parte.</li>
+        <li><strong>Defina a validade.</strong> Preços mudam; 15 ou 30 dias é o mais comum. O gerador calcula a data.</li>
+        <li><strong>Deixe as condições escritas.</strong> Entrada, parcelas, forma de pagamento e prazo de entrega evitam conversa difícil depois.</li>
+        <li><strong>Use o número do orçamento.</strong> Ele ajuda você e o cliente a falarem do mesmo documento. Aqui ele é sequencial e só avança quando você baixa ou envia.</li>
+      </ul>
+      <p>Não sabe quanto cobrar? Calcule seu <a href="/ferramentas/quanto-cobrar-por-hora.html">valor por hora</a> ou o preço com a <a href="/ferramentas/markup-e-margem.html">calculadora de markup e margem</a>. Cliente vai pagar via Pix? Gere o QR Code no <a href="/ferramentas/gerador-qr-code-pix.html">gerador de Pix</a>.</p>
+
+      <p class="tool-disclaimer" data-aviso-educativo>O orçamento é uma proposta comercial e não substitui contrato nem nota fiscal. Para serviços maiores, formalize o acordo por escrito.</p>
+    </article>
+
+    <div class="tool-faq" data-faq>
+      <h2>Perguntas frequentes</h2>
+      <details>
+        <summary>Orçamento tem valor de contrato?</summary>
+        <div><p>Pelo Código de Defesa do Consumidor, o orçamento aprovado pelo cliente obriga quem fez a cumprir o preço e as condições dentro da validade. Para trabalhos maiores, vale ter também um contrato com prazos, entregas e o que acontece em caso de atraso ou desistência.</p></div>
+      </details>
+      <details>
+        <summary>Onde ficam salvos meus dados e minha logo?</summary>
+        <div><p>Só no seu aparelho, no armazenamento do navegador. Nada é enviado para a internet. Se você limpar os dados do navegador ou usar outro aparelho, precisa preencher de novo.</p></div>
+      </details>
+      <details>
+        <summary>Como o número do orçamento é definido?</summary>
+        <div><p>O gerador sugere o próximo número depois do último orçamento que você baixou ou enviou neste aparelho, começando em 0001. Você pode trocar o número à mão; o próximo continua a partir do maior número usado.</p></div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- PONTE PARA O WARDEN COBRANÇA -->
+<section class="tool-bridge">
+  <div class="section-inner">
+    <div data-ponte-cobranca data-titulo="Do orçamento ao dinheiro na conta, sem correr atrás." data-texto="O Warden Cobrança envia a cobrança no WhatsApp, com Pix, lembra o cliente antes do vencimento e confirma o pagamento sozinho."></div>
+  </div>
+</section>
+
+<script src="/assets/tools.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+  const { formatBRL: brl, formatNumero, parseNumero, campoBRL, valorPorExtenso, formatDataLonga, linkWhatsApp,
+          novoPdf, textoPdf, rodapePdf, PDF } = Warden;
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+  /* ===== GUARDADO NO APARELHO (localStorage, sempre com try/catch) ===== */
+  const CHAVE_ULTIMO = 'warden:orcamento:ultimo';        // maior número já emitido (PDF ou WhatsApp)
+  const CHAVE_PRESTADOR = 'warden:orcamento:prestador';  // { nome, contato, logo }
+  const ler = (k, padrao) => { try { const v = localStorage.getItem(k); return v === null ? padrao : JSON.parse(v); } catch (e) { return padrao; } };
+  const gravar = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } };
+  const numeroFormatado = n => String(n).padStart(4, '0');
+
+  let logo = null;   // { dataUrl, w, h } da logo reduzida
+  const salvo = ler(CHAVE_PRESTADOR, {});
+  $('pre-nome').value = salvo.nome || '';
+  $('pre-contato').value = salvo.contato || '';
+  if (salvo.logo && salvo.logo.dataUrl) logo = salvo.logo;
+  $('numero').value = numeroFormatado((parseInt(ler(CHAVE_ULTIMO, 0), 10) || 0) + 1);
+
+  function salvarPrestador() {
+    gravar(CHAVE_PRESTADOR, { nome: $('pre-nome').value.trim(), contato: $('pre-contato').value.trim(), logo });
+  }
+  // marca o número como usado: o próximo orçamento começa depois do maior número já emitido
+  function registrarEmissao() {
+    const n = parseInt($('numero').value.replace(/\D/g, ''), 10);
+    if (n > 0) gravar(CHAVE_ULTIMO, Math.max(n, parseInt(ler(CHAVE_ULTIMO, 0), 10) || 0));
+  }
+
+  /* ===== LOGO (reduzida para no máximo 600 × 240 px, em PNG, para o PDF ficar leve) ===== */
+  $('logo').addEventListener('change', e => {
+    const arquivo = e.target.files[0];
+    if (!arquivo) return;
+    if (!/^image\/(png|jpeg|webp)$/.test(arquivo.type)) { $('logo-dica').textContent = 'Use uma imagem PNG, JPG ou WEBP.'; return; }
+    const leitor = new FileReader();
+    leitor.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const escala = Math.min(1, 600 / img.width, 240 / img.height);
+        const c = document.createElement('canvas');
+        c.width = Math.max(1, Math.round(img.width * escala)); c.height = Math.max(1, Math.round(img.height * escala));
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        logo = { dataUrl: c.toDataURL('image/png'), w: c.width, h: c.height };
+        salvarPrestador();
+        atualizar();
+      };
+      img.src = leitor.result;
+    };
+    leitor.readAsDataURL(arquivo);
+    e.target.value = '';
+  });
+  $('logo-remover').addEventListener('click', () => { logo = null; salvarPrestador(); atualizar(); });
+
+  /* ===== ITENS ===== */
+  let nItens = 0;
+  function adicionarItem(d = { desc: '', qtd: 1, valor: '' }) {
+    const k = ++nItens;
+    const linha = document.createElement('div');
+    linha.className = 'oc-item';
+    linha.innerHTML = `
+      <label class="oc-desc"><span class="oc-rot">Descrição</span><div class="tool-input"><input type="text" class="i-desc texto" maxlength="120" placeholder="Ex.: criação de logotipo" aria-label="Descrição do item ${k}"></div></label>
+      <label><span class="oc-rot">Qtd.</span><div class="tool-input"><input type="number" class="i-qtd" min="0" step="1" inputmode="decimal" aria-label="Quantidade do item ${k}"></div></label>
+      <label><span class="oc-rot">Valor unitário</span><div class="tool-input"><span class="pre">R$</span><input type="text" class="i-valor" placeholder="0,00" aria-label="Valor unitário do item ${k}"></div></label>
+      <div><span class="oc-rot">Subtotal</span><div class="oc-sub">—</div></div>
+      <button type="button" class="tool-remover" aria-label="Remover item ${k}">×</button>`;
+    linha.querySelector('.i-desc').value = d.desc;
+    linha.querySelector('.i-qtd').value = d.qtd;
+    linha.querySelector('.i-valor').value = d.valor;
+    campoBRL(linha.querySelector('.i-valor'));
+    linha.querySelectorAll('input').forEach(el => el.addEventListener('input', atualizar));
+    linha.querySelector('.tool-remover').addEventListener('click', () => { linha.remove(); travarRemover(); atualizar(); });
+    $('itens').appendChild(linha);
+    travarRemover();
+    return linha;
+  }
+  function travarRemover() {
+    const b = document.querySelectorAll('#itens .tool-remover');
+    b.forEach(x => x.disabled = b.length === 1);
+  }
+
+  function lerDados() {
+    const itens = [...document.querySelectorAll('.oc-item')].map(l => {
+      const qtd = Math.max(0, parseFloat(l.querySelector('.i-qtd').value) || 0);
+      const v = parseNumero(l.querySelector('.i-valor').value);
+      const valor = isFinite(v) && v > 0 ? v : 0;
+      return { el: l, desc: l.querySelector('.i-desc').value.trim(), qtd, valor, subtotal: Math.round(qtd * valor * 100) / 100 };
+    });
+    const validos = itens.filter(i => i.desc && i.qtd > 0 && i.valor > 0);
+    const subtotal = validos.reduce((s, i) => s + i.subtotal, 0);
+    const dRaw = Math.max(0, parseFloat($('desconto').value) || 0);
+    const desconto = Math.min(subtotal, $('desconto-tipo').value === 'pct' ? subtotal * Math.min(dRaw, 100) / 100 : dRaw);
+    const dias = Math.max(1, Math.round(parseFloat($('validade').value) || 15));
+    const emissao = new Date();
+    const validoAte = new Date(emissao.getFullYear(), emissao.getMonth(), emissao.getDate() + dias);
+    return {
+      itens, validos, subtotal, desconto: Math.round(desconto * 100) / 100, total: Math.round((subtotal - desconto) * 100) / 100,
+      descontoTxt: $('desconto-tipo').value === 'pct' && dRaw > 0 ? `${formatNumero(Math.min(dRaw, 100), { curto: true })}%` : '',
+      dias, emissao, validoAte,
+      numero: $('numero').value.trim() || '—',
+      preNome: $('pre-nome').value.trim(), preContato: $('pre-contato').value.trim(),
+      cliNome: $('cli-nome').value.trim(), cliContato: $('cli-contato').value.trim(),
+      condicoes: $('condicoes').value.trim(), obs: $('obs').value.trim()
+    };
+  }
+  const dataCurta = d => d.toLocaleDateString('pt-BR');
+  const qtdTxt = q => formatNumero(q, { curto: true });
+
+  function pendencias(d) {
+    const f = [];
+    if (!d.preNome) f.push('seu nome ou empresa');
+    if (!d.cliNome) f.push('nome do cliente');
+    if (!d.validos.length) f.push('pelo menos um item com descrição, quantidade e valor');
+    const incompletos = d.itens.filter(i => (i.desc || i.valor) && !(i.desc && i.qtd > 0 && i.valor > 0)).length;
+    if (incompletos) f.push(`completar ${incompletos === 1 ? 'o item pela metade' : `${incompletos} itens pela metade`} (ou remover)`);
+    return f;
+  }
+
+  /* ===== PRÉVIA ===== */
+  function atualizar() {
+    const d = lerDados();
+    d.itens.forEach(i => { i.el.querySelector('.oc-sub').textContent = i.qtd > 0 && i.valor > 0 ? brl(i.subtotal) : '—'; });
+    $('t-sub').textContent = brl(d.subtotal);
+    $('t-desc').textContent = `− ${brl(d.desconto)}${d.descontoTxt ? ` (${d.descontoTxt})` : ''}`;
+    $('t-desc-linha').hidden = d.desconto <= 0;
+    $('t-total').textContent = brl(d.total);
+    $('validade-dica').textContent = `Válido até ${dataCurta(d.validoAte)}`;
+
+    $('logo-previa').hidden = !logo;
+    if (logo) $('logo-previa').src = logo.dataUrl;
+    $('logo-remover').hidden = !logo;
+    $('logo-rotulo').textContent = logo ? 'Trocar logo' : 'Adicionar logo';
+
+    const lac = t => `<span class="falta">[${t}]</span>`;
+    const linhas = d.validos.length
+      ? d.validos.map(i => `<tr><td>${esc(i.desc)}</td><td>${qtdTxt(i.qtd)}</td><td>${brl(i.valor)}</td><td>${brl(i.subtotal)}</td></tr>`).join('')
+      : `<tr><td colspan="4">${lac('seus itens aparecem aqui')}</td></tr>`;
+    $('papel').innerHTML = `
+      <div class="oc-papel-topo">
+        <div class="oc-papel-prestador">
+          ${logo ? `<img src="${logo.dataUrl}" alt="">` : ''}
+          <strong>${d.preNome ? esc(d.preNome) : lac('seu nome ou empresa')}</strong>
+          ${d.preContato ? `<span class="papel-muted">${esc(d.preContato)}</span>` : ''}
+        </div>
+        <div class="oc-papel-num">
+          <h2>ORÇAMENTO</h2>
+          <span class="papel-muted">Nº ${esc(d.numero)} · ${dataCurta(d.emissao)}</span>
+        </div>
+      </div>
+      <div class="oc-papel-cliente"><span class="papel-muted">Para:</span> <strong>${d.cliNome ? esc(d.cliNome) : lac('nome do cliente')}</strong>${d.cliContato ? ` · ${esc(d.cliContato)}` : ''}</div>
+      <table>
+        <thead><tr><th>Descrição</th><th>Qtd.</th><th>Valor unit.</th><th>Subtotal</th></tr></thead>
+        <tbody>${linhas}</tbody>
+      </table>
+      <div class="oc-papel-totais">
+        ${d.desconto > 0 ? `<div><span>Subtotal</span><span>${brl(d.subtotal)}</span></div><div><span>Desconto${d.descontoTxt ? ` (${d.descontoTxt})` : ''}</span><span>− ${brl(d.desconto)}</span></div>` : ''}
+        <div class="total"><span>Total</span><span>${brl(d.total)}</span></div>
+      </div>
+      ${d.total > 0 ? `<p class="oc-papel-extenso">${valorPorExtenso(d.total)}</p>` : ''}
+      <div class="oc-papel-info">
+        <p><strong>Validade:</strong> ${d.dias} dias, até ${formatDataLonga(d.validoAte)}.</p>
+        ${d.condicoes ? `<p><strong>Pagamento:</strong> ${esc(d.condicoes)}</p>` : ''}
+        ${d.obs ? `<p><strong>Observações:</strong> ${esc(d.obs).replace(/\n/g, '<br>')}</p>` : ''}
+      </div>
+      <p class="tool-papel-rodape">Gerado com Warden · wardenfinance.com.br</p>`;
+
+    const f = pendencias(d);
+    const ok = !f.length;
+    $('btn-pdf').disabled = !ok;
+    $('btn-whatsapp').setAttribute('aria-disabled', String(!ok));
+    $('btn-whatsapp').href = ok ? linkWhatsApp(mensagemWhatsApp(d)) : 'https://wa.me/';
+    $('falta').textContent = ok ? 'Orçamento pronto. Baixe o PDF ou envie no WhatsApp.' : `Para enviar, falta: ${f.join(', ')}.`;
+  }
+
+  function mensagemWhatsApp(d) {
+    const l = [`*Orçamento nº ${d.numero}*${d.preNome ? ` · ${d.preNome}` : ''}`, `Para: ${d.cliNome}`, ''];
+    d.validos.forEach(i => l.push(`• ${i.desc}: ${qtdTxt(i.qtd)} × ${brl(i.valor)} = ${brl(i.subtotal)}`));
+    l.push('');
+    if (d.desconto > 0) l.push(`Subtotal: ${brl(d.subtotal)}`, `Desconto${d.descontoTxt ? ` (${d.descontoTxt})` : ''}: − ${brl(d.desconto)}`);
+    l.push(`*Total: ${brl(d.total)}*`, `Válido até ${dataCurta(d.validoAte)}.`);
+    if (d.condicoes) l.push(`Pagamento: ${d.condicoes}`);
+    if (d.obs) l.push('', d.obs);
+    if (d.preContato) l.push('', d.preContato);
+    return l.join('\n');
+  }
+
+  /* ===== PDF (jsPDF, A4, mm) ===== */
+  function gerarPdf() {
+    const d = lerDados();
+    const doc = novoPdf();
+    const m = PDF.margem, dir = PDF.largura - m, larg = PDF.largura - 2 * m;
+    let y = 20;
+
+    // cabeçalho: logo + prestador à esquerda; número e datas à direita
+    let yEsq = y;
+    if (logo) {
+      const h = Math.min(16, 50 * logo.h / logo.w), w = h * logo.w / logo.h;
+      doc.addImage(logo.dataUrl, 'PNG', m, yEsq - 4, w, h, 'logo', 'FAST');   // 'FAST' = imagem comprimida (sem isso o PDF passa de 400 KB)
+      yEsq += h + 2;
+    }
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(13);
+    doc.text(textoPdf(d.preNome), m, yEsq + 2);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(111, 109, 100);
+    if (d.preContato) doc.text(doc.splitTextToSize(textoPdf(d.preContato), 95), m, yEsq + 7);
+    doc.setTextColor(20, 20, 18);
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(20);
+    doc.text(textoPdf('ORÇAMENTO'), dir, y + 2, { align: 'right' });
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(111, 109, 100);
+    doc.text(textoPdf(`Nº ${d.numero} · emitido em ${dataCurta(d.emissao)}`), dir, y + 8, { align: 'right' });
+    doc.text(textoPdf(`Válido até ${dataCurta(d.validoAte)}`), dir, y + 12.5, { align: 'right' });
+    doc.setTextColor(20, 20, 18);
+    y = Math.max(yEsq + 14, y + 22);
+
+    // cliente
+    doc.setFillColor(244, 243, 238);
+    doc.roundedRect(m, y, larg, 11, 1.5, 1.5, 'F');
+    doc.setFontSize(10);
+    doc.text(textoPdf('Para: '), m + 4, y + 7);
+    doc.setFont('helvetica', 'bold');
+    doc.text(textoPdf(d.cliNome + (d.cliContato ? ' · ' : '')), m + 4 + doc.getTextWidth('Para: '), y + 7);
+    if (d.cliContato) {
+      const xC = m + 4 + doc.getTextWidth('Para: ') + doc.getTextWidth(textoPdf(d.cliNome + ' · '));
+      doc.setFont('helvetica', 'normal');
+      doc.text(textoPdf(d.cliContato), xC, y + 7);
+    }
+    doc.setFont('helvetica', 'normal');
+    y += 19;
+
+    // tabela de itens (quebra de página quando enche)
+    const col = { desc: m, qtd: m + 104, unit: m + 136, sub: dir };
+    const cabecalho = () => {
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(111, 109, 100);
+      doc.text('DESCRIÇÃO', col.desc, y); doc.text('QTD.', col.qtd, y, { align: 'right' });
+      doc.text('VALOR UNIT.', col.unit, y, { align: 'right' }); doc.text('SUBTOTAL', col.sub, y, { align: 'right' });
+      doc.setTextColor(20, 20, 18); doc.setLineWidth(0.4); doc.line(m, y + 2, dir, y + 2);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(10);
+      y += 8;
+    };
+    cabecalho();
+    d.validos.forEach(i => {
+      const linhas = doc.splitTextToSize(textoPdf(i.desc), 98);
+      const altura = linhas.length * 4.6 + 3;
+      if (y + altura > PDF.altura - 30) { doc.addPage(); y = 24; cabecalho(); }
+      doc.text(linhas, col.desc, y);
+      doc.text(textoPdf(qtdTxt(i.qtd)), col.qtd, y, { align: 'right' });
+      doc.text(textoPdf(brl(i.valor)), col.unit, y, { align: 'right' });
+      doc.text(textoPdf(brl(i.subtotal)), col.sub, y, { align: 'right' });
+      y += altura - 3;
+      doc.setDrawColor(230, 228, 220); doc.setLineWidth(0.2); doc.line(m, y, dir, y);
+      y += 5.5;
+    });
+
+    // totais
+    if (y > PDF.altura - 70) { doc.addPage(); y = 24; }
+    y += 2;
+    const linhaTotal = (rot, val, negrito) => {
+      doc.setFont('helvetica', negrito ? 'bold' : 'normal'); doc.setFontSize(negrito ? 12 : 10);
+      doc.text(textoPdf(rot), dir - 60, y); doc.text(textoPdf(val), dir, y, { align: 'right' });
+      y += negrito ? 7 : 5.5;
+    };
+    if (d.desconto > 0) {
+      linhaTotal('Subtotal', brl(d.subtotal));
+      linhaTotal(`Desconto${d.descontoTxt ? ` (${d.descontoTxt})` : ''}`, `- ${brl(d.desconto)}`);
+    }
+    doc.setDrawColor(20, 20, 18); doc.setLineWidth(0.4); doc.line(dir - 60, y - 3.5, dir, y - 3.5);
+    y += 1.5;
+    linhaTotal('Total', brl(d.total), true);
+    doc.setFont('helvetica', 'italic'); doc.setFontSize(8.5); doc.setTextColor(111, 109, 100);
+    doc.text(doc.splitTextToSize(textoPdf(valorPorExtenso(d.total)), 110), dir, y, { align: 'right' });
+    doc.setTextColor(20, 20, 18);
+    y += 10;
+
+    // validade, condições, observações
+    doc.setFontSize(10);
+    // rótulo em negrito numa linha, texto normal (com quebra) logo abaixo
+    const bloco = (rot, txt) => {
+      const linhas = doc.splitTextToSize(textoPdf(txt), larg);
+      if (y + 5 + linhas.length * 5 > PDF.altura - 20) { doc.addPage(); y = 24; }
+      doc.setFont('helvetica', 'bold');
+      doc.text(textoPdf(rot), m, y);
+      doc.setFont('helvetica', 'normal');
+      doc.text(linhas, m, y + 5);
+      y += 5 + linhas.length * 5 + 3;
+    };
+    bloco('Validade', `${d.dias} dias, até ${formatDataLonga(d.validoAte)}.`);
+    if (d.condicoes) bloco('Pagamento', d.condicoes);
+    if (d.obs) bloco('Observações', d.obs);
+
+    rodapePdf(doc);
+    return doc;
+  }
+
+  $('btn-pdf').addEventListener('click', () => {
+    if (!window.jspdf) { $('falta').textContent = 'Não foi possível carregar o gerador de PDF. Verifique a conexão e recarregue a página.'; return; }
+    const d = lerDados();
+    gerarPdf().save(`orcamento-${d.numero.replace(/[^\w-]/g, '')}.pdf`);
+    registrarEmissao();
+  });
+  $('btn-whatsapp').addEventListener('click', e => {
+    if ($('btn-whatsapp').getAttribute('aria-disabled') === 'true') { e.preventDefault(); return; }
+    registrarEmissao();
+  });
+  $('btn-add').addEventListener('click', () => { adicionarItem().querySelector('.i-desc').focus(); atualizar(); });
+  ['pre-nome', 'pre-contato'].forEach(id => $(id).addEventListener('input', () => { salvarPrestador(); atualizar(); }));
+  ['cli-nome', 'cli-contato', 'desconto', 'validade', 'numero', 'condicoes', 'obs'].forEach(id => $(id).addEventListener('input', atualizar));
+  $('desconto-tipo').addEventListener('change', atualizar);
+
+  adicionarItem();
+  atualizar();
+</script>
+
+</body>
+</html>
