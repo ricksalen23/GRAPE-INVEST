@@ -22,7 +22,7 @@
   /* cor de acento da marca (verde-limão): selo "Novo", card Warden Cobrança, ferramenta disponível */
   --accent: #C8F26B;
   --accent-ink: #0B0B0A;  /* texto/ícone sobre o acento */
-  --nav-pad: 5%;          /* padding lateral do nav — o mega-menu usa o mesmo para alinhar */
+  --nav-pad: 5%;          /* padding lateral do nav */
 }
 
 /* overflow-x no html também: no iOS/Safari só o body não impede a página de ficar mais larga que a tela */
@@ -139,9 +139,12 @@ nav :focus-visible, .mobile-menu :focus-visible { outline: 2px solid var(--text)
 }
 .mega-overlay.open { opacity: 1; visibility: visible; transition-delay: 0s; }
 
-/* painel desktop: posicionado em relação ao nav (fixo), com as mesmas bordas laterais do conteúdo do nav */
+/* painel desktop: posicionado em relação ao nav (fixo), centralizado e NUNCA mais largo que a tela:
+   left/right 16px + margin auto + max-width. É um container (container queries) para as colunas se ajustarem à largura dele. */
 .mega-menu {
-  position: absolute; top: calc(100% + 8px); left: var(--nav-pad); right: var(--nav-pad);
+  position: absolute; top: calc(100% + 8px); left: 16px; right: 16px; margin-inline: auto;
+  max-width: min(1180px, calc(100vw - 32px));
+  container: mega / inline-size;
   max-height: calc(100vh - 110px); overflow-y: auto;
   background: var(--surface);
   border: 1px solid var(--border); border-radius: 16px;
@@ -153,8 +156,13 @@ nav :focus-visible, .mobile-menu :focus-visible { outline: 2px solid var(--text)
 /* ponte invisível entre o nav e o painel para o mouse não "cair" no vão */
 .mega-menu::before { content: ''; position: absolute; left: 0; right: 0; top: -9px; height: 9px; }
 .mega-menu.open { opacity: 1; visibility: visible; transform: none; transition-delay: 0s; }
-/* colunas com no mínimo 210px — cabe o nome mais longo sem quebrar; abaixo de 1360px vira 3 colunas */
-.mega-cols { display: grid; grid-template-columns: repeat(5, minmax(210px, 1fr)); gap: 28px 24px; }
+/* 5 colunas do tamanho do conteúdo (nomes não quebram); a sobra vira espaço ENTRE elas (space-between), que vai
+   diminuindo até o mínimo de 16px conforme o painel estreita. As 5 colunas medem ~936px (+ 4 × 16px de espaço = ~1000px);
+   abaixo de 1040px úteis no painel (folga para variações de fonte), passam para 3 colunas — ver @container mega. */
+.mega-cols { display: grid; grid-template-columns: repeat(5, max-content); justify-content: space-between; gap: 28px 16px; }
+@container mega (max-width: 1040px) {
+  .mega-cols { grid-template-columns: repeat(3, minmax(0, 1fr)); justify-content: stretch; column-gap: 24px; }
+}
 .mega-col-head { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; color: var(--muted); }
 .mega-col-head svg { width: 18px; height: 18px; flex-shrink: 0; color: var(--text); }
 .mega-col-head .section-label { margin: 0; }
@@ -254,9 +262,6 @@ nav :focus-visible, .mobile-menu :focus-visible { outline: 2px solid var(--text)
 body.menu-open { overflow: hidden; }
 
 /* o nav ganhou itens: entre 900 e 1100px aperta espaçamento e logo para caber */
-@media (max-width: 1360px) {
-  .mega-cols { grid-template-columns: repeat(3, minmax(210px, 1fr)); }
-}
 @media (max-width: 1100px) {
   :root { --nav-pad: 3%; }
   .nav-links { gap: 18px; }
