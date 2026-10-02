@@ -33,6 +33,13 @@ Site estático (HTML/CSS/JS puro, sem build), publicado em wardenfinance.com.br 
 - Cada ferramenta é uma página em `/ferramentas/<slug>.html`.
 - Para lançar uma: crie a página e, em `/assets/nav.js`, mude `disponivel: true` no item (o `url` já está lá). Menu, pontinho verde e contador se atualizam sozinhos.
 
+## O que já existe (branch `warden-v2`)
+
+- **Home (`index.html`)**, seções em ordem: `#inicio` (hero), `#cobranca` (Warden Cobrança), `#mercado`, `#noticias`, `#grafico`, `#calculadora` (juros compostos). Usa `/assets/warden.css` + `nav.js` com `data-page="home"`.
+- **Nav / mega-menu / menu mobile:** gerados por `/assets/nav.js` (inclui o card "Warden Cobrança" do mega-menu e o link "Cobrança" com selo "Novo").
+- **Ferramentas lançadas:** Juros compostos (`/#calculadora`, na home) e Simulador de renda fixa (`/ferramentas/simulador-renda-fixa.html`). As demais estão em `FERRAMENTAS` com `disponivel: false`.
+- **Páginas legadas, fora da base compartilhada:** `app.html` (Control Finance), `escola.html`, `obrigado.html` — não carregam `warden.css`/`nav.js`; só migrar se for pedido.
+
 ## Outras regras
 
 - Login ainda é simulado (localStorage). O modal de login só existe na home e só abre por clique (sem abrir por hash/parâmetro de URL).
