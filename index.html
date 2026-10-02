@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Warden — Inteligência de mercado</title>
 <meta name="description" content="Warden é a plataforma que blinda suas finanças com controle, disciplina e inteligência de mercado.">
 <meta name="theme-color" content="#000000">
@@ -11,93 +11,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/warden.css">
+<!-- estilos só da home; a base (nav, mega-menu, botões, tipografia) está em /assets/warden.css -->
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  :root {
-    --bg: #000000;
-    --surface: #131311;
-    --surface2: #1B1B18;
-    --text: #F3F1EA;
-    --muted: #8A887E;
-    --subtle: #57564D;
-    --border: rgba(243,241,234,0.14);
-    --white: #FFFFFF;
-    --panel: var(--surface);
-  }
-
-  html { scroll-behavior: smooth; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Inter', sans-serif;
-    overflow-x: hidden;
-  }
-
-  a { color: inherit; }
-
-  /* ===== SCROLL ANIM ===== */
-  .fade-up { opacity: 0; transform: translateY(16px); transition: opacity .7s ease, transform .7s ease; }
-  .fade-up.visible { opacity: 1; transform: translateY(0); }
-
-  /* usuários que preferem menos animação veem o conteúdo direto, sem fade/deslocamento */
-  @media (prefers-reduced-motion: reduce) {
-    .fade-up { opacity: 1; transform: none; transition: none; }
-  }
-
-  /* ===== NAV ===== */
-  nav {
-    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 18px 5%;
-    background: rgba(0,0,0,0.85);
-    backdrop-filter: blur(18px);
-    border-bottom: 1px solid var(--border);
-  }
-  .logo-img { height: 48px; width: auto; display: block; }
-  .nav-links { display: flex; align-items: center; gap: 28px; }
-  .nav-links a.nav-item { font-size: .85rem; color: var(--muted); text-decoration: none; transition: color .2s; }
-  .nav-links a.nav-item:hover { color: var(--text); }
-  .nav-login-btn {
-    background: transparent; border: 1px solid var(--border); color: var(--text);
-    font-weight: 600; font-size: .82rem; padding: 9px 18px; border-radius: 8px;
-    cursor: pointer; font-family: 'Inter', sans-serif; transition: border-color .2s;
-  }
-  .nav-login-btn:hover { border-color: var(--white); }
-  .nav-login-btn.hidden { display: none; }
-
-  /* ===== PERFIL (indicador de login persistente via localStorage) ===== */
-  .nav-profile { position: relative; }
-  .nav-profile.hidden { display: none; }
-  .nav-avatar-btn {
-    width: 36px; height: 36px; border-radius: 50%; overflow: hidden;
-    background: var(--surface); border: 1px solid var(--border); color: var(--muted);
-    display: flex; align-items: center; justify-content: center; cursor: pointer;
-    padding: 0; transition: border-color .2s;
-  }
-  .nav-avatar-btn:hover { border-color: var(--white); }
-  .nav-avatar-btn img { width: 100%; height: 100%; object-fit: cover; }
-  .nav-avatar-btn svg { width: 18px; height: 18px; }
-  .nav-avatar-initials { font-size: .78rem; font-weight: 700; color: var(--text); }
-  .profile-dropdown {
-    position: absolute; top: calc(100% + 10px); right: 0; z-index: 210;
-    background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
-    padding: 14px; min-width: 190px;
-  }
-  .profile-dropdown.hidden { display: none; }
-  .profile-dropdown-name {
-    font-size: .88rem; font-weight: 700; color: var(--text);
-    padding: 4px 10px 12px; margin-bottom: 6px; border-bottom: 1px solid var(--border);
-  }
-  .profile-dropdown-item {
-    display: block; width: 100%; text-align: left; background: none; border: none;
-    color: var(--text); font-size: .85rem; font-family: 'Inter', sans-serif;
-    padding: 9px 10px; border-radius: 8px; cursor: pointer; transition: background .15s;
-  }
-  .profile-dropdown-item:hover { background: var(--surface); }
-  .profile-dropdown-item.danger:hover { color: var(--white); }
-
   /* ===== LOGIN (simulado) ===== */
   /* LOGIN AINDA NÃO CONECTADO AO BACKEND — grava localStorage como simulação, substituir por autenticação real depois. */
   .login-modal {
@@ -172,30 +88,124 @@
     opacity: 0; min-height: 1.3em; transition: opacity .4s ease;
   }
   .login-welcome-msg.show { opacity: 1; }
-  /* garante que a primeira seção do body sempre fique abaixo do nav fixo: altura real do nav (18+48+18+1) + 20px de margem */
-  nav + section { padding-top: 105px !important; }
-  /* breakpoint unificado com o já usado em .grafico-grid — a logo tem proporção bem larga (5,27:1), então mesmo
-     pequena ainda disputa espaço com o botão "Login" nos celulares mais estreitos; os links somem e a
-     logo encolhe um pouco mais pra garantir folga */
-  @media (max-width: 900px) {
-    .nav-links a.nav-item { display: none; }
-    .logo-img { height: 36px; }
-    /* altura real do nav no mobile/tablet (18+36+18+1) + 20px de margem */
-    nav + section { padding-top: 93px !important; }
+  /* ===== HERO ===== */
+  .hero {
+    --first-gap: 88px;
+    /* 32px aqui + 32px no topo de #cobranca ≈ 64px entre o conteúdo das duas seções */
+    background: var(--bg); padding-bottom: 32px; text-align: center; overflow: hidden;
+  }
+  /* brilho radial bem sutil do acento atrás do título */
+  .hero::before {
+    content: ''; position: absolute; left: 50%; top: 38%; width: min(900px, 120vw); height: 520px;
+    transform: translate(-50%, -50%); pointer-events: none;
+    background: radial-gradient(closest-side, color-mix(in srgb, var(--accent) 11%, transparent), transparent);
+  }
+  .hero-inner { position: relative; max-width: 860px; margin: 0 auto; }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px; margin-bottom: 28px;
+    border: 1px solid var(--border); border-radius: 99px; background: var(--surface);
+    font-size: .78rem; font-weight: 500; color: var(--muted); white-space: nowrap; max-width: 100%;
+  }
+  .hero-badge .badge-short { display: none; }
+  .hero-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+  .hero-title {
+    font-family: 'Fraunces', serif; font-weight: 600; font-optical-sizing: auto; letter-spacing: -.02em;
+    /* mínimo menor que antes para "sob controle." (agora inseparável) caber em celulares de 320px */
+    font-size: clamp(2.1rem, 10vw, 4.8rem); line-height: 1.05; margin-bottom: 24px;
+  }
+  .hero-title em { font-style: normal; color: var(--accent); }
+  .hero-sub { color: var(--muted); font-size: clamp(1rem, 1.6vw, 1.12rem); line-height: 1.7; max-width: 640px; margin: 0 auto 36px; }
+  .hero-ctas { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin-bottom: 56px; }
+  .hero-stats {
+    display: flex; justify-content: center; flex-wrap: wrap; list-style: none;
+    font-family: 'IBM Plex Mono', monospace; font-size: .85rem; color: var(--muted);
+  }
+  .hero-stats li { padding: 4px 24px; border-left: 1px solid var(--border); display: inline-flex; align-items: center; gap: 8px; }
+  .hero-stats li:first-child { border-left: none; }
+  .hero-stats strong { color: var(--text); font-weight: 600; }
+  .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); animation: livePulse 1.8s ease-in-out infinite; }
+  @keyframes livePulse { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+  @media (max-width: 600px) {
+    .hero { --first-gap: 48px; padding-bottom: 24px; }
+    section.cobranca-section { padding-top: 24px; }
+    .hero-badge .badge-long { display: none; }
+    .hero-badge .badge-short { display: inline; }
+    .hero-ctas .btn, .cobranca-copy .btn { width: 100%; }
+    .hero-stats { flex-direction: column; align-items: center; gap: 6px; }
+    .hero-stats li { border-left: none; padding: 2px 0; }
   }
 
-  /* ===== SECTION SHARED ===== */
-  section { padding: 96px 5%; position: relative; }
-  .section-inner { max-width: 1180px; margin: 0 auto; }
-  .section-label {
-    font-size: .74rem; font-weight: 600; letter-spacing: .14em; text-transform: uppercase;
-    color: var(--muted); margin-bottom: 12px;
+  /* ===== WARDEN COBRANÇA ===== */
+  /* scroll-margin: com o padding-top menor, o link #cobranca pararia com o título embaixo do nav fixo */
+  .cobranca-section { border-top: 1px solid var(--border); padding-top: 32px; scroll-margin-top: calc(85px + env(safe-area-inset-top, 0px)); }
+  /* alinhado ao topo: com "center", o celular (mais alto) empurrava o label para baixo e criava o vão */
+  .cobranca-grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: 72px; align-items: start; }
+  .cobranca-steps { list-style: none; margin: 32px 0 28px; display: flex; flex-direction: column; gap: 18px; }
+  .cobranca-steps li { display: flex; gap: 16px; align-items: flex-start; font-size: 1rem; line-height: 1.55; }
+  .step-num {
+    flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--accent);
+    color: var(--accent); font-family: 'IBM Plex Mono', monospace; font-size: .85rem; font-weight: 600;
+    display: flex; align-items: center; justify-content: center; margin-top: -3px;
   }
-  .section-title {
-    font-family: 'Fraunces', serif; font-weight: 600; font-optical-sizing: auto; letter-spacing: -.01em;
-    font-size: clamp(1.7rem, 3vw, 2.4rem); line-height: 1.22; margin-bottom: 14px;
+  .cobranca-benefits {
+    list-style: none; display: flex; flex-direction: column; gap: 12px;
+    padding-top: 24px; margin-bottom: 36px; border-top: 1px solid var(--border);
   }
-  .section-sub { color: var(--muted); font-size: 1rem; max-width: 520px; line-height: 1.7; }
+  .cobranca-benefits li { display: flex; gap: 12px; align-items: center; color: var(--muted); font-size: .92rem; }
+  .cobranca-benefits svg { width: 18px; height: 18px; flex-shrink: 0; color: var(--text); }
+
+  /* mockup de celular (só HTML/CSS) */
+  .phone {
+    width: min(320px, 100%); margin: 0 auto; border-radius: 40px; padding: 10px;
+    background: #1D1D1A; border: 1px solid var(--border);
+    box-shadow: 0 40px 80px rgba(0,0,0,.6), 0 0 0 1px rgba(0,0,0,.8) inset;
+  }
+  .phone-screen { border-radius: 31px; overflow: hidden; background: #0B0F0D; position: relative; }
+  .phone-notch { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); width: 84px; height: 22px; border-radius: 99px; background: #000; z-index: 1; }
+  .chat-head {
+    display: flex; align-items: center; gap: 10px; padding: 40px 14px 12px;
+    background: #161A18; border-bottom: 1px solid rgba(243,241,234,.06);
+  }
+  .chat-avatar {
+    width: 34px; height: 34px; border-radius: 50%; background: var(--accent); color: var(--accent-ink);
+    font-family: 'Fraunces', serif; font-weight: 700; font-size: 1rem; display: flex; align-items: center; justify-content: center;
+  }
+  .chat-name { font-size: .86rem; font-weight: 600; color: var(--text); }
+  .chat-status { font-size: .7rem; color: var(--muted); }
+  .chat-body { display: flex; flex-direction: column; gap: 8px; padding: 16px 12px 22px; min-height: 430px; }
+  .chat-day {
+    align-self: center; font-family: 'IBM Plex Mono', monospace; font-size: .64rem; color: var(--muted);
+    background: #161A18; padding: 3px 10px; border-radius: 6px; margin-bottom: 4px;
+  }
+  .msg {
+    max-width: 84%; padding: 8px 10px 6px; border-radius: 10px; font-size: .8rem; line-height: 1.45; color: var(--text);
+    opacity: 0; transform: translateY(8px); transition: opacity .35s ease, transform .35s ease;
+  }
+  .msg.show { opacity: 1; transform: none; }
+  .msg-in { align-self: flex-start; background: #1F2421; border-top-left-radius: 3px; }
+  .msg-out { align-self: flex-end; background: #1E4D3A; border-top-right-radius: 3px; }
+  .msg-time { display: block; text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: .6rem; color: rgba(243,241,234,.5); margin-top: 3px; }
+  .pix-box {
+    margin: 6px 0 8px; padding: 8px; border-radius: 8px; background: rgba(0,0,0,.35); border: 1px solid rgba(243,241,234,.08);
+  }
+  .pix-label { font-size: .64rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+  .pix-code { font-family: 'IBM Plex Mono', monospace; font-size: .64rem; color: var(--text); word-break: break-all; opacity: .8; }
+  .pix-copy {
+    display: block; text-align: center; margin-top: 6px; padding: 7px; border-radius: 7px;
+    background: var(--accent); color: var(--accent-ink); font-weight: 600; font-size: .74rem;
+  }
+  .badge-baixa {
+    display: inline-block; margin-top: 6px; padding: 2px 7px; border-radius: 99px;
+    background: var(--accent); color: var(--accent-ink); font-size: .6rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  }
+  @media (max-width: 900px) {
+    .cobranca-grid { grid-template-columns: 1fr; gap: 56px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .msg { opacity: 1; transform: none; transition: none; }
+    .live-dot { animation: none; }
+    .btn { transition: none; }
+  }
 
   /* ===== GRÁFICO + APRENDA A INVESTIR ===== */
   .grafico-grid {
@@ -324,28 +334,8 @@
 </head>
 <body>
 
-<!-- NAV -->
-<nav>
-  <a href="#"><img src="warden-logo-cropped-transparent.png" alt="Warden Finance" class="logo-img"></a>
-  <div class="nav-links">
-    <a class="nav-item" href="#mercado">Mercado</a>
-    <a class="nav-item" href="#noticias">Notícias</a>
-    <a class="nav-item" href="#grafico">Gráfico</a>
-    <a class="nav-item" href="app.html" onclick="return abrirControlFinance(event)">Control Finance</a>
-    <button class="nav-login-btn" id="nav-login-btn" onclick="toggleLoginModal()">Login</button>
-    <div id="nav-profile" class="nav-profile hidden">
-      <button class="nav-avatar-btn" onclick="toggleProfileMenu(event)" aria-label="Minha conta">
-        <span id="nav-avatar-content"></span>
-      </button>
-      <div id="profile-dropdown" class="profile-dropdown hidden">
-        <p class="profile-dropdown-name" id="profile-dropdown-name"></p>
-        <button type="button" class="profile-dropdown-item" onclick="document.getElementById('profile-avatar-input').click()">Alterar foto</button>
-        <input type="file" id="profile-avatar-input" accept="image/*" onchange="alterarFotoPerfil(event)" hidden>
-        <button type="button" class="profile-dropdown-item danger" onclick="fazerLogout()">Sair</button>
-      </div>
-    </div>
-  </div>
-</nav>
+<!-- NAV + mega-menu + menu mobile (montados por /assets/nav.js) -->
+<script src="/assets/nav.js" data-page="home"></script>
 
 <!-- Tela intermediária do Control Finance para quem ainda não está logado -->
 <div id="control-finance-modal" class="login-modal hidden">
@@ -413,6 +403,96 @@
     <div id="login-welcome-msg" class="login-welcome-msg"></div>
   </div>
 </div>
+
+<!-- HERO -->
+<section id="inicio" class="hero">
+  <div class="hero-inner">
+    <p class="hero-badge fade-up"><span class="badge-long">Ferramentas financeiras gratuitas + cobrança automática</span><span class="badge-short">Grátis + cobrança automática</span></p>
+    <h1 class="hero-title fade-up">Seu dinheiro, sob&nbsp;<em>controle</em>.</h1>
+    <p class="hero-sub fade-up">Dezenas de ferramentas gratuitas para suas finanças, notícias do mercado em tempo real e o Warden Cobrança: seus clientes cobrados no WhatsApp, no automático.</p>
+    <div class="hero-ctas fade-up">
+      <a class="btn btn-primary" href="#cobranca">Conhecer o Warden Cobrança</a>
+      <button type="button" class="btn btn-secondary" onclick="abrirFerramentas(event)" aria-controls="mega-menu">Explorar ferramentas</button>
+    </div>
+    <ul class="hero-stats fade-up">
+      <li><strong>30+</strong> ferramentas</li>
+      <li><span class="live-dot" aria-hidden="true"></span>Notícias ao vivo</li>
+      <li><strong>100%</strong> gratuito para começar</li>
+    </ul>
+  </div>
+</section>
+
+<!-- WARDEN COBRANÇA -->
+<section id="cobranca" class="cobranca-section">
+  <div class="section-inner cobranca-grid">
+    <div class="cobranca-copy">
+      <p class="section-label fade-up">Warden Cobrança</p>
+      <h2 class="section-title fade-up">Cobrar é chato. Deixa que a gente cobra.</h2>
+
+      <ol class="cobranca-steps fade-up">
+        <li><span class="step-num">1</span><span>Cadastre o cliente e o valor</span></li>
+        <li><span class="step-num">2</span><span>O Warden avisa no WhatsApp: antes, no dia e depois do vencimento</span></li>
+        <li><span class="step-num">3</span><span>O cliente paga no Pix e a cobrança para sozinha</span></li>
+      </ol>
+
+      <ul class="cobranca-benefits fade-up">
+        <li>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M9 11h6M9 14h4"/></svg>
+          Mensagens no tom que você escolher
+        </li>
+        <li>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M9 9v11"/></svg>
+          Painel de quem pagou e quem deve
+        </li>
+        <li>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M12 12v6M9 15l3 3 3-3"/></svg>
+          Relatórios para baixar em PDF e Excel
+        </li>
+      </ul>
+
+      <a class="btn btn-primary fade-up" href="https://wa.me/5564993342646?text=Ol%C3%A1!%20Quero%20conhecer%20o%20Warden%20Cobran%C3%A7a." target="_blank" rel="noopener">Quero usar o Warden Cobrança</a>
+    </div>
+
+    <!-- Mockup de celular: conversa de exemplo (decorativa) -->
+    <div class="phone" role="img" aria-label="Exemplo de conversa no WhatsApp: o Warden lembra a cliente Mariana da mensalidade de R$ 150,00, envia o Pix copia e cola, ela paga e recebe a confirmação automática.">
+      <div class="phone-screen" aria-hidden="true">
+        <div class="phone-notch"></div>
+        <div class="chat-head">
+          <div class="chat-avatar">W</div>
+          <div>
+            <p class="chat-name">Studio Bem-Estar</p>
+            <p class="chat-status">online</p>
+          </div>
+        </div>
+        <div class="chat-body" id="chat-demo">
+          <span class="chat-day">HOJE</span>
+          <div class="msg msg-in">
+            Oi, Mariana! Passando para lembrar da sua mensalidade de <strong>R$ 150,00</strong>, que vence amanhã (05/10). 😊
+            <span class="msg-time">09:00</span>
+          </div>
+          <div class="msg msg-in">
+            Se preferir já deixar pago:
+            <div class="pix-box">
+              <p class="pix-label">Pix copia e cola</p>
+              <p class="pix-code">00020126580014br.gov.bcb.pix0136a1b2c3d4-e5f6…5204000053039865406150.00</p>
+              <span class="pix-copy">Copiar código Pix</span>
+            </div>
+            <span class="msg-time">09:00</span>
+          </div>
+          <div class="msg msg-out">
+            Pago! ✅
+            <span class="msg-time">09:14</span>
+          </div>
+          <div class="msg msg-in">
+            Pagamento confirmado. Obrigado, Mariana!
+            <span class="badge-baixa">Baixa automática</span>
+            <span class="msg-time">09:14</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
 <!-- MERCADO EM TEMPO REAL -->
 <section id="mercado" class="mercado-section">
@@ -876,69 +956,23 @@
     mostrarBoasVindas('Conta criada com sucesso');
   }
 
-  // ===== PERFIL (indicador de login persistente) =====
-  function getInitials(nome) {
-    if (!nome) return '';
-    const partes = nome.trim().split(/\s+/);
-    return (partes[0][0] + (partes[1] ? partes[1][0] : '')).toUpperCase();
-  }
-
-  function renderNavAuthState() {
-    const logado = localStorage.getItem('wardenLoggedIn') === 'true';
-    const loginBtn = document.getElementById('nav-login-btn');
-    const profile = document.getElementById('nav-profile');
-    if (!logado) {
-      loginBtn.classList.remove('hidden');
-      profile.classList.add('hidden');
+  /* ===== WARDEN COBRANÇA: mensagens do mockup aparecem em sequência ===== */
+  (function () {
+    const chat = document.getElementById('chat-demo');
+    if (!chat) return;
+    const msgs = chat.querySelectorAll('.msg');
+    const semAnimacao = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (semAnimacao || !('IntersectionObserver' in window)) {
+      msgs.forEach(m => m.classList.add('show'));
       return;
     }
-    loginBtn.classList.add('hidden');
-    profile.classList.remove('hidden');
-    const nome = localStorage.getItem('wardenUserName') || '';
-    const foto = localStorage.getItem('wardenUserPhoto');
-    document.getElementById('profile-dropdown-name').textContent = nome || 'Minha conta';
-    const avatarEl = document.getElementById('nav-avatar-content');
-    if (foto) {
-      avatarEl.innerHTML = `<img src="${foto}" alt="${nome || 'Foto de perfil'}">`;
-    } else if (nome) {
-      avatarEl.innerHTML = `<span class="nav-avatar-initials">${getInitials(nome)}</span>`;
-    } else {
-      avatarEl.innerHTML = `
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.5-7 8-7s8 3 8 7"/>
-        </svg>`;
-    }
-  }
-
-  function toggleProfileMenu(e) {
-    e.stopPropagation();
-    document.getElementById('profile-dropdown').classList.toggle('hidden');
-  }
-  document.addEventListener('click', (e) => {
-    const profile = document.getElementById('nav-profile');
-    if (profile && !profile.contains(e.target)) {
-      document.getElementById('profile-dropdown').classList.add('hidden');
-    }
-  });
-
-  function alterarFotoPerfil(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = ev => {
-      localStorage.setItem('wardenUserPhoto', ev.target.result);
-      renderNavAuthState();
-    };
-    reader.readAsDataURL(file);
-  }
-
-  function fazerLogout() {
-    localStorage.removeItem('wardenLoggedIn');
-    document.getElementById('profile-dropdown').classList.add('hidden');
-    renderNavAuthState();
-  }
-
-  renderNavAuthState();
+    const obs = new IntersectionObserver(entries => {
+      if (!entries.some(en => en.isIntersecting)) return;
+      obs.disconnect();
+      msgs.forEach((m, i) => setTimeout(() => m.classList.add('show'), 300 + i * 1100));
+    }, { threshold: 0.35 });
+    obs.observe(chat);
+  })();
 </script>
 
 </body>

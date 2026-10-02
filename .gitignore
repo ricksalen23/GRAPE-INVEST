@@ -1,0 +1,25 @@
+# Sistema operacional
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Editores
+.vscode/
+*.code-workspace.bak
+.idea/
+*.swp
+
+# Dependências / builds (caso algum dia o projeto ganhe ferramentas de build)
+node_modules/
+dist/
+.cache/
+
+# Segredos e configurações locais — nunca versionar
+.env
+.env.*
+*.local
+
+# Logs e temporários
+*.log
+*.tmp
+*.zip

@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Simulador de Renda Fixa: CDB, LCI, Tesouro e Poupança | Warden</title>
+<meta name="description" content="Compare quanto rendem CDB, LCI/LCA, Tesouro Selic e poupança com as taxas de hoje (Selic, CDI e IPCA do Banco Central), já com Imposto de Renda descontado. Simulador grátis.">
+<link rel="canonical" href="https://wardenfinance.com.br/ferramentas/simulador-renda-fixa.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Simulador de Renda Fixa: CDB, LCI, Tesouro e Poupança | Warden">
+<meta property="og:description" content="Veja lado a lado quanto rende cada investimento de renda fixa, com IR descontado e taxas do dia.">
+<meta property="og:url" content="https://wardenfinance.com.br/ferramentas/simulador-renda-fixa.html">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/warden.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Simulador de Renda Fixa",
+  "url": "https://wardenfinance.com.br/ferramentas/simulador-renda-fixa.html",
+  "applicationCategory": "FinanceApplication",
+  "operatingSystem": "Any",
+  "inLanguage": "pt-BR",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "BRL" },
+  "publisher": { "@type": "Organization", "name": "Warden", "url": "https://wardenfinance.com.br/" }
+}
+</script>
+<style>
+  /* ===== SIMULADOR DE RENDA FIXA (só desta página) ===== */
+  .sim-top { --first-gap: 40px; padding-bottom: 64px; }
+  .sim-head { margin-bottom: 36px; }
+
+  /* faixa "Taxas de hoje" */
+  .taxas { margin-bottom: 24px; }
+  .taxas-head { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 16px; margin-bottom: 18px; }
+  .taxas-head .section-label { margin: 0; }
+  .taxas-status { font-size: .8rem; color: var(--muted); flex: 1; min-width: 200px; }
+  .taxas-status.ref { color: var(--text); }
+  .taxas-edit {
+    background: none; border: 1px solid var(--border); color: var(--text); border-radius: 8px;
+    font-family: 'Inter', sans-serif; font-size: .8rem; font-weight: 600; padding: 7px 14px; cursor: pointer;
+    transition: border-color .2s;
+  }
+  .taxas-edit:hover { border-color: var(--text); }
+  .taxas-edit:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
+  .taxas-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; }
+  .taxa { padding: 0 24px; border-left: 1px solid var(--border); min-width: 0; }
+  .taxa:first-child { padding-left: 0; border-left: none; }
+  .taxa-nome { display: block; font-size: .78rem; color: var(--muted); margin-bottom: 4px; }
+  .taxa-valor { display: block; font-family: 'IBM Plex Mono', monospace; font-size: clamp(1.3rem, 2.6vw, 1.8rem); font-weight: 600; }
+  .taxa-data { display: block; font-family: 'IBM Plex Mono', monospace; font-size: .7rem; color: var(--muted); margin-top: 4px; }
+  /* input inline: mesma fonte e tamanho do número grande, com linha inferior para indicar edição */
+  .taxa-input { display: flex; align-items: baseline; gap: 4px; border-bottom: 1px solid var(--text); max-width: 9ch; }
+  .taxa-input input {
+    width: 100%; min-width: 0; background: none; border: none; outline: none; color: var(--text); padding: 0;
+    font-family: 'IBM Plex Mono', monospace; font-size: clamp(1.3rem, 2.6vw, 1.8rem); font-weight: 600; -moz-appearance: textfield;
+  }
+  .taxa-input input::-webkit-outer-spin-button,
+  .taxa-input input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .taxa-input .suf { font-family: 'IBM Plex Mono', monospace; font-size: 1rem; color: var(--muted); }
+  .taxas-restaurar {
+    background: none; border: none; padding: 0; color: var(--muted); text-decoration: underline; cursor: pointer;
+    font-family: 'Inter', sans-serif; font-size: .8rem;
+  }
+  .taxas-restaurar:hover { color: var(--text); }
+
+  /* formulário */
+  .sim-form { margin-bottom: 20px; }
+  .sim-form .tool-fields { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .sim-note { margin-bottom: 20px; }
+
+  /* cards de resultado */
+  .resultados { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin: 36px 0 20px; }
+  .opcao {
+    position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+    padding: 26px 22px 22px; display: flex; flex-direction: column; min-width: 0;
+  }
+  .opcao.melhor { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent), 0 18px 40px rgba(0,0,0,.35); }
+  .selo-melhor {
+    position: absolute; top: -11px; left: 20px; padding: 3px 10px; border-radius: 99px;
+    background: var(--accent); color: var(--accent-ink);
+    font-size: .64rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  }
+  .opcao h3 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 1.3rem; margin-bottom: 4px; }
+  .opcao-taxa { font-size: .8rem; color: var(--muted); line-height: 1.5; min-height: 2.4em; margin-bottom: 18px; }
+  .opcao-label { font-size: .7rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+  .opcao-final { font-family: 'IBM Plex Mono', monospace; font-size: clamp(1.35rem, 2vw, 1.6rem); font-weight: 600; margin-bottom: 18px; overflow-wrap: anywhere; }
+  .opcao.melhor .opcao-final { color: var(--accent); }
+  .opcao dl { border-top: 1px solid var(--border); padding-top: 14px; display: flex; flex-direction: column; gap: 9px; margin-top: auto; }
+  .opcao dl div { display: flex; justify-content: space-between; gap: 12px; font-size: .84rem; }
+  .opcao dt { color: var(--muted); }
+  .opcao dd { font-family: 'IBM Plex Mono', monospace; text-align: right; white-space: nowrap; }
+  .sim-obs { font-size: .78rem; color: var(--muted); line-height: 1.6; }
+
+  /* gráfico */
+  .grafico-card { margin-top: 28px; }
+  .grafico-card h2 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 1.25rem; margin-bottom: 4px; }
+  .grafico-card p { font-size: .84rem; color: var(--muted); margin-bottom: 18px; }
+  .grafico-box { position: relative; height: 360px; }
+
+  /* texto + ponte */
+  .sim-prose { padding-top: 32px; padding-bottom: 56px; border-top: 1px solid var(--border); }
+  .ir-tabela { width: 100%; max-width: 420px; border-collapse: collapse; margin-top: 12px; font-size: .9rem; }
+  .ir-tabela th, .ir-tabela td { text-align: left; padding: 8px 0; border-bottom: 1px solid var(--border); color: var(--muted); }
+  .ir-tabela th { font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; font-weight: 600; }
+  .ir-tabela td:last-child { font-family: 'IBM Plex Mono', monospace; color: var(--text); text-align: right; }
+  .ir-tabela th:last-child { text-align: right; }
+  .sim-bridge { padding-top: 0; }
+  .sim-bridge .cobranca-card { padding: 28px 30px; }
+  .sim-bridge .cobranca-card h2 { font-family: 'Fraunces', serif; font-weight: 700; font-size: 1.35rem; line-height: 1.25; margin-bottom: 6px; }
+
+  @media (max-width: 1100px) {
+    .resultados { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .sim-form .tool-fields { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+  @media (max-width: 640px) {
+    .sim-top { --first-gap: 24px; }
+    .resultados { grid-template-columns: 1fr; gap: 20px; }
+    .sim-form .tool-fields { grid-template-columns: 1fr 1fr; gap: 22px 18px; }
+    .tool-card { padding: 22px 18px; }
+    .taxas-grid { grid-template-columns: 1fr; gap: 14px; }
+    .taxa, .taxa:first-child { padding: 0; border-left: none; }
+    .taxa { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+    .taxa-nome { margin: 0; }
+    .taxa-data { width: 100%; margin-top: 0; text-align: right; }
+    .grafico-box { height: 300px; }
+    .sim-bridge .cobranca-card { padding: 22px 18px; }
+    .sim-bridge .cobranca-card .cobranca-card-btn { width: 100%; text-align: center; }
+  }
+  @media (max-width: 380px) {
+    .sim-form .tool-fields { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<script src="/assets/nav.js"></script>
+
+<section class="sim-top">
+  <div class="section-inner">
+
+    <header class="sim-head">
+      <div class="tool-crumbs" role="navigation" aria-label="Você está em">
+        <a href="/">Início</a><span aria-hidden="true">/</span><span>Ferramentas</span><span aria-hidden="true">/</span><span>Investimentos</span>
+      </div>
+      <h1 class="tool-title">Simulador de renda fixa: CDB, LCI, Tesouro e Poupança</h1>
+      <p class="tool-lead">Diga quanto vai investir e por quanto tempo. A gente mostra, lado a lado, quanto rende cada opção — já com Imposto de Renda descontado e usando as taxas de hoje.</p>
+    </header>
+
+    <!-- TAXAS DE HOJE -->
+    <div class="tool-card taxas">
+      <div class="taxas-head">
+        <p class="section-label">Taxas de hoje</p>
+        <span class="taxas-status" id="taxas-status" aria-live="polite">Buscando no Banco Central…</span>
+        <button type="button" class="taxas-edit" id="taxas-editar" aria-pressed="false">Editar taxas</button>
+      </div>
+      <!-- edição inline: ao clicar "Editar taxas", cada número grande vira um input no mesmo lugar -->
+      <div class="taxas-grid" id="taxas-grid">
+        <div class="taxa">
+          <label class="taxa-nome" for="taxa-selic">Selic (meta)</label>
+          <span class="taxa-valor" id="v-selic">—</span>
+          <span class="taxa-input" hidden><input type="number" id="taxa-selic" min="0" max="100" step="0.05" inputmode="decimal"><span class="suf">%</span></span>
+          <span class="taxa-data" id="d-selic"></span>
+        </div>
+        <div class="taxa">
+          <label class="taxa-nome" for="taxa-cdi">CDI</label>
+          <span class="taxa-valor" id="v-cdi">—</span>
+          <span class="taxa-input" hidden><input type="number" id="taxa-cdi" min="0" max="100" step="0.05" inputmode="decimal"><span class="suf">%</span></span>
+          <span class="taxa-data" id="d-cdi"></span>
+        </div>
+        <div class="taxa">
+          <label class="taxa-nome" for="taxa-ipca">IPCA (12 meses)</label>
+          <span class="taxa-valor" id="v-ipca">—</span>
+          <span class="taxa-input" hidden><input type="number" id="taxa-ipca" min="-10" max="100" step="0.05" inputmode="decimal"><span class="suf">%</span></span>
+          <span class="taxa-data" id="d-ipca"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ENTRADAS -->
+    <form class="tool-card sim-form" id="sim-form" onsubmit="return false">
+      <div class="tool-fields">
+        <div class="tool-field">
+          <label for="valor-inicial">Valor inicial</label>
+          <div class="tool-input"><span class="pre">R$</span><input type="number" id="valor-inicial" value="10000" min="0" step="100" inputmode="decimal"></div>
+        </div>
+        <div class="tool-field">
+          <label for="aporte">Aporte mensal</label>
+          <div class="tool-input"><span class="pre">R$</span><input type="number" id="aporte" value="0" min="0" step="50" inputmode="decimal"></div>
+          <span class="tool-hint">Opcional · todo mês, no mesmo dia de hoje</span>
+        </div>
+        <div class="tool-field">
+          <label for="prazo">Prazo</label>
+          <div class="tool-input">
+            <input type="number" id="prazo" value="2" min="1" step="1" inputmode="numeric">
+            <select id="prazo-unidade" aria-label="Unidade do prazo">
+              <option value="dias">dias</option>
+              <option value="meses">meses</option>
+              <option value="anos" selected>anos</option>
+            </select>
+          </div>
+        </div>
+        <div class="tool-field">
+          <label for="pct-cdb">CDB rende</label>
+          <div class="tool-input"><input type="number" id="pct-cdb" value="100" min="0" max="300" step="1" inputmode="decimal"><span class="suf">% do CDI</span></div>
+        </div>
+        <div class="tool-field">
+          <label for="pct-lci">LCI/LCA rende</label>
+          <div class="tool-input"><input type="number" id="pct-lci" value="90" min="0" max="300" step="1" inputmode="decimal"><span class="suf">% do CDI</span></div>
+        </div>
+      </div>
+    </form>
+
+    <div class="tool-note sim-note" id="aviso-iof" role="status" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+      <span><strong>Prazo menor que 30 dias:</strong> resgates antes de 30 dias pagam IOF sobre o rendimento (CDB e Tesouro), além do IR. O IOF não está incluído aqui, então o cálculo é aproximado. A poupança só rende a cada mês completo.</span>
+    </div>
+
+    <!-- RESULTADOS -->
+    <div class="resultados" id="resultados" aria-live="polite"></div>
+    <p class="sim-obs" id="sim-obs"></p>
+
+    <!-- GRÁFICO -->
+    <div class="tool-card grafico-card">
+      <h2>Evolução do patrimônio</h2>
+      <p>Valor líquido (já descontado o IR) se você resgatasse em cada momento.</p>
+      <div class="grafico-box"><canvas id="grafico" role="img" aria-label="Gráfico de linha com a evolução das quatro opções ao longo do prazo"></canvas></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- EXPLICAÇÃO PARA INICIANTES -->
+<section class="sim-prose">
+  <div class="section-inner">
+    <article class="tool-prose">
+      <h2>Entenda cada investimento</h2>
+      <p>Renda fixa é quando você empresta dinheiro (para um banco ou para o governo) e já sabe <strong>a regra</strong> de quanto vai receber de volta. Quase todas as opções abaixo acompanham o <strong>CDI</strong>, uma taxa que fica sempre muito perto da <strong>Selic</strong>, a taxa básica de juros do Brasil definida pelo Banco Central.</p>
+
+      <h3>Poupança</h3>
+      <p>A mais conhecida e a mais simples: rende 0,5% ao mês quando a Selic está acima de 8,5% ao ano (ou 70% da Selic quando está abaixo), mais a TR. Não paga Imposto de Renda, mas só rende no "aniversário" do depósito — se tirar antes de completar o mês, perde o rendimento daquele mês. Com a Selic alta, costuma perder para as outras opções.</p>
+
+      <h3>CDB (Certificado de Depósito Bancário)</h3>
+      <p>Você empresta para um banco e ele te paga uma porcentagem do CDI — por exemplo, "100% do CDI". Paga Imposto de Renda sobre o rendimento, e o imposto fica menor quanto mais tempo o dinheiro fica aplicado (tabela abaixo). É protegido pelo FGC (Fundo Garantidor de Créditos) até R$ 250 mil por CPF por instituição.</p>
+
+      <h3>LCI e LCA</h3>
+      <p>Letras de Crédito Imobiliário e do Agronegócio: funcionam como um CDB, mas o dinheiro financia os setores imobiliário e agro. Por isso são <strong>isentas de Imposto de Renda</strong> para pessoa física. Em troca, costumam pagar uma porcentagem menor do CDI e ter um prazo mínimo (carência) antes de poder resgatar. Também têm a proteção do FGC.</p>
+
+      <h3>Tesouro Selic</h3>
+      <p>Você empresta para o governo federal e recebe a Selic. É considerado o investimento mais seguro do país e dá para resgatar a qualquer dia útil. Paga Imposto de Renda pela mesma tabela do CDB e tem uma taxa de custódia da B3 (aqui consideramos 0,20% ao ano).</p>
+
+      <h3>Tabela do Imposto de Renda (CDB e Tesouro)</h3>
+      <table class="ir-tabela">
+        <thead><tr><th>Tempo aplicado</th><th>IR sobre o rendimento</th></tr></thead>
+        <tbody id="ir-tabela-corpo"></tbody>
+      </table>
+
+      <h3>E a rentabilidade real?</h3>
+      <p>É quanto o seu dinheiro cresceu <strong>acima da inflação</strong> (IPCA). Se um investimento rendeu 10% e a inflação foi 4%, o seu poder de compra aumentou cerca de 5,8% — esse é o ganho de verdade.</p>
+
+      <p class="tool-disclaimer"><strong>Simulação educativa. Não é recomendação de investimento.</strong> Os valores usam as taxas atuais como se fossem fixas durante todo o prazo, desconsideram a TR da poupança, o IOF e o spread de cada instituição. Taxas e regras de imposto podem mudar.</p>
+    </article>
+  </div>
+</section>
+
+<!-- PONTE PARA O WARDEN COBRANÇA -->
+<section class="sim-bridge">
+  <div class="section-inner">
+    <div class="cobranca-card">
+      <div class="cobranca-card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M9 12h6"/></svg>
+      </div>
+      <div class="cobranca-card-text">
+        <h2>Quer que seu dinheiro entre em dia para investir?</h2>
+        <p>O Warden cobra seus clientes por você.</p>
+      </div>
+      <a class="cobranca-card-btn" href="/#cobranca">Conhecer o Warden Cobrança →</a>
+    </div>
+  </div>
+</section>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+  /* =====================================================================
+   * CONFIGURAÇÃO — regras de imposto e de cada investimento.
+   * Regras mudam: atualize AQUI e o simulador inteiro acompanha.
+   * ===================================================================== */
+  const CONFIG = {
+    // Valores de referência: usados quando a API do Banco Central não responde.
+    // Atualize de tempos em tempos. Selic e CDI em % ao ano; IPCA acumulado em 12 meses (%).
+    taxasReferencia: { selic: 13.75, cdi: 13.65, ipca: 4.22, mes: 'set/2026' },
+
+    // IR regressivo sobre o RENDIMENTO (CDB e Tesouro Selic).
+    // Cada faixa vale para aplicações de "até X dias corridos". Mantenha em ordem crescente.
+    irRegressivo: [
+      { ateDias: 180,      aliquota: 0.225 },  // até 180 dias: 22,5%
+      { ateDias: 360,      aliquota: 0.20  },  // 181 a 360 dias: 20%
+      { ateDias: 720,      aliquota: 0.175 },  // 361 a 720 dias: 17,5%
+      { ateDias: Infinity, aliquota: 0.15  }   // acima de 720 dias: 15%
+    ],
+
+    // IOF: resgates com menos de X dias pagam IOF regressivo. Aqui só mostramos um aviso.
+    iofDiasMinimos: 30,
+
+    poupanca: {
+      limiteSelic: 8.5,             // Selic (% a.a.) acima da qual vale o rendimento fixo
+      rendimentoMensalFixo: 0.005,  // 0,5% ao mês (+ TR, que ignoramos)
+      fracaoDaSelic: 0.70,          // Selic até o limite: 70% da Selic ao ano (+ TR)
+      isentaIR: true
+    },
+
+    lciLca: { isentaIR: true },     // isenção vale para pessoa física
+
+    tesouroSelic: {
+      custodiaAA: 0.20,             // taxa de custódia da B3, em pontos percentuais ao ano (descontada da Selic)
+      isentaIR: false
+    },
+
+    cdb: { isentaIR: false },
+
+    cacheHoras: 12                  // por quanto tempo reaproveitar as taxas buscadas (localStorage)
+  };
+
+  // Séries do SGS (Banco Central): Selic meta, CDI anualizado e IPCA acumulado em 12 meses
+  const SERIES = { selic: 432, cdi: 4389, ipca: 13522 };
+  const CACHE_KEY = 'warden:taxas-bcb';
+
+  /* ===== CALENDÁRIO: prazos em dias corridos reais, contados a partir de hoje =====
+   * Meses e anos são somados à data de hoje com Date e convertidos em dias pela diferença entre as datas
+   * (ex.: 2 anos a partir de 02/10/2026 = 02/10/2028 = 731 dias, porque 2028 é bissexto).
+   * Tudo em UTC para não sofrer com horário de verão / fuso. */
+  const DIA_MS = 86400000;
+  const HOJE = (() => { const d = new Date(); return Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()); })();
+  // hoje + n meses; se o dia não existe no mês de destino (ex.: 31/01 + 1 mês), usa o último dia desse mês
+  function somarMeses(n) {
+    const d = new Date(HOJE);
+    const ano = d.getUTCFullYear(), mes = d.getUTCMonth() + n, dia = d.getUTCDate();
+    const ultimoDia = new Date(Date.UTC(ano, mes + 1, 0)).getUTCDate();
+    return Date.UTC(ano, mes, Math.min(dia, ultimoDia));
+  }
+  const diasAte = data => Math.round((data - HOJE) / DIA_MS);
+  const fmtData = data => new Date(data).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+  // dias corridos de hoje até cada "mesversário" (0, 1, 2… meses); o último item já passa do prazo
+  function calendarioMeses(diasPrazo) {
+    const cal = [0];
+    while (cal[cal.length - 1] <= diasPrazo) cal.push(diasAte(somarMeses(cal.length)));
+    return cal;
+  }
+  // índice do último mesversário que cai até o "dia" informado (busca binária: cal é crescente)
+  function ultimoMesAte(cal, dia) {
+    let lo = 0, hi = cal.length - 1;
+    while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (cal[mid] <= dia) lo = mid; else hi = mid - 1; }
+    return lo;
+  }
+
+  /* ===== FORMATAÇÃO ===== */
+  const fmtBRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+  const fmtNum = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmtCurto = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 });   // 100 / 17,5 / 0,2 (sem zeros sobrando)
+  const fmtCompacto = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', notation: 'compact', maximumFractionDigits: 1 });
+  const brl = v => fmtBRL.format(v);
+  const pct = v => fmtNum.format(v) + '%';
+  const pctSinal = v => (v > 0 ? '+' : '') + fmtNum.format(v) + '%';
+  const MESES_ABREV = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+  const mesAno = dataBR => { const [, m, a] = dataBR.split('/'); return `${MESES_ABREV[+m - 1]}/${a}`; };
+
+  /* ===== TAXAS (API do Banco Central + cache + fallback) ===== */
+  let taxas = { ...CONFIG.taxasReferencia };   // valores em uso nos cálculos
+  let taxasCarregadas = null;                   // últimas taxas "oficiais" (API ou referência), para restaurar
+
+  async function buscarSerie(codigo) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 8000);
+    try {
+      const resp = await fetch(`https://api.bcb.gov.br/dados/serie/bcdata.sgs.${codigo}/dados/ultimos/1?formato=json`, { signal: ctrl.signal });
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      const json = await resp.json();
+      const valor = parseFloat(String(json[0].valor).replace(',', '.'));
+      if (!isFinite(valor)) throw new Error('valor inválido');
+      return { valor, data: json[0].data };
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  function lerCache() {
+    try {
+      const c = JSON.parse(localStorage.getItem(CACHE_KEY));
+      if (c && Date.now() - c.ts < CONFIG.cacheHoras * 3600 * 1000) return c;
+    } catch (e) { /* localStorage indisponível ou corrompido: ignora */ }
+    return null;
+  }
+  function salvarCache(dados) {
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify({ ...dados, ts: Date.now() })); } catch (e) { /* sem cache, tudo bem */ }
+  }
+
+  async function carregarTaxas() {
+    let dados = lerCache();
+    if (!dados) {
+      try {
+        const [selic, cdi, ipca] = await Promise.all([buscarSerie(SERIES.selic), buscarSerie(SERIES.cdi), buscarSerie(SERIES.ipca)]);
+        dados = { selic, cdi, ipca };
+        salvarCache(dados);
+      } catch (e) {
+        usarReferencia();
+        return;
+      }
+    }
+    taxasCarregadas = { selic: dados.selic.valor, cdi: dados.cdi.valor, ipca: dados.ipca.valor, fonte: 'bcb', datas: dados };
+    aplicarTaxas(taxasCarregadas);
+  }
+
+  function usarReferencia() {
+    taxasCarregadas = { ...CONFIG.taxasReferencia, fonte: 'referencia' };
+    aplicarTaxas(taxasCarregadas);
+  }
+
+  function aplicarTaxas(t) {
+    taxas = { selic: t.selic, cdi: t.cdi, ipca: t.ipca };
+    document.getElementById('taxa-selic').value = t.selic;
+    document.getElementById('taxa-cdi').value = t.cdi;
+    document.getElementById('taxa-ipca').value = t.ipca;
+    renderTaxas(t.fonte, t.datas);
+    calcular();
+  }
+
+  function renderTaxas(fonte, datas) {
+    document.getElementById('v-selic').textContent = pct(taxas.selic);
+    document.getElementById('v-cdi').textContent = pct(taxas.cdi);
+    document.getElementById('v-ipca').textContent = pct(taxas.ipca);
+    const status = document.getElementById('taxas-status');
+    status.classList.toggle('ref', fonte !== 'bcb');
+    const ds = id => document.getElementById(id);
+    if (fonte === 'bcb') {
+      status.textContent = `Fonte: Banco Central (SGS) · atualizado em ${datas.cdi.data}`;
+      ds('d-selic').textContent = 'meta do Copom';
+      ds('d-cdi').textContent = `em ${datas.cdi.data}`;
+      ds('d-ipca').textContent = `até ${mesAno(datas.ipca.data)}`;
+    } else if (fonte === 'carregando') {
+      status.textContent = 'Buscando no Banco Central…';
+      ['d-selic', 'd-cdi', 'd-ipca'].forEach(id => ds(id).textContent = '');
+    } else if (fonte === 'referencia') {
+      status.textContent = `Valores de referência (${CONFIG.taxasReferencia.mes}) — não foi possível buscar as taxas de hoje. Use "Editar taxas" para ajustar.`;
+      ['d-selic', 'd-cdi', 'd-ipca'].forEach(id => ds(id).textContent = 'referência');
+    } else {
+      status.innerHTML = 'Taxas editadas por você · <button type="button" class="taxas-restaurar" id="taxas-restaurar">restaurar</button>';
+      document.getElementById('taxas-restaurar').addEventListener('click', () => aplicarTaxas(taxasCarregadas));
+      ['d-selic', 'd-cdi', 'd-ipca'].forEach(id => ds(id).textContent = 'editado');
+    }
+  }
+
+  // edição inline: troca cada número grande pelo input no mesmo lugar; o botão alterna "Editar taxas" / "Concluir"
+  let editandoTaxas = false;
+  function editarTaxas(ativo) {
+    editandoTaxas = ativo;
+    document.querySelectorAll('#taxas-grid .taxa-valor').forEach(el => el.hidden = ativo);
+    document.querySelectorAll('#taxas-grid .taxa-input').forEach(el => el.hidden = !ativo);
+    const btn = document.getElementById('taxas-editar');
+    btn.textContent = ativo ? 'Concluir' : 'Editar taxas';
+    btn.setAttribute('aria-pressed', String(ativo));
+    if (ativo) document.getElementById('taxa-selic').focus();
+  }
+  document.getElementById('taxas-editar').addEventListener('click', () => editarTaxas(!editandoTaxas));
+  // Enter dentro de um input de taxa também conclui
+  document.getElementById('taxas-grid').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && e.target.matches('input')) { e.preventDefault(); editarTaxas(false); document.getElementById('taxas-editar').focus(); }
+  });
+  ['taxa-selic', 'taxa-cdi', 'taxa-ipca'].forEach(id => document.getElementById(id).addEventListener('input', () => {
+    const ler = i => { const v = parseFloat(document.getElementById(i).value); return isFinite(v) ? v : 0; };
+    taxas = { selic: ler('taxa-selic'), cdi: ler('taxa-cdi'), ipca: ler('taxa-ipca') };
+    renderTaxas('manual');
+    calcular();
+  }));
+
+  /* ===== CÁLCULO ===== */
+  function aliquotaIR(dias) {
+    return CONFIG.irRegressivo.find(f => dias <= f.ateDias).aliquota;
+  }
+
+  function lerEntradas() {
+    const num = id => { const v = parseFloat(document.getElementById(id).value); return isFinite(v) && v > 0 ? v : 0; };
+    const unidade = document.getElementById('prazo-unidade').value;
+    const limite = { dias: 18263, meses: 600, anos: 50 }[unidade];
+    const prazo = Math.min(Math.max(num('prazo'), 1), limite);
+    // meses/anos: soma ao calendário a partir de hoje e mede a diferença real em dias
+    const meses = unidade === 'anos' ? Math.round(prazo * 12) : unidade === 'meses' ? Math.round(prazo) : null;
+    const dias = Math.max(meses === null ? Math.round(prazo) : diasAte(somarMeses(meses)), 1);
+    return { inicial: num('valor-inicial'), aporte: num('aporte'), dias, unidade,
+             fim: HOJE + dias * DIA_MS, cal: calendarioMeses(dias),
+             pctCdb: num('pct-cdb'), pctLci: num('pct-lci') };
+  }
+
+  // depósitos: valor inicial hoje + um aporte em cada mesversário (mesmo dia do mês) dentro do prazo
+  function depositos(e) {
+    const lista = [];
+    if (e.inicial > 0) lista.push({ dia: 0, mes: 0, valor: e.inicial });
+    if (e.aporte > 0) for (let k = 0; e.cal[k] < e.dias; k++) lista.push({ dia: e.cal[k], mes: k, valor: e.aporte });
+    return lista;
+  }
+
+  function opcoes(e) {
+    const p = CONFIG.poupanca;
+    const regraFixa = taxas.selic > p.limiteSelic;
+    const poupMensal = regraFixa ? p.rendimentoMensalFixo : Math.pow(1 + p.fracaoDaSelic * taxas.selic / 100, 1 / 12) - 1;
+    const cdbAA = taxas.cdi * e.pctCdb / 100;
+    const lciAA = taxas.cdi * e.pctLci / 100;
+    const tesouroAA = Math.max(0, taxas.selic - CONFIG.tesouroSelic.custodiaAA);
+    return [
+      { id: 'poupanca', nome: 'Poupança', mensal: poupMensal, ir: !p.isentaIR,
+        desc: (regraFixa ? '0,5% ao mês' : `70% da Selic · ${pct(p.fracaoDaSelic * taxas.selic)} a.a.`) + ' · isenta de IR' },
+      { id: 'cdb', nome: 'CDB', anual: cdbAA, ir: !CONFIG.cdb.isentaIR,
+        desc: `${fmtCurto.format(e.pctCdb)}% do CDI · ${pct(cdbAA)} a.a.` },
+      { id: 'lci', nome: 'LCI/LCA', anual: lciAA, ir: !CONFIG.lciLca.isentaIR,
+        desc: `${fmtCurto.format(e.pctLci)}% do CDI · ${pct(lciAA)} a.a. · isenta de IR` },
+      { id: 'tesouro', nome: 'Tesouro Selic', anual: tesouroAA, ir: !CONFIG.tesouroSelic.isentaIR,
+        desc: `Selic − ${fmtCurto.format(CONFIG.tesouroSelic.custodiaAA)} p.p. de custódia · ${pct(tesouroAA)} a.a.` }
+    ];
+  }
+
+  // valor de cada depósito no "dia" informado: juros compostos por dia corrido (poupança: só mesversários completos);
+  // IR calculado por depósito, conforme os dias corridos reais que cada um ficou aplicado (é assim que a corretora faz)
+  function simular(op, deps, dia, cal) {
+    const inflacao = 1 + taxas.ipca / 100;
+    const mesAtual = ultimoMesAte(cal, dia);
+    let bruto = 0, investido = 0, ir = 0, investidoHoje = 0;
+    const aliquotas = new Set();
+    for (const d of deps) {
+      if (d.dia >= dia && d.dia !== 0) continue;
+      const tempo = dia - d.dia;
+      const fator = op.mensal !== undefined
+        ? Math.pow(1 + op.mensal, mesAtual - d.mes)
+        : Math.pow(1 + op.anual / 100, tempo / 365);
+      const valor = d.valor * fator;
+      bruto += valor;
+      investido += d.valor;
+      if (op.ir && tempo > 0) { const a = aliquotaIR(tempo); ir += (valor - d.valor) * a; aliquotas.add(a); }
+      investidoHoje += d.valor / Math.pow(inflacao, d.dia / 365);   // tudo trazido para o poder de compra de hoje
+    }
+    const liquido = bruto - ir;
+    const real = investidoHoje > 0 ? (liquido / Math.pow(inflacao, dia / 365)) / investidoHoje - 1 : 0;
+    return { bruto, investido, ir, liquido, rendimento: liquido - investido, real: real * 100, aliquotas: [...aliquotas] };
+  }
+
+  /* ===== RENDER ===== */
+  function renderCards(ops, resultados) {
+    const melhorValor = Math.max(...resultados.map(r => r.liquido));
+    // só existe "melhor" se houver dinheiro aplicado e alguma diferença entre as opções
+    const temMelhor = melhorValor > 0 && resultados.some(r => r.liquido < melhorValor);
+    const idxMelhor = temMelhor ? resultados.findIndex(r => r.liquido === melhorValor) : -1;
+    document.getElementById('resultados').innerHTML = ops.map((op, i) => {
+      const r = resultados[i];
+      const melhor = i === idxMelhor;
+      const rotuloIR = !op.ir ? 'IR pago' : r.aliquotas.length === 1 ? `IR pago (${fmtCurto.format(r.aliquotas[0] * 100)}%)` : 'IR pago (regressivo)';
+      return `
+        <article class="opcao${melhor ? ' melhor' : ''}">
+          ${melhor ? '<span class="selo-melhor">Melhor opção</span>' : ''}
+          <h3>${op.nome}</h3>
+          <p class="opcao-taxa">${op.desc}</p>
+          <p class="opcao-label">Valor final líquido</p>
+          <p class="opcao-final">${brl(r.liquido)}</p>
+          <dl>
+            <div><dt>Total investido</dt><dd>${brl(r.investido)}</dd></div>
+            <div><dt>Rendimento líquido</dt><dd>${brl(r.rendimento)}</dd></div>
+            <div><dt>${rotuloIR}</dt><dd>${op.ir ? brl(r.ir) : 'isento'}</dd></div>
+            <div><dt>Rentabilidade real</dt><dd>${pctSinal(r.real)}</dd></div>
+          </dl>
+        </article>`;
+    }).join('');
+  }
+
+  function textoPrazo(e) {
+    return `${e.dias} dias corridos, de hoje (${fmtData(HOJE)}) até ${fmtData(e.fim)}`;
+  }
+
+  let grafico = null;
+  function renderGrafico(ops, deps, e, resultados) {
+    if (!window.Chart) {
+      document.querySelector('.grafico-box').innerHTML = '<p class="sim-obs">Não foi possível carregar o gráfico agora.</p>';
+      return;
+    }
+    // pontos do eixo X: por dia em prazos curtos; por mês até 5 anos; por ano acima disso
+    const pontos = [];
+    let tituloX;
+    if (e.dias <= 92) {
+      tituloX = 'dias';
+      for (let d = 0; d <= e.dias; d++) pontos.push({ dia: d, rotulo: String(d) });
+    } else {
+      const meses = ultimoMesAte(e.cal, e.dias);
+      const passo = meses > 60 ? 12 : 1;
+      tituloX = passo === 12 ? 'anos' : 'meses';
+      for (let m = 0; m <= meses; m += passo) pontos.push({ dia: e.cal[m], rotulo: String(m / passo) });
+      if (pontos[pontos.length - 1].dia < e.dias) {
+        // prazo em dias que não fecha mês: último ponto em fração de mês/ano
+        const frac = meses + (e.dias - e.cal[meses]) / (e.cal[meses + 1] - e.cal[meses]);
+        pontos.push({ dia: e.dias, rotulo: fmtCurto.format(frac / passo) });
+      }
+    }
+
+    const css = getComputedStyle(document.documentElement);
+    const cor = v => css.getPropertyValue(v).trim();
+    const melhorValor = Math.max(...resultados.map(r => r.liquido));
+    // uma cor de destaque só: a melhor opção fica em --accent; as outras em tons neutros com traços diferentes
+    const estilos = {
+      poupanca: { cor: cor('--muted'), traco: [2, 4] },
+      cdb: { cor: cor('--text'), traco: [] },
+      lci: { cor: '#B4B2A7', traco: [7, 4] },
+      tesouro: { cor: '#6F6D64', traco: [] }
+    };
+    const datasets = ops.map((op, i) => {
+      const melhor = resultados[i].liquido === melhorValor;
+      const est = estilos[op.id];
+      return {
+        label: op.nome,
+        data: pontos.map(p => simular(op, deps, p.dia, e.cal).liquido),
+        borderColor: melhor ? cor('--accent') : est.cor,
+        backgroundColor: melhor ? cor('--accent') : est.cor,
+        borderDash: melhor ? [] : est.traco,
+        borderWidth: melhor ? 3 : 1.8,
+        pointRadius: 0, pointHoverRadius: 4, tension: 0.15
+      };
+    });
+
+    if (grafico) {
+      grafico.data.labels = pontos.map(p => p.rotulo);
+      grafico.data.datasets = datasets;
+      grafico.options.scales.x.title.text = tituloX;
+      grafico.update('none');
+      return;
+    }
+    const semAnimacao = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    Chart.defaults.font.family = "'Inter', sans-serif";
+    Chart.defaults.color = cor('--muted');
+    grafico = new Chart(document.getElementById('grafico'), {
+      type: 'line',
+      data: { labels: pontos.map(p => p.rotulo), datasets },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        animation: semAnimacao ? false : { duration: 400 },
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { position: 'bottom', labels: { usePointStyle: true, pointStyle: 'line', boxWidth: 24, padding: 18 } },
+          tooltip: {
+            backgroundColor: cor('--surface2'), borderColor: cor('--border'), borderWidth: 1,
+            titleColor: cor('--text'), bodyColor: cor('--text'), padding: 12,
+            bodyFont: { family: "'IBM Plex Mono', monospace" },
+            callbacks: {
+              title: items => `${items[0].label} ${grafico.options.scales.x.title.text}`,
+              label: ctx => ` ${ctx.dataset.label}: ${brl(ctx.parsed.y)}`
+            }
+          }
+        },
+        scales: {
+          x: { title: { display: true, text: tituloX }, grid: { display: false }, ticks: { maxTicksLimit: 12, maxRotation: 0 } },
+          y: { grid: { color: 'rgba(243,241,234,0.08)' }, ticks: { callback: v => fmtCompacto.format(v) } }
+        }
+      }
+    });
+  }
+
+  // aviso de IOF: só aparece se o prazo, em dias corridos reais a partir de hoje (já convertido da unidade
+  // escolhida por lerEntradas), for menor que CONFIG.iofDiasMinimos. Começa escondido no HTML (atributo hidden).
+  function atualizarAvisoIOF(diasCorridos) {
+    document.getElementById('aviso-iof').hidden = !(diasCorridos < CONFIG.iofDiasMinimos);
+  }
+
+  function calcular() {
+    const e = lerEntradas();
+    const deps = depositos(e);
+    const ops = opcoes(e);
+    const resultados = ops.map(op => simular(op, deps, e.dias, e.cal));
+
+    atualizarAvisoIOF(e.dias);
+    renderCards(ops, resultados);
+    document.getElementById('sim-obs').textContent =
+      `Prazo considerado: ${textoPrazo(e)}. Rentabilidade real = quanto o valor final líquido cresceu acima da inflação (IPCA de ${pct(taxas.ipca)} ao ano) no período.`;
+    renderGrafico(ops, deps, e, resultados);
+  }
+
+  // tabela de IR gerada a partir do CONFIG (fica sempre igual às regras usadas no cálculo)
+  document.getElementById('ir-tabela-corpo').innerHTML = CONFIG.irRegressivo.map((f, i, arr) => {
+    const de = i === 0 ? 0 : arr[i - 1].ateDias + 1;
+    const faixa = f.ateDias === Infinity ? `Acima de ${de - 1} dias` : i === 0 ? `Até ${f.ateDias} dias` : `De ${de} a ${f.ateDias} dias`;
+    return `<tr><td>${faixa}</td><td>${fmtCurto.format(f.aliquota * 100)}%</td></tr>`;
+  }).join('');
+
+  ['valor-inicial', 'aporte', 'prazo', 'pct-cdb', 'pct-lci'].forEach(id => document.getElementById(id).addEventListener('input', calcular));
+  document.getElementById('prazo-unidade').addEventListener('change', calcular);
+
+  // primeira renderização com os valores de referência enquanto a API responde
+  aplicarTaxas({ ...CONFIG.taxasReferencia, fonte: 'carregando' });
+  carregarTaxas();
+</script>
+
+</body>
+</html>
