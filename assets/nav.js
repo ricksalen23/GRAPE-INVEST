@@ -40,7 +40,7 @@ const FERRAMENTAS = [
     { nome: 'Markup e margem', url: '/ferramentas/markup-margem.html', disponivel: false },
     { nome: 'Ponto de equilíbrio', url: '/ferramentas/ponto-de-equilibrio.html', disponivel: false },
     { nome: 'Gerador de recibo', url: '/ferramentas/gerador-recibo.html', disponivel: false },
-    { nome: 'Gerador de QR Code Pix', url: '/ferramentas/qr-code-pix.html', disponivel: false },
+    { nome: 'Gerador de QR Code Pix', url: '/ferramentas/gerador-qr-code-pix.html', disponivel: true },
     { nome: 'Gerador de orçamento', url: '/ferramentas/gerador-orcamento.html', disponivel: false }
   ] },
   { categoria: 'Dívidas e consumo', icone: 'dividas', itens: [

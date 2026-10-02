@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Gerador de QR Code Pix grátis: Pix copia e cola na hora | Warden</title>
+<meta name="description" content="Gere um QR Code Pix e o código Pix copia e cola com valor e descrição, de graça e na hora. Funciona com CPF, CNPJ, celular, e-mail ou chave aleatória. Seus dados não saem do seu aparelho.">
+<link rel="canonical" href="https://wardenfinance.com.br/ferramentas/gerador-qr-code-pix.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Gerador de QR Code Pix grátis | Warden">
+<meta property="og:description" content="Preencha sua chave Pix e o valor e receba na hora o QR Code e o Pix copia e cola para mandar ao cliente.">
+<meta property="og:url" content="https://wardenfinance.com.br/ferramentas/gerador-qr-code-pix.html">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/warden.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Gerador de QR Code Pix",
+  "url": "https://wardenfinance.com.br/ferramentas/gerador-qr-code-pix.html",
+  "applicationCategory": "FinanceApplication",
+  "operatingSystem": "Any",
+  "inLanguage": "pt-BR",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "BRL" },
+  "publisher": { "@type": "Organization", "name": "Warden", "url": "https://wardenfinance.com.br/" }
+}
+</script>
+<style>
+  /* ===== GERADOR DE QR CODE PIX (só desta página) ===== */
+  .pix-top { --first-gap: 40px; padding-bottom: 64px; }
+  .pix-head { margin-bottom: 36px; }
+
+  .pix-grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+
+  /* formulário */
+  .pix-form { display: flex; flex-direction: column; gap: 26px; }
+  .pix-form .tool-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pix-form .tool-input input { font-size: 1.05rem; }
+  .pix-tipos { border: none; padding: 0; margin: 0; min-width: 0; }
+  .pix-tipos legend { padding: 0; }
+  .tool-field label .opc { text-transform: none; letter-spacing: 0; font-weight: 400; }
+  .pix-tipos-opcoes { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pix-tipo { position: relative; }
+  .pix-tipo input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+  .pix-tipo span {
+    display: block; padding: 8px 14px; border: 1px solid var(--border); border-radius: 99px;
+    font-size: .86rem; font-weight: 500; color: var(--muted); transition: border-color .2s, color .2s, background .2s;
+  }
+  .pix-tipo input:hover + span { border-color: var(--text); color: var(--text); }
+  .pix-tipo input:checked + span { background: var(--text); border-color: var(--text); color: var(--bg); font-weight: 600; }
+  .pix-tipo input:focus-visible + span { outline: 2px solid var(--text); outline-offset: 3px; }
+
+  /* dica sob o campo: neutra, "ok" ou erro (sem cor nova: erro em --text com marcador) */
+  .tool-field .pix-hint { display: flex; justify-content: space-between; gap: 10px; }
+  .pix-hint .msg.erro { color: var(--text); }
+  .pix-hint .msg.erro::before { content: '! '; font-weight: 700; color: var(--accent); }
+  .pix-hint .msg.ok::before { content: '✓ '; color: var(--accent); }
+  .pix-hint .cont { font-family: 'IBM Plex Mono', monospace; white-space: nowrap; }
+  .tool-input.invalido { border-color: var(--text); }
+
+  .pix-privacidade { font-size: .86rem; }
+
+  /* resultado */
+  .pix-saida { display: flex; flex-direction: column; gap: 20px; }
+  .pix-saida .section-label { margin: 0; }
+  .qr-box {
+    background: #FFFFFF; border-radius: 14px; width: 100%; max-width: 320px; aspect-ratio: 1;
+    display: flex; align-items: center; justify-content: center; align-self: center; overflow: hidden;
+  }
+  .qr-box canvas { width: 100%; height: 100%; image-rendering: pixelated; display: block; }
+  .qr-vazio {
+    border: 1px dashed var(--border); border-radius: 14px; width: 100%; max-width: 320px; aspect-ratio: 1; align-self: center;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 24px;
+    text-align: center; color: var(--muted); font-size: .88rem; line-height: 1.55;
+  }
+  .qr-vazio svg { width: 40px; height: 40px; opacity: .5; }
+  .pix-resumo { display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--border); padding-top: 16px; }
+  .pix-resumo div { display: flex; justify-content: space-between; gap: 16px; font-size: .86rem; }
+  .pix-resumo dt { color: var(--muted); flex-shrink: 0; }
+  .pix-resumo dd { font-family: 'IBM Plex Mono', monospace; text-align: right; overflow-wrap: anywhere; }
+  .copia-cola label { display: block; font-size: .74rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .copia-cola-linha { display: flex; gap: 10px; align-items: stretch; }
+  .copia-cola textarea {
+    flex: 1; min-width: 0; resize: none; height: 76px; background: var(--surface2); color: var(--text);
+    border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px;
+    font-family: 'IBM Plex Mono', monospace; font-size: .74rem; line-height: 1.45; word-break: break-all;
+  }
+  .copia-cola textarea:focus { outline: none; border-color: var(--white); }
+  .btn-copiar { padding: 0 18px; min-width: 104px; }
+  .pix-acoes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .pix-acoes .btn { padding: 13px 14px; font-size: .9rem; }
+  .pix-acoes svg { width: 18px; height: 18px; flex-shrink: 0; }
+  .pix-status { font-size: .8rem; color: var(--muted); min-height: 1.2em; }
+
+  /* pré-visualização + ponte (aparecem depois de gerar) */
+  .pix-depois { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; margin-top: 20px; align-items: stretch; }
+  .preview-wrap { display: flex; flex-direction: column; gap: 14px; }
+  .preview-wrap .section-label { margin: 0; }
+  .preview-wrap > p { font-size: .84rem; color: var(--muted); line-height: 1.55; }
+  .cartao {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 18px; padding: 22px;
+    max-width: 380px; width: 100%; box-shadow: 0 18px 40px rgba(0,0,0,.35);
+  }
+  .cartao-topo { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
+  .cartao-topo img { height: 22px; width: auto; }
+  .cartao-tag { font-size: .66rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .cartao-para { font-size: .78rem; color: var(--muted); }
+  .cartao-nome { font-weight: 600; font-size: .98rem; margin: 2px 0 14px; overflow-wrap: anywhere; }
+  .cartao-valor { font-family: 'Fraunces', serif; font-weight: 600; font-size: 2.1rem; line-height: 1.1; color: var(--accent); }
+  .cartao-valor.livre { font-family: 'Inter', sans-serif; font-size: 1.05rem; font-weight: 600; color: var(--text); }
+  .cartao-ref { font-size: .84rem; color: var(--muted); margin-top: 6px; overflow-wrap: anywhere; }
+  .cartao-pix { display: flex; gap: 16px; align-items: center; margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--border); }
+  .cartao-pix img { width: 96px; height: 96px; background: #FFFFFF; border-radius: 8px; image-rendering: pixelated; flex-shrink: 0; }
+  .cartao-pix p { font-size: .8rem; line-height: 1.5; color: var(--muted); }
+  .cartao-pix strong { color: var(--text); font-weight: 600; }
+  .cartao-codigo {
+    margin-top: 14px; font-family: 'IBM Plex Mono', monospace; font-size: .7rem; color: var(--muted);
+    background: var(--bg); border-radius: 8px; padding: 8px 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .cartao-rodape { margin-top: 14px; font-size: .68rem; color: var(--muted); text-align: center; }
+
+  .pix-ponte.cobranca-card { flex-direction: column; align-items: flex-start; justify-content: center; gap: 16px; padding: 28px 30px; }
+  .pix-ponte .cobranca-card-text { min-width: 0; flex: 0 1 auto; }
+  .pix-ponte h2 { font-family: 'Fraunces', serif; font-weight: 700; font-size: 1.45rem; line-height: 1.25; margin-bottom: 8px; }
+  .pix-ponte p { font-size: .95rem; }
+
+  /* texto + ponte final */
+  .pix-prose { padding-top: 32px; padding-bottom: 56px; border-top: 1px solid var(--border); }
+  .pix-bridge { padding-top: 0; }
+  .pix-bridge .cobranca-card { padding: 28px 30px; }
+  .pix-bridge .cobranca-card h2 { font-family: 'Fraunces', serif; font-weight: 700; font-size: 1.35rem; line-height: 1.25; margin-bottom: 6px; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .pix-depois:not([hidden]) { animation: pix-entra .35s ease-out; }
+    @keyframes pix-entra { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pix-tipo span { transition: none; }
+  }
+
+  @media (max-width: 900px) {
+    .pix-grid, .pix-depois { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 640px) {
+    .pix-top { --first-gap: 24px; }
+    .tool-card { padding: 22px 18px; }
+    .pix-form .tool-fields { grid-template-columns: 1fr; gap: 22px; }
+    .pix-acoes { grid-template-columns: 1fr; }
+    .pix-ponte.cobranca-card { padding: 22px 18px; }
+    .pix-ponte .cobranca-card-btn,
+    .pix-bridge .cobranca-card .cobranca-card-btn { width: 100%; text-align: center; }
+    .pix-bridge .cobranca-card { padding: 22px 18px; }
+  }
+</style>
+</head>
+<body>
+
+<script src="/assets/nav.js"></script>
+
+<section class="pix-top">
+  <div class="section-inner">
+
+    <header class="pix-head">
+      <div class="tool-crumbs" role="navigation" aria-label="Você está em">
+        <a href="/">Início</a><span aria-hidden="true">/</span><span>Ferramentas</span><span aria-hidden="true">/</span><span>MEI e autônomo</span>
+      </div>
+      <h1 class="tool-title">Gerador de QR Code Pix</h1>
+      <p class="tool-lead">Preencha sua chave Pix e o valor e receba na hora o QR Code e o Pix copia e cola para mandar ao seu cliente. Grátis, sem cadastro, e seus dados não saem do seu aparelho.</p>
+    </header>
+
+    <div class="pix-grid">
+
+      <!-- ENTRADAS -->
+      <form class="tool-card pix-form" id="pix-form" onsubmit="return false" novalidate>
+        <fieldset class="pix-tipos">
+          <legend class="tool-field"><span class="tool-label">Tipo de chave</span></legend>
+          <div class="pix-tipos-opcoes">
+            <label class="pix-tipo"><input type="radio" name="tipo" value="cpf"><span>CPF</span></label>
+            <label class="pix-tipo"><input type="radio" name="tipo" value="cnpj"><span>CNPJ</span></label>
+            <label class="pix-tipo"><input type="radio" name="tipo" value="celular"><span>Celular</span></label>
+            <label class="pix-tipo"><input type="radio" name="tipo" value="email" checked><span>E-mail</span></label>
+            <label class="pix-tipo"><input type="radio" name="tipo" value="aleatoria"><span>Chave aleatória</span></label>
+          </div>
+        </fieldset>
+
+        <div class="tool-field">
+          <label for="chave">Chave Pix</label>
+          <div class="tool-input" id="chave-box"><input type="text" id="chave" autocomplete="off" spellcheck="false" aria-describedby="chave-msg"></div>
+          <span class="tool-hint pix-hint"><span class="msg" id="chave-msg" aria-live="polite"></span></span>
+        </div>
+
+        <div class="tool-fields">
+          <div class="tool-field">
+            <label for="nome">Nome do recebedor</label>
+            <div class="tool-input" id="nome-box"><input type="text" id="nome" maxlength="25" autocomplete="name" spellcheck="false" placeholder="SEU NOME" aria-describedby="nome-msg"></div>
+            <span class="tool-hint pix-hint"><span class="msg" id="nome-msg">Sem acentos, como no banco</span><span class="cont" id="nome-cont">0/25</span></span>
+          </div>
+          <div class="tool-field">
+            <label for="cidade">Cidade</label>
+            <div class="tool-input" id="cidade-box"><input type="text" id="cidade" maxlength="15" autocomplete="address-level2" spellcheck="false" placeholder="SAO PAULO" aria-describedby="cidade-msg"></div>
+            <span class="tool-hint pix-hint"><span class="msg" id="cidade-msg">Sem acentos</span><span class="cont" id="cidade-cont">0/15</span></span>
+          </div>
+          <div class="tool-field">
+            <label for="valor">Valor <span class="opc">(opcional)</span></label>
+            <div class="tool-input" id="valor-box"><span class="pre">R$</span><input type="text" id="valor" inputmode="decimal" autocomplete="off" placeholder="0,00" aria-describedby="valor-msg"></div>
+            <span class="tool-hint pix-hint"><span class="msg" id="valor-msg">Em branco: quem paga digita o valor</span></span>
+          </div>
+          <div class="tool-field">
+            <label for="descricao">Descrição <span class="opc">(opcional)</span></label>
+            <div class="tool-input"><input type="text" id="descricao" maxlength="25" autocomplete="off" spellcheck="false" placeholder="Pedido123" aria-describedby="descricao-msg"></div>
+            <span class="tool-hint pix-hint"><span class="msg" id="descricao-msg">Só letras e números</span><span class="cont" id="descricao-cont">0/25</span></span>
+          </div>
+        </div>
+
+        <div class="tool-note pix-privacidade">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+          <span><strong>Seus dados não saem do seu aparelho.</strong> O QR Code é montado aqui mesmo, no seu navegador. Nada é enviado para servidor nenhum, nem para a Warden.</span>
+        </div>
+      </form>
+
+      <!-- SAÍDA -->
+      <div class="tool-card pix-saida" aria-live="polite">
+        <p class="section-label">Seu QR Code Pix</p>
+
+        <div class="qr-vazio" id="qr-vazio">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3"/></svg>
+          <span id="qr-falta">Preencha a chave Pix, o nome e a cidade para gerar.</span>
+        </div>
+
+        <div id="pix-resultado" hidden>
+          <div class="pix-saida">
+            <div class="qr-box"><canvas id="qr-canvas" role="img" aria-label="QR Code Pix"></canvas></div>
+
+            <dl class="pix-resumo">
+              <div><dt>Recebedor</dt><dd id="r-nome"></dd></div>
+              <div><dt>Chave</dt><dd id="r-chave"></dd></div>
+              <div><dt>Valor</dt><dd id="r-valor"></dd></div>
+              <div id="r-desc-linha"><dt>Descrição</dt><dd id="r-desc"></dd></div>
+            </dl>
+
+            <div class="copia-cola">
+              <label for="copia-cola">Pix copia e cola</label>
+              <div class="copia-cola-linha">
+                <textarea id="copia-cola" readonly></textarea>
+                <button type="button" class="btn btn-secondary btn-copiar" id="btn-copiar">Copiar</button>
+              </div>
+            </div>
+
+            <div class="pix-acoes">
+              <button type="button" class="btn btn-secondary" id="btn-baixar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>
+                Baixar QR Code (PNG)
+              </button>
+              <a class="btn btn-primary" id="btn-whatsapp" href="https://wa.me/" target="_blank" rel="noopener">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>
+                Enviar no WhatsApp
+              </a>
+            </div>
+            <p class="pix-status" id="pix-status" role="status"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DEPOIS DE GERAR: pré-visualização + ponte para a Cobrança -->
+    <div class="pix-depois" id="pix-depois" hidden>
+      <div class="tool-card preview-wrap">
+        <p class="section-label">Como o seu cliente vê</p>
+        <p>Uma prévia do cartão de cobrança com os dados que você preencheu.</p>
+        <div class="cartao" aria-label="Pré-visualização do cartão de cobrança">
+          <div class="cartao-topo">
+            <img src="/warden-logo-cropped-transparent.png" alt="Warden">
+            <span class="cartao-tag">Cobrança Pix</span>
+          </div>
+          <p class="cartao-para">Pagamento para</p>
+          <p class="cartao-nome" id="c-nome"></p>
+          <p class="cartao-valor" id="c-valor"></p>
+          <p class="cartao-ref" id="c-ref"></p>
+          <div class="cartao-pix">
+            <img id="c-qr" alt="QR Code Pix">
+            <p><strong>Pague com Pix.</strong> Aponte a câmera do app do banco para o QR Code ou use o Pix copia e cola.</p>
+          </div>
+          <p class="cartao-codigo" id="c-codigo"></p>
+          <p class="cartao-rodape">Gerado com Warden · wardenfinance.com.br</p>
+        </div>
+      </div>
+
+      <div class="cobranca-card pix-ponte">
+        <div class="cobranca-card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M9 12h6"/></svg>
+        </div>
+        <div class="cobranca-card-text">
+          <h2>Cansado de mandar Pix e ficar cobrando?</h2>
+          <p>O Warden Cobrança envia, lembra e confirma o pagamento sozinho.</p>
+        </div>
+        <a class="cobranca-card-btn" href="/#cobranca">Conhecer o Warden Cobrança →</a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- EXPLICAÇÃO -->
+<section class="pix-prose">
+  <div class="section-inner">
+    <article class="tool-prose">
+      <h2>Como funciona o QR Code Pix</h2>
+      <p>O QR Code Pix segue o padrão <strong>BR Code</strong>, definido pelo Banco Central. Ele é um texto com a sua chave Pix, o seu nome, a sua cidade e, se você quiser, o valor e uma descrição, tudo num formato que qualquer app de banco entende. Esse mesmo texto é o <strong>Pix copia e cola</strong>: quem vai pagar pode escanear o QR Code ou colar o código no app.</p>
+      <p>Este gerador cria um <strong>Pix estático</strong>: ele não expira e pode ser pago mais de uma vez. É ideal para cobrar um cliente, receber de quem compra com você ou deixar um QR Code impresso no balcão.</p>
+
+      <h3>Qual chave Pix usar?</h3>
+      <ul>
+        <li><strong>Chave aleatória:</strong> a mais discreta, porque não mostra seu CPF, telefone ou e-mail para quem paga.</li>
+        <li><strong>CNPJ:</strong> a melhor para MEI e empresa, porque passa mais confiança ao cliente.</li>
+        <li><strong>CPF, celular ou e-mail:</strong> funcionam igual, mas ficam visíveis para quem recebe o código.</li>
+      </ul>
+      <p>A chave precisa estar cadastrada na sua conta. Se ela não existir, o app do banco avisa na hora em que a pessoa tentar pagar.</p>
+
+      <h3>Por que nome e cidade ficam sem acento?</h3>
+      <p>O padrão do Banco Central só aceita letras sem acento, números e espaços nesses campos, com no máximo 25 caracteres para o nome e 15 para a cidade. O gerador faz essa limpeza sozinho. Quem paga vê o nome oficial da sua conta no app do banco antes de confirmar.</p>
+
+      <h3>Com valor ou sem valor?</h3>
+      <p>Com valor, o cliente só confirma o pagamento e não tem como errar a quantia. Sem valor, ele digita quanto vai pagar, o que é útil para gorjetas, doações ou valores que mudam.</p>
+
+      <h3>É seguro?</h3>
+      <p>Sim. O código é montado no seu navegador e nada é enviado para a internet. Um QR Code Pix só serve para <strong>receber</strong> dinheiro, nunca para tirar dinheiro da sua conta. Antes de mandar ao cliente, confira se a chave está certa.</p>
+
+      <p class="tool-disclaimer"><strong>A Warden não processa nem intermedeia pagamentos.</strong> O dinheiro vai direto da conta de quem paga para a conta dona da chave Pix. Confirme sempre o recebimento no extrato do seu banco.</p>
+    </article>
+  </div>
+</section>
+
+<!-- PONTE PARA O WARDEN COBRANÇA -->
+<section class="pix-bridge">
+  <div class="section-inner">
+    <div class="cobranca-card">
+      <div class="cobranca-card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M9 12h6"/></svg>
+      </div>
+      <div class="cobranca-card-text">
+        <h2>Cobra os mesmos clientes todo mês?</h2>
+        <p>O Warden Cobrança manda o Pix no WhatsApp, lembra antes do vencimento e confirma o pagamento por você.</p>
+      </div>
+      <a class="cobranca-card-btn" href="/#cobranca">Conhecer o Warden Cobrança →</a>
+    </div>
+  </div>
+</section>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+  /* =====================================================================
+   * BR CODE (Pix estático), padrão EMV do Banco Central.
+   * Tudo em JS puro, no navegador. Nenhum dado sai do aparelho.
+   * ===================================================================== */
+
+  // Um campo EMV: ID (2 dígitos) + tamanho do valor (2 dígitos) + valor.
+  // Ex.: campoEMV('58', 'BR') → '5802BR'. O padrão limita cada valor a 99 caracteres.
+  function campoEMV(id, valor) {
+    if (valor.length > 99) throw new Error(`Campo ${id} passou de 99 caracteres`);
+    return id + String(valor.length).padStart(2, '0') + valor;
+  }
+
+  // CRC16-CCITT (polinômio 0x1021, valor inicial 0xFFFF, sem reflexão e sem XOR final).
+  // Calculado sobre o payload inteiro, já incluindo o "6304" do próprio campo do CRC.
+  // Retorna 4 caracteres hexadecimais maiúsculos. O payload é só ASCII, então 1 caractere = 1 byte.
+  function crc16(texto) {
+    let crc = 0xFFFF;
+    for (let i = 0; i < texto.length; i++) {
+      crc ^= texto.charCodeAt(i) << 8;
+      for (let bit = 0; bit < 8; bit++) {
+        crc = (crc & 0x8000) ? (crc << 1) ^ 0x1021 : crc << 1;
+        crc &= 0xFFFF;
+      }
+    }
+    return crc.toString(16).toUpperCase().padStart(4, '0');
+  }
+
+  // Monta o payload completo do Pix estático (o "Pix copia e cola").
+  // dados = { chave, nome, cidade, valor (número ou null), descricao ('' se não houver) }
+  // A chave, o nome e a cidade já devem chegar validados e limpos (ver lerEntradas).
+  function montarPayloadPix({ chave, nome, cidade, valor, descricao }) {
+    // 26: Merchant Account Information do Pix = GUI + chave (+ descrição, se couber nos 99 caracteres)
+    const gui = campoEMV('00', 'br.gov.bcb.pix');
+    let conta = gui + campoEMV('01', chave);
+    if (descricao && (conta + campoEMV('02', descricao)).length <= 99) conta += campoEMV('02', descricao);
+
+    const payload =
+      campoEMV('00', '01') +                                  // Payload Format Indicator
+      campoEMV('26', conta) +                                 // conta Pix
+      campoEMV('52', '0000') +                                // Merchant Category Code (não informado)
+      campoEMV('53', '986') +                                 // moeda: real (ISO 4217)
+      (valor ? campoEMV('54', valor.toFixed(2)) : '') +       // valor com ponto e 2 casas (opcional)
+      campoEMV('58', 'BR') +                                  // país
+      campoEMV('59', nome) +                                  // nome do recebedor (até 25)
+      campoEMV('60', cidade) +                                // cidade (até 15)
+      campoEMV('62', campoEMV('05', descricao || '***')) +    // txid: identificador ou "***" (sem identificador)
+      '6304';                                                 // ID + tamanho do CRC, que entra no cálculo
+
+    return payload + crc16(payload);
+  }
+
+  /* ===== LIMPEZA E VALIDAÇÃO DAS ENTRADAS ===== */
+  const soDigitos = s => s.replace(/\D/g, '');
+  const semAcento = s => s.normalize('NFD').replace(/\p{M}/gu, '');
+
+  // nome e cidade: maiúsculas, sem acento, só A-Z, 0-9 e espaço (o padrão não aceita outros caracteres)
+  const limparNome = s => semAcento(s).toUpperCase().replace(/[^A-Z0-9 ]/g, '').replace(/ {2,}/g, ' ').replace(/^ /, '');
+  // descrição / txid: só letras e números
+  const limparDescricao = s => semAcento(s).replace(/[^A-Za-z0-9]/g, '');
+
+  function cpfValido(d) {
+    if (d.length !== 11 || /^(\d)\1+$/.test(d)) return false;
+    for (const n of [9, 10]) {
+      let soma = 0;
+      for (let i = 0; i < n; i++) soma += +d[i] * (n + 1 - i);
+      if ((soma * 10) % 11 % 10 !== +d[n]) return false;
+    }
+    return true;
+  }
+
+  function cnpjValido(d) {
+    if (d.length !== 14 || /^(\d)\1+$/.test(d)) return false;
+    for (const n of [12, 13]) {
+      let soma = 0;
+      for (let i = 0; i < n; i++) soma += +d[i] * ((n - 1 - i) % 8 + 2);
+      const dv = soma % 11 < 2 ? 0 : 11 - (soma % 11);
+      if (dv !== +d[n]) return false;
+    }
+    return true;
+  }
+
+  // DDDs que existem no Brasil
+  const DDDS = new Set('11 12 13 14 15 16 17 18 19 21 22 24 27 28 31 32 33 34 35 37 38 41 42 43 44 45 46 47 48 49 51 53 54 55 61 62 63 64 65 66 67 68 69 71 73 74 75 77 79 81 82 83 84 85 86 87 88 89 91 92 93 94 95 96 97 98 99'.split(' '));
+  // celular: aceita com ou sem +55; sobram DDD + 9 dígitos começando com 9
+  const digitosCelular = s => { let d = soDigitos(s); if (d.length > 11 && d.startsWith('55')) d = d.slice(2); return d.slice(0, 11); };
+
+  // máscaras só para exibir no campo
+  function mascara(tipo, valor) {
+    if (tipo === 'cpf') {
+      const d = soDigitos(valor).slice(0, 11);
+      return d.replace(/^(\d{3})(\d)/, '$1.$2').replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3').replace(/\.(\d{3})(\d{1,2})$/, '.$1-$2');
+    }
+    if (tipo === 'cnpj') {
+      const d = soDigitos(valor).slice(0, 14);
+      return d.replace(/^(\d{2})(\d)/, '$1.$2').replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
+              .replace(/^(\d{2})\.(\d{3})\.(\d{3})(\d)/, '$1.$2.$3/$4').replace(/\/(\d{4})(\d{1,2})$/, '/$1-$2');
+    }
+    if (tipo === 'celular') {
+      const d = digitosCelular(valor);
+      if (d.length <= 2) return d.length ? '(' + d : '';
+      return `(${d.slice(0, 2)}) ` + (d.length <= 7 ? d.slice(2) : `${d.slice(2, 7)}-${d.slice(7)}`);
+    }
+    return valor;
+  }
+
+  const TIPOS = {
+    cpf:       { placeholder: '000.000.000-00',     inputmode: 'numeric', ajuda: '11 números' },
+    cnpj:      { placeholder: '00.000.000/0000-00', inputmode: 'numeric', ajuda: '14 números' },
+    celular:   { placeholder: '(11) 98765-4321',    inputmode: 'tel',     ajuda: 'Com DDD. Vai no código como +55DDDNÚMERO' },
+    email:     { placeholder: 'voce@email.com.br',  inputmode: 'email',   ajuda: 'O e-mail cadastrado como chave no banco' },
+    aleatoria: { placeholder: '123e4567-e89b-12d3-a456-426614174000', inputmode: 'text', ajuda: 'Copie do app do banco (36 caracteres)' }
+  };
+
+  // valida a chave e devolve no formato que vai no payload. { ok, chave, erro }
+  function validarChave(tipo, bruto) {
+    const v = bruto.trim();
+    if (!v) return { ok: false, erro: '' };
+    if (tipo === 'cpf') {
+      const d = soDigitos(v);
+      if (d.length < 11) return { ok: false, erro: 'CPF incompleto' };
+      return cpfValido(d) ? { ok: true, chave: d } : { ok: false, erro: 'CPF inválido: confira os números' };
+    }
+    if (tipo === 'cnpj') {
+      const d = soDigitos(v);
+      if (d.length < 14) return { ok: false, erro: 'CNPJ incompleto' };
+      return cnpjValido(d) ? { ok: true, chave: d } : { ok: false, erro: 'CNPJ inválido: confira os números' };
+    }
+    if (tipo === 'celular') {
+      const d = digitosCelular(v);
+      if (d.length < 11) return { ok: false, erro: 'Use DDD + 9 dígitos' };
+      if (!DDDS.has(d.slice(0, 2))) return { ok: false, erro: `DDD ${d.slice(0, 2)} não existe` };
+      if (d[2] !== '9') return { ok: false, erro: 'Celular começa com 9 depois do DDD' };
+      return { ok: true, chave: '+55' + d };
+    }
+    if (tipo === 'email') {
+      const e = v.toLowerCase();
+      if (e.length > 77) return { ok: false, erro: 'E-mail longo demais para chave Pix (máx. 77)' };
+      return /^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+$/.test(e)
+        ? { ok: true, chave: e } : { ok: false, erro: 'E-mail inválido' };
+    }
+    // chave aleatória: UUID (aceita colada sem hífens e corrige)
+    let u = v.toLowerCase().replace(/\s/g, '');
+    if (/^[0-9a-f]{32}$/.test(u)) u = u.replace(/^(.{8})(.{4})(.{4})(.{4})(.{12})$/, '$1-$2-$3-$4-$5');
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(u)
+      ? { ok: true, chave: u } : { ok: false, erro: 'Chave aleatória tem 32 letras/números no formato 8-4-4-4-12' };
+  }
+
+  // valor em reais: aceita "150", "150,5", "1.500,00" ou "150.00". { ok, valor (número ou null), erro }
+  function validarValor(bruto) {
+    let s = bruto.replace(/[^\d.,]/g, '');
+    if (!s) return { ok: true, valor: null };
+    if (s.includes(',')) s = s.replace(/\./g, '').replace(',', '.');
+    else if (/^\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, '');   // "1.500" = mil e quinhentos
+    const n = Math.round(parseFloat(s) * 100) / 100;
+    if (!isFinite(n) || n <= 0) return { ok: false, erro: 'Valor precisa ser maior que zero' };
+    if (n.toFixed(2).length > 13) return { ok: false, erro: 'Valor alto demais' };
+    return { ok: true, valor: n };
+  }
+</script>
+<script>
+  /* =====================================================================
+   * INTERFACE
+   * ===================================================================== */
+  const $ = id => document.getElementById(id);
+  const brl = v => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  const tocados = new Set();      // campos que a pessoa já saiu (só então mostramos erro)
+  let atual = null;               // último Pix gerado: { payload, dados }
+
+  const tipoAtual = () => document.querySelector('input[name="tipo"]:checked').value;
+
+  function configurarTipo() {
+    const t = TIPOS[tipoAtual()];
+    const campo = $('chave');
+    campo.placeholder = t.placeholder;
+    campo.inputMode = t.inputmode;
+    campo.type = tipoAtual() === 'email' ? 'email' : 'text';
+    campo.value = mascara(tipoAtual(), campo.value);
+  }
+
+  // aplica uma limpeza ao campo sem perder a posição do cursor
+  function limparCampo(el, fn) {
+    const antes = el.value, pos = el.selectionStart;
+    const depois = fn(antes);
+    if (depois === antes) return;
+    el.value = depois;
+    if (pos !== null && document.activeElement === el) {
+      const p = Math.max(0, pos - (antes.length - depois.length));
+      try { el.setSelectionRange(p, p); } catch (e) { /* type=email não aceita */ }
+    }
+  }
+
+  function dica(id, texto, estado) {
+    const el = $(id);
+    el.textContent = texto;
+    el.className = 'msg' + (estado ? ' ' + estado : '');
+  }
+
+  function lerEntradas() {
+    const tipo = tipoAtual();
+    const chave = validarChave(tipo, $('chave').value);
+    const nome = $('nome').value.trim();
+    const cidade = $('cidade').value.trim();
+    const valor = validarValor($('valor').value);
+    const descricao = limparDescricao($('descricao').value);
+    return { tipo, chave, nome, cidade, valor, descricao };
+  }
+
+  function atualizar() {
+    const e = lerEntradas();
+
+    // dicas de cada campo
+    const t = TIPOS[e.tipo];
+    if (e.chave.ok) dica('chave-msg', `Chave válida · vai no código como ${e.chave.chave}`, 'ok');
+    else if (e.chave.erro && tocados.has('chave')) dica('chave-msg', e.chave.erro, 'erro');
+    else dica('chave-msg', t.ajuda);
+    $('chave-box').classList.toggle('invalido', !e.chave.ok && !!e.chave.erro && tocados.has('chave'));
+
+    $('nome-cont').textContent = `${$('nome').value.length}/25`;
+    $('cidade-cont').textContent = `${$('cidade').value.length}/15`;
+    $('descricao-cont').textContent = `${$('descricao').value.length}/25`;
+    if (!e.nome && tocados.has('nome')) dica('nome-msg', 'Obrigatório', 'erro'); else dica('nome-msg', 'Sem acentos, como no banco');
+    if (!e.cidade && tocados.has('cidade')) dica('cidade-msg', 'Obrigatória', 'erro'); else dica('cidade-msg', 'Sem acentos');
+    if (!e.valor.ok) dica('valor-msg', e.valor.erro, 'erro');
+    else dica('valor-msg', e.valor.valor ? `Cobrança de ${brl(e.valor.valor)}` : 'Em branco: quem paga digita o valor');
+    $('valor-box').classList.toggle('invalido', !e.valor.ok);
+
+    // o que falta para gerar
+    const falta = [];
+    if (!e.chave.ok) falta.push('uma chave Pix válida');
+    if (!e.nome) falta.push('o nome');
+    if (!e.cidade) falta.push('a cidade');
+    if (!e.valor.ok) falta.push('um valor válido (ou deixe em branco)');
+    if (falta.length) {
+      $('qr-falta').textContent = `Preencha ${falta.join(', ').replace(/, ([^,]*)$/, ' e $1')} para gerar.`;
+      $('qr-vazio').hidden = false;
+      $('pix-resultado').hidden = true;
+      atual = null;
+      return;
+    }
+
+    const dados = { chave: e.chave.chave, nome: e.nome, cidade: e.cidade, valor: e.valor.valor, descricao: e.descricao };
+    const payload = montarPayloadPix(dados);
+    if (!desenharQR(payload)) return;
+    atual = { payload, dados };
+
+    $('qr-vazio').hidden = true;
+    $('pix-resultado').hidden = false;
+    $('pix-depois').hidden = false;   // depois do primeiro Pix gerado, a prévia e a ponte ficam visíveis
+
+    $('copia-cola').value = payload;
+    $('r-nome').textContent = dados.nome;
+    $('r-chave').textContent = dados.chave;
+    $('r-valor').textContent = dados.valor ? brl(dados.valor) : 'quem paga digita';
+    $('r-desc').textContent = dados.descricao;
+    $('r-desc-linha').hidden = !dados.descricao;
+    $('btn-whatsapp').href = 'https://wa.me/?text=' + encodeURIComponent(mensagemWhatsApp(atual));
+
+    // pré-visualização do cartão
+    $('c-nome').textContent = dados.nome;
+    $('c-valor').textContent = dados.valor ? brl(dados.valor) : 'Você escolhe o valor no app do banco';
+    $('c-valor').classList.toggle('livre', !dados.valor);
+    $('c-ref').textContent = dados.descricao ? `Referente a: ${dados.descricao}` : '';
+    $('c-ref').hidden = !dados.descricao;
+    $('c-qr').src = $('qr-canvas').toDataURL('image/png');
+    $('c-codigo').textContent = payload;
+  }
+
+  /* ===== QR CODE =====
+   * A qrcodejs calcula a matriz do QR; o desenho é nosso: módulos com tamanho inteiro (nítido)
+   * e margem branca de 4 módulos em volta (a "zona de silêncio" que os bancos precisam para ler bem). */
+  const MARGEM_MODULOS = 4;
+  const qrTemp = document.createElement('div');   // fora da página: só para a lib montar a matriz
+
+  function matrizQR(texto) {
+    qrTemp.innerHTML = '';
+    const qr = new QRCode(qrTemp, { text: texto, width: 64, height: 64, correctLevel: QRCode.CorrectLevel.M });
+    return qr._oQRCode;   // QRCodeModel: getModuleCount() / isDark(linha, coluna)
+  }
+
+  function desenharModulos(ctx, modelo, x0, y0, tamModulo) {
+    const n = modelo.getModuleCount();
+    ctx.fillStyle = '#000000';
+    for (let l = 0; l < n; l++)
+      for (let c = 0; c < n; c++)
+        if (modelo.isDark(l, c)) ctx.fillRect(x0 + (c + MARGEM_MODULOS) * tamModulo, y0 + (l + MARGEM_MODULOS) * tamModulo, tamModulo, tamModulo);
+  }
+
+  function desenharQR(payload) {
+    if (!window.QRCode) {
+      $('qr-falta').textContent = 'Não foi possível carregar o gerador de QR Code. Verifique a conexão e recarregue a página. O Pix copia e cola abaixo funciona normalmente.';
+      $('qr-vazio').hidden = false;
+      return false;
+    }
+    let modelo;
+    try { modelo = matrizQR(payload); }
+    catch (err) { $('qr-falta').textContent = 'Os dados ficaram longos demais para um QR Code. Encurte a descrição.'; $('qr-vazio').hidden = false; return false; }
+
+    const total = modelo.getModuleCount() + MARGEM_MODULOS * 2;
+    const tam = 8;   // px por módulo no canvas (a tela redimensiona por CSS, com image-rendering: pixelated)
+    const canvas = $('qr-canvas');
+    canvas.width = canvas.height = total * tam;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    desenharModulos(ctx, modelo, 0, 0, tam);
+    canvas._modelo = modelo;
+    return true;
+  }
+
+  // PNG para baixar: QR grande com margem + legenda (nome e valor) embaixo, tudo em fundo branco
+  function gerarPNG() {
+    const modelo = $('qr-canvas')._modelo;
+    const total = modelo.getModuleCount() + MARGEM_MODULOS * 2;
+    const tam = Math.max(10, Math.floor(800 / total));
+    const lado = total * tam;
+    const legenda = 110;
+    const c = document.createElement('canvas');
+    c.width = lado; c.height = lado + legenda;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, c.width, c.height);
+    desenharModulos(ctx, modelo, 0, 0, tam);
+    ctx.fillStyle = '#0B0B0A';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.font = "600 34px Inter, Arial, sans-serif";
+    ctx.fillText(atual.dados.valor ? brl(atual.dados.valor) : 'Pix', lado / 2, lado + 4);
+    ctx.fillStyle = '#57564D';
+    ctx.font = "500 24px Inter, Arial, sans-serif";
+    ctx.fillText(atual.dados.nome + (atual.dados.descricao ? ' · ' + atual.dados.descricao : ''), lado / 2, lado + 52, lado - 40);
+    return c;
+  }
+
+  /* ===== AÇÕES ===== */
+  function status(texto) {
+    $('pix-status').textContent = texto;
+    clearTimeout(status.t);
+    status.t = setTimeout(() => { $('pix-status').textContent = ''; }, 3000);
+  }
+
+  $('btn-copiar').addEventListener('click', async () => {
+    if (!atual) return;
+    const btn = $('btn-copiar');
+    try {
+      await navigator.clipboard.writeText(atual.payload);
+    } catch (err) {
+      // navegadores antigos / sem permissão: seleciona e usa o comando de copiar
+      $('copia-cola').select();
+      document.execCommand('copy');
+    }
+    btn.textContent = 'Copiado!';
+    status('Pix copia e cola copiado. É só colar para o cliente.');
+    clearTimeout(btn.t);
+    btn.t = setTimeout(() => { btn.textContent = 'Copiar'; }, 2000);
+  });
+  // clicar no código seleciona tudo (facilita copiar no celular)
+  $('copia-cola').addEventListener('focus', e => e.target.select());
+
+  $('btn-baixar').addEventListener('click', () => {
+    if (!atual) return;
+    gerarPNG().toBlob(blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `qrcode-pix${atual.dados.valor ? '-' + atual.dados.valor.toFixed(2).replace('.', '-') : ''}.png`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      status('QR Code baixado.');
+    }, 'image/png');
+  });
+
+  function mensagemWhatsApp({ payload, dados }) {
+    const linhas = ['Olá! Segue o Pix para pagamento.', ''];
+    linhas.push(`Valor: ${dados.valor ? brl(dados.valor) : 'você informa na hora de pagar'}`);
+    if (dados.descricao) linhas.push(`Referente a: ${dados.descricao}`);
+    linhas.push(`Recebedor: ${dados.nome}`, '', 'Pix copia e cola (copie o código abaixo e cole no app do seu banco, em Pix > Copia e cola):', '', payload);
+    return linhas.join('\n');
+  }
+
+  /* ===== EVENTOS ===== */
+  document.querySelectorAll('input[name="tipo"]').forEach(r => r.addEventListener('change', () => {
+    $('chave').value = '';
+    tocados.delete('chave');
+    configurarTipo();
+    atualizar();
+    $('chave').focus();
+  }));
+
+  $('chave').addEventListener('input', e => {
+    // máscara enquanto digita só quando o cursor está no fim (editar no meio não fica pulando)
+    const el = e.target;
+    if (['cpf', 'cnpj', 'celular'].includes(tipoAtual()) && el.selectionStart === el.value.length) el.value = mascara(tipoAtual(), el.value);
+    atualizar();
+  });
+  $('chave').addEventListener('blur', e => {
+    e.target.value = mascara(tipoAtual(), e.target.value.trim());
+    if (e.target.value) tocados.add('chave');
+    atualizar();
+  });
+
+  [['nome', limparNome], ['cidade', limparNome], ['descricao', limparDescricao]].forEach(([id, fn]) => {
+    $(id).addEventListener('input', e => { if (!e.isComposing) limparCampo(e.target, fn); atualizar(); });
+    $(id).addEventListener('blur', e => { e.target.value = fn(e.target.value).trim(); tocados.add(id); atualizar(); });
+  });
+
+  $('valor').addEventListener('input', atualizar);
+  $('valor').addEventListener('blur', e => {
+    const v = validarValor(e.target.value);
+    if (v.ok && v.valor) e.target.value = v.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    atualizar();
+  });
+
+  configurarTipo();
+  atualizar();
+</script>
+
+</body>
+</html>
