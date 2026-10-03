@@ -226,6 +226,26 @@
 
       <p class="tool-disclaimer" data-aviso-educativo>Os valores usam as taxas atuais como se fossem fixas durante todo o prazo, desconsideram a TR da poupança, o IOF e o spread de cada instituição. Taxas e regras de imposto podem mudar.</p>
     </article>
+
+    <div class="tool-faq" data-faq>
+      <h2>Perguntas frequentes</h2>
+      <details>
+        <summary>De onde vêm as taxas usadas no simulador?</summary>
+        <div><p>Selic, CDI e IPCA são buscados na hora no site do Banco Central (sistema SGS). Se o site do BC estiver fora do ar, o simulador usa valores de referência e avisa isso logo acima dos resultados. Você também pode editar as taxas para testar outros cenários.</p></div>
+      </details>
+      <details>
+        <summary>Por que a LCI pode render mais que o CDB pagando uma porcentagem menor do CDI?</summary>
+        <div><p>Porque a LCI e a LCA não pagam Imposto de Renda. Um CDB de 100% do CDI perde uma parte do rendimento para o imposto, e uma LCI de 90% do CDI fica com tudo. Para comparar de forma justa, olhe sempre o valor líquido, que é o que o simulador mostra.</p></div>
+      </details>
+      <details>
+        <summary>O resultado já vem com o Imposto de Renda descontado?</summary>
+        <div><p>Sim. No CDB e no Tesouro Selic o simulador aplica a tabela regressiva para cada depósito, conforme o tempo que ele ficou aplicado. Poupança, LCI e LCA são isentas para pessoa física, então o valor bruto e o líquido são iguais.</p></div>
+      </details>
+      <details>
+        <summary>Os valores vão ser exatamente esses no fim do prazo?</summary>
+        <div><p>Não. A conta supõe que as taxas de hoje ficam iguais durante todo o prazo, e na prática a Selic e o CDI mudam ao longo do tempo. Use o resultado para comparar as opções entre si, não como promessa de rendimento.</p></div>
+      </details>
+    </div>
   </div>
 </section>
 
