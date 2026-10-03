@@ -1,0 +1,6 @@
+# gerados pelos testes: não versionar
+node_modules/
+test-results/
+relatorio-html/
+resultados/
+screenshots/

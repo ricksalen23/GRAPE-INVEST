@@ -1,0 +1,14 @@
+{
+  "name": "warden-testes",
+  "private": true,
+  "description": "Testes automáticos das ferramentas e da home da Warden (Playwright + Chrome instalado na máquina).",
+  "scripts": {
+    "test": "node rodar.js",
+    "test:so-playwright": "playwright test",
+    "relatorio": "node gerar-relatorio.js"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.55.0",
+    "http-server": "^14.1.1"
+  }
+}
