@@ -536,7 +536,7 @@ section { padding: 96px 5%; position: relative; }
 }
 .tool-papel::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 6px; background: var(--accent); }
 .tool-papel .papel-muted { color: #6F6D64; }
-.tool-papel-rodape { margin-top: 32px; padding-top: 14px; border-top: 1px solid #E6E4DC; font-size: .7rem; color: #8A887E; text-align: center; }
+.tool-papel-rodape { margin-top: 32px; padding-top: 14px; border-top: 1px solid #E6E4DC; font-size: .7rem; color: #6F6D64; text-align: center; }
 @media (max-width: 640px) {
   .tool-papel { padding: 32px 20px 22px; font-size: .86rem; }
 }
