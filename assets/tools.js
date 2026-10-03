@@ -71,9 +71,11 @@
     input.addEventListener('input', e => {
       let v = input.value;
       const pos = input.selectionStart == null ? v.length : input.selectionStart;
-      // colar, arrastar, preenchimento automático ou valor vindo de script (sem inputType): interpreta o texto inteiro
-      // ("150.00" é cento e cinquenta, não quinze mil); só digitação/apagar passa pela máscara tecla a tecla
-      if (!e.inputType || e.inputType === 'insertFromPaste' || e.inputType === 'insertFromDrop' || e.inputType === 'insertReplacementText') {
+      // colar, arrastar, preenchimento automático, valor vindo de script (sem inputType) ou texto inserido de uma vez
+      // (ditado, sugestão do teclado do celular: insertText com mais de 1 caractere): interpreta o texto inteiro
+      // ("1500.50" é mil e quinhentos e cinquenta centavos, não 150.050); só a digitação tecla a tecla passa pela máscara
+      const textoInteiro = e.inputType === 'insertText' && e.data && e.data.length > 1;
+      if (!e.inputType || textoInteiro || e.inputType === 'insertFromPaste' || e.inputType === 'insertFromDrop' || e.inputType === 'insertReplacementText') {
         const n = parseNumero(v);
         input.value = isFinite(n) && n >= 0 ? completo(n) : '';
         return;
