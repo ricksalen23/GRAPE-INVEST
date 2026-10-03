@@ -41,13 +41,6 @@
   .mk-comp { margin-top: 20px; }
   .mk-comp h2 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 1.25rem; margin-bottom: 4px; }
   .mk-comp > p { font-size: .84rem; color: var(--muted); margin-bottom: 18px; }
-  .mk-barra { display: flex; height: 28px; border-radius: 8px; overflow: hidden; background: var(--surface2); }
-  .mk-barra span { display: block; height: 100%; min-width: 0; border-right: 2px solid var(--surface); }
-  .mk-barra span:last-child { border-right: none; }
-  .mk-legenda { list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px 20px; margin-top: 16px; }
-  .mk-legenda li { display: flex; flex-direction: column; gap: 2px; font-size: .8rem; color: var(--muted); }
-  .mk-legenda li::before { content: ''; width: 12px; height: 12px; border-radius: 3px; background: var(--cor); margin-bottom: 4px; }
-  .mk-legenda strong { font-family: 'IBM Plex Mono', monospace; font-weight: 600; font-size: .92rem; color: var(--text); }
 </style>
 </head>
 <body>
@@ -111,8 +104,8 @@
       <div class="tool-card mk-comp">
         <h2>Para onde vai cada venda</h2>
         <p>Como o preço de venda se divide.</p>
-        <div class="mk-barra" id="barra" role="img" aria-label="Barra com a composição do preço de venda"></div>
-        <ul class="mk-legenda" id="legenda"></ul>
+        <div class="tool-barra" id="barra" role="img" aria-label="Barra com a composição do preço de venda"></div>
+        <ul class="tool-barra-legenda" id="legenda"></ul>
       </div>
     </div>
 
@@ -221,16 +214,15 @@
 
     // barra de composição: lucro em --accent (o que importa); o resto em tons neutros
     const g = estiloGrafico();
-    const partes = [
+    const comp = Warden.barraComposicao([
       { nome: 'Custo', valor: custo, cor: g.cor('--text') },
       { nome: 'Impostos', valor: parte(impostos), cor: g.neutros[0] },
       { nome: 'Taxas', valor: parte(taxas), cor: g.neutros[1] },
       { nome: 'Comissão', valor: parte(comissao), cor: g.cor('--subtle') },
       { nome: 'Lucro', valor: parte(margem), cor: g.cor('--accent') }
-    ].filter(p => p.valor > 0.005);
-    $('barra').innerHTML = partes.map(p => `<span style="width:${preco > 0 ? p.valor / preco * 100 : 0}%;background:${p.cor}" title="${p.nome}"></span>`).join('');
-    $('legenda').innerHTML = partes.map(p =>
-      `<li style="--cor:${p.cor}">${p.nome}<strong>${brl(p.valor)}</strong>${preco > 0 ? formatPct(p.valor / preco * 100, { casas: 1 }) : ''}</li>`).join('');
+    ], preco);
+    $('barra').innerHTML = comp.barra;
+    $('legenda').innerHTML = comp.legenda;
   }
 
   ['custo', 'margem', 'impostos', 'taxas', 'comissao'].forEach(id => $(id).addEventListener('input', calcular));

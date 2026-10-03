@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Calculadora de rescisão: estimativa das verbas e do FGTS | Warden</title>
+<meta name="description" content="Estime sua rescisão: saldo de salário, aviso prévio proporcional, 13º, férias + 1/3, multa e saque do FGTS, para demissão sem justa causa, pedido, acordo e mais.">
+<link rel="canonical" href="https://wardenfinance.com.br/ferramentas/rescisao.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Calculadora de rescisão | Warden">
+<meta property="og:description" content="Estimativa das verbas rescisórias e do FGTS em cada tipo de desligamento.">
+<meta property="og:url" content="https://wardenfinance.com.br/ferramentas/rescisao.html">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/warden.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Calculadora de Rescisão",
+  "url": "https://wardenfinance.com.br/ferramentas/rescisao.html",
+  "applicationCategory": "FinanceApplication",
+  "operatingSystem": "Any",
+  "inLanguage": "pt-BR",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "BRL" },
+  "publisher": { "@type": "Organization", "name": "Warden", "url": "https://wardenfinance.com.br/" }
+}
+</script>
+<style>
+  /* ===== RESCISÃO (só desta página; estrutura e componentes vêm do /assets/warden.css) ===== */
+  .rs-form { display: flex; flex-direction: column; gap: 26px; }
+  .rs-form input[type="date"] { color-scheme: dark; }
+  .rs-form .tool-input select { flex: 1; font-size: .98rem; }
+  .rs-bloco { border-top: 1px solid var(--border); padding-top: 22px; }
+  .rs-check { display: flex; gap: 10px; align-items: flex-start; font-size: .88rem; color: var(--muted); line-height: 1.5; cursor: pointer; }
+  .rs-check input { accent-color: var(--accent); width: 16px; height: 16px; margin-top: 2px; flex-shrink: 0; cursor: pointer; }
+  .rs-check strong { color: var(--text); font-weight: 600; }
+
+  /* aviso grande: é estimativa, o oficial é o TRCT */
+  .rs-aviso { margin-bottom: 20px; border-color: var(--accent); padding: 18px 20px; font-size: .95rem; }
+  .rs-aviso strong { display: block; font-size: 1.05rem; margin-bottom: 4px; }
+  .rs-erro { margin-top: 20px; }
+  .rs-baixo { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 20px; margin-top: 20px; align-items: start; }
+  .rs-baixo h2 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 1.25rem; margin-bottom: 4px; }
+  .rs-baixo .tool-card > p { font-size: .84rem; color: var(--muted); margin-bottom: 14px; }
+  .rs-obs { margin-top: 16px; }
+
+  @media (max-width: 900px) {
+    .rs-baixo { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<script src="/assets/nav.js"></script>
+
+<section class="tool-top">
+  <div class="section-inner">
+
+    <header class="tool-head">
+      <div class="tool-crumbs" data-crumbs></div>
+      <h1 class="tool-title">Calculadora de rescisão</h1>
+      <p class="tool-lead">Uma estimativa do que você tem a receber ao sair da empresa: saldo de salário, aviso prévio, 13º, férias, multa e saque do FGTS, conforme o tipo de desligamento.</p>
+    </header>
+
+    <div class="tool-note rs-aviso" role="note">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+      <span><strong>Isto é uma estimativa.</strong> O valor oficial é o do Termo de Rescisão do Contrato de Trabalho (TRCT) emitido pela empresa. Médias de horas extras, adicionais, faltas, convenção coletiva e descontos específicos mudam o resultado. Na dúvida, confira com o sindicato ou um advogado trabalhista.</span>
+    </div>
+
+    <!-- ENTRADAS -->
+    <form class="tool-card rs-form" id="rs-form" onsubmit="return false">
+      <fieldset class="tool-pillset">
+        <legend class="tool-field"><span class="tool-label">Tipo de desligamento</span></legend>
+        <div class="tool-pills">
+          <label class="tool-pill"><input type="radio" name="tipo" value="sem-justa" checked><span>Demissão sem justa causa</span></label>
+          <label class="tool-pill"><input type="radio" name="tipo" value="pedido"><span>Pedido de demissão</span></label>
+          <label class="tool-pill"><input type="radio" name="tipo" value="acordo"><span>Acordo (art. 484-A)</span></label>
+          <label class="tool-pill"><input type="radio" name="tipo" value="justa"><span>Justa causa</span></label>
+          <label class="tool-pill"><input type="radio" name="tipo" value="experiencia"><span>Fim do contrato de experiência</span></label>
+        </div>
+      </fieldset>
+
+      <div class="tool-fields">
+        <div class="tool-field">
+          <label for="salario">Último salário bruto</label>
+          <div class="tool-input"><span class="pre">R$</span><input type="text" id="salario" value="3000"></div>
+        </div>
+        <div class="tool-field">
+          <label for="admissao">Data de admissão</label>
+          <div class="tool-input"><input type="date" id="admissao" value="2024-03-01"></div>
+        </div>
+        <div class="tool-field">
+          <label for="desligamento">Último dia trabalhado</label>
+          <div class="tool-input"><input type="date" id="desligamento"></div>
+        </div>
+        <div class="tool-field" id="campo-aviso">
+          <label for="aviso">Aviso prévio</label>
+          <div class="tool-input"><select id="aviso"></select></div>
+          <span class="tool-hint" id="aviso-dica"></span>
+        </div>
+      </div>
+
+      <div class="tool-fields rs-bloco">
+        <div class="tool-field">
+          <label for="fgts">Saldo do FGTS <span class="opc">(opcional)</span></label>
+          <div class="tool-input"><span class="pre">R$</span><input type="text" id="fgts" placeholder="0,00"></div>
+          <span class="tool-hint">Veja no app FGTS (conta deste emprego)</span>
+        </div>
+        <div class="tool-field">
+          <label for="dependentes">Dependentes</label>
+          <div class="tool-input"><input type="number" id="dependentes" value="0" min="0" max="20" step="1" inputmode="numeric"></div>
+          <span class="tool-hint">Para o Imposto de Renda</span>
+        </div>
+      </div>
+      <label class="rs-check"><input type="checkbox" id="vencidas"><span><strong>Tenho férias vencidas</strong> (um período de 12 meses completo sem tirar férias)</span></label>
+    </form>
+
+    <div class="tool-note rs-erro" id="erro" role="alert" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+      <span id="erro-texto"></span>
+    </div>
+
+    <div id="rs-resultado">
+      <!-- RESULTADO -->
+      <div class="result-grid" id="resultados" aria-live="polite"></div>
+
+      <div class="rs-baixo">
+        <div class="tool-card">
+          <h2>Verbas rescisórias</h2>
+          <p id="verbas-sub"></p>
+          <ul class="tool-demo" id="verbas"></ul>
+        </div>
+        <div class="tool-card">
+          <h2>FGTS</h2>
+          <p>Pago pela Caixa, fora do TRCT.</p>
+          <ul class="tool-demo" id="fgts-demo"></ul>
+        </div>
+      </div>
+      <p class="tool-obs rs-obs" id="rs-obs"></p>
+    </div>
+
+  </div>
+</section>
+
+<!-- EXPLICAÇÃO + FAQ -->
+<section class="tool-prose-section">
+  <div class="section-inner">
+    <article class="tool-prose">
+      <h2>O que entra na rescisão</h2>
+      <ul>
+        <li><strong>Saldo de salário:</strong> os dias trabalhados no último mês.</li>
+        <li><strong>Aviso prévio:</strong> <span data-tabela="clt.avisoPrevio.diasBase" data-formato="int"></span> dias, mais <span data-tabela="clt.avisoPrevio.diasPorAno" data-formato="int"></span> dias por ano completo de empresa, até <span data-tabela="clt.avisoPrevio.diasMaximo" data-formato="int"></span> dias (Lei 12.506/2011), quando a empresa demite. Se for indenizado (você não trabalha), ele é pago e "estica" o contrato para contar 13º e férias.</li>
+        <li><strong>13º proporcional:</strong> 1/12 do salário por mês trabalhado no ano (o mês conta com <span data-tabela="clt.diasMinimosParaContarMes" data-formato="int"></span> dias ou mais).</li>
+        <li><strong>Férias vencidas e proporcionais, com 1/3:</strong> as vencidas são um período de 12 meses completo não tirado; as proporcionais, 1/12 por mês do período em andamento.</li>
+        <li><strong>FGTS:</strong> o saldo da conta mais os depósitos da rescisão, e a multa paga pela empresa.</li>
+      </ul>
+
+      <h3>O que muda em cada tipo</h3>
+      <ul>
+        <li><strong>Sem justa causa:</strong> todas as verbas, aviso proporcional, multa de <span data-tabela="clt.multaFgts" data-formato="pct"></span> do FGTS, saque de todo o saldo e seguro-desemprego.</li>
+        <li><strong>Pedido de demissão:</strong> saldo, 13º e férias. Sem multa, sem saque do FGTS e sem seguro-desemprego. Se você não cumprir o aviso, a empresa pode descontar <span data-tabela="clt.avisoPrevio.diasBase" data-formato="int"></span> dias de salário.</li>
+        <li><strong>Acordo (art. 484-A da CLT):</strong> metade do aviso indenizado, multa de <span data-tabela="clt.multaFgtsAcordo" data-formato="pct"></span>, saque de <span data-tabela="clt.saqueFgtsAcordo" data-formato="pct"></span> do FGTS e as demais verbas inteiras. Sem seguro-desemprego.</li>
+        <li><strong>Justa causa:</strong> só o saldo de salário e as férias vencidas + 1/3. O FGTS fica na conta.</li>
+        <li><strong>Fim do contrato de experiência</strong> (no prazo combinado): saldo, 13º e férias proporcionais, e saque do FGTS, sem multa e sem aviso.</li>
+      </ul>
+
+      <h3>Impostos na rescisão</h3>
+      <p>Aviso prévio indenizado e férias indenizadas (vencidas e proporcionais, com o terço) são <strong>isentos de Imposto de Renda</strong> e não têm INSS. O saldo de salário e o 13º têm INSS e IR normais; a calculadora estima esses descontos com as tabelas de <span data-tabela="ano"></span>.</p>
+      <p>Veja também: <a href="/ferramentas/salario-liquido.html">salário líquido</a>, <a href="/ferramentas/ferias.html">férias</a> e <a href="/ferramentas/reserva-de-emergencia.html">reserva de emergência</a>, que segura as contas até o próximo emprego.</p>
+
+      <p class="tool-disclaimer" data-aviso-educativo>Estimativa simplificada. Não considera médias de variáveis, faltas, férias vencidas em dobro, indenização por quebra de contrato de experiência, estabilidades, verbas da convenção coletiva nem a multa por atraso no pagamento. O valor oficial é o do TRCT.</p>
+    </article>
+
+    <div class="tool-faq" data-faq>
+      <h2>Perguntas frequentes</h2>
+      <details>
+        <summary>Qual o prazo para a empresa pagar a rescisão?</summary>
+        <div><p>Até <span data-tabela="clt.diasPagamentoRescisao" data-formato="int"></span> dias corridos depois do término do contrato, em qualquer tipo de desligamento (art. 477 da CLT). Se atrasar, a empresa deve pagar uma multa de um salário ao trabalhador.</p></div>
+      </details>
+      <details>
+        <summary>Como funciona o aviso prévio proporcional?</summary>
+        <div><p>Quando a empresa demite, o aviso tem <span data-tabela="clt.avisoPrevio.diasBase" data-formato="int"></span> dias mais <span data-tabela="clt.avisoPrevio.diasPorAno" data-formato="int"></span> por ano completo de trabalho, até <span data-tabela="clt.avisoPrevio.diasMaximo" data-formato="int"></span> dias. Se for indenizado, todos esses dias são pagos e contam como tempo de serviço para o 13º e as férias. Quando você pede demissão, o aviso é de <span data-tabela="clt.avisoPrevio.diasBase" data-formato="int"></span> dias.</p></div>
+      </details>
+      <details>
+        <summary>Quem tem direito ao seguro-desemprego?</summary>
+        <div><p>Quem foi demitido sem justa causa e cumpre o tempo mínimo de trabalho exigido (que muda conforme seja a primeira, segunda ou terceira solicitação). Pedido de demissão, acordo e justa causa não dão direito. O pedido é feito pelo app Carteira de Trabalho Digital ou gov.br.</p></div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- PONTE PARA O WARDEN COBRANÇA -->
+<section class="tool-bridge">
+  <div class="section-inner">
+    <div data-ponte-cobranca data-titulo="Saindo da CLT para trabalhar por conta?" data-texto="O Warden Cobrança cobra seus clientes no WhatsApp, com Pix, lembra quem atrasou e confirma o pagamento sozinho. Comece com a cobrança resolvida."></div>
+  </div>
+</section>
+
+<script src="/assets/tabelas-2026.js"></script>
+<script src="/assets/tools.js"></script>
+<script>
+  const { formatBRL: brl, formatDataLonga, parseNumero, campoBRL, cardResultado, demonstrativo, centavos,
+          calcINSS, calcIRRF, impostos13 } = Warden;
+  const TAB = window.WARDEN_TABELAS, CLT = TAB.clt;
+  const $ = id => document.getElementById(id);
+
+  ['salario', 'fgts'].forEach(id => campoBRL($(id)));
+  const dinheiro = id => { const v = parseNumero($(id).value); return isFinite(v) && v > 0 ? v : 0; };
+  // padrão do último dia: hoje
+  const hoje = new Date();
+  $('desligamento').value = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}-${String(hoje.getDate()).padStart(2, '0')}`;
+
+  /* ===== DATAS (locais, sem fuso) ===== */
+  const lerData = s => { if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return null; const [a, m, d] = s.split('-').map(Number); return new Date(a, m - 1, d); };
+  const somarDias = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+  // mesmo dia, n meses depois; se o dia não existe (31/01 + 1 mês), usa o último dia do mês
+  const somarMeses = (d, n) => { const ult = new Date(d.getFullYear(), d.getMonth() + n + 1, 0).getDate(); return new Date(d.getFullYear(), d.getMonth() + n, Math.min(d.getDate(), ult)); };
+  const diasEntre = (a, b) => Math.round((b - a) / 86400000) + 1;   // inclusivo
+  const curta = d => d.toLocaleDateString('pt-BR');
+  // anos completos de a até b
+  const anosCompletos = (a, b) => { let n = b.getFullYear() - a.getFullYear(); if (somarMeses(a, n * 12) > b) n--; return Math.max(0, n); };
+
+  // 13º: meses do calendário entre ini e fim (dentro de um ano) com pelo menos N dias trabalhados
+  function avos13(ini, fim) {
+    let avos = 0;
+    for (let d = new Date(ini.getFullYear(), ini.getMonth(), 1); d <= fim; d = new Date(d.getFullYear(), d.getMonth() + 1, 1)) {
+      const a = d < ini ? ini : d;
+      const ultimo = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+      const b = ultimo > fim ? fim : ultimo;
+      if (diasEntre(a, b) >= CLT.diasMinimosParaContarMes) avos++;
+    }
+    return avos;
+  }
+  // férias: meses do período aquisitivo (a partir do dia da admissão) de `inicio` até `fim`; o mês incompleto conta com N dias
+  function avosFerias(inicio, fim) {
+    let avos = 0;
+    for (let j = 0; ; j++) {
+      const pIni = somarMeses(inicio, j);
+      if (pIni > fim) break;
+      const pFim = somarDias(somarMeses(inicio, j + 1), -1);
+      if (pFim <= fim || diasEntre(pIni, fim) >= CLT.diasMinimosParaContarMes) avos++;
+      if (pFim > fim) break;
+    }
+    return avos;
+  }
+
+  /* ===== OPÇÕES DE AVISO POR TIPO ===== */
+  const OPCOES_AVISO = {
+    'sem-justa': [['indenizado', 'Indenizado (não vai trabalhar)'], ['trabalhado', 'Trabalhado']],
+    'acordo': [['indenizado', 'Indenizado (metade)'], ['trabalhado', 'Trabalhado']],
+    'pedido': [['trabalhado', 'Trabalhado'], ['dispensado', 'Dispensado pela empresa'], ['nao-cumprido', 'Não vou cumprir (desconto)']]
+  };
+  function montarAviso() {
+    const tipo = document.querySelector('input[name="tipo"]:checked').value;
+    const ops = OPCOES_AVISO[tipo];
+    $('campo-aviso').hidden = !ops;
+    if (!ops) return;
+    const atual = $('aviso').value;
+    $('aviso').innerHTML = ops.map(([v, t]) => `<option value="${v}">${t}</option>`).join('');
+    if (ops.some(([v]) => v === atual)) $('aviso').value = atual;
+  }
+
+  /* ===== CÁLCULO ===== */
+  function calcular() {
+    const tipo = document.querySelector('input[name="tipo"]:checked').value;
+    const sal = dinheiro('salario'), saldoFgts = dinheiro('fgts');
+    const dep = Math.max(0, Math.round(parseFloat($('dependentes').value) || 0));
+    const adm = lerData($('admissao').value), fim = lerData($('desligamento').value);
+    const temVencidas = $('vencidas').checked;
+    const aviso = $('campo-aviso').hidden ? null : $('aviso').value;
+
+    const erro = !adm || !fim ? 'Informe a data de admissão e o último dia trabalhado.'
+      : fim < adm ? 'O último dia trabalhado precisa ser depois da admissão.'
+      : sal <= 0 ? 'Informe o salário.' : '';
+    $('erro').hidden = !erro; $('erro-texto').textContent = erro;
+    $('rs-resultado').hidden = !!erro;
+    if (erro) return;
+
+    const anos = anosCompletos(adm, fim);
+    const empresaDemite = tipo === 'sem-justa' || tipo === 'acordo';
+    const AP = CLT.avisoPrevio;
+    const diasAviso = empresaDemite ? Math.min(AP.diasMaximo, AP.diasBase + AP.diasPorAno * anos) : tipo === 'pedido' ? AP.diasBase : 0;
+
+    // dias de aviso indenizados (pagos) e projetados no contrato
+    let diasIndenizados = 0;
+    if (empresaDemite) diasIndenizados = aviso === 'indenizado' ? diasAviso : Math.max(0, diasAviso - AP.diasBase);   // trabalhado: os dias além de 30 são indenizados
+    const fimProjetado = somarDias(fim, diasIndenizados);
+    const diaria = sal / 30;
+
+    // verbas
+    const saldoSalario = centavos(diaria * Math.min(fim.getDate(), 30));
+    const valorAviso = centavos(diaria * diasIndenizados * (tipo === 'acordo' ? 0.5 : 1));
+    const descontoAviso = tipo === 'pedido' && aviso === 'nao-cumprido' ? centavos(diaria * AP.diasBase) : 0;
+
+    const justa = tipo === 'justa';
+    // 13º proporcional: ano a ano até a data projetada (normalmente um ano só)
+    let avos13Total = 0;
+    if (!justa) for (let y = fim.getFullYear(); y <= fimProjetado.getFullYear(); y++) {
+      const ini = new Date(y, 0, 1) < adm ? adm : new Date(y, 0, 1);
+      const f = new Date(y, 11, 31) > fimProjetado ? fimProjetado : new Date(y, 11, 31);
+      if (f >= ini) avos13Total += avos13(ini, f);
+    }
+    const decimo = centavos(sal * avos13Total / 12);
+
+    // férias: período aquisitivo em curso no último dia trabalhado, contado até a data projetada
+    let integrais = 0, avosProp = 0;
+    if (!justa) {
+      const inicioPeriodo = somarMeses(adm, anosCompletos(adm, fim) * 12);
+      const avos = avosFerias(inicioPeriodo, fimProjetado);
+      integrais = avos >= 12 ? 1 : 0;                  // a projeção do aviso completou o período
+      avosProp = avos - integrais * 12;
+    }
+    const feriasVencidas = temVencidas ? sal : 0;
+    const feriasIntegrais = integrais ? sal : 0;
+    const feriasProp = centavos(sal * avosProp / 12);
+    const terco = v => centavos(v * CLT.tercoFerias);
+
+    // FGTS: depósito sobre saldo de salário, aviso indenizado e 13º (não incide sobre férias indenizadas)
+    const fgtsRescisao = centavos(CLT.fgts * (saldoSalario + valorAviso + decimo));
+    const baseFgts = saldoFgts + fgtsRescisao;
+    const multaPct = tipo === 'sem-justa' ? CLT.multaFgts : tipo === 'acordo' ? CLT.multaFgtsAcordo : 0;
+    const saquePct = tipo === 'sem-justa' || tipo === 'experiencia' ? 1 : tipo === 'acordo' ? CLT.saqueFgtsAcordo : 0;
+    const multa = centavos(baseFgts * multaPct);
+    const saque = centavos(baseFgts * saquePct);
+
+    // descontos estimados: INSS e IR sobre saldo de salário (tabela mensal) e sobre o 13º (exclusivo)
+    const inssSaldo = calcINSS(saldoSalario);
+    const irSaldo = calcIRRF(saldoSalario, inssSaldo, dep).irDevido;
+    const imp13 = decimo > 0 ? impostos13(decimo, dep) : { inss: 0, ir: { irDevido: 0 } };
+
+    const verbasBrutas = centavos(saldoSalario + valorAviso + decimo + feriasVencidas + terco(feriasVencidas) + feriasIntegrais + terco(feriasIntegrais) + feriasProp + terco(feriasProp));
+    const descontos = centavos(inssSaldo + irSaldo + imp13.inss + imp13.ir.irDevido + descontoAviso);
+    const liquido = centavos(verbasBrutas - descontos);
+    const seguro = tipo === 'sem-justa';
+
+    $('resultados').innerHTML = [
+      cardResultado({
+        titulo: 'Verbas rescisórias', destaque: true, descricao: 'Pagas pela empresa no TRCT (estimativa)',
+        rotulo: 'Líquido estimado', valor: brl(liquido),
+        linhas: [['Bruto', brl(verbasBrutas)], ['Descontos (INSS, IR' + (descontoAviso ? ', aviso' : '') + ')', brl(descontos)]]
+      }),
+      cardResultado({
+        titulo: 'FGTS', descricao: saquePct > 0 ? 'Saque + multa, pela Caixa' : 'Fica na conta (não pode sacar agora)',
+        rotulo: 'Você saca', valor: brl(saque + multa),
+        linhas: [['Saque do saldo', brl(saque)], [`Multa${multaPct ? ` de ${Math.round(multaPct * 100)}%` : ''}`, brl(multa)]]
+      }),
+      cardResultado({
+        titulo: 'Seguro-desemprego', descricao: seguro ? 'Se cumprir o tempo mínimo de trabalho exigido' : 'Não dá direito neste tipo de desligamento',
+        rotulo: 'Direito', valor: seguro ? 'Sim' : 'Não'
+      })
+    ].join('');
+
+    const isento = 'isento de IR';
+    $('verbas-sub').textContent = `${anos} ${anos === 1 ? 'ano completo' : 'anos completos'} de empresa${diasIndenizados ? ` · contrato projetado até ${curta(fimProjetado)} pelo aviso` : ''}.`;
+    $('verbas').innerHTML = demonstrativo([
+      { rotulo: 'Saldo de salário', valor: saldoSalario, nota: `${Math.min(fim.getDate(), 30)} dias de ${curta(fim).slice(3)}`, tag: 'tributável' },
+      valorAviso > 0 && { rotulo: `Aviso prévio indenizado (${diasIndenizados} dias${tipo === 'acordo' ? ', metade' : ''})`, valor: valorAviso,
+        nota: empresaDemite && aviso === 'trabalhado' ? `${AP.diasBase} dias trabalhados; os ${diasIndenizados} restantes indenizados` : `${AP.diasBase} + ${AP.diasPorAno} × ${anos} ${anos === 1 ? 'ano' : 'anos'} = ${diasAviso} dias`, tag: isento },
+      decimo > 0 && { rotulo: `13º proporcional (${avos13Total}/12)`, valor: decimo, tag: 'tributável' },
+      feriasVencidas > 0 && { rotulo: 'Férias vencidas', valor: feriasVencidas, tag: isento },
+      feriasVencidas > 0 && { rotulo: '1/3 das férias vencidas', valor: terco(feriasVencidas), tag: isento },
+      feriasIntegrais > 0 && { rotulo: 'Férias do período completado com o aviso', valor: feriasIntegrais, tag: isento },
+      feriasIntegrais > 0 && { rotulo: '1/3 dessas férias', valor: terco(feriasIntegrais), tag: isento },
+      feriasProp > 0 && { rotulo: `Férias proporcionais (${avosProp}/12)`, valor: feriasProp, tag: isento },
+      feriasProp > 0 && { rotulo: '1/3 das férias proporcionais', valor: terco(feriasProp), tag: isento },
+      { rotulo: 'Total bruto', valor: verbasBrutas, tipo: 'subtotal' },
+      inssSaldo + imp13.inss > 0 && { rotulo: 'INSS', valor: inssSaldo + imp13.inss, tipo: 'menos', nota: decimo > 0 ? 'Sobre o saldo de salário e o 13º' : 'Sobre o saldo de salário' },
+      irSaldo + imp13.ir.irDevido > 0 && { rotulo: 'Imposto de Renda', valor: irSaldo + imp13.ir.irDevido, tipo: 'menos', nota: decimo > 0 ? 'Sobre o saldo de salário e o 13º (em separado)' : 'Sobre o saldo de salário' },
+      descontoAviso > 0 && { rotulo: 'Aviso prévio não cumprido', valor: descontoAviso, tipo: 'menos', nota: `${AP.diasBase} dias de salário` },
+      { rotulo: 'Líquido estimado', valor: liquido, tipo: 'total' }
+    ]);
+
+    $('fgts-demo').innerHTML = demonstrativo([
+      { rotulo: 'Saldo informado', valor: saldoFgts, tipo: 'info', texto: brl(saldoFgts) },
+      { rotulo: 'Depósito sobre a rescisão', valor: fgtsRescisao, tipo: 'info', texto: brl(fgtsRescisao), nota: `${Math.round(CLT.fgts * 100)}% de saldo de salário, aviso e 13º` },
+      { rotulo: saquePct > 0 ? `Saque (${Math.round(saquePct * 100)}%)` : 'Saque', valor: saque, nota: saquePct ? '' : 'Pedido de demissão e justa causa não liberam o saque' },
+      { rotulo: multaPct ? `Multa de ${Math.round(multaPct * 100)}%` : 'Multa', valor: multa, nota: multaPct ? 'Paga pela empresa, sobre o total do FGTS' : 'Não há multa neste tipo de desligamento' },
+      { rotulo: 'Total do FGTS a receber', valor: saque + multa, tipo: 'total' }
+    ]);
+
+    $('rs-obs').textContent = `Tabelas de ${TAB.ano}. Diária = salário ÷ 30. O mês conta para 13º e férias com ${CLT.diasMinimosParaContarMes} dias ou mais.${saldoFgts ? '' : ' Informe o saldo do FGTS para ver o saque e a multa completos.'}`;
+  }
+
+  document.querySelectorAll('input[name="tipo"]').forEach(r => r.addEventListener('change', () => { montarAviso(); calcular(); }));
+  ['salario', 'admissao', 'desligamento', 'fgts', 'dependentes'].forEach(id => $(id).addEventListener('input', calcular));
+  ['aviso', 'vencidas'].forEach(id => $(id).addEventListener('change', calcular));
+  montarAviso();
+  calcular();
+</script>
+
+</body>
+</html>

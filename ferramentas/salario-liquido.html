@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Calculadora de salário líquido: INSS, IR e descontos | Warden</title>
+<meta name="description" content="Calcule seu salário líquido com INSS progressivo, Imposto de Renda com a nova redução da lei, dependentes, vale-transporte e outros descontos, linha a linha.">
+<link rel="canonical" href="https://wardenfinance.com.br/ferramentas/salario-liquido.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Calculadora de salário líquido | Warden">
+<meta property="og:description" content="Do bruto ao líquido, linha a linha: INSS, Imposto de Renda, redução e descontos.">
+<meta property="og:url" content="https://wardenfinance.com.br/ferramentas/salario-liquido.html">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/warden.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Calculadora de Salário Líquido",
+  "url": "https://wardenfinance.com.br/ferramentas/salario-liquido.html",
+  "applicationCategory": "FinanceApplication",
+  "operatingSystem": "Any",
+  "inLanguage": "pt-BR",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "BRL" },
+  "publisher": { "@type": "Organization", "name": "Warden", "url": "https://wardenfinance.com.br/" }
+}
+</script>
+<style>
+  /* ===== SALÁRIO LÍQUIDO (só desta página; estrutura e componentes vêm do /assets/warden.css) ===== */
+  .sl-form { display: flex; flex-direction: column; gap: 26px; }
+  .sl-bloco { border-top: 1px solid var(--border); padding-top: 22px; }
+  .sl-vt { display: flex; gap: 10px; align-items: flex-start; font-size: .88rem; color: var(--muted); line-height: 1.5; cursor: pointer; }
+  .sl-vt input { accent-color: var(--accent); width: 16px; height: 16px; margin-top: 2px; flex-shrink: 0; cursor: pointer; }
+  .sl-vt strong { color: var(--text); font-weight: 600; }
+  .sl-baixo { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 20px; margin-top: 20px; align-items: start; }
+  .sl-baixo h2 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 1.25rem; margin-bottom: 4px; }
+  .sl-baixo .tool-card > p { font-size: .84rem; color: var(--muted); margin-bottom: 14px; }
+  .sl-obs { margin-top: 16px; }
+
+  @media (max-width: 900px) {
+    .sl-baixo { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<script src="/assets/nav.js"></script>
+
+<section class="tool-top">
+  <div class="section-inner">
+
+    <header class="tool-head">
+      <div class="tool-crumbs" data-crumbs></div>
+      <h1 class="tool-title">Calculadora de salário líquido</h1>
+      <p class="tool-lead">Coloque o seu salário bruto e veja, linha a linha, quanto sai de INSS, de Imposto de Renda e de outros descontos até chegar no que cai na sua conta. Já com as regras de <span data-tabela="ano"></span>.</p>
+    </header>
+
+    <!-- ENTRADAS -->
+    <form class="tool-card sl-form" id="sl-form" onsubmit="return false">
+      <div class="tool-fields">
+        <div class="tool-field">
+          <label for="bruto">Salário bruto</label>
+          <div class="tool-input"><span class="pre">R$</span><input type="text" id="bruto" value="6000"></div>
+          <span class="tool-hint">Com horas extras e adicionais do mês, se houver</span>
+        </div>
+        <div class="tool-field">
+          <label for="dependentes">Dependentes</label>
+          <div class="tool-input"><input type="number" id="dependentes" value="0" min="0" max="20" step="1" inputmode="numeric"></div>
+          <span class="tool-hint">Para o Imposto de Renda (filhos, cônjuge sem renda…)</span>
+        </div>
+      </div>
+      <div class="sl-bloco">
+        <label class="sl-vt"><input type="checkbox" id="vt"><span><strong>Uso vale-transporte</strong> (desconto de até <span data-tabela="clt.descontoValeTransporte" data-formato="pct"></span> do salário)</span></label>
+      </div>
+      <div class="tool-fields">
+        <div class="tool-field">
+          <label for="plano">Plano de saúde <span class="opc">(opcional)</span></label>
+          <div class="tool-input"><span class="pre">R$</span><input type="text" id="plano" placeholder="0,00"></div>
+        </div>
+        <div class="tool-field">
+          <label for="outros">Outros descontos <span class="opc">(opcional)</span></label>
+          <div class="tool-input"><span class="pre">R$</span><input type="text" id="outros" placeholder="0,00"></div>
+          <span class="tool-hint">Vale-refeição, pensão, consignado, sindicato…</span>
+        </div>
+      </div>
+    </form>
+
+    <!-- RESULTADO -->
+    <div class="result-grid" id="resultados" aria-live="polite"></div>
+
+    <div class="sl-baixo">
+      <div class="tool-card">
+        <h2>Do bruto ao líquido</h2>
+        <p>A cascata dos descontos, na ordem em que são calculados.</p>
+        <ul class="tool-demo" id="cascata"></ul>
+      </div>
+      <div class="tool-card">
+        <h2>Para onde vai o seu salário</h2>
+        <p>Como o salário bruto se divide.</p>
+        <div class="tool-barra" id="barra" role="img" aria-label="Barra com a divisão do salário bruto"></div>
+        <ul class="tool-barra-legenda" id="legenda"></ul>
+      </div>
+    </div>
+    <p class="tool-obs sl-obs" id="sl-obs"></p>
+
+  </div>
+</section>
+
+<!-- EXPLICAÇÃO + FAQ -->
+<section class="tool-prose-section">
+  <div class="section-inner">
+    <article class="tool-prose">
+      <h2>Como o salário líquido é calculado</h2>
+      <h3>1. INSS, por faixas</h3>
+      <p>O INSS é progressivo: cada alíquota vale só para a parte do salário que cai na sua faixa. As faixas vão de <span data-tabela="inss.faixas.0.aliquota" data-formato="pct"></span> a <span data-tabela="inss.faixas.3.aliquota" data-formato="pct"></span>, e a contribuição para no teto: ninguém paga mais que <span data-tabela="inss.contribuicaoMaxima" data-formato="brl"></span> por mês.</p>
+
+      <h3>2. Imposto de Renda pela tabela</h3>
+      <p>Do salário bruto, desconta-se o <strong>maior</strong> entre duas opções: o INSS mais <span data-tabela="irrf.deducaoPorDependente" data-formato="brl"></span> por dependente, ou o desconto simplificado de <span data-tabela="irrf.descontoSimplificado" data-formato="brl"></span>. O que sobra é a base de cálculo, onde se aplica a tabela do IR (de isento até <span data-tabela="irrf.faixas.4.aliquota" data-formato="pct"></span>, menos a parcela a deduzir de cada faixa).</p>
+
+      <h3>3. A redução de <span data-tabela="ano"></span>: isenção para quem ganha até <span data-tabela="irrf.reducao.ateBruto" data-formato="brl"></span></h3>
+      <p>A Lei 15.270/2025 criou uma redução no imposto, calculada sobre o <strong>salário bruto</strong> (não sobre a base):</p>
+      <ul>
+        <li><strong>Até <span data-tabela="irrf.reducao.ateBruto" data-formato="brl"></span> de salário bruto:</strong> a redução cobre todo o imposto, de até <span data-tabela="irrf.reducao.valorMaximo" data-formato="brl"></span>. Na prática, não se paga IR.</li>
+        <li><strong>Entre <span data-tabela="irrf.reducao.ateBruto" data-formato="brl"></span> e <span data-tabela="irrf.reducao.faixaDecrescenteAte" data-formato="brl"></span>:</strong> a redução vai diminuindo conforme o salário sobe, e o imposto aparece aos poucos.</li>
+        <li><strong>Acima de <span data-tabela="irrf.reducao.faixaDecrescenteAte" data-formato="brl"></span>:</strong> sem redução; vale só a tabela.</li>
+      </ul>
+
+      <h3>4. Outros descontos</h3>
+      <p>Vale-transporte (até <span data-tabela="clt.descontoValeTransporte" data-formato="pct"></span> do salário, ou o valor das passagens, se for menor), plano de saúde, pensão, empréstimo consignado e outros descontos combinados com a empresa saem depois dos impostos.</p>
+      <p>Quer saber quanto vem no fim do ano e nas férias? Veja as calculadoras de <a href="/ferramentas/decimo-terceiro.html">13º salário</a> e de <a href="/ferramentas/ferias.html">férias</a>.</p>
+
+      <p class="tool-disclaimer" data-aviso-educativo>O resultado é uma estimativa para um mês comum. O holerite pode ter verbas e descontos específicos da sua empresa e do seu sindicato. Valores de <span data-tabela="ano"></span>: INSS pela <span data-tabela="inss.fonte"></span> e IR pela <span data-tabela="irrf.fonte"></span>.</p>
+    </article>
+
+    <div class="tool-faq" data-faq>
+      <h2>Perguntas frequentes</h2>
+      <details>
+        <summary><span>Quem ganha até <span data-tabela="irrf.reducao.ateBruto" data-formato="brl"></span> ainda paga Imposto de Renda?</span></summary>
+        <div><p>Não no salário mensal. Desde 2026, a redução do imposto criada pela Lei 15.270/2025 zera o IR de quem tem rendimento bruto mensal de até <span data-tabela="irrf.reducao.ateBruto" data-formato="brl"></span>. Entre esse valor e <span data-tabela="irrf.reducao.faixaDecrescenteAte" data-formato="brl"></span> a redução vai diminuindo, e acima disso vale a tabela normal. O INSS continua sendo descontado normalmente.</p></div>
+      </details>
+      <details>
+        <summary>Por que o INSS não é uma porcentagem simples do salário?</summary>
+        <div><p>Porque ele é progressivo: cada alíquota se aplica só ao pedaço do salário que cai na sua faixa. Por isso a alíquota efetiva (o INSS dividido pelo salário) é sempre menor que a alíquota da última faixa. A calculadora mostra a alíquota efetiva de INSS e de IR juntos.</p></div>
+      </details>
+      <details>
+        <summary>Dependente diminui o Imposto de Renda?</summary>
+        <div><p>Cada dependente reduz a base de cálculo do IR, desde que o total (INSS + dependentes) passe do desconto simplificado. Para salários menores, o desconto simplificado costuma ser maior, e aí os dependentes não mudam o imposto do mês. Eles também contam na declaração anual.</p></div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- PONTE PARA O WARDEN COBRANÇA -->
+<section class="tool-bridge">
+  <div class="section-inner">
+    <div data-ponte-cobranca data-titulo="Faz um extra fora da CLT? Receba sem correr atrás." data-texto="O Warden Cobrança cobra seus clientes no WhatsApp, com Pix, lembra quem atrasou e confirma o pagamento sozinho."></div>
+  </div>
+</section>
+
+<script src="/assets/tabelas-2026.js"></script>
+<script src="/assets/tools.js"></script>
+<script>
+  const { formatBRL: brl, formatPct, parseNumero, campoBRL, cardResultado, salarioLiquido, demonstrativo, barraComposicao, estiloGrafico, centavos } = Warden;
+  const TAB = window.WARDEN_TABELAS;
+  const $ = id => document.getElementById(id);
+
+  ['bruto', 'plano', 'outros'].forEach(id => campoBRL($(id)));
+  const dinheiro = id => { const v = parseNumero($(id).value); return isFinite(v) && v > 0 ? v : 0; };
+
+  function calcular() {
+    const bruto = dinheiro('bruto');
+    const dep = Math.max(0, Math.round(parseFloat($('dependentes').value) || 0));
+    const s = salarioLiquido(bruto, dep);
+    const vt = $('vt').checked ? centavos(bruto * TAB.clt.descontoValeTransporte) : 0;
+    const plano = dinheiro('plano'), outros = dinheiro('outros');
+    const liquido = centavos(s.liquido - vt - plano - outros);
+    const impostos = s.inss + s.ir.irDevido;
+    const efetiva = bruto > 0 ? impostos / bruto * 100 : 0;
+    const ir = s.ir;
+
+    $('resultados').innerHTML = [
+      cardResultado({
+        titulo: 'Salário líquido', destaque: true, descricao: 'O que cai na sua conta no mês',
+        rotulo: 'Você recebe', valor: brl(liquido),
+        linhas: [['Do salário bruto', bruto > 0 ? formatPct(liquido / bruto * 100, { casas: 1 }) : '—']]
+      }),
+      cardResultado({
+        titulo: 'Impostos', descricao: 'INSS + Imposto de Renda',
+        rotulo: 'Alíquota efetiva', valor: formatPct(efetiva),
+        linhas: [['INSS', brl(s.inss)], ['Imposto de Renda', brl(ir.irDevido)]]
+      }),
+      cardResultado({
+        titulo: `Redução de ${TAB.ano}`, descricao: ir.reducao > 0 ? 'Imposto que você deixa de pagar com a nova lei' : 'Sem redução nesta faixa de salário',
+        rotulo: 'Economia no mês', valor: brl(ir.reducao),
+        linhas: [['IR sem a redução', brl(ir.impostoTabela)]]
+      })
+    ].join('');
+
+    $('cascata').innerHTML = demonstrativo([
+      { rotulo: 'Salário bruto', valor: bruto, tipo: 'subtotal' },
+      { rotulo: 'INSS', valor: s.inss, tipo: 'menos', nota: `Progressivo, alíquota efetiva de ${formatPct(bruto > 0 ? s.inss / bruto * 100 : 0)}` },
+      { rotulo: 'Base do Imposto de Renda', valor: ir.base, tipo: 'info',
+        nota: ir.usouSimplificado ? `Bruto − desconto simplificado (${brl(ir.deducao)}), maior que INSS + dependentes` : `Bruto − INSS${dep ? ` − ${dep} ${dep === 1 ? 'dependente' : 'dependentes'}` : ''} (${brl(ir.deducao)})` },
+      { rotulo: 'IR pela tabela', valor: ir.impostoTabela, tipo: 'info', nota: ir.aliquota ? `Faixa de ${formatPct(ir.aliquota * 100, { curto: true })}, menos a parcela a deduzir` : 'Base na faixa de isenção' },
+      { rotulo: `Redução de ${TAB.ano}`, valor: ir.reducao, tipo: 'info', texto: ir.reducao > 0 ? '− ' + brl(ir.reducao) : brl(0), nota: 'Calculada sobre o salário bruto' },
+      { rotulo: 'Imposto de Renda', valor: ir.irDevido, tipo: 'menos' },
+      vt > 0 && { rotulo: 'Vale-transporte', valor: vt, tipo: 'menos', nota: `${formatPct(TAB.clt.descontoValeTransporte * 100, { curto: true })} do salário` },
+      plano > 0 && { rotulo: 'Plano de saúde', valor: plano, tipo: 'menos' },
+      outros > 0 && { rotulo: 'Outros descontos', valor: outros, tipo: 'menos' },
+      { rotulo: 'Salário líquido', valor: liquido, tipo: 'total' }
+    ]);
+
+    const g = estiloGrafico();
+    const comp = barraComposicao([
+      { nome: 'Líquido', valor: Math.max(0, liquido), cor: g.cor('--accent') },
+      { nome: 'INSS', valor: s.inss, cor: g.cor('--text') },
+      { nome: 'Imposto de Renda', valor: ir.irDevido, cor: g.neutros[0] },
+      { nome: 'Outros descontos', valor: vt + plano + outros, cor: g.neutros[1] }
+    ], bruto);
+    $('barra').innerHTML = comp.barra;
+    $('legenda').innerHTML = comp.legenda;
+
+    $('sl-obs').textContent = liquido < 0 ? 'Os descontos passam do salário: confira os valores informados.' : `Tabelas de ${TAB.ano}: INSS (${TAB.inss.fonte}) e IR (${TAB.irrf.fonte}).`;
+  }
+
+  ['bruto', 'dependentes', 'plano', 'outros'].forEach(id => $(id).addEventListener('input', calcular));
+  $('vt').addEventListener('change', calcular);
+  calcular();
+</script>
+
+</body>
+</html>

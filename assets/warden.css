@@ -572,3 +572,27 @@ section { padding: 96px 5%; position: relative; }
 .tool-veredito h2 em { font-style: normal; color: var(--accent); }
 .tool-veredito p { margin-top: 10px; color: var(--muted); font-size: .95rem; line-height: 1.6; max-width: 760px; }
 .tool-veredito p strong { color: var(--text); font-weight: 600; }
+
+/* barra de composição (para onde vai o dinheiro): partes proporcionais + legenda com valores.
+   <div class="tool-barra"><span style="width:40%;background:…"></span>…</div>
+   <ul class="tool-barra-legenda"><li style="--cor:…">Nome<strong>R$ …</strong>40%</li>…</ul> */
+.tool-barra { display: flex; height: 28px; border-radius: 8px; overflow: hidden; background: var(--surface2); }
+.tool-barra span { display: block; height: 100%; min-width: 0; border-right: 2px solid var(--surface); }
+.tool-barra span:last-child { border-right: none; }
+.tool-barra-legenda { list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px 20px; margin-top: 16px; }
+.tool-barra-legenda li { display: flex; flex-direction: column; gap: 2px; font-size: .8rem; color: var(--muted); }
+.tool-barra-legenda li::before { content: ''; width: 12px; height: 12px; border-radius: 3px; background: var(--cor); margin-bottom: 4px; }
+.tool-barra-legenda strong { font-family: 'IBM Plex Mono', monospace; font-weight: 600; font-size: .92rem; color: var(--text); }
+
+/* demonstrativo linha a linha (holerite, 13º, férias, rescisão): Warden.demonstrativo([...]) */
+.tool-demo { list-style: none; display: flex; flex-direction: column; }
+.tool-demo li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 16px; align-items: baseline; padding: 11px 0; border-bottom: 1px solid var(--border); font-size: .92rem; }
+.tool-demo .rot { min-width: 0; }
+.tool-demo .rot small { display: block; font-size: .76rem; color: var(--muted); line-height: 1.45; margin-top: 2px; }
+.tool-demo .val { font-family: 'IBM Plex Mono', monospace; text-align: right; white-space: nowrap; }
+.tool-demo li.menos .val, .tool-demo li.info .val { color: var(--muted); }
+.tool-demo li.info { font-size: .84rem; color: var(--muted); }
+.tool-demo li.subtotal { font-weight: 600; }
+.tool-demo li.total { border-bottom: none; border-top: 1.5px solid var(--text); margin-top: 2px; font-weight: 600; font-size: 1rem; }
+.tool-demo li.total .val { color: var(--accent); font-size: 1.15rem; }
+.tool-demo .tag { display: inline-block; margin-left: 8px; padding: 1px 8px; border: 1px solid var(--border); border-radius: 99px; font-size: .64rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); vertical-align: 1px; }

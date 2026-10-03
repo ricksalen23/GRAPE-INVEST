@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Calculadora de férias: valor líquido, 1/3 e venda de dias | Warden</title>
+<meta name="description" content="Calcule quanto você recebe de férias, com o terço constitucional, a venda de parte das férias (abono pecuniário), INSS e Imposto de Renda, e o prazo de pagamento.">
+<link rel="canonical" href="https://wardenfinance.com.br/ferramentas/ferias.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Calculadora de férias | Warden">
+<meta property="og:description" content="Férias + 1/3, venda de dias e os descontos, linha a linha.">
+<meta property="og:url" content="https://wardenfinance.com.br/ferramentas/ferias.html">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/warden.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Calculadora de Férias",
+  "url": "https://wardenfinance.com.br/ferramentas/ferias.html",
+  "applicationCategory": "FinanceApplication",
+  "operatingSystem": "Any",
+  "inLanguage": "pt-BR",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "BRL" },
+  "publisher": { "@type": "Organization", "name": "Warden", "url": "https://wardenfinance.com.br/" }
+}
+</script>
+<style>
+  /* ===== FÉRIAS (só desta página; estrutura e componentes vêm do /assets/warden.css) ===== */
+  .fe-form { display: flex; flex-direction: column; gap: 26px; }
+  .fe-form input[type="date"] { color-scheme: dark; }
+  .fe-demo { margin-top: 20px; }
+  .fe-demo h2 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 1.25rem; margin-bottom: 14px; }
+  .fe-prazo { margin-top: 20px; }
+</style>
+</head>
+<body>
+
+<script src="/assets/nav.js"></script>
+
+<section class="tool-top">
+  <div class="section-inner">
+
+    <header class="tool-head">
+      <div class="tool-crumbs" data-crumbs></div>
+      <h1 class="tool-title">Calculadora de férias</h1>
+      <p class="tool-lead">Veja quanto você recebe de férias, com o terço constitucional, e quanto ganha se vender <span data-tabela="clt.diasAbonoPecuniario" data-formato="int"></span> dias. Com INSS e Imposto de Renda descontados.</p>
+    </header>
+
+    <!-- ENTRADAS -->
+    <form class="tool-card fe-form" id="fe-form" onsubmit="return false">
+      <div class="tool-fields">
+        <div class="tool-field">
+          <label for="salario">Salário bruto</label>
+          <div class="tool-input"><span class="pre">R$</span><input type="text" id="salario" value="4000"></div>
+        </div>
+        <div class="tool-field">
+          <label for="media">Média de variáveis <span class="opc">(opcional)</span></label>
+          <div class="tool-input"><span class="pre">R$</span><input type="text" id="media" placeholder="0,00"></div>
+          <span class="tool-hint">Média de horas extras, comissões e adicionais</span>
+        </div>
+        <div class="tool-field">
+          <label for="dependentes">Dependentes</label>
+          <div class="tool-input"><input type="number" id="dependentes" value="0" min="0" max="20" step="1" inputmode="numeric"></div>
+        </div>
+      </div>
+      <fieldset class="tool-pillset">
+        <legend class="tool-field"><span class="tool-label">Como vai tirar as férias?</span></legend>
+        <div class="tool-pills">
+          <label class="tool-pill"><input type="radio" name="modo" value="30" checked><span>30 dias de descanso</span></label>
+          <label class="tool-pill"><input type="radio" name="modo" value="abono"><span id="rotulo-abono">Vender dias</span></label>
+        </div>
+      </fieldset>
+      <div class="tool-fields">
+        <div class="tool-field">
+          <label for="inicio">Início das férias <span class="opc">(opcional)</span></label>
+          <div class="tool-input"><input type="date" id="inicio"></div>
+          <span class="tool-hint">Para saber até quando a empresa deve pagar</span>
+        </div>
+      </div>
+    </form>
+
+    <!-- RESULTADO -->
+    <div class="result-grid" id="resultados" aria-live="polite"></div>
+
+    <div class="tool-note fe-prazo" id="prazo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+      <span id="prazo-texto"></span>
+    </div>
+
+    <div class="tool-card fe-demo">
+      <h2>Como chegamos nos valores</h2>
+      <ul class="tool-demo" id="demo"></ul>
+    </div>
+
+  </div>
+</section>
+
+<!-- EXPLICAÇÃO + FAQ -->
+<section class="tool-prose-section">
+  <div class="section-inner">
+    <article class="tool-prose">
+      <h2>Como as férias são calculadas</h2>
+      <p>A cada 12 meses de trabalho, você ganha direito a 30 dias de férias remuneradas, com um <strong>adicional de 1/3</strong> do salário (o terço constitucional). O valor é o salário do mês mais a média de horas extras e outros variáveis, dividido por 30 e multiplicado pelos dias de descanso.</p>
+
+      <h3>Vender <span data-tabela="clt.diasAbonoPecuniario" data-formato="int"></span> dias (abono pecuniário)</h3>
+      <p>Você pode converter 1/3 das férias em dinheiro: descansa o restante e "vende" os outros <span data-tabela="clt.diasAbonoPecuniario" data-formato="int"></span>. Esses dias são pagos com o terço também, e o abono <strong>não tem desconto de INSS nem de Imposto de Renda</strong>. É um direito seu: a empresa não pode recusar, desde que você peça até 15 dias antes de completar o período aquisitivo.</p>
+
+      <h3>Os descontos</h3>
+      <p>Sobre as férias de descanso + 1/3 incidem INSS e Imposto de Renda, calculados em separado do salário do mês. A redução de <span data-tabela="ano"></span> também foi considerada nas férias (interpretação adotada nesta calculadora). O abono pecuniário e o terço do abono ficam livres de impostos.</p>
+
+      <h3>Prazo de pagamento</h3>
+      <p>A empresa precisa pagar as férias até <strong><span data-tabela="clt.diasAntecedenciaPagamentoFerias" data-formato="int"></span> dias antes do início</strong> do descanso. Se atrasar, a Justiça do Trabalho costuma mandar pagar em dobro. Informe a data de início na calculadora para ver o prazo.</p>
+      <p>Veja também as calculadoras de <a href="/ferramentas/salario-liquido.html">salário líquido</a> e de <a href="/ferramentas/decimo-terceiro.html">13º salário</a>.</p>
+
+      <p class="tool-disclaimer" data-aviso-educativo>Estimativa. Convenções coletivas podem garantir valores maiores, e a média de variáveis pode ser calculada de outro jeito pela empresa. Tabelas de INSS e IR de <span data-tabela="ano"></span>.</p>
+    </article>
+
+    <div class="tool-faq" data-faq>
+      <h2>Perguntas frequentes</h2>
+      <details>
+        <summary><span>Vale a pena vender <span data-tabela="clt.diasAbonoPecuniario" data-formato="int"></span> dias de férias?</span></summary>
+        <div><p>Em dinheiro, quase sempre sim: os dias vendidos vêm com o terço e sem INSS nem Imposto de Renda, então rendem mais que o mesmo número de dias de salário comum. O custo é descansar menos. A calculadora mostra quanto a mais você recebe.</p></div>
+      </details>
+      <details>
+        <summary>O terço de férias tem desconto?</summary>
+        <div><p>O terço sobre os dias de descanso entra na base do INSS e do Imposto de Renda. Já o terço sobre os dias vendidos (abono pecuniário) é isento dos dois.</p></div>
+      </details>
+      <details>
+        <summary>Posso dividir as férias?</summary>
+        <div><p>Sim, em até três períodos, se você concordar: um deles com pelo menos 14 dias corridos e os outros com pelo menos 5 dias cada. As férias também não podem começar nos dois dias antes de um feriado ou do descanso semanal.</p></div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- PONTE PARA O WARDEN COBRANÇA -->
+<section class="tool-bridge">
+  <div class="section-inner">
+    <div data-ponte-cobranca data-titulo="Férias tranquilas para quem também vende por fora." data-texto="O Warden Cobrança cobra seus clientes no WhatsApp, com Pix, enquanto você descansa. Lembra quem atrasou e confirma o pagamento sozinho."></div>
+  </div>
+</section>
+
+<script src="/assets/tabelas-2026.js"></script>
+<script src="/assets/tools.js"></script>
+<script>
+  const { formatBRL: brl, formatDataLonga, parseNumero, campoBRL, cardResultado, impostosFerias, demonstrativo, centavos } = Warden;
+  const TAB = window.WARDEN_TABELAS, CLT = TAB.clt;
+  const $ = id => document.getElementById(id);
+
+  ['salario', 'media'].forEach(id => campoBRL($(id)));
+  const dinheiro = id => { const v = parseNumero($(id).value); return isFinite(v) && v > 0 ? v : 0; };
+  const diasGozoComAbono = 30 - CLT.diasAbonoPecuniario;
+  $('rotulo-abono').textContent = `${diasGozoComAbono} dias + vender ${CLT.diasAbonoPecuniario}`;
+
+  function calcular() {
+    const base = dinheiro('salario') + dinheiro('media');
+    const dep = Math.max(0, Math.round(parseFloat($('dependentes').value) || 0));
+    const vender = document.querySelector('input[name="modo"]:checked').value === 'abono';
+    const dias = vender ? diasGozoComAbono : 30;
+
+    // férias = (salário + média) ÷ 30 × dias de descanso, + 1/3
+    const ferias = centavos(base / 30 * dias);
+    const terco = centavos(ferias * CLT.tercoFerias);
+    // abono pecuniário: dias vendidos + 1/3 deles, sem INSS e sem IR
+    const abono = vender ? centavos(base / 30 * CLT.diasAbonoPecuniario) : 0;
+    const tercoAbono = centavos(abono * CLT.tercoFerias);
+    const imp = impostosFerias(ferias + terco, dep);
+    const liquido = centavos(ferias + terco - imp.inss - imp.ir.irDevido + abono + tercoAbono);
+
+    const cards = [
+      cardResultado({
+        titulo: 'Você recebe', destaque: true, descricao: `${dias} dias de descanso${vender ? ` + ${CLT.diasAbonoPecuniario} dias vendidos` : ''}`,
+        rotulo: 'Férias líquidas', valor: brl(liquido),
+        linhas: [['Bruto', brl(ferias + terco + abono + tercoAbono)], ['Descontos', brl(imp.inss + imp.ir.irDevido)]]
+      }),
+      cardResultado({
+        titulo: 'Férias + 1/3', descricao: 'Com INSS e IR',
+        rotulo: 'Bruto', valor: brl(ferias + terco),
+        linhas: [['INSS', brl(imp.inss)], ['Imposto de Renda', brl(imp.ir.irDevido)]]
+      })
+    ];
+    if (vender) cards.push(cardResultado({
+      titulo: 'Dias vendidos', descricao: 'Abono pecuniário + 1/3, sem INSS e sem IR',
+      rotulo: 'A mais no bolso', valor: brl(abono + tercoAbono),
+      linhas: [['Abono', brl(abono)], ['1/3 do abono', brl(tercoAbono)]]
+    }));
+    $('resultados').innerHTML = cards.join('');
+
+    $('demo').innerHTML = demonstrativo([
+      { rotulo: `Férias (${dias} dias)`, valor: ferias, nota: `${brl(base)} ÷ 30 × ${dias}` },
+      { rotulo: '1/3 constitucional', valor: terco },
+      { rotulo: 'INSS', valor: imp.inss, tipo: 'menos', nota: 'Sobre férias + 1/3' },
+      { rotulo: 'IR pela tabela', valor: imp.ir.impostoTabela, tipo: 'info', nota: `Base: ${brl(imp.ir.base)}` },
+      imp.ir.reducao > 0 && { rotulo: `Redução de ${TAB.ano}`, valor: imp.ir.reducao, tipo: 'info', texto: '− ' + brl(imp.ir.reducao) },
+      { rotulo: 'Imposto de Renda', valor: imp.ir.irDevido, tipo: 'menos' },
+      vender && { rotulo: `Abono pecuniário (${CLT.diasAbonoPecuniario} dias)`, valor: abono, tag: 'sem impostos' },
+      vender && { rotulo: '1/3 do abono', valor: tercoAbono, tag: 'sem impostos' },
+      { rotulo: 'Férias líquidas', valor: liquido, tipo: 'total' }
+    ]);
+
+    // prazo: até N dias antes do início
+    const ini = $('inicio').value;
+    if (ini) {
+      const [a, m, d] = ini.split('-').map(Number);
+      const limite = new Date(a, m - 1, d - CLT.diasAntecedenciaPagamentoFerias);
+      $('prazo-texto').innerHTML = `<strong>A empresa deve pagar até ${formatDataLonga(limite)}</strong>, ${CLT.diasAntecedenciaPagamentoFerias} dias antes do início das férias (${formatDataLonga(ini)}).`;
+    } else {
+      $('prazo-texto').innerHTML = `<strong>Lembrete:</strong> o pagamento das férias deve cair até ${CLT.diasAntecedenciaPagamentoFerias} dias antes do início do descanso. Informe a data de início para ver o prazo.`;
+    }
+  }
+
+  ['salario', 'media', 'dependentes', 'inicio'].forEach(id => $(id).addEventListener('input', calcular));
+  document.querySelectorAll('input[name="modo"]').forEach(r => r.addEventListener('change', calcular));
+  calcular();
+</script>
+
+</body>
+</html>

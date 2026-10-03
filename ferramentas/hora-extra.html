@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Calculadora de hora extra com reflexo no DSR | Warden</title>
+<meta name="description" content="Calcule o valor das suas horas extras em dias úteis, domingos e feriados e o reflexo no descanso semanal remunerado (DSR). Grátis e passo a passo.">
+<link rel="canonical" href="https://wardenfinance.com.br/ferramentas/hora-extra.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Calculadora de hora extra e DSR | Warden">
+<meta property="og:description" content="Valor da hora, horas extras e o reflexo no DSR, passo a passo.">
+<meta property="og:url" content="https://wardenfinance.com.br/ferramentas/hora-extra.html">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/warden.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Calculadora de Hora Extra",
+  "url": "https://wardenfinance.com.br/ferramentas/hora-extra.html",
+  "applicationCategory": "FinanceApplication",
+  "operatingSystem": "Any",
+  "inLanguage": "pt-BR",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "BRL" },
+  "publisher": { "@type": "Organization", "name": "Warden", "url": "https://wardenfinance.com.br/" }
+}
+</script>
+<style>
+  /* ===== HORA EXTRA (só desta página; estrutura e componentes vêm do /assets/warden.css) ===== */
+  .he-form { display: flex; flex-direction: column; gap: 26px; }
+  .he-bloco { border-top: 1px solid var(--border); padding-top: 22px; }
+  .he-bloco > .section-label { margin-bottom: 18px; }
+  .he-demo { margin-top: 20px; }
+  .he-demo h2 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 1.25rem; margin-bottom: 14px; }
+</style>
+</head>
+<body>
+
+<script src="/assets/nav.js"></script>
+
+<section class="tool-top">
+  <div class="section-inner">
+
+    <header class="tool-head">
+      <div class="tool-crumbs" data-crumbs></div>
+      <h1 class="tool-title">Calculadora de hora extra</h1>
+      <p class="tool-lead">Quanto valem as horas que você trabalhou a mais no mês, nos dias comuns e nos domingos e feriados, e o reflexo delas no descanso semanal remunerado (DSR), que muita gente esquece de cobrar.</p>
+    </header>
+
+    <!-- ENTRADAS -->
+    <form class="tool-card he-form" id="he-form" onsubmit="return false">
+      <div class="tool-fields">
+        <div class="tool-field">
+          <label for="salario">Salário bruto</label>
+          <div class="tool-input"><span class="pre">R$</span><input type="text" id="salario" value="2200"></div>
+        </div>
+        <div class="tool-field">
+          <label for="jornada">Jornada mensal</label>
+          <div class="tool-input"><input type="number" id="jornada" min="1" max="744" step="1" inputmode="numeric"><span class="suf">horas</span></div>
+          <span class="tool-hint">44 horas por semana = <span data-tabela="clt.jornadaMensalPadrao" data-formato="int"></span> horas</span>
+        </div>
+      </div>
+      <div class="he-bloco">
+        <p class="section-label">Horas extras do mês</p>
+        <div class="tool-fields">
+          <div class="tool-field">
+            <label for="h50">Em dias úteis</label>
+            <div class="tool-input"><input type="number" id="h50" value="10" min="0" step="0.5" inputmode="decimal"><span class="suf">horas</span></div>
+          </div>
+          <div class="tool-field">
+            <label for="ad50">Adicional em dias úteis</label>
+            <div class="tool-input"><input type="number" id="ad50" min="0" max="300" step="1" inputmode="numeric"><span class="suf">%</span></div>
+            <span class="tool-hint">Mínimo da lei; a convenção pode dar mais</span>
+          </div>
+          <div class="tool-field">
+            <label for="h100">Em domingos e feriados</label>
+            <div class="tool-input"><input type="number" id="h100" value="0" min="0" step="0.5" inputmode="decimal"><span class="suf">horas</span></div>
+          </div>
+          <div class="tool-field">
+            <label for="ad100">Adicional em domingos e feriados</label>
+            <div class="tool-input"><input type="number" id="ad100" min="0" max="300" step="1" inputmode="numeric"><span class="suf">%</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="he-bloco">
+        <p class="section-label">Calendário do mês (para o DSR)</p>
+        <div class="tool-fields">
+          <div class="tool-field">
+            <label for="uteis">Dias úteis</label>
+            <div class="tool-input"><input type="number" id="uteis" value="25" min="1" max="31" step="1" inputmode="numeric"><span class="suf">dias</span></div>
+            <span class="tool-hint">Segunda a sábado, sem feriados</span>
+          </div>
+          <div class="tool-field">
+            <label for="descansos">Domingos e feriados</label>
+            <div class="tool-input"><input type="number" id="descansos" value="5" min="0" max="31" step="1" inputmode="numeric"><span class="suf">dias</span></div>
+          </div>
+        </div>
+      </div>
+    </form>
+
+    <!-- RESULTADO -->
+    <div class="result-grid" id="resultados" aria-live="polite"></div>
+
+    <div class="tool-card he-demo">
+      <h2>Passo a passo</h2>
+      <ul class="tool-demo" id="demo"></ul>
+    </div>
+
+  </div>
+</section>
+
+<!-- EXPLICAÇÃO + FAQ -->
+<section class="tool-prose-section">
+  <div class="section-inner">
+    <article class="tool-prose">
+      <h2>Como calcular hora extra</h2>
+      <h3>1. O valor da sua hora</h3>
+      <p><strong>valor da hora = salário ÷ jornada mensal</strong>. Para quem trabalha 44 horas por semana, a jornada mensal usada é de <span data-tabela="clt.jornadaMensalPadrao" data-formato="int"></span> horas (já incluindo os descansos semanais).</p>
+
+      <h3>2. O adicional</h3>
+      <p>A hora extra vale no mínimo <span data-tabela="clt.adicionalHoraExtra" data-formato="pct"></span> a mais que a hora normal, pela Constituição. Em domingos e feriados, o mais comum (por convenção coletiva ou jurisprudência) é <span data-tabela="clt.adicionalHoraExtraDomingo" data-formato="pct"></span>. Confira na convenção da sua categoria: muitas garantem adicionais maiores.</p>
+
+      <h3>3. O reflexo no DSR</h3>
+      <p>O descanso semanal remunerado é o domingo (e os feriados) que você recebe sem trabalhar. Quem faz horas extras com frequência tem direito a que elas também entrem nesse descanso:</p>
+      <p><strong>DSR = (total de horas extras em R$ ÷ dias úteis do mês) × domingos e feriados do mês</strong></p>
+      <p>As horas extras habituais também entram na média do <a href="/ferramentas/decimo-terceiro.html">13º</a>, das <a href="/ferramentas/ferias.html">férias</a> e no FGTS.</p>
+
+      <p class="tool-disclaimer" data-aviso-educativo>Estimativa do valor bruto. Sobre horas extras e DSR incidem INSS, IR e FGTS normalmente, junto com o salário do mês: veja o efeito na calculadora de <a href="/ferramentas/salario-liquido.html">salário líquido</a>.</p>
+    </article>
+
+    <div class="tool-faq" data-faq>
+      <h2>Perguntas frequentes</h2>
+      <details>
+        <summary>Quanto vale uma hora extra?</summary>
+        <div><p>O valor da sua hora normal (salário dividido pela jornada mensal) mais o adicional: no mínimo <span data-tabela="clt.adicionalHoraExtra" data-formato="pct"></span> em dias úteis e, em geral, <span data-tabela="clt.adicionalHoraExtraDomingo" data-formato="pct"></span> em domingos e feriados. Com salário de R$ 2.200 e jornada de <span data-tabela="clt.jornadaMensalPadrao" data-formato="int"></span> horas, a hora normal vale R$ 10, e a extra soma o adicional a esse valor.</p></div>
+      </details>
+      <details>
+        <summary>O que é o reflexo da hora extra no DSR?</summary>
+        <div><p>É o valor que as horas extras acrescentam ao seu descanso semanal remunerado. Divide-se o total pago em horas extras pelos dias úteis do mês e multiplica-se pelos domingos e feriados. Quem faz hora extra com frequência tem direito a esse valor a mais.</p></div>
+      </details>
+      <details>
+        <summary>Qual o limite de horas extras por dia?</summary>
+        <div><p>Pela CLT, até 2 horas extras por dia, em regra. Acima disso, só em situações excepcionais previstas em lei. Horas que passam do limite continuam tendo que ser pagas.</p></div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- PONTE PARA O WARDEN COBRANÇA -->
+<section class="tool-bridge">
+  <div class="section-inner">
+    <div data-ponte-cobranca data-titulo="Fazendo extras como freelancer também?" data-texto="O Warden Cobrança cobra seus clientes no WhatsApp, com Pix, e lembra quem atrasou. Seu tempo extra vira dinheiro na conta."></div>
+  </div>
+</section>
+
+<script src="/assets/tabelas-2026.js"></script>
+<script src="/assets/tools.js"></script>
+<script>
+  const { formatBRL: brl, formatNumero, parseNumero, campoBRL, cardResultado, demonstrativo, centavos } = Warden;
+  const CLT = window.WARDEN_TABELAS.clt;
+  const $ = id => document.getElementById(id);
+
+  // padrões da lei vindos das tabelas (nenhum número de lei escrito na página)
+  $('jornada').value = CLT.jornadaMensalPadrao;
+  $('ad50').value = CLT.adicionalHoraExtra * 100;
+  $('ad100').value = CLT.adicionalHoraExtraDomingo * 100;
+  campoBRL($('salario'));
+  const num = id => { const v = parseFloat($(id).value); return isFinite(v) && v > 0 ? v : 0; };
+  const h = v => formatNumero(v, { curto: true });
+
+  function calcular() {
+    const v = parseNumero($('salario').value), salario = isFinite(v) && v > 0 ? v : 0;
+    const jornada = num('jornada') || CLT.jornadaMensalPadrao;
+    const h50 = num('h50'), h100 = num('h100'), ad50 = num('ad50') / 100, ad100 = num('ad100') / 100;
+    const uteis = num('uteis'), descansos = num('descansos');
+
+    // valor da hora = salário ÷ jornada; hora extra = hora × (1 + adicional)
+    const valorHora = salario / jornada;
+    const v50 = centavos(valorHora * (1 + ad50) * h50);
+    const v100 = centavos(valorHora * (1 + ad100) * h100);
+    const extras = centavos(v50 + v100);
+    // DSR = (horas extras em R$ ÷ dias úteis) × domingos e feriados
+    const dsr = uteis > 0 ? centavos(extras / uteis * descansos) : 0;
+    const total = centavos(extras + dsr);
+
+    $('resultados').innerHTML = [
+      cardResultado({ titulo: 'Valor da hora', descricao: `${brl(salario)} ÷ ${h(jornada)} horas`, rotulo: 'Hora normal', valor: brl(valorHora),
+        linhas: [[`Hora extra a ${h(ad50 * 100)}%`, brl(valorHora * (1 + ad50))], [`Hora extra a ${h(ad100 * 100)}%`, brl(valorHora * (1 + ad100))]] }),
+      cardResultado({ titulo: 'Horas extras', descricao: `${h(h50 + h100)} horas no mês`, rotulo: 'Valor', valor: brl(extras),
+        linhas: [[`Reflexo no DSR`, brl(dsr)]] }),
+      cardResultado({ titulo: 'Total a receber', destaque: true, descricao: 'Horas extras + DSR, a mais no salário (bruto)', rotulo: 'No mês', valor: brl(total) })
+    ].join('');
+
+    $('demo').innerHTML = demonstrativo([
+      { rotulo: 'Valor da hora', valor: valorHora, tipo: 'info', texto: brl(valorHora), nota: `${brl(salario)} ÷ ${h(jornada)} h` },
+      h50 > 0 && { rotulo: `${h(h50)} h a ${h(ad50 * 100)}% (dias úteis)`, valor: v50, nota: `${brl(valorHora)} × ${h(1 + ad50)} × ${h(h50)}` },
+      h100 > 0 && { rotulo: `${h(h100)} h a ${h(ad100 * 100)}% (domingos e feriados)`, valor: v100, nota: `${brl(valorHora)} × ${h(1 + ad100)} × ${h(h100)}` },
+      { rotulo: 'Horas extras', valor: extras, tipo: 'subtotal' },
+      { rotulo: 'Reflexo no DSR', valor: dsr, nota: `${brl(extras)} ÷ ${h(uteis)} dias úteis × ${h(descansos)} domingos e feriados` },
+      { rotulo: 'Total a receber', valor: total, tipo: 'total' }
+    ]);
+  }
+
+  ['salario', 'jornada', 'h50', 'ad50', 'h100', 'ad100', 'uteis', 'descansos'].forEach(id => $(id).addEventListener('input', calcular));
+  calcular();
+</script>
+
+</body>
+</html>

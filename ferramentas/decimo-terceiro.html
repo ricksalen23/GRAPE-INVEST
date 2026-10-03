@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Calculadora de 13º salário: 1ª e 2ª parcela líquidas | Warden</title>
+<meta name="description" content="Calcule seu 13º salário proporcional e o valor da 1ª e da 2ª parcela, com INSS e Imposto de Renda descontados, médias de horas extras e prazos de pagamento.">
+<link rel="canonical" href="https://wardenfinance.com.br/ferramentas/decimo-terceiro.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Calculadora de 13º salário | Warden">
+<meta property="og:description" content="Quanto vem na 1ª e na 2ª parcela do seu 13º, já com os descontos.">
+<meta property="og:url" content="https://wardenfinance.com.br/ferramentas/decimo-terceiro.html">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/warden.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Calculadora de 13º Salário",
+  "url": "https://wardenfinance.com.br/ferramentas/decimo-terceiro.html",
+  "applicationCategory": "FinanceApplication",
+  "operatingSystem": "Any",
+  "inLanguage": "pt-BR",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "BRL" },
+  "publisher": { "@type": "Organization", "name": "Warden", "url": "https://wardenfinance.com.br/" }
+}
+</script>
+<style>
+  /* ===== 13º SALÁRIO (só desta página; estrutura e componentes vêm do /assets/warden.css) ===== */
+  .dt-demo { margin-top: 20px; }
+  .dt-demo h2 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 1.25rem; margin-bottom: 14px; }
+  .dt-obs { margin-top: 16px; }
+</style>
+</head>
+<body>
+
+<script src="/assets/nav.js"></script>
+
+<section class="tool-top">
+  <div class="section-inner">
+
+    <header class="tool-head">
+      <div class="tool-crumbs" data-crumbs></div>
+      <h1 class="tool-title">Calculadora de 13º salário</h1>
+      <p class="tool-lead">Veja quanto você recebe de 13º, proporcional aos meses trabalhados no ano, e quanto vem em cada parcela, já com INSS e Imposto de Renda descontados.</p>
+    </header>
+
+    <!-- ENTRADAS -->
+    <form class="tool-card" id="dt-form" onsubmit="return false">
+      <div class="tool-fields">
+        <div class="tool-field">
+          <label for="salario">Salário bruto</label>
+          <div class="tool-input"><span class="pre">R$</span><input type="text" id="salario" value="4000"></div>
+        </div>
+        <div class="tool-field">
+          <label for="meses">Meses trabalhados no ano</label>
+          <div class="tool-input"><input type="number" id="meses" value="12" min="1" max="12" step="1" inputmode="numeric"><span class="suf">de 12</span></div>
+          <span class="tool-hint">Conta o mês com <span data-tabela="clt.diasMinimosParaContarMes" data-formato="int"></span> dias ou mais de trabalho</span>
+        </div>
+        <div class="tool-field">
+          <label for="media">Média de variáveis <span class="opc">(opcional)</span></label>
+          <div class="tool-input"><span class="pre">R$</span><input type="text" id="media" placeholder="0,00"></div>
+          <span class="tool-hint">Média mensal de horas extras, comissões, adicionais</span>
+        </div>
+        <div class="tool-field">
+          <label for="dependentes">Dependentes</label>
+          <div class="tool-input"><input type="number" id="dependentes" value="0" min="0" max="20" step="1" inputmode="numeric"></div>
+          <span class="tool-hint">Para o Imposto de Renda</span>
+        </div>
+      </div>
+    </form>
+
+    <!-- RESULTADO -->
+    <div class="result-grid" id="resultados" aria-live="polite"></div>
+
+    <div class="tool-card dt-demo">
+      <h2>Como chegamos nos valores</h2>
+      <ul class="tool-demo" id="demo"></ul>
+    </div>
+    <p class="tool-obs dt-obs" id="dt-obs"></p>
+
+  </div>
+</section>
+
+<!-- EXPLICAÇÃO + FAQ -->
+<section class="tool-prose-section">
+  <div class="section-inner">
+    <article class="tool-prose">
+      <h2>Como funciona o 13º salário</h2>
+      <p>O 13º é um salário extra por ano, proporcional aos meses trabalhados: cada mês em que você trabalhou <span data-tabela="clt.diasMinimosParaContarMes" data-formato="int"></span> dias ou mais vale 1/12 do salário. Quem trabalhou o ano inteiro recebe um salário completo. Horas extras, comissões e adicionais entram pela média do ano.</p>
+
+      <h3>As duas parcelas</h3>
+      <ul>
+        <li><strong>1ª parcela, até <span data-tabela="clt.prazo13PrimeiraParcela"></span>:</strong> metade do 13º, <strong>sem nenhum desconto</strong>. Muitas empresas pagam junto com as férias, se você pedir.</li>
+        <li><strong>2ª parcela, até <span data-tabela="clt.prazo13SegundaParcela"></span>:</strong> o restante, com o INSS e o Imposto de Renda do 13º <strong>inteiro</strong> descontados de uma vez. Por isso a 2ª parcela é sempre menor que a primeira.</li>
+      </ul>
+
+      <h3>O imposto do 13º é separado</h3>
+      <p>O 13º tem tributação exclusiva: o INSS e o IR são calculados só sobre ele, sem somar ao salário do mês. Do 13º bruto saem o INSS e a dedução por dependente, e sobre o restante se aplica a tabela mensal do IR. A redução de <span data-tabela="ano"></span> também vale: com 13º bruto até <span data-tabela="irrf.reducao.ateBruto" data-formato="brl"></span>, o IR é zero.</p>
+      <p>Quer ver o salário do mês? Use a calculadora de <a href="/ferramentas/salario-liquido.html">salário líquido</a>. Vai sair da empresa? A <a href="/ferramentas/rescisao.html">calculadora de rescisão</a> inclui o 13º proporcional.</p>
+
+      <p class="tool-disclaimer" data-aviso-educativo>Estimativa. A empresa pode calcular a média de variáveis de outro jeito, conforme a convenção coletiva, e a 1ª parcela pode ter como base o salário do mês em que for paga.</p>
+    </article>
+
+    <div class="tool-faq" data-faq>
+      <h2>Perguntas frequentes</h2>
+      <details>
+        <summary>Por que a 2ª parcela do 13º é menor que a primeira?</summary>
+        <div><p>Porque a 1ª parcela vem sem descontos, e todo o INSS e o Imposto de Renda do 13º (calculados sobre o valor inteiro) são tirados da 2ª parcela. As duas somadas dão o 13º líquido.</p></div>
+      </details>
+      <details>
+        <summary>Quem trabalhou só parte do ano recebe 13º?</summary>
+        <div><p>Sim, proporcional: 1/12 do salário para cada mês em que trabalhou pelo menos <span data-tabela="clt.diasMinimosParaContarMes" data-formato="int"></span> dias. Quem foi contratado em agosto, por exemplo, recebe 5/12 em dezembro (agosto a dezembro).</p></div>
+      </details>
+      <details>
+        <summary>Afastamento e faltas mexem no 13º?</summary>
+        <div><p>Faltas sem justificativa podem tirar o mês da conta, se passarem do limite que deixa o mês com menos de <span data-tabela="clt.diasMinimosParaContarMes" data-formato="int"></span> dias trabalhados. Afastamento pelo INSS por mais de 15 dias: a empresa paga a parte até o afastamento, e o INSS paga o abono anual do período do benefício.</p></div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- PONTE PARA O WARDEN COBRANÇA -->
+<section class="tool-bridge">
+  <div class="section-inner">
+    <div data-ponte-cobranca data-titulo="Fim de ano é quando todo cliente atrasa." data-texto="O Warden Cobrança cobra seus clientes no WhatsApp, com Pix, e lembra antes do vencimento. Seu dezembro sem dinheiro preso."></div>
+  </div>
+</section>
+
+<script src="/assets/tabelas-2026.js"></script>
+<script src="/assets/tools.js"></script>
+<script>
+  const { formatBRL: brl, formatPct, parseNumero, campoBRL, cardResultado, impostos13, demonstrativo, centavos } = Warden;
+  const TAB = window.WARDEN_TABELAS;
+  const $ = id => document.getElementById(id);
+
+  ['salario', 'media'].forEach(id => campoBRL($(id)));
+  const dinheiro = id => { const v = parseNumero($(id).value); return isFinite(v) && v > 0 ? v : 0; };
+
+  function calcular() {
+    const salario = dinheiro('salario'), media = dinheiro('media');
+    const meses = Math.min(12, Math.max(1, Math.round(parseFloat($('meses').value) || 12)));
+    const dep = Math.max(0, Math.round(parseFloat($('dependentes').value) || 0));
+
+    // 13º = (salário + média de variáveis) × meses ÷ 12
+    const total = centavos((salario + media) * meses / 12);
+    const primeira = centavos(total / 2);                 // metade, sem descontos
+    const imp = impostos13(total, dep);                   // INSS e IR sobre o 13º inteiro (tributação exclusiva)
+    const segunda = centavos(total - primeira - imp.inss - imp.ir.irDevido);
+
+    $('resultados').innerHTML = [
+      cardResultado({
+        titulo: '1ª parcela', descricao: `Até ${TAB.clt.prazo13PrimeiraParcela}, sem descontos`,
+        rotulo: 'Você recebe', valor: brl(primeira)
+      }),
+      cardResultado({
+        titulo: '2ª parcela', descricao: `Até ${TAB.clt.prazo13SegundaParcela}, com INSS e IR do 13º inteiro`,
+        rotulo: 'Você recebe', valor: brl(segunda),
+        linhas: [['INSS', brl(imp.inss)], ['Imposto de Renda', brl(imp.ir.irDevido)]]
+      }),
+      cardResultado({
+        titulo: '13º líquido', destaque: true, descricao: `${meses}/12 de ${brl(salario + media)}`,
+        rotulo: 'Total das duas parcelas', valor: brl(primeira + segunda),
+        linhas: [['13º bruto', brl(total)], ['Descontos', brl(imp.inss + imp.ir.irDevido)]]
+      })
+    ].join('');
+
+    $('demo').innerHTML = demonstrativo([
+      { rotulo: '13º bruto', valor: total, tipo: 'subtotal', nota: `(${brl(salario)}${media ? ` + média de ${brl(media)}` : ''}) × ${meses}/12` },
+      { rotulo: '1ª parcela (adiantamento)', valor: primeira, tipo: 'menos', nota: `Paga até ${TAB.clt.prazo13PrimeiraParcela}, sem descontos` },
+      { rotulo: 'INSS sobre o 13º inteiro', valor: imp.inss, tipo: 'menos' },
+      { rotulo: 'IR pela tabela', valor: imp.ir.impostoTabela, tipo: 'info', nota: `Base: ${brl(imp.ir.base)} (13º − INSS${dep ? ' − dependentes' : ''})` },
+      imp.ir.reducao > 0 && { rotulo: `Redução de ${TAB.ano}`, valor: imp.ir.reducao, tipo: 'info', texto: '− ' + brl(imp.ir.reducao) },
+      { rotulo: 'Imposto de Renda', valor: imp.ir.irDevido, tipo: 'menos' },
+      { rotulo: '2ª parcela', valor: segunda, tipo: 'total' }
+    ]);
+    $('dt-obs').textContent = `Tributação exclusiva do 13º: INSS e IR calculados só sobre o 13º (tabelas de ${TAB.ano}).`;
+  }
+
+  ['salario', 'meses', 'media', 'dependentes'].forEach(id => $(id).addEventListener('input', calcular));
+  calcular();
+</script>
+
+</body>
+</html>

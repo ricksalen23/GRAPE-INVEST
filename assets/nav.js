@@ -28,12 +28,12 @@ const FERRAMENTAS = [
     { nome: 'Conversor de taxas', url: '/ferramentas/conversor-de-taxas.html', disponivel: true }
   ] },
   { categoria: 'Trabalho (CLT)', icone: 'clt', itens: [
-    { nome: 'Salário líquido', url: '/ferramentas/salario-liquido.html', disponivel: false },
-    { nome: 'Rescisão', url: '/ferramentas/rescisao.html', disponivel: false },
-    { nome: 'Férias', url: '/ferramentas/ferias.html', disponivel: false },
-    { nome: '13º salário', url: '/ferramentas/decimo-terceiro.html', disponivel: false },
-    { nome: 'Hora extra', url: '/ferramentas/hora-extra.html', disponivel: false },
-    { nome: 'CLT x PJ', url: '/ferramentas/clt-x-pj.html', disponivel: false }
+    { nome: 'Salário líquido', url: '/ferramentas/salario-liquido.html', disponivel: true },
+    { nome: 'Rescisão', url: '/ferramentas/rescisao.html', disponivel: true },
+    { nome: 'Férias', url: '/ferramentas/ferias.html', disponivel: true },
+    { nome: '13º salário', url: '/ferramentas/decimo-terceiro.html', disponivel: true },
+    { nome: 'Hora extra', url: '/ferramentas/hora-extra.html', disponivel: true },
+    { nome: 'CLT x PJ', url: '/ferramentas/clt-x-pj.html', disponivel: true }
   ] },
   { categoria: 'MEI e autônomo', icone: 'mei', itens: [
     { nome: 'Quanto cobrar por hora', url: '/ferramentas/quanto-cobrar-por-hora.html', disponivel: true },

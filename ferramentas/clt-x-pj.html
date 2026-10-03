@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>CLT ou PJ? Calculadora que compara salário e faturamento | Warden</title>
+<meta name="description" content="Compare uma proposta CLT com uma PJ: salário, 13º, férias, FGTS e benefícios contra faturamento, impostos, contador e INSS. Descubra qual faturamento PJ empata.">
+<link rel="canonical" href="https://wardenfinance.com.br/ferramentas/clt-x-pj.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="CLT ou PJ? | Warden">
+<meta property="og:description" content="O pacote CLT completo contra o líquido PJ, e o faturamento que empata.">
+<meta property="og:url" content="https://wardenfinance.com.br/ferramentas/clt-x-pj.html">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/warden.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Calculadora CLT x PJ",
+  "url": "https://wardenfinance.com.br/ferramentas/clt-x-pj.html",
+  "applicationCategory": "FinanceApplication",
+  "operatingSystem": "Any",
+  "inLanguage": "pt-BR",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "BRL" },
+  "publisher": { "@type": "Organization", "name": "Warden", "url": "https://wardenfinance.com.br/" }
+}
+</script>
+<style>
+  /* ===== CLT x PJ (só desta página; estrutura e componentes vêm do /assets/warden.css) ===== */
+  .cp-colunas { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+  .cp-colunas .tool-card { display: flex; flex-direction: column; gap: 22px; }
+  .cp-colunas h2 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 1.35rem; }
+  .cp-colunas .tool-fields { grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 20px 22px; }
+  .cp-check { display: flex; gap: 10px; align-items: flex-start; font-size: .86rem; color: var(--muted); line-height: 1.5; cursor: pointer; }
+  .cp-check input { accent-color: var(--accent); width: 16px; height: 16px; margin-top: 2px; flex-shrink: 0; cursor: pointer; }
+  .cp-check strong { color: var(--text); font-weight: 600; }
+  .cp-demo { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; margin-top: 20px; align-items: start; }
+  .cp-demo h2 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 1.2rem; margin-bottom: 12px; }
+  .cp-obs { margin-top: 16px; }
+
+  @media (max-width: 900px) {
+    .cp-colunas, .cp-demo { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<script src="/assets/nav.js"></script>
+
+<section class="tool-top">
+  <div class="section-inner">
+
+    <header class="tool-head">
+      <div class="tool-crumbs" data-crumbs></div>
+      <h1 class="tool-title">CLT ou PJ: qual proposta paga mais?</h1>
+      <p class="tool-lead">Um salário CLT vem com 13º, férias, FGTS e benefícios. Um contrato PJ paga mais por mês, mas tem impostos, contador e nenhum desses extras. Coloque as duas propostas e veja qual sai na frente, e qual faturamento PJ empata com a CLT.</p>
+    </header>
+
+    <!-- ENTRADAS -->
+    <form class="cp-colunas" id="cp-form" onsubmit="return false">
+      <div class="tool-card">
+        <h2>Proposta CLT</h2>
+        <div class="tool-fields">
+          <div class="tool-field">
+            <label for="salario">Salário bruto</label>
+            <div class="tool-input"><span class="pre">R$</span><input type="text" id="salario" value="8000"></div>
+          </div>
+          <div class="tool-field">
+            <label for="dependentes">Dependentes</label>
+            <div class="tool-input"><input type="number" id="dependentes" value="0" min="0" max="20" step="1" inputmode="numeric"></div>
+          </div>
+          <div class="tool-field">
+            <label for="vr">Vale-refeição/alimentação <span class="opc">(mês)</span></label>
+            <div class="tool-input"><span class="pre">R$</span><input type="text" id="vr" value="800"></div>
+          </div>
+          <div class="tool-field">
+            <label for="plano">Plano de saúde pago pela empresa <span class="opc">(mês)</span></label>
+            <div class="tool-input"><span class="pre">R$</span><input type="text" id="plano" value="500"></div>
+          </div>
+          <div class="tool-field">
+            <label for="outros">Outros benefícios <span class="opc">(mês)</span></label>
+            <div class="tool-input"><span class="pre">R$</span><input type="text" id="outros" placeholder="0,00"></div>
+            <span class="tool-hint">Auxílio home office, PLR mensalizada…</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="tool-card">
+        <h2>Proposta PJ</h2>
+        <div class="tool-fields">
+          <div class="tool-field">
+            <label for="faturamento">Faturamento mensal</label>
+            <div class="tool-input"><span class="pre">R$</span><input type="text" id="faturamento" value="12000"></div>
+          </div>
+          <div class="tool-field">
+            <label for="imposto">Imposto sobre a nota</label>
+            <div class="tool-input"><input type="number" id="imposto" min="0" max="50" step="0.1" inputmode="decimal"><span class="suf">%</span></div>
+            <span class="tool-hint">Ex.: Simples Nacional, Anexo III</span>
+          </div>
+          <div class="tool-field">
+            <label for="contador">Contador <span class="opc">(mês)</span></label>
+            <div class="tool-input"><span class="pre">R$</span><input type="text" id="contador" value="300"></div>
+          </div>
+          <div class="tool-field">
+            <label for="prolabore">Pró-labore</label>
+            <div class="tool-input"><span class="pre">R$</span><input type="text" id="prolabore"></div>
+            <span class="tool-hint">Base do seu INSS; costuma ser o salário mínimo</span>
+          </div>
+          <div class="tool-field">
+            <label for="inss">INSS próprio</label>
+            <div class="tool-input"><input type="number" id="inss" min="0" max="30" step="0.5" inputmode="decimal"><span class="suf">% do pró-labore</span></div>
+          </div>
+        </div>
+        <label class="cp-check"><input type="checkbox" id="reserva" checked><span><strong>Separar uma reserva para férias e 13º</strong>, guardando todo mês o equivalente a um 13º e um terço de férias por ano</span></label>
+      </div>
+    </form>
+
+    <!-- RESULTADO -->
+    <div class="tool-card tool-veredito" aria-live="polite">
+      <p class="section-label">Resultado</p>
+      <h2 id="veredito"></h2>
+      <p id="veredito-texto"></p>
+    </div>
+
+    <div class="result-grid" id="resultados"></div>
+
+    <div class="cp-demo">
+      <div class="tool-card">
+        <h2>Pacote CLT em um ano</h2>
+        <ul class="tool-demo" id="demo-clt"></ul>
+      </div>
+      <div class="tool-card">
+        <h2>PJ em um ano</h2>
+        <ul class="tool-demo" id="demo-pj"></ul>
+      </div>
+    </div>
+    <p class="tool-obs cp-obs" id="cp-obs"></p>
+
+  </div>
+</section>
+
+<!-- EXPLICAÇÃO + FAQ -->
+<section class="tool-prose-section">
+  <div class="section-inner">
+    <article class="tool-prose">
+      <h2>Como comparar CLT e PJ de forma justa</h2>
+      <p>O erro mais comum é comparar o salário CLT com o faturamento PJ. Para comparar de verdade, é preciso olhar <strong>o ano inteiro e o que sobra no bolso</strong> nas duas propostas.</p>
+
+      <h3>O pacote CLT</h3>
+      <ul>
+        <li><strong>12 salários líquidos</strong>, já sem INSS e Imposto de Renda (um deles vem como férias).</li>
+        <li><strong>13º salário</strong> e <strong>1/3 de férias</strong>, também líquidos.</li>
+        <li><strong>FGTS</strong> de <span data-tabela="clt.fgts" data-formato="pct"></span> sobre salário, 13º e férias, depositado pela empresa. É seu, mas só dá para sacar em situações específicas.</li>
+        <li><strong>Benefícios</strong>: vale-refeição, plano de saúde e outros que você teria que pagar do bolso como PJ.</li>
+      </ul>
+
+      <h3>O PJ</h3>
+      <ul>
+        <li><strong>Faturamento</strong> menos o <strong>imposto</strong> da nota (no Simples Nacional, a alíquota inicial do Anexo III é <span data-tabela="pj.impostoPadrao" data-formato="pct"></span> e pode mudar conforme o faturamento e o fator R).</li>
+        <li><strong>Contador</strong>, obrigatório para quem não é MEI.</li>
+        <li><strong>INSS próprio</strong>: <span data-tabela="pj.inssProprioPadrao" data-formato="pct"></span> sobre o pró-labore, normalmente de um salário mínimo.</li>
+      </ul>
+
+      <h3>O que a conta não mostra</h3>
+      <p>Na CLT você tem seguro-desemprego, multa do FGTS na demissão, aviso prévio, licenças remuneradas e um INSS que conta para a aposentadoria pelo salário cheio. No PJ, você negocia valores e horários com mais liberdade, mas fica sem esses direitos e precisa montar a própria <a href="/ferramentas/reserva-de-emergencia.html">reserva de emergência</a>. Muita gente considera que o PJ precisa render pelo menos 20% a 40% a mais para compensar. Quer saber quanto cobrar como PJ? Use a calculadora de <a href="/ferramentas/quanto-cobrar-por-hora.html">quanto cobrar por hora</a>.</p>
+
+      <p class="tool-disclaimer" data-aviso-educativo>Comparação simplificada. Não considera Imposto de Renda sobre o pró-labore, mudança de faixa do Simples, retenções na fonte, ISS fora do Simples, nem o valor de direitos como seguro-desemprego e estabilidade. Tabelas de INSS e IR de <span data-tabela="ano"></span>.</p>
+    </article>
+
+    <div class="tool-faq" data-faq>
+      <h2>Perguntas frequentes</h2>
+      <details>
+        <summary>Quanto o PJ precisa ganhar a mais que a CLT?</summary>
+        <div><p>Depende muito dos benefícios: sem vale-refeição e plano de saúde, o empate fica pouco acima do salário bruto; com bons benefícios, sobe bastante. Por isso a calculadora mostra o faturamento PJ que empata com o seu pacote CLT. Acima dele o PJ começa a compensar, e a margem extra paga a falta de direitos como seguro-desemprego e FGTS na demissão.</p></div>
+      </details>
+      <details>
+        <summary>PJ tem 13º e férias?</summary>
+        <div><p>Não por lei. Você pode negociar com a empresa um mês de descanso remunerado ou um bônus no fim do ano, mas, se não estiver no contrato, precisa guardar dinheiro por conta própria. Por isso a calculadora tem a opção de separar uma reserva todo mês.</p></div>
+      </details>
+      <details>
+        <summary>Contratar como PJ quem trabalha como empregado é legal?</summary>
+        <div><p>Não. Se houver subordinação, horário fixo, pessoalidade e salário mensal, a relação é de emprego, mesmo com contrato PJ (a chamada "pejotização"). Nesses casos a Justiça do Trabalho pode reconhecer o vínculo e mandar pagar todos os direitos da CLT.</p></div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- PONTE PARA O WARDEN COBRANÇA -->
+<section class="tool-bridge">
+  <div class="section-inner">
+    <div data-ponte-cobranca data-titulo="Virou PJ? Nota emitida não é dinheiro na conta." data-texto="O Warden Cobrança cobra seus clientes no WhatsApp, com Pix, lembra antes do vencimento e confirma o pagamento sozinho."></div>
+  </div>
+</section>
+
+<script src="/assets/tabelas-2026.js"></script>
+<script src="/assets/tools.js"></script>
+<script>
+  const { formatBRL: brl, formatPct, parseNumero, campoBRL, cardResultado, salarioLiquido, impostos13, impostosFerias, demonstrativo, centavos } = Warden;
+  const TAB = window.WARDEN_TABELAS, CLT = TAB.clt;
+  const $ = id => document.getElementById(id);
+
+  // padrões vindos das tabelas (nenhum número de lei escrito na página)
+  $('imposto').value = TAB.pj.impostoPadrao * 100;
+  $('inss').value = TAB.pj.inssProprioPadrao * 100;
+  $('prolabore').value = TAB.salarioMinimo.valor;
+  ['salario', 'vr', 'plano', 'outros', 'faturamento', 'contador', 'prolabore'].forEach(id => campoBRL($(id)));
+  const dinheiro = id => { const v = parseNumero($(id).value); return isFinite(v) && v > 0 ? v : 0; };
+  const pct = id => { const v = parseFloat($(id).value); return isFinite(v) && v > 0 ? v / 100 : 0; };
+
+  // pacote CLT anual, líquido: 11 meses de salário + 1 mês de férias (com 1/3) + 13º + FGTS + benefícios
+  function pacoteCLT(salario, dep, beneficiosMes) {
+    const mes = salarioLiquido(salario, dep);
+    const ferias = impostosFerias(salario * (1 + CLT.tercoFerias), dep);
+    const decimo = impostos13(salario, dep);
+    const fgts = centavos(CLT.fgts * (12 * salario + salario + salario * CLT.tercoFerias));
+    const beneficios = centavos(beneficiosMes * 12);
+    const total = centavos(11 * mes.liquido + ferias.liquido + decimo.liquido + fgts + beneficios);
+    return { mes, ferias, decimo, fgts, beneficios, total };
+  }
+
+  function calcular() {
+    const salario = dinheiro('salario'), dep = Math.max(0, Math.round(parseFloat($('dependentes').value) || 0));
+    const beneficiosMes = dinheiro('vr') + dinheiro('plano') + dinheiro('outros');
+    const F = dinheiro('faturamento'), imp = pct('imposto'), contador = dinheiro('contador');
+    const inssPJ = centavos(dinheiro('prolabore') * pct('inss'));
+    const comReserva = $('reserva').checked;
+
+    const clt = pacoteCLT(salario, dep, beneficiosMes);
+    const impostoPJ = centavos(F * imp);
+    const liquidoPJ = centavos(F - impostoPJ - contador - inssPJ);
+    const anualPJ = centavos(12 * liquidoPJ);
+    // reserva: guardar por mês o equivalente a um 13º + 1/3 de férias por ano (não é custo, é o seu dinheiro guardado)
+    const reserva = comReserva ? centavos(liquidoPJ * (1 + CLT.tercoFerias) / 12) : 0;
+    // faturamento que empata: 12 × (F × (1 − imposto) − contador − INSS) = pacote CLT
+    const empate = imp < 1 ? centavos((clt.total / 12 + contador + inssPJ) / (1 - imp)) : Infinity;
+    const dif = centavos(anualPJ - clt.total);
+
+    if (salario <= 0 || F <= 0) {
+      $('veredito').textContent = 'Preencha o salário CLT e o faturamento PJ.';
+      $('veredito-texto').textContent = '';
+    } else if (Math.abs(dif) < 12) {
+      $('veredito').innerHTML = '<em>Empate</em>: as duas propostas rendem praticamente o mesmo por ano.';
+      $('veredito-texto').textContent = 'Nesse caso, os direitos da CLT (seguro-desemprego, multa do FGTS, estabilidade) costumam pesar a favor dela.';
+    } else if (dif > 0) {
+      $('veredito').innerHTML = `O <em>PJ</em> rende ${brl(dif)} a mais por ano.`;
+      $('veredito-texto').innerHTML = `São ${brl(dif / 12)} por mês acima do pacote CLT completo. O PJ empata com a CLT a partir de <strong>${brl(empate)}</strong> de faturamento mensal; você está ${formatPct((F / empate - 1) * 100, { casas: 0 })} acima disso.`;
+    } else {
+      $('veredito').innerHTML = `A <em>CLT</em> rende ${brl(-dif)} a mais por ano.`;
+      $('veredito-texto').innerHTML = `Para empatar com o pacote CLT, o PJ precisaria faturar <strong>${brl(empate)}</strong> por mês, ${brl(empate - F)} a mais que a proposta.`;
+    }
+
+    $('resultados').innerHTML = [
+      cardResultado({
+        titulo: 'Pacote CLT', descricao: 'Líquido do ano, com 13º, férias, FGTS e benefícios',
+        rotulo: 'Por mês, em média', valor: brl(clt.total / 12), destaque: dif < -12,
+        linhas: [['No ano', brl(clt.total)], ['Salário líquido do mês', brl(clt.mes.liquido)]]
+      }),
+      cardResultado({
+        titulo: 'PJ', descricao: `${brl(F)} de faturamento por mês`,
+        rotulo: 'Líquido por mês', valor: brl(liquidoPJ), destaque: dif > 12,
+        linhas: [['No ano', brl(anualPJ)], comReserva ? ['Disponível após a reserva', brl(liquidoPJ - reserva)] : ['Reserva para férias e 13º', 'não separada']]
+      }),
+      cardResultado({
+        titulo: 'Faturamento que empata', descricao: 'Faturamento PJ mensal com o mesmo líquido anual da CLT',
+        rotulo: 'Por mês', valor: isFinite(empate) ? brl(empate) : '—',
+        linhas: [['Acima do salário CLT', salario > 0 && isFinite(empate) ? formatPct((empate / salario - 1) * 100, { casas: 0 }) : '—']]
+      })
+    ].join('');
+
+    $('demo-clt').innerHTML = demonstrativo([
+      { rotulo: '11 salários líquidos', valor: 11 * clt.mes.liquido, nota: `${brl(clt.mes.liquido)} por mês (INSS ${brl(clt.mes.inss)}, IR ${brl(clt.mes.ir.irDevido)})` },
+      { rotulo: 'Férias + 1/3 líquidas', valor: clt.ferias.liquido, nota: 'O 12º mês do ano' },
+      { rotulo: '13º líquido', valor: clt.decimo.liquido },
+      { rotulo: `FGTS (${formatPct(CLT.fgts * 100, { curto: true })})`, valor: clt.fgts, nota: 'Depositado pela empresa, sem desconto' },
+      clt.beneficios > 0 && { rotulo: 'Benefícios', valor: clt.beneficios, nota: `${brl(beneficiosMes)} por mês` },
+      { rotulo: 'Pacote CLT no ano', valor: clt.total, tipo: 'total' }
+    ]);
+    $('demo-pj').innerHTML = demonstrativo([
+      { rotulo: 'Faturamento', valor: 12 * F, tipo: 'subtotal', nota: `${brl(F)} × 12` },
+      { rotulo: `Imposto (${formatPct(imp * 100, { curto: true })})`, valor: 12 * impostoPJ, tipo: 'menos' },
+      contador > 0 && { rotulo: 'Contador', valor: 12 * contador, tipo: 'menos' },
+      inssPJ > 0 && { rotulo: 'INSS próprio', valor: 12 * inssPJ, tipo: 'menos', nota: `${brl(inssPJ)} por mês` },
+      { rotulo: 'PJ líquido no ano', valor: anualPJ, tipo: 'total' },
+      comReserva && { rotulo: 'Dos quais, reserva para férias e 13º', valor: 12 * reserva, tipo: 'info', texto: brl(12 * reserva), nota: `${brl(reserva)} por mês` }
+    ]);
+    $('cp-obs').textContent = `CLT: INSS e IR pelas tabelas de ${TAB.ano}. PJ: imposto sobre o faturamento e INSS sobre o pró-labore; sem IR sobre o pró-labore e com distribuição de lucros isenta.`;
+  }
+
+  ['salario', 'dependentes', 'vr', 'plano', 'outros', 'faturamento', 'imposto', 'contador', 'prolabore', 'inss'].forEach(id => $(id).addEventListener('input', calcular));
+  $('reserva').addEventListener('change', calcular);
+  calcular();
+</script>
+
+</body>
+</html>

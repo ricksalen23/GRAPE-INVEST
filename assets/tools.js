@@ -19,7 +19,8 @@
  *          taxaMensal, taxaMensalDe, parcelaPrice, aporteNecessario, serieAcumulacao,
  *          campoRendimento, copiarTexto, cardResultado, estiloGrafico,
  *          validarCpf/validarCnpj/validarDocumento + máscaras, valorPorExtenso, formatDataLonga, linkWhatsApp,
- *          novoPdf/textoPdf/rodapePdf (jsPDF) e imprimir(elemento).
+ *          novoPdf/textoPdf/rodapePdf (jsPDF) e imprimir(elemento),
+ *          calcINSS/calcIRRF/salarioLiquido/impostos13/impostosFerias (precisam de /assets/tabelas-2026.js).
  */
 (function () {
   /* ===== FORMATAÇÃO ===== */
@@ -302,6 +303,73 @@
     CONFIG: RENDA_FIXA, HOJE, DIA_MS, somarMeses, diasAte, fmtData: fmtDataUTC, calendarioMeses, ultimoMesAte,
     prazo: prazoRendaFixa, depositos: depositosRendaFixa, opcoes: opcoesRendaFixa, simular: simularRendaFixa
   };
+
+  /* ===== TRABALHO (CLT): INSS e IRRF =====
+   * Todos os números (faixas, alíquotas, deduções, redução de 2026) vêm de /assets/tabelas-2026.js → window.WARDEN_TABELAS.
+   * Nada de valor de lei escrito aqui. A página carrega tabelas-2026.js ANTES deste arquivo. */
+  const tabelas = () => {
+    if (!window.WARDEN_TABELAS) throw new Error('Carregue /assets/tabelas-2026.js antes de /assets/tools.js');
+    return window.WARDEN_TABELAS;
+  };
+  // arredonda para centavos, meio centavo para cima (121,575 → 121,58). O toFixed(6) limpa o erro do ponto flutuante
+  // (121,575 fica guardado como 121,57499999… na memória e arredondaria errado para baixo)
+  const centavos = v => Math.round(Number((v * 100).toFixed(6))) / 100;
+
+  // INSS do empregado, progressivo: cada alíquota só sobre a parte do salário dentro da faixa; limitado ao teto
+  function calcINSS(bruto) {
+    const t = tabelas().inss;
+    let inss = 0, anterior = 0;
+    for (const f of t.faixas) {
+      if (bruto <= anterior) break;
+      inss += (Math.min(bruto, f.ate) - anterior) * f.aliquota;
+      anterior = f.ate;
+    }
+    return centavos(Math.min(inss, t.contribuicaoMaxima));
+  }
+
+  // IRRF do mês. bruto = rendimento tributável; inss = já arredondado (calcINSS); dependentes = quantidade.
+  // opções: simplificado (usar o maior entre desconto simplificado e INSS + dependentes), reducao (redução de 2026).
+  // → { base, deducao, usouSimplificado, aliquota, impostoTabela, reducao, irDevido }
+  function calcIRRF(bruto, inss = 0, dependentes = 0, { simplificado = true, reducao = true } = {}) {
+    const t = tabelas().irrf;
+    const legais = inss + dependentes * t.deducaoPorDependente;
+    const usouSimplificado = simplificado && t.descontoSimplificado > legais;
+    const deducao = usouSimplificado ? t.descontoSimplificado : legais;
+    const base = Math.max(0, bruto - deducao);
+    const faixa = t.faixas.find(f => base <= f.ate);
+    const impostoTabela = centavos(Math.max(0, base * faixa.aliquota - faixa.deduzir));
+    // redução de 2026: sobre o BRUTO do mês, limitada ao imposto
+    let red = 0;
+    if (reducao) {
+      const r = t.reducao;
+      if (bruto <= r.ateBruto) red = Math.min(r.valorMaximo, impostoTabela);
+      else if (bruto <= r.faixaDecrescenteAte) red = Math.min(Math.max(0, r.constante - r.fatorBruto * bruto), impostoTabela);
+    }
+    red = centavos(red);
+    return { base: centavos(base), deducao: centavos(deducao), usouSimplificado, aliquota: faixa.aliquota,
+             impostoTabela, reducao: red, irDevido: centavos(impostoTabela - red) };
+  }
+
+  // salário do mês: INSS + IRRF (com simplificado e redução) → { inss, ir, liquido }  (outros descontos à parte)
+  function salarioLiquido(bruto, dependentes = 0) {
+    const inss = calcINSS(bruto);
+    const ir = calcIRRF(bruto, inss, dependentes);
+    return { bruto, inss, ir, liquido: centavos(bruto - inss - ir.irDevido) };
+  }
+
+  // 13º (tributação exclusiva) e férias (em separado): mesmas funções, com as regras de cada um nas tabelas
+  function impostos13(bruto13, dependentes = 0) {
+    const t = tabelas().irrf;
+    const inss = calcINSS(bruto13);
+    const ir = calcIRRF(bruto13, inss, dependentes, { simplificado: t.simplificadoNo13, reducao: t.reducaoNo13 });
+    return { inss, ir, liquido: centavos(bruto13 - inss - ir.irDevido) };
+  }
+  function impostosFerias(brutoFerias, dependentes = 0) {
+    const t = tabelas().irrf;
+    const inss = calcINSS(brutoFerias);
+    const ir = calcIRRF(brutoFerias, inss, dependentes, { simplificado: t.simplificadoEmFerias, reducao: t.reducaoEmFerias });
+    return { inss, ir, liquido: centavos(brutoFerias - inss - ir.irDevido) };
+  }
 
   /* ===== MATEMÁTICA FINANCEIRA ===== */
   // taxa anual em % → taxa mensal equivalente (decimal). 12% a.a. → 0,009489
@@ -676,6 +744,40 @@
     });
   }
 
+  // Demonstrativo linha a linha (.tool-demo). linhas: [{ rotulo, valor, tipo, nota, tag, texto }]
+  // tipo: 'mais' (soma), 'menos' (desconto, mostra "− R$"), 'info' (só informação), 'subtotal', 'total'. texto substitui o valor.
+  function demonstrativo(linhas) {
+    return linhas.filter(Boolean).map(l => {
+      const tipo = l.tipo || 'mais';
+      const val = l.texto !== undefined ? l.texto : (tipo === 'menos' ? '− ' : '') + formatBRL(Math.abs(l.valor));
+      return `<li class="${tipo}"><span class="rot">${l.rotulo}${l.tag ? `<span class="tag">${l.tag}</span>` : ''}${l.nota ? `<small>${l.nota}</small>` : ''}</span><span class="val">${val}</span></li>`;
+    }).join('');
+  }
+
+  // Barra de composição (.tool-barra + .tool-barra-legenda). partes: [{ nome, valor, cor }]; total = soma (ou informado).
+  // → { barra, legenda } (HTML). Partes zeradas ficam de fora.
+  function barraComposicao(partes, total) {
+    const ps = partes.filter(p => p.valor > 0.005);
+    const t = total || ps.reduce((s, p) => s + p.valor, 0);
+    return {
+      barra: ps.map(p => `<span style="width:${t > 0 ? p.valor / t * 100 : 0}%;background:${p.cor}" title="${p.nome}"></span>`).join(''),
+      legenda: ps.map(p => `<li style="--cor:${p.cor}">${p.nome}<strong>${formatBRL(p.valor)}</strong>${t > 0 ? formatPct(p.valor / t * 100, { casas: 1 }) : ''}</li>`).join('')
+    };
+  }
+
+  // <span data-tabela="irrf.reducao.ateBruto" data-formato="brl"></span> → valor das tabelas oficiais (tabelas-2026.js)
+  // formatos: brl (R$), pct (decimal → %), int (número inteiro), texto (como está). Textos explicativos nunca escrevem valor de lei.
+  function montarTabelasNoTexto() {
+    const els = document.querySelectorAll('[data-tabela]');
+    if (!els.length || !window.WARDEN_TABELAS) return;
+    els.forEach(el => {
+      const v = el.dataset.tabela.split('.').reduce((o, k) => (o == null ? o : o[k]), window.WARDEN_TABELAS);
+      if (v == null) return;
+      const f = el.dataset.formato;
+      el.textContent = f === 'brl' ? formatBRL(v) : f === 'pct' ? formatPct(v * 100, { curto: true }) : f === 'int' ? formatNumero(v, { casas: 0 }) : String(v);
+    });
+  }
+
   function montarPontes() {
     document.querySelectorAll('[data-ponte-cobranca]').forEach(el => {
       el.classList.add('cobranca-card');
@@ -706,6 +808,7 @@
   }
 
   montarCrumbs();
+  montarTabelasNoTexto();
   montarRendimentos();
   montarPontes();
   montarAvisos();
@@ -715,11 +818,12 @@
     formatBRL, formatBRLCompacto, formatNumero, formatPct, parseNumero, campoBRL,
     TAXAS_REFERENCIA, getTaxasBCB, fonteTaxa,
     IR_REGRESSIVO, aliquotaIR, liquidaDeIR, rendaFixa,
+    calcINSS, calcIRRF, salarioLiquido, impostos13, impostosFerias, centavos,
     taxaMensal, taxaMensalDe, parcelaPrice, aporteNecessario, serieAcumulacao,
     campoRendimento, copiarTexto,
     validarCpf, validarCnpj, validarDocumento, mascaraCpf, mascaraCnpj, mascaraDocumento,
     valorPorExtenso, formatDataLonga, linkWhatsApp,
     PDF, novoPdf, textoPdf, rodapePdf, imprimir,
-    cardResultado, estiloGrafico
+    cardResultado, estiloGrafico, demonstrativo, barraComposicao
   };
 })();
