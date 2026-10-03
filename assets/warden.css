@@ -563,3 +563,12 @@ section { padding: 96px 5%; position: relative; }
   .tool-doc { grid-template-columns: 1fr; }
   .tool-doc-previa { position: static; }
 }
+
+/* veredito: a resposta da ferramenta numa frase grande (ex.: "Pague à vista. Você economiza R$ 25,51.")
+   <div class="tool-card tool-veredito"><p class="section-label">…</p><h2>… <em>destaque</em> …</h2><p>explicação</p></div> */
+.tool-veredito { margin-top: 28px; border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.tool-veredito .section-label { margin-bottom: 8px; }
+.tool-veredito h2 { font-family: 'Fraunces', serif; font-weight: 600; font-size: clamp(1.6rem, 3.4vw, 2.3rem); line-height: 1.15; letter-spacing: -.01em; }
+.tool-veredito h2 em { font-style: normal; color: var(--accent); }
+.tool-veredito p { margin-top: 10px; color: var(--muted); font-size: .95rem; line-height: 1.6; max-width: 760px; }
+.tool-veredito p strong { color: var(--text); font-weight: 600; }

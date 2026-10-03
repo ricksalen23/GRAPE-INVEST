@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Conversor de taxas: ao mês, ao ano, dia útil e % do CDI | Warden</title>
+<meta name="description" content="Converta juros ao mês para ao ano (e vice-versa), taxa ao dia útil e % do CDI, com juros compostos e o CDI de hoje do Banco Central. Com tabela de equivalências.">
+<link rel="canonical" href="https://wardenfinance.com.br/ferramentas/conversor-de-taxas.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Conversor de taxas de juros | Warden">
+<meta property="og:description" content="Ao mês, ao ano, ao dia útil e % do CDI, com juros compostos.">
+<meta property="og:url" content="https://wardenfinance.com.br/ferramentas/conversor-de-taxas.html">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/warden.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Conversor de Taxas de Juros",
+  "url": "https://wardenfinance.com.br/ferramentas/conversor-de-taxas.html",
+  "applicationCategory": "FinanceApplication",
+  "operatingSystem": "Any",
+  "inLanguage": "pt-BR",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "BRL" },
+  "publisher": { "@type": "Organization", "name": "Warden", "url": "https://wardenfinance.com.br/" }
+}
+</script>
+<style>
+  /* ===== CONVERSOR DE TAXAS (só desta página; estrutura e componentes vêm do /assets/warden.css) ===== */
+  .ct-form { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) auto minmax(0, 1fr); gap: 20px 18px; align-items: end; }
+  .ct-form .tool-input select { flex: 1; font-size: .98rem; }
+  .ct-trocar {
+    width: 40px; height: 40px; margin-bottom: 4px; border-radius: 10px; border: 1px solid var(--border); background: none; color: var(--text);
+    font-size: 1.1rem; cursor: pointer; transition: border-color .2s;
+  }
+  .ct-trocar:hover { border-color: var(--text); }
+  .ct-trocar:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
+  .ct-tambem { list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px 20px; margin-top: 18px; }
+  .ct-tambem li { font-size: .8rem; color: var(--muted); display: flex; flex-direction: column; gap: 2px; }
+  .ct-tambem strong { font-family: 'IBM Plex Mono', monospace; font-size: 1rem; color: var(--text); font-weight: 600; }
+  .ct-tabelas { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; margin-top: 20px; }
+  .ct-tabelas .tool-card { padding: 22px 0 6px; }
+  .ct-tabelas h2 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 1.15rem; padding: 0 24px; margin-bottom: 4px; }
+  .ct-tabelas p { font-size: .82rem; color: var(--muted); padding: 0 24px; margin-bottom: 14px; }
+  .ct-tabelas .tool-table-wrap { max-height: none; }
+  .ct-obs { margin-top: 16px; }
+
+  @media (max-width: 760px) {
+    .ct-form { grid-template-columns: 1fr 1fr; }
+    .ct-form .ct-valor { grid-column: 1 / -1; }
+    .ct-trocar { display: none; }
+    .ct-tabelas { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ct-trocar { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<script src="/assets/nav.js"></script>
+
+<section class="tool-top">
+  <div class="section-inner">
+
+    <header class="tool-head">
+      <div class="tool-crumbs" data-crumbs></div>
+      <h1 class="tool-title">Conversor de taxas de juros</h1>
+      <p class="tool-lead">1% ao mês não é 12% ao ano. Converta taxas entre mês, ano, dia útil e porcentagem do CDI, com juros compostos, do jeito que bancos e corretoras calculam.</p>
+    </header>
+
+    <!-- ENTRADAS -->
+    <form class="tool-card ct-form" id="ct-form" onsubmit="return false">
+      <div class="tool-field ct-valor">
+        <label for="valor">Taxa</label>
+        <div class="tool-input"><input type="number" id="valor" value="1" step="0.0001" inputmode="decimal"><span class="suf">%</span></div>
+      </div>
+      <div class="tool-field">
+        <label for="de">De</label>
+        <div class="tool-input">
+          <select id="de">
+            <option value="am" selected>% ao mês</option>
+            <option value="aa">% ao ano</option>
+            <option value="ad">% ao dia útil</option>
+            <option value="cdi">% do CDI</option>
+          </select>
+        </div>
+      </div>
+      <button type="button" class="ct-trocar" id="trocar" aria-label="Inverter de e para" title="Inverter">⇄</button>
+      <div class="tool-field">
+        <label for="para">Para</label>
+        <div class="tool-input">
+          <select id="para">
+            <option value="am">% ao mês</option>
+            <option value="aa" selected>% ao ano</option>
+            <option value="ad">% ao dia útil</option>
+            <option value="cdi">% do CDI</option>
+          </select>
+        </div>
+      </div>
+    </form>
+
+    <!-- RESULTADO -->
+    <div class="tool-card tool-veredito" aria-live="polite">
+      <p class="section-label">Equivale a</p>
+      <h2 id="resultado"></h2>
+      <p id="resultado-texto"></p>
+      <ul class="ct-tambem" id="tambem"></ul>
+    </div>
+    <p class="tool-obs ct-obs" id="ct-obs"></p>
+
+    <!-- TABELAS -->
+    <div class="ct-tabelas">
+      <div class="tool-card">
+        <h2>Ao mês x ao ano</h2>
+        <p>Juros compostos: (1 + taxa ao mês)<sup>12</sup> − 1.</p>
+        <div class="tool-table-wrap"><table class="tool-table">
+          <thead><tr><th>Ao mês</th><th>Ao ano</th></tr></thead>
+          <tbody id="t-mes"></tbody>
+        </table></div>
+      </div>
+      <div class="tool-card">
+        <h2>% do CDI x ao ano</h2>
+        <p id="t-cdi-sub">Com o CDI de hoje.</p>
+        <div class="tool-table-wrap"><table class="tool-table">
+          <thead><tr><th>% do CDI</th><th>Ao ano</th><th>Ao mês</th></tr></thead>
+          <tbody id="t-cdi"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- EXPLICAÇÃO + FAQ -->
+<section class="tool-prose-section">
+  <div class="section-inner">
+    <article class="tool-prose">
+      <h2>Por que 1% ao mês não é 12% ao ano</h2>
+      <p>Nos <strong>juros compostos</strong>, os juros de cada mês passam a render juros nos meses seguintes. Por isso, para passar de uma taxa mensal para anual, não se multiplica por 12; <strong>eleva-se ao número de períodos</strong>:</p>
+      <ul>
+        <li><strong>Mensal → anual:</strong> (1 + taxa mensal)<sup>12</sup> − 1. 1% ao mês = 12,68% ao ano.</li>
+        <li><strong>Anual → mensal:</strong> (1 + taxa anual)<sup>1/12</sup> − 1. 12% ao ano = 0,9489% ao mês.</li>
+      </ul>
+      <p>Quem pega dinheiro emprestado sente essa diferença ao contrário: um cartão que cobra 14% ao mês custa mais de 380% ao ano, e não 168%.</p>
+
+      <h3>Dias úteis: a base 252</h3>
+      <p>No mercado brasileiro, CDI, Selic e títulos públicos rendem só em <strong>dias úteis</strong>, e o ano tem, por convenção, 252 dias úteis. A conversão é a mesma ideia: (1 + taxa ao dia útil)<sup>252</sup> − 1 = taxa ao ano.</p>
+
+      <h3>Como funciona o "% do CDI"</h3>
+      <p>Um CDB que paga 110% do CDI rende, a cada dia útil, 110% da taxa <strong>diária</strong> do CDI daquele dia. Como o rendimento diário é composto ao longo do ano, 110% do CDI rende um pouco mais que 110% da taxa anual. O conversor usa essa convenção dos bancos e o CDI do dia, buscado no Banco Central. (Os simuladores do site usam a aproximação "% × CDI anual", que dá praticamente o mesmo resultado para porcentagens perto de 100%.)</p>
+      <p>Quer ver quanto uma taxa rende em reais? Use o <a href="/ferramentas/simulador-renda-fixa.html">simulador de renda fixa</a> ou a calculadora de <a href="/ferramentas/rentabilidade-real.html">rentabilidade real</a>.</p>
+
+      <p class="tool-disclaimer" data-aviso-educativo>As conversões usam juros compostos e o CDI do dia como se fosse fixo. O número de dias úteis de cada ano varia um pouco em relação aos 252 da convenção.</p>
+    </article>
+
+    <div class="tool-faq" data-faq>
+      <h2>Perguntas frequentes</h2>
+      <details>
+        <summary>Como transformar juros ao mês em juros ao ano?</summary>
+        <div><p>Some 1 à taxa mensal (em decimal), eleve à 12ª potência e subtraia 1. Para 1% ao mês: 1,01¹² − 1 = 0,1268, ou 12,68% ao ano. Multiplicar por 12 (12%) só vale para juros simples, que quase não são usados em investimentos e empréstimos.</p></div>
+      </details>
+      <details>
+        <summary>Quanto é 100% do CDI ao mês?</summary>
+        <div><p>Depende do CDI do dia. Com o CDI anual de hoje, a calculadora mostra o equivalente mensal na tabela acima. Como regra de bolso, com o CDI perto de 13,65% ao ano, 100% do CDI dá cerca de 1,07% ao mês, antes do Imposto de Renda.</p></div>
+      </details>
+      <details>
+        <summary>Por que usar dias úteis e não dias corridos?</summary>
+        <div><p>Porque o CDI e a Selic só "rodam" em dias úteis: não há rendimento em sábados, domingos e feriados. Por isso, taxas desses indexadores são expressas por dia útil, com o ano de 252 dias úteis como padrão do mercado. Poupança e alguns contratos usam dias corridos ou meses.</p></div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- PONTE PARA O WARDEN COBRANÇA -->
+<section class="tool-bridge">
+  <div class="section-inner">
+    <div data-ponte-cobranca data-titulo="Cobrar juros de cliente atrasado? Melhor nem precisar." data-texto="O Warden Cobrança lembra seus clientes antes do vencimento, manda o Pix no WhatsApp e confirma o pagamento sozinho."></div>
+  </div>
+</section>
+
+<script src="/assets/tools.js"></script>
+<script>
+  const { formatPct, formatNumero, getTaxasBCB, fonteTaxa } = Warden;
+  const $ = id => document.getElementById(id);
+
+  let taxas = { ...Warden.TAXAS_REFERENCIA };   // CDI de hoje; trocado pelo do Banco Central quando chegar
+  const NOMES = { am: 'ao mês', aa: 'ao ano', ad: 'ao dia útil', cdi: 'do CDI' };
+  const DIAS_UTEIS = 252;
+
+  // CDI diário (por dia útil) a partir do CDI anual de hoje
+  const cdiDiario = () => Math.pow(1 + taxas.cdi / 100, 1 / DIAS_UTEIS) - 1;
+
+  // tudo passa pela taxa anual efetiva (decimal): unidade → anual → unidade
+  function paraAnual(v, un) {
+    const x = v / 100;
+    if (un === 'am') return Math.pow(1 + x, 12) - 1;
+    if (un === 'ad') return Math.pow(1 + x, DIAS_UTEIS) - 1;
+    if (un === 'cdi') return Math.pow(1 + x * cdiDiario(), DIAS_UTEIS) - 1;   // % sobre a taxa diária do CDI, composta no ano
+    return x;
+  }
+  function deAnual(a, un) {
+    if (un === 'am') return (Math.pow(1 + a, 1 / 12) - 1) * 100;
+    if (un === 'ad') return (Math.pow(1 + a, 1 / DIAS_UTEIS) - 1) * 100;
+    if (un === 'cdi') return (Math.pow(1 + a, 1 / DIAS_UTEIS) - 1) / cdiDiario() * 100;
+    return a * 100;
+  }
+
+  // até 4 casas, sem zeros sobrando (12,6825 / 0,9489 / 100); dia útil precisa de mais casas
+  const fmt = (v, un) => new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: un === 'ad' ? 6 : 4 }).format(v);
+  const comUnidade = (v, un) => `${fmt(v, un)}% ${NOMES[un]}`;
+
+  function calcular() {
+    const v = parseFloat($('valor').value);
+    const de = $('de').value, para = $('para').value;
+    if (!isFinite(v) || v <= -100) {
+      $('resultado').textContent = 'Digite uma taxa.';
+      $('resultado-texto').textContent = ''; $('tambem').innerHTML = '';
+      return;
+    }
+    const anual = paraAnual(v, de);
+    const r = deAnual(anual, para);
+    $('resultado').innerHTML = `<em>${comUnidade(r, para)}</em>`;
+    $('resultado-texto').textContent = de === para ? 'Mesma unidade.' : `${comUnidade(v, de)} = ${comUnidade(r, para)}`;
+    $('tambem').innerHTML = ['am', 'aa', 'ad', 'cdi'].filter(u => u !== para && u !== de)
+      .map(u => `<li>Também equivale a<strong>${comUnidade(deAnual(anual, u), u)}</strong></li>`).join('');
+    $('ct-obs').textContent = `CDI usado: ${formatPct(taxas.cdi)} ao ano (${fonteTaxa(taxas)}) · ano de ${DIAS_UTEIS} dias úteis · juros compostos.`;
+    tabelas();
+  }
+
+  function tabelas() {
+    $('t-mes').innerHTML = [0.5, 0.8, 1, 1.5, 2, 3, 5, 10, 14]
+      .map(m => `<tr><td>${formatNumero(m, { curto: true })}%</td><td>${fmt(deAnual(paraAnual(m, 'am'), 'aa'), 'aa')}%</td></tr>`).join('');
+    $('t-cdi-sub').textContent = `Com o CDI de hoje: ${formatPct(taxas.cdi)} ao ano.`;
+    $('t-cdi').innerHTML = [80, 85, 90, 95, 100, 105, 110, 120]
+      .map(p => { const a = paraAnual(p, 'cdi'); return `<tr${p === 100 ? ' class="destaque"' : ''}><td>${p}%</td><td>${formatPct(a * 100)}</td><td>${formatPct(deAnual(a, 'am'), { casas: 4 })}</td></tr>`; }).join('');
+  }
+
+  $('valor').addEventListener('input', calcular);
+  ['de', 'para'].forEach(id => $(id).addEventListener('change', calcular));
+  $('trocar').addEventListener('click', () => {
+    const de = $('de').value, para = $('para').value;
+    // leva o resultado para o campo, para a troca ser "de volta"
+    const v = parseFloat($('valor').value);
+    if (isFinite(v)) $('valor').value = +deAnual(paraAnual(v, de), para).toFixed(6);
+    $('de').value = para; $('para').value = de;
+    calcular();
+  });
+  calcular();
+  getTaxasBCB().then(t => { taxas = t; calcular(); });
+</script>
+
+</body>
+</html>

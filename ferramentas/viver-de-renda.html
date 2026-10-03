@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Quanto preciso para viver de renda? Calculadora | Warden</title>
+<meta name="description" content="Descubra quanto patrimônio você precisa para viver de renda: só dos rendimentos, para sempre, ou gastando o dinheiro aos poucos em N anos. Em valores de hoje.">
+<link rel="canonical" href="https://wardenfinance.com.br/ferramentas/viver-de-renda.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Quanto preciso para viver de renda? | Warden">
+<meta property="og:description" content="O patrimônio para viver só dos rendimentos ou gastando aos poucos, em valores de hoje.">
+<meta property="og:url" content="https://wardenfinance.com.br/ferramentas/viver-de-renda.html">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/warden.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Calculadora para Viver de Renda",
+  "url": "https://wardenfinance.com.br/ferramentas/viver-de-renda.html",
+  "applicationCategory": "FinanceApplication",
+  "operatingSystem": "Any",
+  "inLanguage": "pt-BR",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "BRL" },
+  "publisher": { "@type": "Organization", "name": "Warden", "url": "https://wardenfinance.com.br/" }
+}
+</script>
+<style>
+  /* ===== VIVER DE RENDA (só desta página; estrutura e componentes vêm do /assets/warden.css) ===== */
+  .vr-form { display: flex; flex-direction: column; gap: 26px; }
+  .vr-bloco { border-top: 1px solid var(--border); padding-top: 22px; }
+  .vr-hoje { margin-top: 20px; }
+  .vr-obs { margin-top: 16px; }
+</style>
+</head>
+<body>
+
+<script src="/assets/nav.js"></script>
+
+<section class="tool-top">
+  <div class="section-inner">
+
+    <header class="tool-head">
+      <div class="tool-crumbs" data-crumbs></div>
+      <h1 class="tool-title">Quanto preciso para viver de renda?</h1>
+      <p class="tool-lead">Viver de renda pode significar duas coisas: tirar só os rendimentos e nunca mexer no dinheiro, ou ir gastando o patrimônio aos poucos por um número de anos. Veja quanto você precisa em cada caso.</p>
+    </header>
+
+    <!-- ENTRADAS -->
+    <form class="tool-card vr-form" id="vr-form" onsubmit="return false">
+      <div class="tool-fields">
+        <div class="tool-field">
+          <label for="renda">Renda mensal desejada</label>
+          <div class="tool-input"><span class="pre">R$</span><input type="text" id="renda" value="5000"></div>
+          <span class="tool-hint">Em valores de hoje</span>
+        </div>
+        <div class="tool-field">
+          <label for="taxa">Rentabilidade real</label>
+          <div class="tool-input">
+            <input type="number" id="taxa" value="6" min="0" max="50" step="0.1" inputmode="decimal">
+            <select id="taxa-periodo" aria-label="Período da taxa">
+              <option value="aa" selected>% ao ano</option>
+              <option value="am">% ao mês</option>
+            </select>
+          </div>
+          <span class="tool-hint" id="taxa-dica">Acima da inflação</span>
+        </div>
+        <div class="tool-field">
+          <label for="atual">Patrimônio atual <span class="opc">(opcional)</span></label>
+          <div class="tool-input"><span class="pre">R$</span><input type="text" id="atual" placeholder="0,00"></div>
+        </div>
+      </div>
+      <div class="tool-fields vr-bloco">
+        <div class="tool-field">
+          <label for="anos">Gastando o patrimônio em</label>
+          <div class="tool-input"><input type="number" id="anos" value="30" min="1" max="80" step="1" inputmode="numeric"><span class="suf">anos</span></div>
+          <span class="tool-hint">Para o cenário que consome o dinheiro</span>
+        </div>
+      </div>
+    </form>
+
+    <div class="tool-note vr-hoje">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+      <span><strong>Tudo em reais de hoje.</strong> Como a rentabilidade é a real (acima da inflação), a renda mantém o poder de compra ao longo dos anos: R$ 5.000 compram, no futuro, o mesmo que compram hoje.</span>
+    </div>
+
+    <!-- RESULTADO -->
+    <div class="result-grid" id="resultados" aria-live="polite"></div>
+
+    <div class="tool-card tool-chart">
+      <h2>O patrimônio ao longo do tempo</h2>
+      <p>Tirando a renda todo mês, em cada cenário, em valores de hoje.</p>
+      <div class="tool-chart-box"><canvas id="grafico" role="img" aria-label="Gráfico do patrimônio ao longo dos anos nos dois cenários"></canvas></div>
+    </div>
+    <p class="tool-obs vr-obs" id="vr-obs"></p>
+
+  </div>
+</section>
+
+<!-- EXPLICAÇÃO + FAQ -->
+<section class="tool-prose-section">
+  <div class="section-inner">
+    <article class="tool-prose">
+      <h2>Os dois jeitos de viver de renda</h2>
+      <h3>Renda para sempre</h3>
+      <p>Você vive só dos rendimentos e o patrimônio fica intocado: ele pode durar a vida toda e ainda virar herança. Para isso, o rendimento de cada mês precisa pagar a renda inteira:</p>
+      <p><strong>patrimônio = renda mensal ÷ rentabilidade real mensal</strong></p>
+      <p>Com 0,5% ao mês acima da inflação, cada R$ 1.000.000 gera R$ 5.000 por mês para sempre.</p>
+
+      <h3>Gastando o patrimônio em N anos</h3>
+      <p>Você tira a renda todo mês, o dinheiro que sobra continua rendendo, e no fim do prazo o patrimônio chega a zero. Precisa de menos dinheiro, mas tem data para acabar:</p>
+      <p><strong>patrimônio = renda × (1 − (1 + i)<sup>−n</sup>) ÷ i</strong>, com i = rentabilidade real mensal e n = número de meses.</p>
+      <p>É a mesma conta de um financiamento ao contrário: em vez de pagar parcelas ao banco, você recebe parcelas do seu próprio dinheiro.</p>
+
+      <h3>Que rentabilidade real usar</h3>
+      <p>Rentabilidade real é quanto o dinheiro rende <strong>acima da inflação</strong>. Títulos como o Tesouro IPCA+ mostram no site do Tesouro Direto a taxa real que estão pagando no dia. Para planejar décadas, prefira uma taxa conservadora: quanto menor a taxa, maior o patrimônio necessário e menor o risco de faltar dinheiro. Veja também quanto investir por mês para chegar lá na <a href="/ferramentas/aposentadoria.html">calculadora de aposentadoria</a>.</p>
+
+      <p class="tool-disclaimer" data-aviso-educativo>A calculadora considera rentabilidade real constante e não desconta Imposto de Renda nem custos. Na vida real os rendimentos oscilam, e um imposto sobre o rendimento aumenta o patrimônio necessário.</p>
+    </article>
+
+    <div class="tool-faq" data-faq>
+      <h2>Perguntas frequentes</h2>
+      <details>
+        <summary>Quanto preciso ter para viver de renda com R$ 5 mil por mês?</summary>
+        <div><p>Depende da rentabilidade real. Com 0,5% ao mês acima da inflação (cerca de 6,2% ao ano), são R$ 1 milhão para viver só dos rendimentos, para sempre, ou cerca de R$ 834 mil se você aceitar gastar o patrimônio em 30 anos. Com taxas menores, o valor sobe.</p></div>
+      </details>
+      <details>
+        <summary>Qual a diferença para a regra dos 4%?</summary>
+        <div><p>A regra dos 4% fica no meio do caminho: ela supõe que você gasta um pouco do patrimônio, mas com chance alta de o dinheiro durar 30 anos ou mais mesmo com crises no caminho. Esta calculadora mostra os dois extremos com uma rentabilidade fixa. A regra dos 4% está na <a href="/ferramentas/aposentadoria.html">calculadora de aposentadoria</a>.</p></div>
+      </details>
+      <details>
+        <summary>Por que usar rentabilidade real e não nominal?</summary>
+        <div><p>Porque a inflação corrói a renda. Se o seu patrimônio rende 10% ao ano e a inflação é de 4%, só uns 6% são ganho de verdade; o resto precisa ficar aplicado para o dinheiro não perder valor. Usando a taxa real, a renda calculada já mantém o poder de compra.</p></div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- PONTE PARA O WARDEN COBRANÇA -->
+<section class="tool-bridge">
+  <div class="section-inner">
+    <div data-ponte-cobranca data-titulo="Antes de viver de renda, garanta a renda que já é sua." data-texto="O Warden Cobrança cobra seus clientes no WhatsApp, com Pix, e confirma o pagamento sozinho. Dinheiro em dia para investir todo mês."></div>
+  </div>
+</section>
+
+<script src="/assets/tools.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+  const { formatBRL: brl, formatBRLCompacto, formatPct, parseNumero, campoBRL, cardResultado, estiloGrafico, taxaMensalDe } = Warden;
+  const $ = id => document.getElementById(id);
+
+  campoBRL($('renda'));
+  campoBRL($('atual'));
+  const dinheiro = id => { const v = parseNumero($(id).value); return isFinite(v) && v > 0 ? v : 0; };
+
+  // patrimônio que paga `renda` por mês para sempre (só os rendimentos): renda ÷ i
+  const paraSempre = (renda, i) => i > 0 ? renda / i : Infinity;
+  // patrimônio que paga `renda` por n meses e termina em zero: renda × (1 − (1+i)^−n) ÷ i   (sem juros: renda × n)
+  const gastando = (renda, i, n) => i > 0 ? renda * (1 - Math.pow(1 + i, -n)) / i : renda * n;
+
+  function calcular() {
+    const renda = dinheiro('renda'), atual = dinheiro('atual');
+    const taxa = Math.max(0, parseFloat($('taxa').value) || 0), periodo = $('taxa-periodo').value;
+    const i = taxaMensalDe(taxa, periodo);
+    const anos = Math.min(80, Math.max(1, Math.round(parseFloat($('anos').value) || 30)));
+    const n = anos * 12;
+    $('taxa-dica').textContent = periodo === 'aa'
+      ? `Acima da inflação · ≈ ${formatPct(i * 100, { casas: 4 })} ao mês`
+      : `Acima da inflação · ≈ ${formatPct((Math.pow(1 + i, 12) - 1) * 100)} ao ano`;
+
+    const pSempre = paraSempre(renda, i), pGastando = gastando(renda, i, n);
+    const falta = p => isFinite(p) ? brl(Math.max(0, p - atual)) : '—';
+    const tem = p => isFinite(p) && p > 0 ? formatPct(Math.min(100, atual / p * 100), { casas: 0 }) : '—';
+
+    const cards = [
+      cardResultado({
+        titulo: 'Renda para sempre', descricao: 'Vivendo só dos rendimentos, sem mexer no patrimônio',
+        rotulo: 'Patrimônio necessário', valor: isFinite(pSempre) ? brl(pSempre) : 'impossível sem rendimento',
+        linhas: [['Falta', falta(pSempre)], ['Você já tem', tem(pSempre)]]
+      }),
+      cardResultado({
+        titulo: `Gastando em ${anos} ${anos === 1 ? 'ano' : 'anos'}`, descricao: 'O patrimônio rende e vai sendo usado até chegar a zero',
+        rotulo: 'Patrimônio necessário', valor: brl(pGastando),
+        linhas: [['Falta', falta(pGastando)], ['Você já tem', tem(pGastando)]]
+      })
+    ];
+    if (atual > 0) {
+      const rendaSempre = atual * i;
+      const rendaGastando = i > 0 ? atual * i / (1 - Math.pow(1 + i, -n)) : atual / n;
+      cards.push(cardResultado({
+        titulo: 'Com o que você já tem', descricao: `${brl(atual)} rendendo ${formatPct(taxa, { curto: true })} ${periodo === 'aa' ? 'ao ano' : 'ao mês'} acima da inflação`,
+        rotulo: 'Renda para sempre', valor: brl(rendaSempre),
+        linhas: [[`Gastando em ${anos} anos`, brl(rendaGastando)]]
+      }));
+    }
+    $('resultados').innerHTML = cards.join('');
+    $('vr-obs').textContent = `Taxa real mensal usada: ${formatPct(i * 100, { casas: 4 })}. Renda retirada no fim de cada mês, sem Imposto de Renda nem custos.`;
+
+    renderGrafico(renda, i, n, anos, pSempre, pGastando);
+  }
+
+  let grafico = null;
+  function renderGrafico(renda, i, n, anos, pSempre, pGastando) {
+    if (!window.Chart) {
+      document.querySelector('.tool-chart-box').innerHTML = '<p class="tool-obs">Não foi possível carregar o gráfico agora.</p>';
+      return;
+    }
+    const g = estiloGrafico();
+    // saldo mês a mês: rende i e paga a renda; um ponto por ano
+    const serie = inicio => { const pts = [inicio]; let s = inicio; for (let m = 1; m <= n; m++) { s = s * (1 + i) - renda; if (m % 12 === 0) pts.push(Math.max(0, s)); } return pts; };
+    const labels = Array.from({ length: anos + 1 }, (_, a) => String(a));
+    const datasets = [
+      { label: 'Renda para sempre', data: isFinite(pSempre) ? serie(pSempre) : [], borderColor: g.cor('--accent'), backgroundColor: g.cor('--accent'),
+        borderWidth: 3, pointRadius: 0, pointHoverRadius: 4, tension: 0 },
+      { label: `Gastando em ${anos} anos`, data: serie(pGastando), borderColor: g.cor('--text'), backgroundColor: g.cor('--text'),
+        borderDash: [7, 4], borderWidth: 1.8, pointRadius: 0, pointHoverRadius: 4, tension: 0.15 }
+    ];
+    if (grafico) { grafico.data.labels = labels; grafico.data.datasets = datasets; grafico.update('none'); return; }
+    grafico = new Chart($('grafico'), {
+      type: 'line',
+      data: { labels, datasets },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        animation: g.animacao,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: g.legenda,
+          tooltip: { ...g.tooltip, callbacks: {
+            title: items => `Ano ${items[0].label}`,
+            label: ctx => ` ${ctx.dataset.label}: ${brl(ctx.parsed.y)}`
+          } }
+        },
+        scales: {
+          x: { title: { display: true, text: 'anos' }, grid: { display: false }, ticks: { maxTicksLimit: 12, maxRotation: 0 } },
+          y: { min: 0, grid: { color: g.grade }, ticks: { callback: v => formatBRLCompacto(v) } }
+        }
+      }
+    });
+  }
+
+  ['renda', 'atual', 'taxa', 'anos'].forEach(id => $(id).addEventListener('input', calcular));
+  $('taxa-periodo').addEventListener('change', calcular);
+  calcular();
+</script>
+
+</body>
+</html>

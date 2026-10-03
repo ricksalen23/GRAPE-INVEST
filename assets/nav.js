@@ -21,11 +21,11 @@ const FERRAMENTAS = [
   { categoria: 'Investimentos', icone: 'invest', itens: [
     { nome: 'Juros compostos', url: '/#calculadora', disponivel: true },
     { nome: 'Simulador renda fixa', detalhe: 'CDB, LCI, Tesouro', url: '/ferramentas/simulador-renda-fixa.html', disponivel: true },
-    { nome: 'Poupança x CDB x Tesouro', url: '/ferramentas/poupanca-cdb-tesouro.html', disponivel: false },
-    { nome: 'Viver de renda', url: '/ferramentas/viver-de-renda.html', disponivel: false },
-    { nome: 'Dividendos e preço teto', url: '/ferramentas/dividendos-preco-teto.html', disponivel: false },
-    { nome: 'Rentabilidade real', url: '/ferramentas/rentabilidade-real.html', disponivel: false },
-    { nome: 'Conversor de taxas', url: '/ferramentas/conversor-de-taxas.html', disponivel: false }
+    { nome: 'Poupança x CDB x Tesouro', url: '/ferramentas/poupanca-x-cdb-x-tesouro.html', disponivel: true },
+    { nome: 'Viver de renda', url: '/ferramentas/viver-de-renda.html', disponivel: true },
+    { nome: 'Dividendos e preço teto', url: '/ferramentas/dividendos-e-preco-teto.html', disponivel: true },
+    { nome: 'Rentabilidade real', url: '/ferramentas/rentabilidade-real.html', disponivel: true },
+    { nome: 'Conversor de taxas', url: '/ferramentas/conversor-de-taxas.html', disponivel: true }
   ] },
   { categoria: 'Trabalho (CLT)', icone: 'clt', itens: [
     { nome: 'Salário líquido', url: '/ferramentas/salario-liquido.html', disponivel: false },

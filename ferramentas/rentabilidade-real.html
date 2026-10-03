@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Calculadora de rentabilidade real (descontando a inflação) | Warden</title>
+<meta name="description" content="Descubra quanto seu investimento rendeu de verdade, acima da inflação, pela fórmula de Fisher, com o IPCA de 12 meses do Banco Central. E por que não é só subtrair.">
+<link rel="canonical" href="https://wardenfinance.com.br/ferramentas/rentabilidade-real.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Calculadora de rentabilidade real | Warden">
+<meta property="og:description" content="Quanto seu investimento rendeu acima da inflação, pela fórmula certa.">
+<meta property="og:url" content="https://wardenfinance.com.br/ferramentas/rentabilidade-real.html">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/warden.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Calculadora de Rentabilidade Real",
+  "url": "https://wardenfinance.com.br/ferramentas/rentabilidade-real.html",
+  "applicationCategory": "FinanceApplication",
+  "operatingSystem": "Any",
+  "inLanguage": "pt-BR",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "BRL" },
+  "publisher": { "@type": "Organization", "name": "Warden", "url": "https://wardenfinance.com.br/" }
+}
+</script>
+<style>
+  /* ===== RENTABILIDADE REAL (só desta página; estrutura e componentes vêm do /assets/warden.css) ===== */
+  .rr-form .tool-fields { grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
+  .rr-obs { margin-top: 16px; }
+</style>
+</head>
+<body>
+
+<script src="/assets/nav.js"></script>
+
+<section class="tool-top">
+  <div class="section-inner">
+
+    <header class="tool-head">
+      <div class="tool-crumbs" data-crumbs></div>
+      <h1 class="tool-title">Rentabilidade real: quanto você ganhou acima da inflação</h1>
+      <p class="tool-lead">Seu investimento rendeu 12% no ano. Mas os preços também subiram. Descubra quanto o seu poder de compra cresceu de verdade, com a fórmula certa.</p>
+    </header>
+
+    <!-- ENTRADAS -->
+    <form class="tool-card rr-form" id="rr-form" onsubmit="return false">
+      <div class="tool-fields">
+        <div class="tool-field">
+          <label for="nominal">Rentabilidade do investimento</label>
+          <div class="tool-input"><input type="number" id="nominal" value="12" step="0.01" inputmode="decimal"><span class="suf">% no período</span></div>
+          <span class="tool-hint">O que aparece no extrato (nominal)</span>
+        </div>
+        <div class="tool-field">
+          <label for="inflacao">Inflação do mesmo período</label>
+          <div class="tool-input"><input type="number" id="inflacao" step="0.01" inputmode="decimal"><span class="suf">%</span></div>
+          <span class="tool-hint" id="inflacao-dica"></span>
+        </div>
+        <div class="tool-field">
+          <label for="valor">Valor investido <span class="opc">(opcional)</span></label>
+          <div class="tool-input"><span class="pre">R$</span><input type="text" id="valor" placeholder="0,00"></div>
+          <span class="tool-hint">Para ver o ganho real em reais</span>
+        </div>
+      </div>
+    </form>
+
+    <!-- RESULTADO -->
+    <div class="result-grid" id="resultados" aria-live="polite"></div>
+    <p class="tool-obs rr-obs" id="rr-obs"></p>
+
+  </div>
+</section>
+
+<!-- EXPLICAÇÃO + FAQ -->
+<section class="tool-prose-section">
+  <div class="section-inner">
+    <article class="tool-prose">
+      <h2>Por que não é só subtrair a inflação</h2>
+      <p>Parece intuitivo: rendeu 12%, a inflação foi 4%, ganhei 8%. Mas a inflação não age só sobre o dinheiro que você aplicou; ela também corrói o <strong>rendimento</strong>. A conta certa é a <strong>fórmula de Fisher</strong>:</p>
+      <p><strong>rentabilidade real = (1 + rentabilidade nominal) ÷ (1 + inflação) − 1</strong></p>
+      <p>Com 12% de rendimento e 4% de inflação: 1,12 ÷ 1,04 − 1 = <strong>7,69%</strong>, e não 8%. A diferença parece pequena, mas cresce com taxas maiores e com o tempo. Num caso extremo, um investimento que rendeu 100% num ano de 90% de inflação não ganhou 10%, e sim 5,3%.</p>
+
+      <h3>Como ler o resultado</h3>
+      <ul>
+        <li><strong>Positiva:</strong> seu dinheiro compra mais do que comprava antes. É o ganho de verdade.</li>
+        <li><strong>Zero:</strong> o investimento só repôs a inflação.</li>
+        <li><strong>Negativa:</strong> mesmo com o saldo maior no extrato, você perdeu poder de compra.</li>
+      </ul>
+
+      <h3>Qual inflação usar</h3>
+      <p>Use a inflação do <strong>mesmo período</strong> do rendimento. O padrão aqui é o IPCA acumulado em 12 meses, buscado no Banco Central, que serve para rendimentos anuais. Para outro período (um mês, três anos), troque pelo IPCA acumulado nesse intervalo. Para comparar opções de renda fixa já com a rentabilidade real, use o <a href="/ferramentas/simulador-renda-fixa.html">simulador de renda fixa</a>.</p>
+
+      <p class="tool-disclaimer" data-aviso-educativo>A inflação oficial (IPCA) mede uma cesta média de preços; a sua inflação pessoal pode ser diferente. O cálculo não desconta Imposto de Renda: use a rentabilidade líquida para o ganho real que fica no seu bolso.</p>
+    </article>
+
+    <div class="tool-faq" data-faq>
+      <h2>Perguntas frequentes</h2>
+      <details>
+        <summary>O que é rentabilidade real?</summary>
+        <div><p>É quanto um investimento rendeu acima da inflação, ou seja, quanto o seu poder de compra aumentou. A rentabilidade que aparece no extrato é a nominal; a real desconta a alta dos preços no mesmo período.</p></div>
+      </details>
+      <details>
+        <summary>Por que não posso só subtrair a inflação do rendimento?</summary>
+        <div><p>Porque a inflação também reduz o valor do rendimento, não só do dinheiro aplicado. A fórmula de Fisher, (1 + nominal) ÷ (1 + inflação) − 1, considera isso. A subtração simples sempre dá um resultado um pouco maior que o real, e o erro cresce com taxas altas.</p></div>
+      </details>
+      <details>
+        <summary>A poupança tem rentabilidade real positiva?</summary>
+        <div><p>Depende do ano. Com a Selic alta, a poupança costuma ficar um pouco acima da inflação; com inflação alta e Selic baixa, já perdeu para o IPCA várias vezes. Coloque o rendimento da poupança no período e o IPCA na calculadora para conferir.</p></div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- PONTE PARA O WARDEN COBRANÇA -->
+<section class="tool-bridge">
+  <div class="section-inner">
+    <div data-ponte-cobranca data-titulo="Cliente que paga atrasado também é inflação comendo seu dinheiro." data-texto="O Warden Cobrança cobra no WhatsApp, com Pix, lembra antes do vencimento e confirma o pagamento sozinho."></div>
+  </div>
+</section>
+
+<script src="/assets/tools.js"></script>
+<script>
+  const { formatBRL: brl, formatPct, parseNumero, campoBRL, cardResultado, getTaxasBCB } = Warden;
+  const $ = id => document.getElementById(id);
+
+  campoBRL($('valor'));
+  const num = id => { const v = parseFloat($(id).value); return isFinite(v) ? v : 0; };
+
+  // inflação padrão: IPCA de 12 meses (referência na hora, Banco Central quando chegar); se a pessoa editar, não sobrescreve
+  let inflacaoEditada = false;
+  const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+  function aplicarIpca(t) {
+    if (inflacaoEditada) return;
+    $('inflacao').value = t.ipca;
+    if (t.fonte === 'bcb') {
+      const [, m, a] = t.datas.ipca.data.split('/');
+      $('inflacao-dica').textContent = `IPCA de 12 meses até ${MESES[+m - 1]}/${a} (Banco Central) · pode mudar`;
+    } else {
+      $('inflacao-dica').textContent = t.fonte === 'referencia'
+        ? `IPCA de 12 meses, referência de ${Warden.TAXAS_REFERENCIA.mes} · pode mudar`
+        : 'Buscando o IPCA no Banco Central…';
+    }
+    calcular();
+  }
+  $('inflacao').addEventListener('input', () => { inflacaoEditada = true; $('inflacao-dica').textContent = 'Valor informado por você'; calcular(); });
+
+  function calcular() {
+    const nominal = num('nominal') / 100, inflacao = num('inflacao') / 100;
+    const v = parseNumero($('valor').value), valor = isFinite(v) && v > 0 ? v : 0;
+    if (inflacao <= -1) { $('resultados').innerHTML = ''; $('rr-obs').textContent = 'A inflação precisa ser maior que −100%.'; return; }
+
+    // fórmula de Fisher: real = (1 + nominal) ÷ (1 + inflação) − 1
+    const real = (1 + nominal) / (1 + inflacao) - 1;
+    const subtraindo = nominal - inflacao;
+    const cards = [cardResultado({
+      titulo: 'Rentabilidade real', destaque: true,
+      descricao: real > 0.00005 ? 'Seu poder de compra aumentou' : real < -0.00005 ? 'Você perdeu poder de compra' : 'O investimento só repôs a inflação',
+      rotulo: 'Acima da inflação', valor: formatPct(real * 100, { sinal: true }),
+      linhas: [
+        ['Só subtraindo (conta errada)', formatPct(subtraindo * 100, { sinal: true })],
+        ['Diferença', `${formatPct(Math.abs(subtraindo - real) * 100)}`]
+      ]
+    })];
+    if (valor > 0) {
+      const ganhoNominal = valor * nominal, ganhoReal = valor * real;
+      cards.push(cardResultado({
+        titulo: 'Em reais', descricao: `${brl(valor)} investidos no período`,
+        rotulo: 'Ganho real', valor: brl(ganhoReal),
+        linhas: [
+          ['Saldo no fim', brl(valor * (1 + nominal))],
+          ['Ganho no extrato', brl(ganhoNominal)],
+          ['A inflação levou', brl(ganhoNominal - ganhoReal)]
+        ]
+      }));
+    }
+    $('resultados').innerHTML = cards.join('');
+    $('rr-obs').textContent = `Conta: (1 + ${formatPct(nominal * 100)}) ÷ (1 + ${formatPct(inflacao * 100)}) − 1 = ${formatPct(real * 100)}.${valor > 0 ? ' Ganho real em reais de hoje: o quanto o seu poder de compra aumentou.' : ''}`;
+  }
+
+  ['nominal', 'valor'].forEach(id => $(id).addEventListener('input', calcular));
+  aplicarIpca({ ...Warden.TAXAS_REFERENCIA });
+  getTaxasBCB().then(aplicarIpca);
+</script>
+
+</body>
+</html>

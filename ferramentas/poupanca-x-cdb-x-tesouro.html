@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>A poupança ainda vale a pena? Poupança x CDB x Tesouro | Warden</title>
+<meta name="description" content="Veja quanto você perde deixando dinheiro na poupança em vez de um CDB ou do Tesouro Selic, com as taxas de hoje do Banco Central e o Imposto de Renda descontado.">
+<link rel="canonical" href="https://wardenfinance.com.br/ferramentas/poupanca-x-cdb-x-tesouro.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="A poupança ainda vale a pena? | Warden">
+<meta property="og:description" content="Quanto você perde deixando o dinheiro na poupança, comparado ao CDB e ao Tesouro Selic.">
+<meta property="og:url" content="https://wardenfinance.com.br/ferramentas/poupanca-x-cdb-x-tesouro.html">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/warden.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Poupança x CDB x Tesouro",
+  "url": "https://wardenfinance.com.br/ferramentas/poupanca-x-cdb-x-tesouro.html",
+  "applicationCategory": "FinanceApplication",
+  "operatingSystem": "Any",
+  "inLanguage": "pt-BR",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "BRL" },
+  "publisher": { "@type": "Organization", "name": "Warden", "url": "https://wardenfinance.com.br/" }
+}
+</script>
+<style>
+  /* ===== POUPANÇA x CDB x TESOURO (só desta página; estrutura e componentes vêm do /assets/warden.css) ===== */
+  .pp-form .tool-fields { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); max-width: 640px; }
+  .pp-taxas { margin-top: 16px; }
+  .pp-simulador { margin-top: 18px; }
+  .pp-iof { margin-top: 20px; }
+</style>
+</head>
+<body>
+
+<script src="/assets/nav.js"></script>
+
+<section class="tool-top">
+  <div class="section-inner">
+
+    <header class="tool-head">
+      <div class="tool-crumbs" data-crumbs></div>
+      <h1 class="tool-title">A poupança ainda vale a pena?</h1>
+      <p class="tool-lead">Diga quanto você tem na poupança e por quanto tempo pretende deixar. A gente mostra quanto esse dinheiro renderia num CDB ou no Tesouro Selic, já sem Imposto de Renda, e quanto você perde ficando onde está.</p>
+    </header>
+
+    <!-- ENTRADAS -->
+    <form class="tool-card pp-form" id="pp-form" onsubmit="return false">
+      <div class="tool-fields">
+        <div class="tool-field">
+          <label for="valor">Valor</label>
+          <div class="tool-input"><span class="pre">R$</span><input type="text" id="valor" value="10000"></div>
+        </div>
+        <div class="tool-field">
+          <label for="prazo">Por quanto tempo</label>
+          <div class="tool-input">
+            <input type="number" id="prazo" value="2" min="1" step="1" inputmode="numeric">
+            <select id="prazo-unidade" aria-label="Unidade do prazo">
+              <option value="meses">meses</option>
+              <option value="anos" selected>anos</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </form>
+
+    <!-- RESPOSTA -->
+    <div class="tool-card tool-veredito" aria-live="polite">
+      <p class="section-label">Resposta</p>
+      <h2 id="veredito"></h2>
+      <p id="veredito-texto"></p>
+    </div>
+
+    <div class="tool-note pp-iof" id="aviso-iof" role="status" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+      <span><strong>Prazo menor que 30 dias:</strong> CDB e Tesouro pagam IOF além do IR em resgates tão curtos, e a poupança só rende a cada mês completo. O resultado é aproximado.</span>
+    </div>
+
+    <div class="result-grid" id="resultados"></div>
+    <p class="tool-obs pp-taxas" id="pp-obs"></p>
+    <p class="pp-simulador"><a class="btn btn-secondary" href="/ferramentas/simulador-renda-fixa.html">Simular com aportes, LCI/LCA e gráfico →</a></p>
+
+  </div>
+</section>
+
+<!-- EXPLICAÇÃO + FAQ -->
+<section class="tool-prose-section">
+  <div class="section-inner">
+    <article class="tool-prose">
+      <h2>Quanto rende a poupança hoje</h2>
+      <p>A regra da poupança depende da Selic, a taxa básica de juros do país:</p>
+      <ul>
+        <li><strong>Selic acima de 8,5% ao ano:</strong> a poupança rende <strong>0,5% ao mês</strong> (cerca de 6,17% ao ano) mais a TR.</li>
+        <li><strong>Selic de 8,5% ou menos:</strong> rende <strong>70% da Selic</strong> mais a TR.</li>
+      </ul>
+      <p>A TR, a Taxa Referencial, costuma ser pequena e fica fora desta conta. E tem um detalhe que pesa: a poupança só paga no <strong>"aniversário"</strong> do depósito. Se você tirar o dinheiro um dia antes de completar o mês, perde o rendimento daquele mês inteiro.</p>
+
+      <h3>Por que CDB e Tesouro costumam ganhar</h3>
+      <p>Um CDB que paga 100% do CDI e o Tesouro Selic acompanham a Selic de perto. Mesmo pagando Imposto de Renda (de 22,5% a 15% sobre o rendimento, menor quanto mais tempo o dinheiro fica aplicado), eles costumam render mais que a poupança quando a Selic está alta. A calculadora já desconta o IR.</p>
+
+      <h3>Os três são seguros?</h3>
+      <p>Sim, por caminhos diferentes. Poupança e CDB são garantidos pelo FGC até R$ 250 mil por CPF por instituição. O Tesouro Selic é um título do governo federal, considerado o investimento mais seguro do país. Os três permitem resgatar a qualquer momento (no CDB, escolha um de liquidez diária).</p>
+
+      <h3>Quando a poupança faz sentido</h3>
+      <p>Para quantias pequenas que você movimenta todo mês, a praticidade pode compensar. Também quando a Selic está baixa e o prazo é curto, a isenção de IR pode deixar a poupança na frente. A calculadora mostra quando isso acontece. Quer comparar com aportes mensais, LCI/LCA e ver o gráfico? Use o <a href="/ferramentas/simulador-renda-fixa.html">simulador de renda fixa completo</a>.</p>
+
+      <p class="tool-disclaimer" data-aviso-educativo>Os valores usam as taxas de hoje como se fossem fixas durante todo o prazo, um CDB que paga 100% do CDI e o Tesouro Selic com 0,20% de custódia ao ano. Não consideram a TR, o IOF e as diferenças entre bancos.</p>
+    </article>
+
+    <div class="tool-faq" data-faq>
+      <h2>Perguntas frequentes</h2>
+      <details>
+        <summary>A poupança ainda vale a pena?</summary>
+        <div><p>Com a Selic alta, quase nunca: um CDB de liquidez diária que pague 100% do CDI ou o Tesouro Selic rendem mais, mesmo depois do Imposto de Renda, com a mesma segurança e liquidez. A poupança volta a ser competitiva quando a Selic cai e o prazo é curto, porque ela é isenta de IR.</p></div>
+      </details>
+      <details>
+        <summary>Quanto rende R$ 10 mil na poupança?</summary>
+        <div><p>Com a Selic acima de 8,5% ao ano, a poupança rende 0,5% ao mês: cerca de R$ 50 no primeiro mês e R$ 617 em um ano, sem contar a TR. Use a calculadora acima para ver o valor exato no prazo que você quiser e quanto renderia em um CDB ou no Tesouro Selic.</p></div>
+      </details>
+      <details>
+        <summary>Tirar da poupança tem algum custo?</summary>
+        <div><p>Não há taxa, mas há um detalhe: a poupança só paga rendimento no aniversário do depósito. Se possível, resgate logo depois do aniversário para não perder o rendimento do mês. No CDB e no Tesouro, o rendimento é diário.</p></div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- PONTE PARA O WARDEN COBRANÇA -->
+<section class="tool-bridge">
+  <div class="section-inner">
+    <div data-ponte-cobranca data-titulo="Dinheiro parado rende pouco. Dinheiro que não chega rende zero." data-texto="O Warden Cobrança cobra seus clientes no WhatsApp, com Pix, e lembra quem atrasou. Mais dinheiro em dia para investir."></div>
+  </div>
+</section>
+
+<script src="/assets/tools.js"></script>
+<script>
+  const { formatBRL: brl, formatPct, parseNumero, campoBRL, cardResultado, getTaxasBCB, fonteTaxa, rendaFixa: RF } = Warden;
+  const $ = id => document.getElementById(id);
+
+  let taxas = { ...Warden.TAXAS_REFERENCIA };   // trocado pelas taxas do Banco Central assim que chegarem
+  campoBRL($('valor'));
+
+  // comparamos poupança com as duas alternativas mais comuns e igualmente seguras
+  const COMPARAR = ['poupanca', 'cdb', 'tesouro'];
+
+  function calcular() {
+    const v = parseNumero($('valor').value);
+    const valor = isFinite(v) && v > 0 ? v : 0;
+    const qtd = Math.max(1, Math.round(parseFloat($('prazo').value) || 1));
+    const unidade = $('prazo-unidade').value;
+    const p = RF.prazo(qtd, unidade);
+    const deps = RF.depositos({ inicial: valor, aporte: 0, ...p });
+    const ops = RF.opcoes(taxas, { pctCdb: 100, pctLci: 90 }).filter(o => COMPARAR.includes(o.id));
+    const res = ops.map(op => ({ op, r: RF.simular(op, deps, p.dias, p.cal, taxas) }));
+
+    const poup = res.find(x => x.op.id === 'poupanca');
+    const outras = res.filter(x => x.op.id !== 'poupanca');
+    const melhor = outras.reduce((a, b) => (b.r.liquido > a.r.liquido ? b : a));
+    const perda = melhor.r.liquido - poup.r.liquido;
+    const prazoTxt = `${qtd} ${unidade === 'anos' ? (qtd === 1 ? 'ano' : 'anos') : (qtd === 1 ? 'mês' : 'meses')}`;
+    const nomeMelhor = melhor.op.id === 'cdb' ? 'um CDB que paga 100% do CDI' : 'o Tesouro Selic';
+
+    if (valor <= 0) {
+      $('veredito').textContent = 'Informe o valor que está (ou estaria) na poupança.';
+      $('veredito-texto').textContent = '';
+    } else if (perda > 0.5) {
+      $('veredito').innerHTML = `Deixando ${brl(valor)} na poupança por ${prazoTxt}, você perde <em>${brl(perda)}</em>.`;
+      $('veredito-texto').innerHTML = `É quanto ${nomeMelhor} renderia a mais no mesmo prazo, <strong>já descontado o Imposto de Renda</strong>: ${brl(melhor.r.liquido)} contra ${brl(poup.r.liquido)} na poupança.`;
+    } else if (perda < -0.5) {
+      $('veredito').innerHTML = `Neste prazo, a <em>poupança</em> ganha por ${brl(-perda)}.`;
+      $('veredito-texto').innerHTML = `Com as taxas de hoje e ${prazoTxt}, a isenção de IR deixa a poupança na frente de ${nomeMelhor}. Mude o prazo para ver quando isso se inverte.`;
+    } else {
+      $('veredito').innerHTML = '<em>Empate</em>: neste prazo, tanto faz.';
+      $('veredito-texto').textContent = 'A poupança e a melhor alternativa rendem praticamente o mesmo, já descontado o Imposto de Renda.';
+    }
+
+    const vencedor = valor > 0 ? res.reduce((a, b) => (b.r.liquido > a.r.liquido ? b : a)) : null;
+    $('resultados').innerHTML = res.map(({ op, r }) => cardResultado({
+      titulo: op.id === 'cdb' ? 'CDB 100% do CDI' : op.nome, descricao: op.desc,
+      rotulo: 'Você teria', valor: brl(r.liquido),
+      destaque: vencedor && op.id === vencedor.op.id && Math.abs(perda) > 0.5, selo: vencedor && op.id === vencedor.op.id && Math.abs(perda) > 0.5 ? 'Rende mais' : '',
+      linhas: [
+        ['Rendimento líquido', brl(r.rendimento)],
+        ['Imposto de Renda', op.ir ? brl(r.ir) : 'isento'],
+        ['Acima da inflação', formatPct(r.real, { sinal: true })]
+      ]
+    })).join('');
+
+    $('aviso-iof').hidden = !(p.dias < RF.CONFIG.iofDiasMinimos);
+    $('pp-obs').textContent = `Taxas de hoje: Selic ${formatPct(taxas.selic)}, CDI ${formatPct(taxas.cdi)} e IPCA ${formatPct(taxas.ipca)} em 12 meses (${fonteTaxa(taxas)}). Prazo: ${p.dias} dias corridos, de hoje até ${RF.fmtData(p.fim)}.`;
+  }
+
+  $('valor').addEventListener('input', calcular);
+  $('prazo').addEventListener('input', calcular);
+  $('prazo-unidade').addEventListener('change', calcular);
+  calcular();
+  getTaxasBCB().then(t => { taxas = t; calcular(); });
+</script>
+
+</body>
+</html>

@@ -184,6 +184,125 @@
     return { i: iMensalBruta * (1 - aliquota), aliquota, dias };
   }
 
+  /* ===== MOTOR DE RENDA FIXA (simulador de renda fixa, poupança x CDB x Tesouro) =====
+   * Poupança, CDB, LCI/LCA e Tesouro Selic com prazos em dias corridos reais a partir de hoje, aportes no mesmo dia
+   * de cada mês ("mesversário"), IR regressivo por depósito e rentabilidade real pelo IPCA.
+   * Uso: const RF = Warden.rendaFixa;
+   *      const p = RF.prazo(2, 'anos');                                   // { dias, fim, cal }
+   *      const deps = RF.depositos({ inicial: 10000, aporte: 0, ...p });
+   *      const ops = RF.opcoes(taxas, { pctCdb: 100, pctLci: 90 });       // taxas = { selic, cdi, ipca } em % a.a.
+   *      const r = RF.simular(ops[0], deps, p.dias, p.cal, taxas);        // { liquido, ir, rendimento, real, … } */
+  const RENDA_FIXA = {
+    // IOF: resgates com menos de X dias pagam IOF regressivo. As ferramentas só mostram um aviso.
+    iofDiasMinimos: 30,
+    poupanca: {
+      limiteSelic: 8.5,             // Selic (% a.a.) acima da qual vale o rendimento fixo
+      rendimentoMensalFixo: 0.005,  // 0,5% ao mês (+ TR, que ignoramos)
+      fracaoDaSelic: 0.70,          // Selic até o limite: 70% da Selic ao ano (+ TR)
+      isentaIR: true
+    },
+    lciLca: { isentaIR: true },     // isenção vale para pessoa física
+    tesouroSelic: {
+      custodiaAA: 0.20,             // taxa de custódia da B3, em pontos percentuais ao ano (descontada da Selic)
+      isentaIR: false
+    },
+    cdb: { isentaIR: false }
+  };
+
+  /* calendário: prazos em dias corridos reais, contados a partir de hoje. Meses e anos são somados à data de hoje
+   * e convertidos em dias pela diferença entre as datas (2 anos a partir de 02/10/2026 = 731 dias, porque 2028 é bissexto).
+   * Tudo em UTC para não sofrer com horário de verão / fuso. */
+  const DIA_MS = 86400000;
+  const HOJE = (() => { const d = new Date(); return Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()); })();
+  // hoje + n meses; se o dia não existe no mês de destino (ex.: 31/01 + 1 mês), usa o último dia desse mês
+  function somarMeses(n) {
+    const d = new Date(HOJE);
+    const ano = d.getUTCFullYear(), mes = d.getUTCMonth() + n, dia = d.getUTCDate();
+    const ultimoDia = new Date(Date.UTC(ano, mes + 1, 0)).getUTCDate();
+    return Date.UTC(ano, mes, Math.min(dia, ultimoDia));
+  }
+  const diasAte = data => Math.round((data - HOJE) / DIA_MS);
+  const fmtDataUTC = data => new Date(data).toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+  // dias corridos de hoje até cada "mesversário" (0, 1, 2… meses); o último item já passa do prazo
+  function calendarioMeses(diasPrazo) {
+    const cal = [0];
+    while (cal[cal.length - 1] <= diasPrazo) cal.push(diasAte(somarMeses(cal.length)));
+    return cal;
+  }
+  // índice do último mesversário que cai até o "dia" informado (busca binária: cal é crescente)
+  function ultimoMesAte(cal, dia) {
+    let lo = 0, hi = cal.length - 1;
+    while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (cal[mid] <= dia) lo = mid; else hi = mid - 1; }
+    return lo;
+  }
+
+  // prazo digitado (quantidade + 'dias' | 'meses' | 'anos') → { dias, fim, cal }; limita a 50 anos, mínimo 1 dia
+  function prazoRendaFixa(quantidade, unidade) {
+    const limite = { dias: 18263, meses: 600, anos: 50 }[unidade];
+    const q = Math.min(Math.max(quantidade, 1), limite);
+    const meses = unidade === 'anos' ? Math.round(q * 12) : unidade === 'meses' ? Math.round(q) : null;
+    const dias = Math.max(meses === null ? Math.round(q) : diasAte(somarMeses(meses)), 1);
+    return { dias, fim: HOJE + dias * DIA_MS, cal: calendarioMeses(dias) };
+  }
+
+  // depósitos: valor inicial hoje + um aporte em cada mesversário (mesmo dia do mês) dentro do prazo
+  function depositosRendaFixa({ inicial, aporte, dias, cal }) {
+    const lista = [];
+    if (inicial > 0) lista.push({ dia: 0, mes: 0, valor: inicial });
+    if (aporte > 0) for (let k = 0; cal[k] < dias; k++) lista.push({ dia: cal[k], mes: k, valor: aporte });
+    return lista;
+  }
+
+  // as quatro opções com as taxas do dia (% a.a.); pctCdb/pctLci = % do CDI de cada uma
+  function opcoesRendaFixa(taxas, { pctCdb = 100, pctLci = 90 } = {}) {
+    const C = RENDA_FIXA, p = C.poupanca;
+    const pct = v => formatPct(v), curto = v => formatNumero(v, { curto: true });
+    const regraFixa = taxas.selic > p.limiteSelic;
+    const poupMensal = regraFixa ? p.rendimentoMensalFixo : Math.pow(1 + p.fracaoDaSelic * taxas.selic / 100, 1 / 12) - 1;
+    const cdbAA = taxas.cdi * pctCdb / 100;
+    const lciAA = taxas.cdi * pctLci / 100;
+    const tesouroAA = Math.max(0, taxas.selic - C.tesouroSelic.custodiaAA);
+    return [
+      { id: 'poupanca', nome: 'Poupança', mensal: poupMensal, ir: !p.isentaIR,
+        desc: (regraFixa ? '0,5% ao mês' : `70% da Selic · ${pct(p.fracaoDaSelic * taxas.selic)} a.a.`) + ' · isenta de IR' },
+      { id: 'cdb', nome: 'CDB', anual: cdbAA, ir: !C.cdb.isentaIR,
+        desc: `${curto(pctCdb)}% do CDI · ${pct(cdbAA)} a.a.` },
+      { id: 'lci', nome: 'LCI/LCA', anual: lciAA, ir: !C.lciLca.isentaIR,
+        desc: `${curto(pctLci)}% do CDI · ${pct(lciAA)} a.a. · isenta de IR` },
+      { id: 'tesouro', nome: 'Tesouro Selic', anual: tesouroAA, ir: !C.tesouroSelic.isentaIR,
+        desc: `Selic − ${curto(C.tesouroSelic.custodiaAA)} p.p. de custódia · ${pct(tesouroAA)} a.a.` }
+    ];
+  }
+
+  // valor de cada depósito no "dia" informado: juros compostos por dia corrido (poupança: só mesversários completos);
+  // IR calculado por depósito, conforme os dias corridos reais que cada um ficou aplicado (é assim que a corretora faz)
+  function simularRendaFixa(op, deps, dia, cal, taxas) {
+    const inflacao = 1 + taxas.ipca / 100;
+    const mesAtual = ultimoMesAte(cal, dia);
+    let bruto = 0, investido = 0, ir = 0, investidoHoje = 0;
+    const aliquotas = new Set();
+    for (const d of deps) {
+      if (d.dia >= dia && d.dia !== 0) continue;
+      const tempo = dia - d.dia;
+      const fator = op.mensal !== undefined
+        ? Math.pow(1 + op.mensal, mesAtual - d.mes)
+        : Math.pow(1 + op.anual / 100, tempo / 365);
+      const valor = d.valor * fator;
+      bruto += valor;
+      investido += d.valor;
+      if (op.ir && tempo > 0) { const a = aliquotaIR(tempo); ir += (valor - d.valor) * a; aliquotas.add(a); }
+      investidoHoje += d.valor / Math.pow(inflacao, d.dia / 365);   // tudo trazido para o poder de compra de hoje
+    }
+    const liquido = bruto - ir;
+    const real = investidoHoje > 0 ? (liquido / Math.pow(inflacao, dia / 365)) / investidoHoje - 1 : 0;
+    return { bruto, investido, ir, liquido, rendimento: liquido - investido, real: real * 100, aliquotas: [...aliquotas] };
+  }
+
+  const rendaFixa = {
+    CONFIG: RENDA_FIXA, HOJE, DIA_MS, somarMeses, diasAte, fmtData: fmtDataUTC, calendarioMeses, ultimoMesAte,
+    prazo: prazoRendaFixa, depositos: depositosRendaFixa, opcoes: opcoesRendaFixa, simular: simularRendaFixa
+  };
+
   /* ===== MATEMÁTICA FINANCEIRA ===== */
   // taxa anual em % → taxa mensal equivalente (decimal). 12% a.a. → 0,009489
   const taxaMensal = anualPct => Math.pow(1 + anualPct / 100, 1 / 12) - 1;
@@ -595,7 +714,7 @@
   window.Warden = {
     formatBRL, formatBRLCompacto, formatNumero, formatPct, parseNumero, campoBRL,
     TAXAS_REFERENCIA, getTaxasBCB, fonteTaxa,
-    IR_REGRESSIVO, aliquotaIR, liquidaDeIR,
+    IR_REGRESSIVO, aliquotaIR, liquidaDeIR, rendaFixa,
     taxaMensal, taxaMensalDe, parcelaPrice, aporteNecessario, serieAcumulacao,
     campoRendimento, copiarTexto,
     validarCpf, validarCnpj, validarDocumento, mascaraCpf, mascaraCnpj, mascaraDocumento,

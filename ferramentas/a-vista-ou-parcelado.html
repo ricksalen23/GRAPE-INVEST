@@ -35,14 +35,6 @@
   .av-form { display: flex; flex-direction: column; gap: 26px; }
   .av-linha { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 26px 28px; }
   .av-parcelas { border-top: 1px solid var(--border); padding-top: 22px; }
-
-  /* veredito: a resposta em uma frase grande */
-  .av-veredito { margin-top: 28px; border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
-  .av-veredito .section-label { margin-bottom: 8px; }
-  .av-veredito h2 { font-family: 'Fraunces', serif; font-weight: 600; font-size: clamp(1.6rem, 3.4vw, 2.3rem); line-height: 1.15; letter-spacing: -.01em; }
-  .av-veredito h2 em { font-style: normal; color: var(--accent); }
-  .av-veredito p { margin-top: 10px; color: var(--muted); font-size: .95rem; line-height: 1.6; max-width: 760px; }
-  .av-veredito p strong { color: var(--text); font-weight: 600; }
   .av-obs { margin-top: 16px; }
 
   @media (max-width: 640px) {
@@ -110,7 +102,7 @@
     </form>
 
     <!-- VEREDITO -->
-    <div class="tool-card av-veredito" aria-live="polite">
+    <div class="tool-card tool-veredito" aria-live="polite">
       <p class="section-label">Veredito</p>
       <h2 id="veredito"></h2>
       <p id="veredito-texto"></p>

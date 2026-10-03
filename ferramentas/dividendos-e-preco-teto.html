@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Preço teto (método Bazin) e renda com dividendos | Warden</title>
+<meta name="description" content="Calcule o preço teto de uma ação pelo método Bazin, a margem de segurança em relação à cotação e quantas ações você precisa para viver de dividendos.">
+<link rel="canonical" href="https://wardenfinance.com.br/ferramentas/dividendos-e-preco-teto.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Preço teto e renda com dividendos | Warden">
+<meta property="og:description" content="Preço teto pelo método Bazin e quantas ações para a renda que você quer.">
+<meta property="og:url" content="https://wardenfinance.com.br/ferramentas/dividendos-e-preco-teto.html">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/warden.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Calculadora de Preço Teto e Dividendos",
+  "url": "https://wardenfinance.com.br/ferramentas/dividendos-e-preco-teto.html",
+  "applicationCategory": "FinanceApplication",
+  "operatingSystem": "Any",
+  "inLanguage": "pt-BR",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "BRL" },
+  "publisher": { "@type": "Organization", "name": "Warden", "url": "https://wardenfinance.com.br/" }
+}
+</script>
+<style>
+  /* ===== DIVIDENDOS E PREÇO TETO (só desta página; estrutura e componentes vêm do /assets/warden.css) ===== */
+  .dv-form { display: flex; flex-direction: column; gap: 26px; }
+  .dv-bloco { border-top: 1px solid var(--border); padding-top: 22px; }
+  .dv-aviso { margin-top: 20px; border-color: var(--accent); }
+  .dv-aviso strong { display: block; margin-bottom: 2px; }
+  .dv-obs { margin-top: 16px; }
+</style>
+</head>
+<body>
+
+<script src="/assets/nav.js"></script>
+
+<section class="tool-top">
+  <div class="section-inner">
+
+    <header class="tool-head">
+      <div class="tool-crumbs" data-crumbs></div>
+      <h1 class="tool-title">Preço teto e renda com dividendos</h1>
+      <p class="tool-lead">Quanto pagar no máximo por uma ação para receber o dividend yield que você quer? E quantas ações seriam necessárias para uma renda mensal em dividendos? Coloque os números da empresa que você está estudando.</p>
+    </header>
+
+    <!-- ENTRADAS -->
+    <form class="tool-card dv-form" id="dv-form" onsubmit="return false">
+      <div class="tool-fields">
+        <div class="tool-field">
+          <label for="dividendos">Dividendos por ação (12 meses)</label>
+          <div class="tool-input"><span class="pre">R$</span><input type="text" id="dividendos" value="1,20" inputmode="decimal" autocomplete="off"></div>
+          <span class="tool-hint">Soma de dividendos e JCP pagos por ação no último ano</span>
+        </div>
+        <div class="tool-field">
+          <label for="yield">Dividend yield mínimo desejado</label>
+          <div class="tool-input"><input type="number" id="yield" value="6" min="0.1" max="100" step="0.1" inputmode="decimal"><span class="suf">% ao ano</span></div>
+        </div>
+      </div>
+      <div class="tool-fields dv-bloco">
+        <div class="tool-field">
+          <label for="cotacao">Cotação atual <span class="opc">(opcional)</span></label>
+          <div class="tool-input"><span class="pre">R$</span><input type="text" id="cotacao" inputmode="decimal" autocomplete="off" placeholder="0,00"></div>
+          <span class="tool-hint">Para ver a margem de segurança</span>
+        </div>
+        <div class="tool-field">
+          <label for="renda">Renda mensal desejada em dividendos <span class="opc">(opcional)</span></label>
+          <div class="tool-input"><span class="pre">R$</span><input type="text" id="renda" placeholder="0,00"></div>
+        </div>
+      </div>
+    </form>
+
+    <div class="tool-note dv-aviso" role="note">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+      <span><strong>Ferramenta educativa. Não é recomendação de compra ou venda.</strong> Dividendos passados não garantem dividendos futuros: a empresa pode pagar menos, ou nada, nos próximos anos.</span>
+    </div>
+
+    <!-- RESULTADO -->
+    <div class="result-grid" id="resultados" aria-live="polite"></div>
+    <p class="tool-obs dv-obs" id="dv-obs"></p>
+
+  </div>
+</section>
+
+<!-- EXPLICAÇÃO + FAQ -->
+<section class="tool-prose-section">
+  <div class="section-inner">
+    <article class="tool-prose">
+      <h2>O que é o preço teto pelo método Bazin</h2>
+      <p>O método foi popularizado por Décio Bazin no livro <em>Faça Fortuna com Ações</em>. A ideia é simples: uma ação só vale a pena, para quem busca renda, se pagar pelo menos um certo percentual do preço em dividendos por ano. Esse percentual é o <strong>dividend yield</strong>. Bazin usava 6%.</p>
+      <p><strong>preço teto = dividendos pagos por ação nos últimos 12 meses ÷ dividend yield desejado</strong></p>
+      <p>Exemplo: se a ação pagou R$ 1,20 por ação no ano e você quer 6%, o preço teto é R$ 1,20 ÷ 0,06 = R$ 20,00. Pagando até R$ 20, você recebe pelo menos 6% do que investiu, se os dividendos se repetirem.</p>
+
+      <h3>Margem de segurança</h3>
+      <p>É a distância entre o preço teto e a cotação atual: <strong>(preço teto − cotação) ÷ preço teto</strong>. Positiva quer dizer que a ação está abaixo do teto; negativa, que está acima. Uma margem maior dá folga caso os dividendos caiam.</p>
+
+      <h3>Os limites do método</h3>
+      <ul>
+        <li><strong>Olha para trás.</strong> Usa dividendos do passado, que podem ter sido turbinados por um ano excepcional ou por venda de ativos.</li>
+        <li><strong>Não mede a saúde da empresa.</strong> Dívida alta, lucro em queda ou setor em crise podem cortar os dividendos. Estude a empresa antes.</li>
+        <li><strong>Não é o único critério.</strong> Use o preço teto como um filtro inicial, nunca como sinal de compra.</li>
+      </ul>
+      <p>Para comparar com a renda fixa, veja quanto o mesmo dinheiro renderia no <a href="/ferramentas/simulador-renda-fixa.html">simulador de renda fixa</a>, e quanto patrimônio a sua renda exige na calculadora de <a href="/ferramentas/viver-de-renda.html">viver de renda</a>.</p>
+
+      <p class="tool-disclaimer" data-aviso-educativo>Ferramenta educativa, não é recomendação de compra ou venda de nenhum ativo. Dividendos passados não garantem dividendos futuros. O cálculo não considera impostos, corretagem nem variação da cotação.</p>
+    </article>
+
+    <div class="tool-faq" data-faq>
+      <h2>Perguntas frequentes</h2>
+      <details>
+        <summary>O que é dividend yield?</summary>
+        <div><p>É quanto a ação pagou em dividendos (e juros sobre capital próprio) em 12 meses, dividido pelo preço da ação. Uma ação de R$ 20 que pagou R$ 1,20 no ano tem dividend yield de 6%. Ele muda todo dia, porque o preço muda.</p></div>
+      </details>
+      <details>
+        <summary>Por que 6% no método Bazin?</summary>
+        <div><p>Foi o número que Bazin usava, pensando em superar com folga a renda fixa da época. Não é regra fixa: muita gente compara com a taxa do Tesouro IPCA+ ou exige mais quando os juros do país estão altos. Você pode trocar o valor na calculadora.</p></div>
+      </details>
+      <details>
+        <summary>Dividendos pagam Imposto de Renda?</summary>
+        <div><p>Pelas regras atuais, os dividendos recebidos por pessoa física são isentos, enquanto os juros sobre capital próprio (JCP) têm 15% retidos na fonte. Essas regras estão em discussão e podem mudar; confira a legislação vigente.</p></div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- PONTE PARA O WARDEN COBRANÇA -->
+<section class="tool-bridge">
+  <div class="section-inner">
+    <div data-ponte-cobranca data-titulo="Para comprar ações todo mês, o dinheiro precisa entrar todo mês." data-texto="O Warden Cobrança cobra seus clientes no WhatsApp, com Pix, e lembra quem atrasou. Mais previsibilidade para investir."></div>
+  </div>
+</section>
+
+<script src="/assets/tools.js"></script>
+<script>
+  const { formatBRL: brl, formatPct, formatNumero, parseNumero, campoBRL, cardResultado } = Warden;
+  const $ = id => document.getElementById(id);
+
+  campoBRL($('cotacao'));
+  campoBRL($('renda'));
+  // dividendos por ação podem ter mais de 2 casas (ex.: 0,4521): campo livre, lido com parseNumero
+  const valor = id => { const v = parseNumero($(id).value); return isFinite(v) && v > 0 ? v : 0; };
+
+  function calcular() {
+    const div = valor('dividendos');
+    const dy = Math.max(0, parseFloat($('yield').value) || 0) / 100;
+    const cotacao = valor('cotacao');
+    const renda = valor('renda');
+
+    if (div <= 0 || dy <= 0) {
+      $('resultados').innerHTML = '';
+      $('dv-obs').textContent = 'Informe os dividendos por ação dos últimos 12 meses e o dividend yield que você quer.';
+      return;
+    }
+
+    // preço teto (Bazin) = dividendos 12 meses ÷ yield desejado
+    const teto = div / dy;
+    const cards = [cardResultado({
+      titulo: 'Preço teto', destaque: true,
+      descricao: `Pagando até isso, o dividend yield é de pelo menos ${formatPct(dy * 100, { curto: true })}`,
+      rotulo: 'Pagar no máximo', valor: brl(teto),
+      linhas: [['Dividendos em 12 meses', `R$ ${formatNumero(div, { casas: div < 1 ? 4 : 2 })} por ação`]]
+    })];
+
+    if (cotacao > 0) {
+      // margem de segurança = (teto − cotação) ÷ teto
+      const margem = (teto - cotacao) / teto;
+      cards.push(cardResultado({
+        titulo: 'Cotação de hoje',
+        descricao: margem >= 0 ? 'Abaixo do preço teto' : 'Acima do preço teto',
+        rotulo: 'Margem de segurança', valor: formatPct(margem * 100, { casas: 1 }),
+        linhas: [['Cotação', brl(cotacao)], ['Dividend yield nesse preço', formatPct(div / cotacao * 100)]]
+      }));
+    }
+
+    if (renda > 0) {
+      // ações necessárias = renda × 12 ÷ dividendos por ação, arredondado para cima
+      const acoes = Math.ceil(renda * 12 / div - 1e-9);
+      const preco = cotacao > 0 ? cotacao : teto;
+      cards.push(cardResultado({
+        titulo: `Renda de ${brl(renda)} por mês`,
+        descricao: cotacao > 0 ? 'Comprando todas as ações na cotação atual' : 'Comprando todas as ações no preço teto',
+        rotulo: 'Ações necessárias', valor: `${formatNumero(acoes, { casas: 0 })} ${acoes === 1 ? 'ação' : 'ações'}`,
+        linhas: [['Investimento necessário', brl(acoes * preco)], ['Dividendos por ano', brl(acoes * div)]]
+      }));
+    }
+
+    $('resultados').innerHTML = cards.join('');
+    $('dv-obs').textContent = `Conta: R$ ${formatNumero(div, { casas: div < 1 ? 4 : 2 })} ÷ ${formatPct(dy * 100, { curto: true })} = ${brl(teto)}. Considera que a empresa vai pagar o mesmo valor por ação nos próximos 12 meses.`;
+  }
+
+  ['dividendos', 'yield', 'cotacao', 'renda'].forEach(id => $(id).addEventListener('input', calcular));
+  calcular();
+</script>
+
+</body>
+</html>
