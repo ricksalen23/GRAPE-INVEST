@@ -15,7 +15,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/warden.css">
 <script type="application/ld+json">
 {
@@ -50,17 +50,17 @@
   .taxa { padding: 0 24px; border-left: 1px solid var(--border); min-width: 0; }
   .taxa:first-child { padding-left: 0; border-left: none; }
   .taxa-nome { display: block; font-size: .78rem; color: var(--muted); margin-bottom: 4px; }
-  .taxa-valor { display: block; font-family: 'IBM Plex Mono', monospace; font-size: clamp(1.3rem, 2.6vw, 1.8rem); font-weight: 600; }
-  .taxa-data { display: block; font-family: 'IBM Plex Mono', monospace; font-size: .7rem; color: var(--muted); margin-top: 4px; }
+  .taxa-valor { display: block; font-family: 'Inter', sans-serif; font-size: clamp(1.3rem, 2.6vw, 1.8rem); font-weight: 600; }
+  .taxa-data { display: block; font-family: 'Inter', sans-serif; font-size: .7rem; color: var(--muted); margin-top: 4px; }
   /* input inline: mesma fonte e tamanho do número grande, com linha inferior para indicar edição */
   .taxa-input { display: flex; align-items: baseline; gap: 4px; border-bottom: 1px solid var(--text); max-width: 9ch; }
   .taxa-input input {
     width: 100%; min-width: 0; background: none; border: none; outline: none; color: var(--text); padding: 0;
-    font-family: 'IBM Plex Mono', monospace; font-size: clamp(1.3rem, 2.6vw, 1.8rem); font-weight: 600; -moz-appearance: textfield;
+    font-family: 'Inter', sans-serif; font-size: clamp(1.3rem, 2.6vw, 1.8rem); font-weight: 600; -moz-appearance: textfield;
   }
   .taxa-input input::-webkit-outer-spin-button,
   .taxa-input input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-  .taxa-input .suf { font-family: 'IBM Plex Mono', monospace; font-size: 1rem; color: var(--muted); }
+  .taxa-input .suf { font-family: 'Inter', sans-serif; font-size: 1rem; color: var(--muted); }
   .taxas-restaurar {
     background: none; border: none; padding: 0; color: var(--muted); text-decoration: underline; cursor: pointer;
     font-family: 'Inter', sans-serif; font-size: .8rem;
@@ -79,7 +79,7 @@
   .ir-tabela { width: 100%; max-width: 420px; border-collapse: collapse; margin-top: 12px; font-size: .9rem; }
   .ir-tabela th, .ir-tabela td { text-align: left; padding: 8px 0; border-bottom: 1px solid var(--border); color: var(--muted); }
   .ir-tabela th { font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; font-weight: 600; }
-  .ir-tabela td:last-child { font-family: 'IBM Plex Mono', monospace; color: var(--text); text-align: right; }
+  .ir-tabela td:last-child { font-family: 'Inter', sans-serif; color: var(--text); text-align: right; }
   .ir-tabela th:last-child { text-align: right; }
 
   @media (max-width: 1100px) {
@@ -301,11 +301,26 @@
     const status = document.getElementById('taxas-status');
     status.classList.toggle('ref', fonte !== 'bcb');
     const ds = id => document.getElementById(id);
-    if (fonte === 'bcb') {
-      status.textContent = `Fonte: Banco Central (SGS) · atualizado em ${datas.cdi.data}`;
-      ds('d-selic').textContent = 'meta do Copom';
-      ds('d-cdi').textContent = `em ${datas.cdi.data}`;
-      ds('d-ipca').textContent = `até ${mesAno(datas.ipca.data)}`;
+    // detalhe de cada taxa conforme a origem (API oficial, site do BC, último valor guardado, estimado ou referência)
+    const detalhe = n => {
+      const d = datas[n];
+      if (d.origem === 'referencia') return 'referência';
+      if (d.origem === 'estimado') return 'estimado: Selic − 0,10';
+      if (n === 'selic') return 'meta do Copom';
+      if (n === 'cdi') return `em ${d.data || d.atualizado}`;
+      return d.data ? `até ${mesAno(d.data)}` : 'acumulado em 12 meses';
+    };
+    const parcial = fonte === 'referencia' && datas && ['selic', 'cdi', 'ipca'].some(n => datas[n].origem !== 'referencia');
+    if ((fonte === 'bcb' && datas) || parcial) {
+      if (fonte === 'bcb') {
+        const guardado = ['selic', 'cdi', 'ipca'].some(n => datas[n].origem === 'cache');
+        status.textContent = `Fonte: Banco Central · atualizado em ${datas.selic.atualizado}` +
+          (guardado ? ' (último valor obtido; o Banco Central não respondeu agora)' : '') +
+          (datas.cdi.origem === 'estimado' ? ' · CDI estimado pela Selic menos 0,10 ponto' : '');
+      } else {
+        status.textContent = `Algumas taxas estão com o valor de referência (${Warden.TAXAS_REFERENCIA.mes}): não foi possível buscá-las hoje. Use "Editar taxas" para ajustar.`;
+      }
+      ['selic', 'cdi', 'ipca'].forEach(n => ds('d-' + n).textContent = detalhe(n));
     } else if (fonte === 'carregando') {
       status.textContent = 'Buscando no Banco Central…';
       ['d-selic', 'd-cdi', 'd-ipca'].forEach(id => ds(id).textContent = '');

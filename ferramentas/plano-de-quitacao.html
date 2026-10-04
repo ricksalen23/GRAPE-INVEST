@@ -15,7 +15,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/warden.css">
 <script type="application/ld+json">
 {
@@ -55,10 +55,10 @@
   .pq-ordem li { counter-increment: ordem; display: flex; gap: 12px; align-items: baseline; font-size: .92rem; }
   .pq-ordem li::before {
     content: counter(ordem); flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
-    border: 1px solid var(--border); font-family: 'IBM Plex Mono', monospace; font-size: .74rem; color: var(--muted);
+    border: 1px solid var(--border); font-family: 'Inter', sans-serif; font-size: .74rem; color: var(--muted);
   }
   .pq-ordem li span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
-  .pq-ordem li small { font-family: 'IBM Plex Mono', monospace; font-size: .8rem; color: var(--muted); white-space: nowrap; }
+  .pq-ordem li small { font-family: 'Inter', sans-serif; font-size: .8rem; color: var(--muted); white-space: nowrap; }
 
   @media (max-width: 900px) {
     .pq-ordens { grid-template-columns: 1fr; }

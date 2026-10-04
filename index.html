@@ -6,12 +6,18 @@
 <title>Warden — Inteligência de mercado</title>
 <meta name="description" content="Warden é a plataforma que blinda suas finanças com controle, disciplina e inteligência de mercado.">
 <link rel="canonical" href="https://wardenfinance.com.br/">
+<script>
+  /* ===== HERO EM VÍDEO (veja "Hero em vídeo" no CLAUDE.md) =====
+     ativo: false → a seção não existe na página. Arquivos em /assets/video/ (caminhos absolutos).
+     titulo: opcional; se preenchido, vira o <h1> da home. */
+  const HERO_VIDEO = { ativo: false, mp4: "", webm: "", poster: "", titulo: "" };
+</script>
 <meta name="theme-color" content="#000000">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/warden.css">
 <!-- estilos só da home; a base (nav, mega-menu, botões, tipografia) está em /assets/warden.css -->
 <style>
@@ -89,51 +95,24 @@
     opacity: 0; min-height: 1.3em; transition: opacity .4s ease;
   }
   .login-welcome-msg.show { opacity: 1; }
-  /* ===== HERO ===== */
-  .hero {
-    --first-gap: 88px;
-    /* 32px aqui + 32px no topo de #cobranca ≈ 64px entre o conteúdo das duas seções */
-    background: var(--bg); padding-bottom: 32px; text-align: center; overflow: hidden;
+  /* ===== HERO EM VÍDEO (só existe com HERO_VIDEO.ativo) ===== */
+  .hero-video {
+    display: flex; align-items: flex-end; min-height: min(78vh, 760px); padding-bottom: 64px;
+    background: var(--bg); overflow: hidden; --first-gap: 48px;
   }
-  /* brilho radial bem sutil do acento atrás do título */
-  .hero::before {
-    content: ''; position: absolute; left: 50%; top: 38%; width: min(900px, 120vw); height: 520px;
-    transform: translate(-50%, -50%); pointer-events: none;
-    background: radial-gradient(closest-side, color-mix(in srgb, var(--accent) 11%, transparent), transparent);
+  .hero-video-midia, .hero-video-midia video, .hero-video-midia img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  /* gradiente escuro: topo (atrás do nav) e base (atrás do título) mais escuros, para legibilidade */
+  .hero-video-sombra {
+    position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(180deg, rgba(0,0,0,.6) 0%, rgba(0,0,0,.2) 40%, rgba(0,0,0,.35) 65%, rgba(0,0,0,.88) 100%);
   }
-  .hero-inner { position: relative; max-width: 860px; margin: 0 auto; }
-  .hero-badge {
-    display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px; margin-bottom: 28px;
-    border: 1px solid var(--border); border-radius: 99px; background: var(--surface);
-    font-size: .78rem; font-weight: 500; color: var(--muted); white-space: nowrap; max-width: 100%;
-  }
-  .hero-badge .badge-short { display: none; }
-  .hero-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
-  .hero-title {
+  .hero-video-conteudo { position: relative; width: 100%; }
+  .hero-video-titulo {
     font-family: 'Fraunces', serif; font-weight: 600; font-optical-sizing: auto; letter-spacing: -.02em;
-    /* mínimo menor que antes para "sob controle." (agora inseparável) caber em celulares de 320px */
-    font-size: clamp(2.1rem, 10vw, 4.8rem); line-height: 1.05; margin-bottom: 24px;
+    font-size: clamp(2.1rem, 6vw, 4.2rem); line-height: 1.06; max-width: 18ch;
   }
-  .hero-title em { font-style: normal; color: var(--accent); }
-  .hero-sub { color: var(--muted); font-size: clamp(1rem, 1.6vw, 1.12rem); line-height: 1.7; max-width: 640px; margin: 0 auto 36px; }
-  .hero-ctas { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin-bottom: 56px; }
-  .hero-stats {
-    display: flex; justify-content: center; flex-wrap: wrap; list-style: none;
-    font-family: 'IBM Plex Mono', monospace; font-size: .85rem; color: var(--muted);
-  }
-  .hero-stats li { padding: 4px 24px; border-left: 1px solid var(--border); display: inline-flex; align-items: center; gap: 8px; }
-  .hero-stats li:first-child { border-left: none; }
-  .hero-stats strong { color: var(--text); font-weight: 600; }
-  .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); animation: livePulse 1.8s ease-in-out infinite; }
-  @keyframes livePulse { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
-  @media (max-width: 600px) {
-    .hero { --first-gap: 48px; padding-bottom: 24px; }
-    section.cobranca-section { padding-top: 24px; }
-    .hero-badge .badge-long { display: none; }
-    .hero-badge .badge-short { display: inline; }
-    .hero-ctas .btn, .cobranca-copy .btn { width: 100%; }
-    .hero-stats { flex-direction: column; align-items: center; gap: 6px; }
-    .hero-stats li { border-left: none; padding: 2px 0; }
+  @media (max-width: 768px) {
+    .hero-video { min-height: 62vh; padding-bottom: 40px; }
   }
 
   /* ===== WARDEN COBRANÇA ===== */
@@ -145,7 +124,7 @@
   .cobranca-steps li { display: flex; gap: 16px; align-items: flex-start; font-size: 1rem; line-height: 1.55; }
   .step-num {
     flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--accent);
-    color: var(--accent); font-family: 'IBM Plex Mono', monospace; font-size: .85rem; font-weight: 600;
+    color: var(--accent); font-family: 'Inter', sans-serif; font-size: .85rem; font-weight: 600;
     display: flex; align-items: center; justify-content: center; margin-top: -3px;
   }
   .cobranca-benefits {
@@ -175,7 +154,7 @@
   .chat-status { font-size: .7rem; color: var(--muted); }
   .chat-body { display: flex; flex-direction: column; gap: 8px; padding: 16px 12px 22px; min-height: 430px; }
   .chat-day {
-    align-self: center; font-family: 'IBM Plex Mono', monospace; font-size: .64rem; color: var(--muted);
+    align-self: center; font-family: 'Inter', sans-serif; font-size: .64rem; color: var(--muted);
     background: #161A18; padding: 3px 10px; border-radius: 6px; margin-bottom: 4px;
   }
   .msg {
@@ -185,12 +164,12 @@
   .msg.show { opacity: 1; transform: none; }
   .msg-in { align-self: flex-start; background: #1F2421; border-top-left-radius: 3px; }
   .msg-out { align-self: flex-end; background: #1E4D3A; border-top-right-radius: 3px; }
-  .msg-time { display: block; text-align: right; font-family: 'IBM Plex Mono', monospace; font-size: .6rem; color: rgba(243,241,234,.5); margin-top: 3px; }
+  .msg-time { display: block; text-align: right; font-family: 'Inter', sans-serif; font-size: .6rem; color: rgba(243,241,234,.5); margin-top: 3px; }
   .pix-box {
     margin: 6px 0 8px; padding: 8px; border-radius: 8px; background: rgba(0,0,0,.35); border: 1px solid rgba(243,241,234,.08);
   }
   .pix-label { font-size: .64rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
-  .pix-code { font-family: 'IBM Plex Mono', monospace; font-size: .64rem; color: var(--text); word-break: break-all; opacity: .8; }
+  .pix-code { font-family: 'Inter', sans-serif; font-size: .64rem; color: var(--text); word-break: break-all; opacity: .8; }
   .pix-copy {
     display: block; text-align: center; margin-top: 6px; padding: 7px; border-radius: 7px;
     background: var(--accent); color: var(--accent-ink); font-weight: 600; font-size: .74rem;
@@ -199,72 +178,31 @@
     display: inline-block; margin-top: 6px; padding: 2px 7px; border-radius: 99px;
     background: var(--accent); color: var(--accent-ink); font-size: .6rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
   }
+  /* sem o hero, a Cobrança é a 1ª seção: sem a linha de cima e com folga abaixo do topo fixo */
+  body > section.cobranca-section:first-of-type { border-top: none; --first-gap: 40px; }
   @media (max-width: 900px) {
     .cobranca-grid { grid-template-columns: 1fr; gap: 56px; }
   }
+  /* celular: texto, passos e botão primeiro; o mockup depois, centralizado e inteiro na tela */
+  @media (max-width: 600px) {
+    section.cobranca-section { padding-top: 24px; }
+    body > section.cobranca-section:first-of-type { --first-gap: 32px; }
+    .cobranca-copy .btn { width: 100%; min-height: 52px; }
+    .cobranca-steps { gap: 20px; }
+    .cobranca-steps li { font-size: 1.05rem; }
+    .cobranca-benefits li { font-size: 1rem; }
+    .cobranca-grid { gap: 48px; }
+    /* mockup inteiro na tela: reduzido por igual (zoom), mais ainda em celulares baixos */
+    .phone { width: min(300px, 100%); zoom: .9; }
+    .chat-body { min-height: 0; padding-bottom: 18px; }
+  }
+  @media (max-width: 600px) and (max-height: 720px) {
+    .phone { zoom: .82; }
+  }
   @media (prefers-reduced-motion: reduce) {
     .msg { opacity: 1; transform: none; transition: none; }
-    .live-dot { animation: none; }
     .btn { transition: none; }
   }
-
-  /* ===== GRÁFICO + APRENDA A INVESTIR ===== */
-  .grafico-grid {
-    display: grid; grid-template-columns: 2fr 1fr; gap: 44px;
-    margin-top: 44px; align-items: stretch;
-  }
-  .grafico-chart-wrap {
-    min-width: 0;
-    border: 1px solid var(--border); border-radius: 16px; overflow: hidden;
-    min-height: 480px; background: var(--surface);
-  }
-  .tradingview-widget-container, .tradingview-widget-container__widget { height: 100%; width: 100%; }
-  .aprenda-col { min-width: 0; display: flex; flex-direction: column; gap: 16px; }
-  .aprenda-heading {
-    font-family: 'Fraunces', serif; font-weight: 600; font-optical-sizing: auto;
-    font-size: 1.3rem; letter-spacing: -.01em; margin-bottom: 4px;
-  }
-  .aprenda-block {
-    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
-    padding: 22px 24px;
-  }
-  .aprenda-block h4 { font-size: .95rem; font-weight: 700; color: var(--text); margin-bottom: 6px; }
-  .aprenda-block p { color: var(--muted); font-size: .88rem; line-height: 1.65; }
-  .cursos-preview { padding: 4px 4px 0; }
-  .cursos-preview h4 { font-size: .82rem; font-weight: 700; color: var(--muted); margin-bottom: 4px; }
-  .cursos-preview p { color: var(--muted); font-size: .8rem; line-height: 1.6; }
-  .cursos-preview a { color: var(--text); text-decoration: underline; }
-  .cursos-preview a:hover { color: var(--white); }
-  @media (max-width: 900px) {
-    .grafico-grid { grid-template-columns: 1fr; }
-    .grafico-chart-wrap { min-height: 380px; }
-  }
-
-  /* ===== NOTÍCIAS ===== */
-  .noticias-grid {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 20px; margin-top: 52px;
-  }
-  .noticia-card {
-    background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
-    padding: 32px 28px; display: flex; flex-direction: column; gap: 16px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.35);
-    transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease;
-  }
-  .noticia-card:hover {
-    transform: translateY(-4px);
-    border-color: rgba(243,241,234,0.28);
-    box-shadow: 0 14px 32px rgba(0,0,0,0.45);
-  }
-  .noticia-cat {
-    align-self: flex-start; font-size: .68rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
-    border: 1px solid var(--border); color: var(--muted); padding: 4px 10px; border-radius: 99px;
-  }
-  .noticia-title { font-family: 'Fraunces', serif; font-weight: 600; font-optical-sizing: auto; font-size: 1.08rem; line-height: 1.4; }
-  .noticia-summary { color: var(--muted); font-size: .87rem; line-height: 1.6; flex: 1; }
-  .noticia-link { font-size: .82rem; font-weight: 600; color: var(--text); text-decoration: none; }
-  .noticia-link:hover { text-decoration: underline; }
-  .noticias-indisponivel { grid-column: 1 / -1; color: var(--muted); font-size: .9rem; text-align: center; padding: 20px 0; }
 
   /* ===== CALCULADORA DE JUROS COMPOSTOS ===== */
   .calc-card {
@@ -282,10 +220,10 @@
     border-bottom: 1px solid var(--border); padding-bottom: 8px; transition: border-color .2s;
   }
   .calc-input-wrap:focus-within { border-color: var(--white); }
-  .calc-prefix, .calc-suffix { font-family: 'IBM Plex Mono', monospace; font-size: 1rem; color: var(--muted); }
+  .calc-prefix, .calc-suffix { font-family: 'Inter', sans-serif; font-size: 1rem; color: var(--muted); }
   .calc-input-wrap input {
     flex: 1; min-width: 0; background: none; border: none; outline: none; color: var(--text);
-    font-family: 'IBM Plex Mono', monospace; font-size: 1.15rem;
+    font-family: 'Inter', sans-serif; font-size: 1.15rem;
     -moz-appearance: textfield;
   }
   .calc-input-wrap input::-webkit-outer-spin-button,
@@ -301,12 +239,20 @@
     color: var(--muted); margin-bottom: 6px;
   }
   .calc-nota { font-size: .78rem; color: var(--muted); line-height: 1.5; }
-  .calc-result-value { display: block; font-family: 'IBM Plex Mono', monospace; font-size: 1.5rem; font-weight: 600; color: var(--text); }
+  .calc-result-value { display: block; font-family: 'Inter', sans-serif; font-size: 1.5rem; font-weight: 600; color: var(--text); }
   #calc-total { font-size: 1.9rem; color: var(--white); }
 
   @media (max-width: 720px) {
     .calc-card { grid-template-columns: 1fr; padding: 28px; gap: 32px; }
     .calc-results { border-left: none; padding-left: 0; border-top: 1px solid var(--border); padding-top: 28px; }
+  }
+  /* celular: campos com área de toque de 44px e nota legível */
+  @media (max-width: 600px) {
+    .calc-card { padding: 24px 20px; }
+    .calc-input-wrap input, .calc-input-wrap select { min-height: 44px; }
+    .calc-nota { font-size: 1rem; }
+    /* a Cobrança já termina com 96px de folga: a calculadora não precisa de outros 96 em cima */
+    #calculadora { padding-top: 56px; }
   }
 </style>
 </head>
@@ -382,23 +328,56 @@
   </div>
 </div>
 
-<!-- HERO -->
-<section id="inicio" class="hero">
-  <div class="hero-inner">
-    <p class="hero-badge fade-up"><span class="badge-long">Ferramentas financeiras gratuitas + cobrança automática</span><span class="badge-short">Grátis + cobrança automática</span></p>
-    <h1 class="hero-title fade-up">Seu dinheiro, sob&nbsp;<em>controle</em>.</h1>
-    <p class="hero-sub fade-up">Dezenas de ferramentas gratuitas para suas finanças, notícias do mercado em tempo real e o Warden Cobrança: seus clientes cobrados no WhatsApp, no automático.</p>
-    <div class="hero-ctas fade-up">
-      <a class="btn btn-primary" href="#cobranca">Conhecer o Warden Cobrança</a>
-      <button type="button" class="btn btn-secondary" onclick="abrirFerramentas(event)" aria-controls="mega-menu">Explorar ferramentas</button>
-    </div>
-    <ul class="hero-stats fade-up">
-      <li><strong>30+</strong> ferramentas</li>
-      <li><span class="live-dot" aria-hidden="true"></span>Notícias ao vivo</li>
-      <li><strong>100%</strong> gratuito para começar</li>
-    </ul>
-  </div>
-</section>
+<!-- TÍTULO DA PÁGINA: oculto na tela (leitores de tela e Google). Se o hero em vídeo tiver título, ele vira o h1 e este sai. -->
+<h1 class="sr-only" id="titulo-oculto">Warden: ferramentas financeiras gratuitas e cobrança automática no WhatsApp</h1>
+
+<!-- HERO EM VÍDEO: modelo inserido pelo script abaixo só quando HERO_VIDEO.ativo for true -->
+<template id="hero-video-tpl">
+  <section id="inicio" class="hero-video">
+    <div class="hero-video-midia"></div>
+    <div class="hero-video-sombra" aria-hidden="true"></div>
+    <div class="section-inner hero-video-conteudo"></div>
+  </section>
+</template>
+<script>
+  (function () {
+    const cfg = HERO_VIDEO;
+    const tpl = document.getElementById('hero-video-tpl');
+    if (!cfg.ativo) { tpl.remove(); return; }
+    const secao = tpl.content.firstElementChild.cloneNode(true);
+    const midia = secao.querySelector('.hero-video-midia');
+    // celular, menos movimento ou economia de dados: só o poster, e o vídeo nem é baixado
+    const soPoster = window.matchMedia('(max-width: 768px)').matches
+      || window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      || !!(navigator.connection && navigator.connection.saveData);
+    if ((cfg.webm || cfg.mp4) && !soPoster) {
+      const v = document.createElement('video');
+      v.muted = true; v.autoplay = true; v.loop = true; v.playsInline = true;
+      ['muted', 'autoplay', 'loop', 'playsinline'].forEach(a => v.setAttribute(a, ''));
+      v.setAttribute('aria-hidden', 'true');
+      if (cfg.poster) v.poster = cfg.poster;
+      [['webm', 'video/webm'], ['mp4', 'video/mp4']].forEach(([k, tipo]) => {
+        if (!cfg[k]) return;
+        const src = document.createElement('source');
+        src.src = cfg[k]; src.type = tipo;
+        v.appendChild(src);
+      });
+      midia.appendChild(v);
+    } else if (cfg.poster) {
+      const img = document.createElement('img');
+      img.src = cfg.poster; img.alt = ''; img.decoding = 'async';
+      midia.appendChild(img);
+    }
+    if (cfg.titulo) {
+      const h1 = document.createElement('h1');
+      h1.className = 'hero-video-titulo';
+      h1.textContent = cfg.titulo;
+      secao.querySelector('.hero-video-conteudo').appendChild(h1);
+      document.getElementById('titulo-oculto').remove();
+    }
+    tpl.replaceWith(secao);
+  })();
+</script>
 
 <!-- WARDEN COBRANÇA -->
 <section id="cobranca" class="cobranca-section">
@@ -472,73 +451,6 @@
   </div>
 </section>
 
-<!-- NOTÍCIAS -->
-<section id="noticias">
-  <div class="section-inner">
-    <p class="section-label fade-up">Notícias</p>
-    <h2 class="section-title fade-up">O que está movendo o mercado</h2>
-    <p class="section-sub fade-up">Manchetes reais de fontes financeiras brasileiras, atualizadas automaticamente.</p>
-
-    <div class="noticias-grid" id="noticias-grid">
-      <p class="noticias-indisponivel">Carregando notícias…</p>
-    </div>
-  </div>
-</section>
-
-<!-- GRÁFICO AO VIVO + APRENDA A INVESTIR -->
-<section id="grafico" class="grafico-section">
-  <div class="section-inner">
-    <p class="section-label fade-up">Acompanhe o mercado</p>
-    <h2 class="section-title fade-up">O Ibovespa em tempo real, direto na tela</h2>
-    <div class="grafico-grid">
-      <div class="grafico-chart-wrap fade-up">
-        <!-- TradingView Advanced Real-Time Chart Widget (oficial e gratuito) -->
-        <div class="tradingview-widget-container">
-          <div class="tradingview-widget-container__widget"></div>
-          <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
-          {
-            "autosize": true,
-            "symbol": "BMFBOVESPA:IBOV",
-            "interval": "D",
-            "timezone": "America/Sao_Paulo",
-            "theme": "dark",
-            "style": "1",
-            "locale": "br",
-            "enable_publishing": false,
-            "allow_symbol_change": true,
-            "calendar": false,
-            "support_host": "https://www.tradingview.com"
-          }
-          </script>
-        </div>
-      </div>
-      <div class="aprenda-col fade-up">
-        <h3 class="aprenda-heading">Aprenda a investir</h3>
-        <div class="aprenda-block">
-          <h4>O que é investir</h4>
-          <p>Investir é destinar parte do seu dinheiro hoje com o objetivo de obter algum retorno no futuro, em vez de mantê-lo parado. Envolve avaliar riscos, prazos e objetivos antes de decidir onde alocar cada real.</p>
-        </div>
-        <div class="aprenda-block">
-          <h4>Como começar</h4>
-          <p>Antes de investir, vale organizar as finanças do dia a dia, entender sua reserva de emergência e definir objetivos claros. A partir daí, é possível estudar as opções disponíveis e escolher o que faz sentido para o seu momento.</p>
-        </div>
-        <div class="aprenda-block">
-          <h4>O que é ser trader</h4>
-          <p>Trading é a prática de comprar e vender ativos em prazos curtos, buscando aproveitar oscilações de preço. É diferente de investir a longo prazo e exige estudo técnico, disciplina e gestão de risco constante.</p>
-        </div>
-        <div class="aprenda-block">
-          <h4>Tipos de investimento</h4>
-          <p>Renda fixa, ações e criptomoedas são categorias com características bem diferentes entre si — de previsibilidade, liquidez e volatilidade. Entender essas diferenças é o primeiro passo para montar uma estratégia condizente com seu perfil.</p>
-        </div>
-        <div class="cursos-preview">
-          <h4>Cursos chegando em breve</h4>
-          <p>Conteúdos diretos ao ponto para você dominar suas finanças. <a href="mailto:contato@warden.com.br?subject=Quero%20entrar%20na%20lista%20de%20espera%20dos%20cursos">Entrar na lista de espera →</a></p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
 <!-- CALCULADORA DE JUROS COMPOSTOS -->
 <section id="calculadora">
   <div class="section-inner">
@@ -599,141 +511,6 @@
     });
   }, { threshold: 0.1 });
   document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
-
-  // ===== NOTÍCIAS (RSS via rss2json) =====
-  // Fontes: feed dedicado de Mercados do InfoMoney (quando publicar itens) +
-  // feed geral do InfoMoney, G1 Economia e Money Times, filtrados abaixo para
-  // ficar só com conteúdo de mercado/economia (os feeds gerais misturam
-  // resultado de loteria, política e outros assuntos do site). Três fontes
-  // porque os feeds gratuitos só devolvem os ~10 itens mais recentes cada —
-  // com uma fonte só, o filtro às vezes deixava passar poucas notícias.
-  const NEWS_FEEDS = [
-    { name: 'InfoMoney', url: 'https://www.infomoney.com.br/mercados/feed/', filter: 'none' },
-    { name: 'InfoMoney', url: 'https://www.infomoney.com.br/feed/', filter: 'infomoney' },
-    { name: 'G1 Economia', url: 'https://g1.globo.com/rss/g1/economia/', filter: 'keyword' },
-    { name: 'Money Times', url: 'https://www.moneytimes.com.br/feed/', filter: 'keyword' },
-  ];
-  const NEWS_MAX = 4;
-
-  // termos de loteria a descartar sempre, não importa a fonte
-  const NEWS_BLOCK_WORDS = ['loteria', 'loterias', 'sorteio', 'concurso', 'mega-sena', 'megasena', 'lotofacil', 'quina', 'lotomania', 'timemania'];
-
-  // categorias do InfoMoney que indicam conteúdo de mercado/economia de verdade
-  const INFOMONEY_ALLOW_CATEGORIES = [
-    'mercados', 'mercado de capitais', 'bolsa de valores', 'acoes', 'bolsas',
-    'investimentos', 'cambio', 'criptomoedas', 'bitcoin', 'renda fixa',
-    'renda variavel', 'fundos imobiliarios', 'economia', 'bancos', 'juros',
-    'selic', 'copom', 'pib', 'inflacao', 'dolar', 'b3',
-  ];
-
-  // G1 Economia e Money Times não expõem categoria útil no feed (G1 só manda
-  // "G1"; Money Times não manda nenhuma), então o filtro aqui é por
-  // palavra/expressão financeira no próprio título
-  const KEYWORD_ALLOW_WORDS = [
-    'dolar', 'bolsa', 'bovespa', 'ibovespa', 'juros', 'selic', 'inflacao',
-    'pib', 'investimento', 'investimentos', 'cambio', 'bitcoin', 'cripto',
-    'criptomoedas', 'dividendos', 'balanco', 'copom', 'commodities', 'acao',
-    'acoes', 'b3', 'ipo', 'cdi',
-  ];
-  const KEYWORD_ALLOW_PHRASES = [
-    'renda fixa', 'renda variavel', 'tesouro direto', 'mercado financeiro',
-    'fundo imobiliario', 'fundos imobiliarios', 'taxa de juros', 'banco central',
-    'mercado de acoes', 'mercado acionario', 'bolsa de valores',
-  ];
-
-  function normalize(str) {
-    return (str || '')
-      .toLowerCase()
-      .replace(/[áàâã]/g, 'a')
-      .replace(/[éê]/g, 'e')
-      .replace(/[íî]/g, 'i')
-      .replace(/[óôõ]/g, 'o')
-      .replace(/[úû]/g, 'u')
-      .replace(/ç/g, 'c');
-  }
-
-  function hasBlockedWord(title) {
-    const norm = normalize(title);
-    return NEWS_BLOCK_WORDS.some(w => norm.includes(w));
-  }
-
-  function passesInfomoneyFilter(item) {
-    const cats = (item.categories || []).map(normalize);
-    return cats.some(c => INFOMONEY_ALLOW_CATEGORIES.includes(c));
-  }
-
-  function passesKeywordFilter(item) {
-    const norm = normalize(item.title);
-    const words = norm.split(/[^a-z0-9]+/);
-    if (KEYWORD_ALLOW_WORDS.some(w => words.includes(w))) return true;
-    return KEYWORD_ALLOW_PHRASES.some(p => norm.includes(p));
-  }
-
-  function passesFilter(item, filterName) {
-    if (hasBlockedWord(item.title)) return false;
-    if (filterName === 'infomoney') return passesInfomoneyFilter(item);
-    if (filterName === 'keyword') return passesKeywordFilter(item);
-    return true; // filter: 'none' — feed já dedicado, só aplica o bloqueio de loteria
-  }
-
-  function escapeHtml(str) {
-    const d = document.createElement('div');
-    d.textContent = str || '';
-    return d.innerHTML;
-  }
-
-  function stripHtml(html) {
-    const tmp = document.createElement('div');
-    tmp.innerHTML = html || '';
-    return (tmp.textContent || tmp.innerText || '').trim();
-  }
-
-  function renderNoticiaCard(item) {
-    const summaryFull = stripHtml(item.description || item.content || '');
-    const summary = summaryFull.slice(0, 160) + (summaryFull.length > 160 ? '…' : '');
-    return '<div class="noticia-card fade-up">' +
-      '<span class="noticia-cat">' + escapeHtml(item._source) + '</span>' +
-      '<div class="noticia-title">' + escapeHtml(item.title || '') + '</div>' +
-      '<p class="noticia-summary">' + escapeHtml(summary) + '</p>' +
-      '<a class="noticia-link" href="' + encodeURI(item.link || '#') + '" target="_blank" rel="noopener">Ler matéria original →</a>' +
-      '</div>';
-  }
-
-  function showNoticiasIndisponivel() {
-    const grid = document.getElementById('noticias-grid');
-    if (grid) grid.innerHTML = '<p class="noticias-indisponivel">Notícias indisponíveis no momento.</p>';
-  }
-
-  async function fetchNoticias() {
-    const grid = document.getElementById('noticias-grid');
-    if (!grid) return;
-    try {
-      const results = await Promise.all(NEWS_FEEDS.map(f =>
-        fetch('https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(f.url))
-          .then(r => r.json())
-          .then(json => (json.items || [])
-            .map(item => Object.assign({ _source: f.name }, item))
-            .filter(item => passesFilter(item, f.filter)))
-          .catch(() => [])
-      ));
-      const seenLinks = new Set();
-      const items = results.flat()
-        .filter(item => {
-          if (seenLinks.has(item.link)) return false;
-          seenLinks.add(item.link);
-          return true;
-        })
-        .sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
-      if (!items.length) { showNoticiasIndisponivel(); return; }
-      grid.innerHTML = items.slice(0, NEWS_MAX).map(renderNoticiaCard).join('');
-      grid.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
-    } catch (e) {
-      showNoticiasIndisponivel();
-    }
-  }
-
-  fetchNoticias();
-  setInterval(fetchNoticias, 60000);
 
   // ===== CALCULADORA DE JUROS COMPOSTOS =====
   function formatBRL(bidStr) {

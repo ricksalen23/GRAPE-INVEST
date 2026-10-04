@@ -17,7 +17,7 @@ Site estático (HTML/CSS/JS puro, sem build), publicado em wardenfinance.com.br 
 
 ```html
 <head>
-  <!-- fontes Google (Fraunces, Inter, IBM Plex Mono) -->
+  <!-- fontes Google (Fraunces e Inter) -->
   <link rel="stylesheet" href="/assets/warden.css">
   <style>/* só o que é desta página */</style>
 </head>
@@ -77,7 +77,7 @@ Cada ferramenta é uma página em `/ferramentas/<slug>.html`. Para lançar: crie
 
 - **Formatação:** `formatBRL`, `formatBRLCompacto` (eixos), `formatPct(v, {casas, curto, sinal})`, `formatNumero`, `parseNumero` (aceita "1.500,50", "1.500", "150.00").
 - **Campos de dinheiro:** `<input type="text">` + `Warden.campoBRL(input)` (máscara de R$), lido com `parseNumero(input.value)`. Chame antes de registrar os listeners da página.
-- **Taxas:** `await Warden.getTaxasBCB()` → `{ selic, cdi, ipca, fonte: 'bcb'|'referencia' }` (API SGS, cache 12h, nunca falha). Renderize primeiro com `Warden.TAXAS_REFERENCIA` e atualize quando a promessa resolver; mostre ao usuário de onde veio a taxa. Os valores de reserva ficam só no `tools.js`. Para o texto da fonte use `fonteTaxa(t)`.
+- **Taxas:** `await Warden.getTaxasBCB()` → `{ selic, cdi, ipca, fonte: 'bcb'|'referencia', datas }` (nunca falha; cache 12h). Ordem, taxa a taxa: API SGS (`api.bcb.gov.br`) → plano B no site do BC (`www.bcb.gov.br/api/servico/sitebcb/`: Meta Selic e IPCA 12m; não documentado, com parâmetro anti-cache por causa do CORS da CDN) → último valor bom de até 7 dias (`warden:taxas-ultimas`) → CDI estimado = Selic − 0,10 → `TAXAS_REFERENCIA`. `datas.<taxa>` = `{ valor, data, atualizado, origem: 'sgs'|'site'|'cache'|'estimado'|'referencia' }` (`data` pode ser `null`: o IPCA do site não traz o mês). `fonte` é `'bcb'` quando nenhuma taxa é a de referência. Renderize primeiro com `Warden.TAXAS_REFERENCIA` e atualize quando a promessa resolver; mostre ao usuário de onde veio a taxa. Os valores de reserva ficam só no `tools.js`. Para o texto da fonte use `fonteTaxa(t, qual = 'cdi')` (diz a data e se é último valor guardado ou estimado).
 - **Imposto de Renda:** `IR_REGRESSIVO` e `aliquotaIR(dias)` (tabela única, usada também pelo simulador); `liquidaDeIR(iMensalBruta, meses)` → taxa mensal líquida conservadora (alíquota do prazo total descontada do rendimento de todo mês). Ferramentas que usam rendimento de CDB/Tesouro mostram o resultado líquido de IR e dizem isso na nota.
 - **Renda fixa (motor do simulador):** `Warden.rendaFixa` → `prazo(qtd, 'dias'|'meses'|'anos')`, `depositos({ inicial, aporte, dias, cal })`, `opcoes(taxas, { pctCdb, pctLci })` (poupança, CDB, LCI/LCA, Tesouro Selic), `simular(op, deps, dias, cal, taxas)` (IR por depósito, rentabilidade real), `CONFIG` (regras da poupança, custódia, IOF). Usado pelo simulador e por "Poupança x CDB x Tesouro"; regra nova de renda fixa entra só aqui.
 - **Trabalho (CLT):** a página carrega `/assets/tabelas-2026.js` **antes** do `tools.js`. `calcINSS(bruto)` (progressivo, com teto), `calcIRRF(bruto, inss, dependentes, { simplificado, reducao })` → `{ base, impostoTabela, reducao, irDevido, … }`, `salarioLiquido(bruto, dependentes)`, `impostos13(bruto13, dep)` e `impostosFerias(bruto, dep)` (aplicam as flags de interpretação das tabelas), `centavos(v)` (arredonda meio centavo para cima, sem erro de ponto flutuante). O INSS é arredondado antes de entrar na base do IR.
@@ -99,15 +99,28 @@ Cada ferramenta é uma página em `/ferramentas/<slug>.html`. Para lançar: crie
 
 ## O que já existe (branch `warden-v2`)
 
-- **Home (`index.html`)**, seções em ordem: `#inicio` (hero), `#cobranca` (Warden Cobrança), `#noticias`, `#grafico`, `#calculadora` (juros compostos). Usa `/assets/warden.css` + `nav.js` com `data-page="home"`.
-- **Nav / mega-menu / menu mobile:** gerados por `/assets/nav.js` (inclui o card "Warden Cobrança" do mega-menu e o link "Cobrança" com selo "Novo"; "Gráfico" leva a `#grafico`).
-- **Faixa de cotações:** USD, EUR, GBP, BTC e ETH (AwesomeAPI, uma chamada) + SELIC, CDI e IPCA 12M (`Warden.getTaxasBCB`; o `nav.js` injeta o `tools.js` nas páginas que não o carregam). Atualiza a cada 60 s, cache em `localStorage` (`warden:cotacoes`), "—" sem dado; taxa de referência não é exibida como cotação. Rolagem por Web Animations (0 → -50%, ~40 px/s, pausa com mouse/toque, sem animação com `prefers-reduced-motion`). Verde/vermelho de alta/queda são a única exceção à cor de acento.
+- **Home (`index.html`)**, seções em ordem: `#inicio` (hero em vídeo, só se ativado), `#cobranca` (Warden Cobrança), `#calculadora` (juros compostos). O `<h1>` é oculto (`.sr-only`: "Warden: ferramentas financeiras gratuitas e cobrança automática no WhatsApp"); com o hero ativo e com título, o título do vídeo vira o `<h1>` e o oculto sai. Usa `/assets/warden.css` + `nav.js` com `data-page="home"`.
+- **Nav / mega-menu / menu mobile:** gerados por `/assets/nav.js` (links: Ferramentas, Cobrança com selo "Novo", Control Finance, Login; o rodapé do mega-menu é só o card "Warden Cobrança", na largura toda). No celular, hambúrguer, Login e logo têm área de toque de 44px.
+- **Faixa de cotações:** USD, EUR, GBP, BTC e ETH (AwesomeAPI, uma chamada) + SELIC, CDI e IPCA 12M (`Warden.getTaxasBCB`; o `nav.js` injeta o `tools.js` nas páginas que não o carregam). Atualiza a cada 60 s, cache em `localStorage` (`warden:cotacoes`). Moeda sem dado mostra "—"; taxa só aparece com dado do BC (API, site ou último valor de até 7 dias), com a data no `title` — CDI estimado e valor de referência não aparecem, o item some. Rolagem por Web Animations (0 → -50%, ~40 px/s, pausa com mouse/toque, sem animação com `prefers-reduced-motion`). Verde/vermelho de alta/queda são a única exceção à cor de acento.
 - **Ferramentas lançadas:** veja os itens com `disponivel: true` em `FERRAMENTAS` (`/assets/nav.js`) — é a lista oficial.
 - **Páginas legadas, fora da base compartilhada:** `app.html` (Control Finance), `escola.html`, `obrigado.html` — não carregam `warden.css`/`nav.js`; só migrar se for pedido.
+
+## Hero em vídeo (home)
+
+Pronto e desligado. Para ativar, no topo do `index.html`:
+
+```js
+const HERO_VIDEO = { ativo: true, mp4: "/assets/video/hero.mp4", webm: "/assets/video/hero.webm", poster: "/assets/video/hero.jpg", titulo: "" };
+```
+
+- **Arquivos** em `/assets/video/` (caminhos absolutos). Vídeo de **até ~4 MB**, **1080p**, **10–20 s em loop**, **sem áudio**; mande MP4 (H.264) e, se possível, WebM (menor, tem prioridade). O **poster** (JPG, mesmo enquadramento, ~200 KB) é obrigatório na prática: é o que aparece no celular, com `prefers-reduced-motion` ou com economia de dados (`navigator.connection.saveData`) — nesses casos o vídeo nem é baixado.
+- **titulo** (opcional): frase curta sobre o vídeo; vira o `<h1>` da home. Vazio = sem texto, e o `<h1>` oculto continua.
+- `ativo: false` = a seção não existe (nem espaço). A sobreposição escura em gradiente já garante a leitura do título e do nav.
 
 ## Outras regras
 
 - Login ainda é simulado (localStorage). O modal de login só existe na home e só abre por clique (sem abrir por hash/parâmetro de URL).
 - Cor de acento única: `--accent` (verde-limão). Não introduza outras cores de destaque.
+- Números: Inter com `font-variant-numeric: tabular-nums` (já vale no `body` e nos campos). Não use fonte monoespaçada.
 - Respeitar `prefers-reduced-motion` em toda animação.
 - Testar com o Live Server abrindo a **pasta do projeto** como raiz (os caminhos absolutos dependem disso).

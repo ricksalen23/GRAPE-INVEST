@@ -1,8 +1,8 @@
 # Relatório de testes — Warden
 
-Gerado por `npm test` em 03/10/2026, 22:30:46.
+Gerado por `npm test` em 04/10/2026, 00:30:35.
 
-## Placar: 267 de 269 testes passando ❌
+## Placar: 280 de 281 testes passando ❌
 
 Cada célula mostra quantos testes daquela área passaram (✅ todos / ❌ passaram/total).
 "Robustez" inclui os botões (copiar, PDF, PNG, WhatsApp, imprimir) e a máscara dos campos.
@@ -11,8 +11,8 @@ Juros compostos fica na home, então celular, faixa, SEO e acessibilidade dele s
 
 | Ferramenta | Cálculo | Robustez | Celular | Faixa | SEO | Acessibilidade | Status |
 |---|---|---|---|---|---|---|---|
-| Home | — | — | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
-| Juros compostos | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Home | — | — | ✅ 5 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Juros compostos | ✅ 1 | ✅ 1 | ✅ 5 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
 | Simulador renda fixa | ✅ 1 | ✅ 2 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
 | Poupança x CDB x Tesouro | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
 | Viver de renda | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
@@ -22,13 +22,13 @@ Juros compostos fica na home, então celular, faixa, SEO e acessibilidade dele s
 | Salário líquido | ✅ 5 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
 | Rescisão | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
 | Férias | ✅ 2 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
-| 13º salário | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| 13º salário | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ❌ 0/1 | ❌ |
 | Hora extra | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
 | CLT x PJ | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
 | Quanto cobrar por hora | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
 | Markup e margem | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
-| Ponto de equilíbrio | ✅ 1 | ✅ 1 | ❌ 2/3 | ✅ 1 | ✅ 1 | ✅ 1 | ❌ |
-| Gerador de recibo | ✅ 5 | ✅ 2 | ✅ 3 | ✅ 1 | ❌ 0/1 | ✅ 1 | ❌ |
+| Ponto de equilíbrio | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Gerador de recibo | ✅ 5 | ✅ 2 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
 | Gerador de QR Code Pix | ✅ 2 | ✅ 2 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
 | Gerador de orçamento | ✅ 1 | ✅ 2 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
 | Plano de quitação | ✅ 2 | ✅ 2 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
@@ -41,14 +41,12 @@ Juros compostos fica na home, então celular, faixa, SEO e acessibilidade dele s
 | Regra 50-30-20 | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
 | Meta mensal | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
 | Aposentadoria | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
-| Geral (links, máscara de R$, taxas do BC, faixa de cotações, unicidade de SEO) | ✅ 2 | ✅ 8 | — | ✅ 5 | ✅ 1 | — | ✅ |
+| Geral (links, máscara de R$, taxas do BC, faixa de cotações, unicidade de SEO) | ✅ 5 | ✅ 8 | — | ✅ 6 | ✅ 1 | — | ✅ |
 
 ## Testes que falharam
 
-- **ponto-de-equilibrio › celular: em 768px não rola para o lado, nada cortado e o menu hambúrguer abre** (failed)
-  Error: erros no console: / console: Failed to load resource: net::ERR_TIMED_OUT (https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js) / expect(received).toEqual(expected) // deep equality / - Expected  - 1 / + Received  + 3 / - Array []
-- **gerador-de-recibo › seo: title, description, um h1, canonical e JSON-LD válidos** (failed)
-  Error: erros no console: / console: Failed to load resource: net::ERR_TIMED_OUT (https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js) / expect(received).toEqual(expected) // deep equality / - Expected  - 1 / + Received  + 3 / - Array []
+- **decimo-terceiro › acessibilidade: todo campo com rótulo, todo botão com nome e contraste legível** (timedOut)
+  Tearing down "context" exceeded the test timeout of 90000ms.
 
 ## Revisão — o que foi encontrado
 

@@ -1,5 +1,5 @@
 /*
- * WARDEN — nav compartilhado (logo, Ferramentas + mega-menu, Cobrança, Gráfico, Notícias,
+ * WARDEN — nav compartilhado (logo, Ferramentas + mega-menu, Cobrança,
  * Control Finance, Login/avatar, hambúrguer + menu mobile) + faixa de cotações logo abaixo dele.
  * Nav e faixa ficam juntos num contêiner fixo (.topo-fixo); a altura total está em --topo-h (warden.css).
  *
@@ -121,7 +121,7 @@ function fazerLogout() {
 (function () {
   const script = document.currentScript;
   const isHome = script && script.dataset.page === 'home';
-  // na home os links de seção são "#grafico"; nas outras páginas, "/#grafico"
+  // na home os links de seção são "#cobranca"; nas outras páginas, "/#cobranca"
   const H = isHome ? '' : '/';
   const link = url => (isHome && url.startsWith('/#')) ? url.slice(1) : url;
   const paginaAtual = location.pathname.replace(/\/index\.html$/, '/');
@@ -224,17 +224,10 @@ function fazerLogout() {
         <div class="mega-cols" id="mega-cols">${megaCols}</div>
         <div class="mega-foot">
           ${cobrancaCard}
-          <div class="mega-quick">
-            <p class="section-label">Acesso rápido</p>
-            <a href="${H}#grafico">Gráfico</a>
-            <a href="${H}#noticias">Notícias</a>
-          </div>
         </div>
       </div>
     </div>
     <a class="nav-item nav-cobranca" href="${H}#cobranca">Cobrança <span class="badge-novo">Novo</span></a>
-    <a class="nav-item" href="${H}#grafico">Gráfico</a>
-    <a class="nav-item" href="${H}#noticias">Notícias</a>
     <a class="nav-item" href="/app.html" data-control-finance>Control Finance</a>
     <button class="nav-login-btn" id="nav-login-btn">Login</button>
     <div id="nav-profile" class="nav-profile hidden">
@@ -266,8 +259,6 @@ ${faixaHtml}
     ${cobrancaCard}
     <div id="mobile-cats">${mobileCats}</div>
     <div class="mobile-links">
-      <a href="${H}#grafico">Gráfico</a>
-      <a href="${H}#noticias">Notícias</a>
       <a href="/app.html" data-control-finance>Control Finance</a>
     </div>
   </div>
@@ -384,19 +375,29 @@ ${faixaHtml}
     const ATUALIZAR_MS = 60000;
 
     // --- dados: últimos valores bons ficam no localStorage para a faixa aparecer cheia ao abrir outra página ---
-    // { USD: { v: 5.22, p: 0.35 }, …, selic: { v: 13.75 }, … }
+    // { USD: { v: 5.22, p: 0.35 }, …, selic: { v: 13.75, atualizado: '03/10/2026', ts }, … }
+    // taxas do BC valem até 7 dias (mesma regra do kit); sem valor, o item da taxa some da faixa
+    const TAXA_VALIDA_MS = 7 * 86400000;
     let dados = {};
     try { dados = JSON.parse(localStorage.getItem(CACHE)) || {}; } catch (e) { dados = {}; }
+    COTACOES.filter(c => c.tipo === 'taxa').forEach(c => {
+      const d = dados[c.id];
+      if (d && !(d.ts && Date.now() - d.ts < TAXA_VALIDA_MS)) delete dados[c.id];
+    });
     function salvar() {
       try { localStorage.setItem(CACHE, JSON.stringify(dados)); } catch (e) { /* sem cache, tudo bem */ }
     }
-    // só troca textos e classes (as duas cópias): a animação não é reiniciada
+    // só troca textos, classes e visibilidade (as duas cópias): a animação não é reiniciada
     function pintar() {
       COTACOES.forEach(c => {
         const d = dados[c.id] || {};
         const valor = textoValor(c, d.v);
         const vr = variacao(d.p);
+        const some = c.tipo === 'taxa' && valor === '—';
+        const dica = c.tipo === 'taxa' && d.atualizado ? `Banco Central · atualizado em ${d.atualizado}` : '';
         faixa.querySelectorAll(`[data-cot="${c.id}"]`).forEach(li => {
+          if (li.hidden !== some) li.hidden = some;
+          if (li.title !== dica) li.title = dica;
           const v = li.querySelector('.faixa-valor');
           if (v.textContent !== valor) v.textContent = valor;
           const p = li.querySelector('.faixa-var');
@@ -451,9 +452,19 @@ ${faixaHtml}
         const W = await carregarKit();
         if (!W) return;
         const t = await W.getTaxasBCB();
-        if (t.fonte !== 'bcb') return;   // valor de referência não é cotação do dia: fica com o cache (ou "—")
-        dados.selic = { v: t.selic }; dados.cdi = { v: t.cdi }; dados.ipca = { v: t.ipca };
-        salvar(); pintar();
+        if (!t.datas) return;
+        // só dado do BC (API, site ou último valor de até 7 dias); CDI estimado e valor de referência não viram cotação
+        let mudou = false;
+        ['selic', 'cdi', 'ipca'].forEach(n => {
+          const d = t.datas[n];
+          if (!['sgs', 'site', 'cache'].includes(d.origem)) return;
+          // validade conta do dia em que o valor foi obtido ('dd/mm/aaaa'), não de agora
+          const [dia, mes, ano] = String(d.atualizado || '').split('/').map(Number);
+          const ts = ano ? new Date(ano, mes - 1, dia, 12).getTime() : Date.now();
+          dados[n] = { v: d.valor, atualizado: d.atualizado, ts };
+          mudou = true;
+        });
+        if (mudou) { salvar(); pintar(); }
       } catch (e) { /* idem */ }
     }
 

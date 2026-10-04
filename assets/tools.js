@@ -103,66 +103,131 @@
   }
 
   /* ===== TAXAS DO BANCO CENTRAL (Selic, CDI, IPCA) =====
-   * getTaxasBCB() → Promise<{ selic, cdi, ipca, fonte: 'bcb' | 'referencia', datas? }>
-   * Busca na API SGS do Banco Central, guarda 12h no localStorage e, se a API não responder,
-   * devolve TAXAS_REFERENCIA (fonte 'referencia'). Nunca rejeita. Várias chamadas na mesma página = uma busca só. */
+   * getTaxasBCB() → Promise<{ selic, cdi, ipca, fonte: 'bcb' | 'referencia', datas }>
+   * Nunca rejeita. Várias chamadas na mesma página = uma busca só. Ordem, taxa a taxa:
+   *   1. API oficial SGS (api.bcb.gov.br)
+   *   2. plano B: endpoints do site do BC (www.bcb.gov.br/api/servico/sitebcb) — só Meta Selic e IPCA 12 meses
+   *   3. último valor bom de até 7 dias (Selic só muda no Copom e o IPCA uma vez por mês)
+   *   4. CDI sem fonte, mas com Selic: estimado como Selic − 0,10 ponto (é a distância habitual entre os dois)
+   *   5. TAXAS_REFERENCIA
+   * datas.<taxa> = { valor, data, atualizado, origem }:
+   *   data       = data de referência do dado no BC ('dd/mm/aaaa') ou null (o IPCA do site não traz o mês)
+   *   atualizado = dia em que o valor foi obtido ('dd/mm/aaaa')
+   *   origem     = 'sgs' | 'site' | 'cache' | 'estimado' | 'referencia'
+   * fonte = 'bcb' quando nenhuma das três é o valor de referência. */
   // Valores de reserva: atualize de tempos em tempos. Selic e CDI em % ao ano; IPCA acumulado em 12 meses (%).
   const TAXAS_REFERENCIA = Object.freeze({ selic: 13.75, cdi: 13.65, ipca: 4.22, mes: 'set/2026' });
   // Séries do SGS: Selic meta, CDI anualizado e IPCA acumulado em 12 meses
   const SERIES_BCB = { selic: 432, cdi: 4389, ipca: 13522 };
-  const CACHE_TAXAS = 'warden:taxas-bcb';
+  const SITE_BCB = 'https://www.bcb.gov.br/api/servico/sitebcb/';
+  // a CDN do site do BC guarda a resposta por 90 s com o CORS de quem pediu primeiro (sem Vary: Origin);
+  // um parâmetro único força resposta nova, com o Access-Control-Allow-Origin desta página
+  const urlSite = caminho => SITE_BCB + caminho + '?_=' + Date.now();
+  const CDI_ABAIXO_DA_SELIC = 0.10;   // pontos percentuais
+  const CACHE_TAXAS = 'warden:taxas-bcb';       // resultado completo, 12h (evita buscar a cada página)
   const CACHE_HORAS = 12;
+  const CACHE_ULTIMAS = 'warden:taxas-ultimas'; // último valor bom de cada taxa, até 7 dias
+  const ULTIMAS_DIAS = 7;
+  const NOMES_TAXAS = ['selic', 'cdi', 'ipca'];
 
-  async function buscarSerie(codigo) {
+  const hojeBR = () => new Date().toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+  async function buscarJson(url) {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), 8000);
     try {
-      const resp = await fetch(`https://api.bcb.gov.br/dados/serie/bcdata.sgs.${codigo}/dados/ultimos/1?formato=json`, { signal: ctrl.signal });
+      const resp = await fetch(url, { signal: ctrl.signal });
       if (!resp.ok) throw new Error('HTTP ' + resp.status);
-      const json = await resp.json();
-      const valor = parseFloat(String(json[0].valor).replace(',', '.'));
-      if (!isFinite(valor)) throw new Error('valor inválido');
-      return { valor, data: json[0].data };
+      return await resp.json();
     } finally {
       clearTimeout(timer);
     }
   }
+  const numeroValido = v => { const n = parseFloat(String(v).replace(',', '.')); if (!isFinite(n)) throw new Error('valor inválido'); return n; };
 
-  function lerCacheTaxas() {
-    try {
-      const c = JSON.parse(localStorage.getItem(CACHE_TAXAS));
-      if (c && Date.now() - c.ts < CACHE_HORAS * 3600 * 1000) return c;
-    } catch (e) { /* localStorage indisponível ou corrompido: ignora */ }
-    return null;
+  async function buscarSerie(codigo) {
+    const json = await buscarJson(`https://api.bcb.gov.br/dados/serie/bcdata.sgs.${codigo}/dados/ultimos/1?formato=json`);
+    return { valor: numeroValido(json[0].valor), data: json[0].data, atualizado: hojeBR(), origem: 'sgs' };
   }
-  function salvarCacheTaxas(dados) {
-    try { localStorage.setItem(CACHE_TAXAS, JSON.stringify({ ...dados, ts: Date.now() })); } catch (e) { /* sem cache, tudo bem */ }
+  // plano B (não documentado: é o que a página inicial do BC usa)
+  const PLANO_B = {
+    async selic() {
+      const c = (await buscarJson(urlSite('taxaselic/ultima'))).conteudo[0];
+      const data = c.DataReuniaoCopom ? new Date(c.DataReuniaoCopom).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' }) : null;
+      return { valor: numeroValido(c.MetaSelic), data, atualizado: hojeBR(), origem: 'site' };
+    },
+    async ipca() {
+      const c = (await buscarJson(urlSite('indicadorinflacao'))).conteudo[0];
+      return { valor: numeroValido(c.taxaInflacao), data: null, atualizado: hojeBR(), origem: 'site' };
+    }
+  };
+
+  function lerStorage(chave) {
+    try { return JSON.parse(localStorage.getItem(chave)); } catch (e) { return null; }   // indisponível ou corrompido
+  }
+  function gravarStorage(chave, valor) {
+    try { localStorage.setItem(chave, JSON.stringify(valor)); } catch (e) { /* sem cache, tudo bem */ }
+  }
+
+  function montarResultado(datas) {
+    const fonte = NOMES_TAXAS.some(n => datas[n].origem === 'referencia') ? 'referencia' : 'bcb';
+    return { selic: datas.selic.valor, cdi: datas.cdi.valor, ipca: datas.ipca.valor, fonte, datas };
+  }
+
+  async function buscarTaxas() {
+    const datas = {};
+    // 1. API oficial
+    const sgs = await Promise.allSettled(NOMES_TAXAS.map(n => buscarSerie(SERIES_BCB[n])));
+    NOMES_TAXAS.forEach((n, i) => { if (sgs[i].status === 'fulfilled') datas[n] = sgs[i].value; });
+    // 2. plano B no site do BC
+    await Promise.all(Object.keys(PLANO_B).filter(n => !datas[n]).map(async n => {
+      try { datas[n] = await PLANO_B[n](); } catch (e) { /* segue para o cache */ }
+    }));
+    // guarda o que veio do BC agora como "último valor bom"
+    const ultimas = lerStorage(CACHE_ULTIMAS) || {};
+    NOMES_TAXAS.forEach(n => { if (datas[n]) ultimas[n] = { ...datas[n], ts: Date.now() }; });
+    gravarStorage(CACHE_ULTIMAS, ultimas);
+    // 3. último valor bom de até 7 dias
+    NOMES_TAXAS.forEach(n => {
+      const u = ultimas[n];
+      if (!datas[n] && u && isFinite(u.valor) && Date.now() - u.ts < ULTIMAS_DIAS * 86400000) {
+        datas[n] = { valor: u.valor, data: u.data || null, atualizado: u.atualizado, origem: 'cache' };
+      }
+    });
+    // 4. CDI estimado pela Selic
+    if (!datas.cdi && datas.selic) {
+      const valor = Math.round((datas.selic.valor - CDI_ABAIXO_DA_SELIC) * 100) / 100;
+      datas.cdi = { valor, data: datas.selic.data, atualizado: datas.selic.atualizado, origem: 'estimado' };
+    }
+    // 5. valor de referência
+    NOMES_TAXAS.forEach(n => {
+      if (!datas[n]) datas[n] = { valor: TAXAS_REFERENCIA[n], data: null, atualizado: null, origem: 'referencia' };
+    });
+    // resultado só com dados vindos agora do BC (SGS ou site, CDI estimado incluso) fica 12h sem nova busca
+    if (NOMES_TAXAS.every(n => ['sgs', 'site', 'estimado'].includes(datas[n].origem))) gravarStorage(CACHE_TAXAS, { datas, ts: Date.now() });
+    return montarResultado(datas);
   }
 
   let promessaTaxas = null;
   function getTaxasBCB() {
     if (!promessaTaxas) promessaTaxas = (async () => {
-      let dados = lerCacheTaxas();
-      if (!dados) {
-        try {
-          const [selic, cdi, ipca] = await Promise.all([buscarSerie(SERIES_BCB.selic), buscarSerie(SERIES_BCB.cdi), buscarSerie(SERIES_BCB.ipca)]);
-          dados = { selic, cdi, ipca };
-          salvarCacheTaxas(dados);
-        } catch (e) {
-          return { ...TAXAS_REFERENCIA, fonte: 'referencia' };
-        }
-      }
-      return { selic: dados.selic.valor, cdi: dados.cdi.valor, ipca: dados.ipca.valor, fonte: 'bcb', datas: dados };
+      const c = lerStorage(CACHE_TAXAS);
+      if (c && c.datas && Date.now() - c.ts < CACHE_HORAS * 3600 * 1000) return montarResultado(c.datas);
+      try { return await buscarTaxas(); } catch (e) { return { ...TAXAS_REFERENCIA, fonte: 'referencia' }; }
     })();
     return promessaTaxas;
   }
 
-  // de onde veio a taxa, para mostrar ao usuário: "Banco Central, 01/10/2026" / "valor de referência (set/2026)…"
+  // de onde veio a taxa, para mostrar ao usuário (padrão: o CDI, que é a taxa que a maioria das ferramentas usa):
+  // "Banco Central, 01/10/2026" · "Banco Central, último valor obtido em 30/09/2026" ·
+  // "estimado pela Selic do Banco Central (−0,10 ponto), 16/09/2026" · "valor de referência (set/2026)…"
   // t sem `fonte` (ainda carregando, ex.: TAXAS_REFERENCIA) → "buscando no Banco Central…"
-  function fonteTaxa(t) {
-    if (t.fonte === 'bcb') return `Banco Central, ${t.datas.cdi.data}`;
-    if (t.fonte === 'referencia') return `valor de referência de ${TAXAS_REFERENCIA.mes}, porque não foi possível buscar a taxa de hoje`;
-    return 'buscando a taxa de hoje no Banco Central…';
+  function fonteTaxa(t, qual = 'cdi') {
+    if (!t.fonte) return 'buscando a taxa de hoje no Banco Central…';
+    const d = t.datas && t.datas[qual];
+    if (!d || d.origem === 'referencia') return `valor de referência de ${TAXAS_REFERENCIA.mes}, porque não foi possível buscar a taxa de hoje`;
+    if (d.origem === 'cache') return `Banco Central, último valor obtido em ${d.atualizado}`;
+    if (d.origem === 'estimado') return `estimado pela Selic do Banco Central menos ${formatNumero(CDI_ABAIXO_DA_SELIC, { casas: 2 })} ponto, atualizado em ${d.atualizado}`;
+    return `Banco Central, ${d.data || d.atualizado}`;
   }
 
   /* ===== IMPOSTO DE RENDA (renda fixa: CDB, Tesouro) =====
@@ -705,7 +770,7 @@
       tooltip: {
         backgroundColor: cor('--surface2'), borderColor: cor('--border'), borderWidth: 1,
         titleColor: cor('--text'), bodyColor: cor('--text'), padding: 12,
-        bodyFont: { family: "'IBM Plex Mono', monospace" }
+        bodyFont: { family: "'Inter', sans-serif" }
       }
     };
   }

@@ -15,7 +15,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/warden.css">
 <script type="application/ld+json">
 {
@@ -138,9 +138,14 @@
   function aplicarIpca(t) {
     if (inflacaoEditada) return;
     $('inflacao').value = t.ipca;
-    if (t.fonte === 'bcb') {
-      const [, m, a] = t.datas.ipca.data.split('/');
-      $('inflacao-dica').textContent = `IPCA de 12 meses até ${MESES[+m - 1]}/${a} (Banco Central) · pode mudar`;
+    const d = t.datas && t.datas.ipca;
+    if (d && d.origem !== 'referencia') {
+      if (d.data) {
+        const [, m, a] = d.data.split('/');
+        $('inflacao-dica').textContent = `IPCA de 12 meses até ${MESES[+m - 1]}/${a} (Banco Central) · pode mudar`;
+      } else {
+        $('inflacao-dica').textContent = `IPCA de 12 meses (${Warden.fonteTaxa(t, 'ipca')}) · pode mudar`;
+      }
     } else {
       $('inflacao-dica').textContent = t.fonte === 'referencia'
         ? `IPCA de 12 meses, referência de ${Warden.TAXAS_REFERENCIA.mes} · pode mudar`

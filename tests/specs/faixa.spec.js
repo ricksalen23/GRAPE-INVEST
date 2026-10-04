@@ -5,7 +5,7 @@ const { test, expect } = require('@playwright/test');
 const { abrir, preparar, semErros } = require('../helpers');
 const { PAGINAS } = require('../ferramentas');
 
-// valor de cada item: R$ com 2 casas, cripto sem centavos, taxa em %, ou "—" sem dado
+// valor de cada item: R$ com 2 casas, cripto sem centavos, taxa em %, ou "—" (moeda sem dado; taxa sem dado some)
 const FORMATO_VALOR = /^(R\$ \d{1,3}(\.\d{3})*(,\d{2})?|\d{1,3},\d{2}%|—)$/;
 
 const lerFaixa = page => page.evaluate(() => {
@@ -17,7 +17,13 @@ const lerFaixa = page => page.evaluate(() => {
     fixo: getComputedStyle(document.getElementById('topo-fixo')).position,
     navBase: nav.bottom, faixaTopo: faixa.top, faixaAltura: faixa.height, topoBase: topo.bottom,
     recuoSecao: parseFloat(getComputedStyle(secao).paddingTop),
-    itens: [...document.querySelectorAll('#faixa-trilho .faixa-lista:first-child .faixa-item')].map(li => li.querySelector('.faixa-valor').textContent),
+    itens: [...document.querySelectorAll('#faixa-trilho .faixa-lista:first-child .faixa-item:not([hidden])')].map(li => li.querySelector('.faixa-valor').textContent),
+    // números em Inter com algarismos de largura fixa; IBM Plex Mono não é mais carregada
+    fonte: getComputedStyle(document.querySelector('.faixa-valor')).fontFamily,
+    numeros: getComputedStyle(document.querySelector('.faixa-valor')).fontVariantNumeric,
+    numerosBody: getComputedStyle(document.body).fontVariantNumeric,
+    plex: [...document.querySelectorAll('link[href*="fonts.googleapis"]')].some(l => /Plex/i.test(l.href)) ||
+      [...document.querySelectorAll('*')].some(el => /Plex/i.test(getComputedStyle(el).fontFamily)),
     copias: document.querySelectorAll('#faixa-trilho .faixa-lista').length,
     rolagem: { doc: document.documentElement.scrollWidth, tela: document.documentElement.clientWidth }
   };
@@ -25,7 +31,7 @@ const lerFaixa = page => page.evaluate(() => {
 
 for (const p of PAGINAS) {
   test.describe(p.slug, () => {
-    test('faixa: aparece colada embaixo do nav, fixa, com os 8 itens e sem rolagem lateral (375px e 1440px)', async ({ page }) => {
+    test('faixa: aparece colada embaixo do nav, fixa, com os 8 itens, números em Inter e sem rolagem lateral (375px e 1440px)', async ({ page }) => {
       const erros = await abrir(page, p.url);
       for (const [largura, altura] of [[1440, 36], [375, 32]]) {
         await page.setViewportSize({ width: largura, height: 900 });
@@ -37,6 +43,10 @@ for (const p of PAGINAS) {
         expect(f.copias, 'lista duplicada para o loop').toBe(2);
         expect(f.itens).toHaveLength(8);
         for (const v of f.itens) expect(v, 'valor de um item da faixa').toMatch(FORMATO_VALOR);
+        expect(f.fonte, 'fonte dos números').toMatch(/^"?Inter/);
+        expect(f.numeros).toBe('tabular-nums');
+        expect(f.numerosBody, 'tabular-nums na página toda').toBe('tabular-nums');
+        expect(f.plex, 'IBM Plex Mono carregada ou usada').toBe(false);
         expect(f.rolagem.doc, `rolagem horizontal em ${largura}px`).toBeLessThanOrEqual(f.rolagem.tela);
       }
       // ao rolar a página, o conjunto continua no topo
@@ -152,26 +162,44 @@ test.describe('geral', () => {
     semErros(erros);
   });
 
-  test('faixa: APIs fora do ar e sem cache → "—" no lugar dos valores, sem quebrar', async ({ page }) => {
+  const visiveis = page => page.locator('#faixa-trilho .faixa-lista:first-child .faixa-item:not([hidden]) .faixa-sigla').allTextContents();
+
+  test('faixa: APIs fora do ar e sem cache → moedas com "—" e taxas do BC somem, sem quebrar', async ({ page }) => {
     const erros = await preparar(page, { taxas: 'bloqueada' });
     await page.route('**/economia.awesomeapi.com.br/**', route => route.abort());
     await page.goto('/ferramentas/meta-mensal.html');
     await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => {});
-    const valores = await page.locator('#faixa-trilho .faixa-lista:first-child .faixa-valor').allTextContents();
-    expect(valores).toEqual(Array(8).fill('—'));
+    expect(await visiveis(page)).toEqual(['USD/BRL', 'EUR/BRL', 'GBP/BRL', 'BTC/BRL', 'ETH/BRL']);
+    const valores = await page.locator('#faixa-trilho .faixa-lista:first-child .faixa-item:not([hidden]) .faixa-valor').allTextContents();
+    expect(valores).toEqual(Array(5).fill('—'));
     expect(await page.locator('#faixa-trilho .faixa-lista:first-child .faixa-var').allTextContents()).toEqual(Array(5).fill(''));
+    // a cópia do loop segue igual
+    expect(await page.locator('#faixa-trilho .faixa-lista:last-child .faixa-item[hidden]').count()).toBe(3);
     semErros(erros);
   });
 
-  test('faixa: APIs fora do ar com cache → mantém os últimos valores (inclusive ao abrir outra página)', async ({ page }) => {
+  test('faixa: só o plano B (site do BC) responde → SELIC e IPCA do site; CDI (que seria estimado) não aparece', async ({ page }) => {
+    const erros = await abrir(page, '/ferramentas/salario-liquido.html', { taxas: 'site' });
+    await expect(page.locator('[data-cot="selic"] .faixa-valor').first()).toHaveText('13,25%');
+    await expect(page.locator('[data-cot="ipca"] .faixa-valor').first()).toHaveText('4,10%');
+    expect(await visiveis(page)).toEqual(['USD/BRL', 'EUR/BRL', 'GBP/BRL', 'BTC/BRL', 'ETH/BRL', 'SELIC', 'IPCA 12M']);
+    // a data da última atualização fica no title do item
+    expect(await page.locator('[data-cot="selic"]').first().getAttribute('title')).toBe('Banco Central · atualizado em 02/10/2026');
+    semErros(erros);
+  });
+
+  test('faixa: APIs fora do ar com cache → mantém os últimos valores por até 7 dias (inclusive ao abrir outra página)', async ({ page }) => {
     const erros = await abrir(page, '/ferramentas/rentabilidade-real.html');
     await expect(page.locator('[data-cot="selic"] .faixa-valor').first()).toHaveText('13,75%');
     await expect(page.locator('[data-cot="BTC"] .faixa-valor').first()).toHaveText('R$ 444.303');
     semErros(erros);
-    // agora tudo cai, e o cache de 12h das taxas do kit some: a faixa tem que se virar com o próprio cache
+    // agora tudo cai (API oficial, site do BC e AwesomeAPI) e o cache de 12h do kit some
     await page.route('**/economia.awesomeapi.com.br/**', route => route.abort());
     await page.route('**/api.bcb.gov.br/**', route => route.abort());
+    await page.route('**/www.bcb.gov.br/**', route => route.abort());
     await page.evaluate(() => localStorage.removeItem('warden:taxas-bcb'));
+    // 3 dias depois: tudo continua vindo do cache
+    await page.clock.setFixedTime(new Date('2026-10-05T12:00:00-03:00'));
     await page.goto('/index.html', { waitUntil: 'domcontentloaded' });
     // já no primeiro instante (antes de qualquer resposta) os valores vêm do cache
     expect(await page.locator('[data-cot="USD"] .faixa-valor').first().textContent()).toBe('R$ 5,40');
@@ -180,20 +208,29 @@ test.describe('geral', () => {
     await expect(page.locator('[data-cot="USD"] .faixa-var').first()).toHaveText('▲ 0,50%');
     await expect(page.locator('[data-cot="selic"] .faixa-valor').first()).toHaveText('13,75%');
     await expect(page.locator('[data-cot="ipca"] .faixa-valor').first()).toHaveText('4,22%');
+    expect(await page.locator('[data-cot="selic"]').first().getAttribute('title')).toBe('Banco Central · atualizado em 02/10/2026');
+    // 8 dias depois: taxas passaram da validade e somem; moedas ficam com o último valor
+    await page.clock.setFixedTime(new Date('2026-10-10T12:00:00-03:00'));
+    await page.goto('/ferramentas/ferias.html', { waitUntil: 'domcontentloaded' });
+    await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => {});
+    expect(await visiveis(page)).toEqual(['USD/BRL', 'EUR/BRL', 'GBP/BRL', 'BTC/BRL', 'ETH/BRL']);
+    await expect(page.locator('[data-cot="USD"] .faixa-valor').first()).toHaveText('R$ 5,40');
     expect(erros.filter(e => e.startsWith('erro de JS')), 'erros de JS').toEqual([]);
   });
 
-  test('links: "Gráfico" no nav, no mega-menu e no menu mobile leva a #grafico e a seção Mercado saiu da home', async ({ page }) => {
+  test('links: nav, mega-menu e menu mobile sem "Gráfico" e "Notícias"; home sem notícias, gráfico, Mercado e TradingView', async ({ page }) => {
+    const pedidos = [];
+    page.on('request', r => pedidos.push(r.url()));
     const erros = await abrir(page, '/index.html');
-    expect(await page.locator('#mercado').count()).toBe(0);
-    expect(await page.getByText('Mercado em tempo real', { exact: true }).count()).toBe(0);
-    await expect(page.locator('#grafico')).toHaveCount(1);
-    expect(await page.locator('nav .nav-item', { hasText: 'Gráfico' }).getAttribute('href')).toBe('#grafico');
-    expect(await page.locator('.mega-quick a', { hasText: 'Gráfico' }).getAttribute('href')).toBe('#grafico');
-    expect(await page.locator('.mobile-links a', { hasText: 'Gráfico' }).getAttribute('href')).toBe('#grafico');
-    expect(await page.locator('a[href$="#mercado"]').count()).toBe(0);
+    for (const id of ['#mercado', '#noticias', '#grafico']) expect(await page.locator(id).count(), id).toBe(0);
+    expect(await page.locator('a[href*="#mercado"], a[href*="#noticias"], a[href*="#grafico"]').count()).toBe(0);
+    expect(await page.locator('nav, #mega-menu, #mobile-menu').getByText(/^(Gráfico|Notícias|Mercado)/).count()).toBe(0);
+    expect(await page.locator('.mega-quick').count(), 'bloco "Acesso rápido"').toBe(0);
+    expect(pedidos.filter(u => /tradingview|rss2json/.test(u)), 'scripts de notícias/gráfico').toEqual([]);
+    // card do Warden Cobrança ocupa a largura toda do rodapé do mega-menu
+    await page.locator('#nav-tools-btn').click();
+    const larguras = await page.evaluate(() => ({ card: document.querySelector('.mega-foot .cobranca-card').getBoundingClientRect().width, foot: document.querySelector('.mega-foot').getBoundingClientRect().width }));
+    expect(Math.abs(larguras.card - larguras.foot)).toBeLessThanOrEqual(1);
     semErros(erros);
-    await abrir(page, '/ferramentas/ferias.html');
-    expect(await page.locator('nav .nav-item', { hasText: 'Gráfico' }).getAttribute('href')).toBe('/#grafico');
   });
 });
