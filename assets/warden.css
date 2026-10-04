@@ -23,10 +23,19 @@
   --accent: #C8F26B;
   --accent-ink: #0B0B0A;  /* texto/ícone sobre o acento */
   --nav-pad: 5%;          /* padding lateral do nav */
+  /* topo fixo = nav + faixa de cotações. Alturas reais: nav 18+48+18+1 (mobile 18+36+18+1). */
+  --nav-h: 85px;
+  --faixa-h: 36px;
+  --topo-h: calc(var(--nav-h) + var(--faixa-h) + env(safe-area-inset-top, 0px));
+}
+@media (max-width: 900px) {
+  :root { --nav-h: 73px; --faixa-h: 32px; }
 }
 
 /* overflow-x no html também: no iOS/Safari só o body não impede a página de ficar mais larga que a tela */
 html { scroll-behavior: smooth; overflow-x: hidden; overflow-x: clip; }
+/* links de seção (#noticias, #grafico…): as seções já têm folga no padding para o nav; isto soma a faixa de cotações */
+html { scroll-padding-top: var(--faixa-h); }
 
 body {
   background: var(--bg);
@@ -48,9 +57,12 @@ a { color: inherit; }
 }
 
 /* ===== NAV ===== */
-/* nav sempre inteiro: fixo em top 0, sem transform, e com a área segura do iPhone (notch / status bar) somada ao padding */
+/* nav + faixa de cotações ficam juntos num contêiner fixo em top 0 (montado pelo /assets/nav.js) */
+.topo-fixo { position: fixed; top: 0; left: 0; right: 0; z-index: 100; }
+/* nav sempre inteiro: sem transform, e com a área segura do iPhone (notch / status bar) somada ao padding.
+   z-index acima da faixa para o mega-menu (dentro do nav) abrir por cima dela. */
 nav {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 100; transform: none;
+  position: relative; z-index: 2; transform: none;
   display: flex; align-items: center; justify-content: space-between;
   padding: 18px 5%;
   padding-top: calc(18px + env(safe-area-inset-top, 0px));
@@ -103,16 +115,14 @@ nav {
 .profile-dropdown-item:hover { background: var(--surface); }
 .profile-dropdown-item.danger:hover { color: var(--white); }
 
-/* garante que a primeira seção do body sempre fique abaixo do nav fixo: altura real do nav (18+48+18+1) + margem.
+/* garante que a primeira seção do body sempre fique abaixo do topo fixo (nav + faixa de cotações) + margem.
    A seção pode aumentar a margem definindo --first-gap (o hero usa isso). */
-body > section:first-of-type { padding-top: calc(85px + env(safe-area-inset-top, 0px) + var(--first-gap, 20px)) !important; }
+body > section:first-of-type { padding-top: calc(var(--topo-h) + var(--first-gap, 20px)) !important; }
 /* a logo tem proporção bem larga (5,27:1), então mesmo pequena ainda disputa espaço com o botão "Login"
    nos celulares mais estreitos; os links somem e a logo encolhe um pouco mais pra garantir folga */
 @media (max-width: 900px) {
   .nav-links a.nav-item { display: none; }
   .logo-img { height: 36px; }
-  /* altura real do nav no mobile/tablet (18+36+18+1) + margem */
-  body > section:first-of-type { padding-top: calc(73px + env(safe-area-inset-top, 0px) + var(--first-gap, 20px)) !important; }
 }
 
 /* ===== MENU-MAPA (Ferramentas / Cobrança / mobile) ===== */
@@ -130,9 +140,9 @@ body > section:first-of-type { padding-top: calc(85px + env(safe-area-inset-top,
 }
 nav :focus-visible, .mobile-menu :focus-visible { outline: 2px solid var(--text); outline-offset: 3px; border-radius: 4px; }
 
-/* overlay que escurece a página abaixo do nav enquanto o mega-menu está aberto (fica fora do <nav>) */
+/* overlay que escurece a página abaixo do topo fixo enquanto o mega-menu está aberto (fica fora do <nav>) */
 .mega-overlay {
-  position: fixed; top: 85px; left: 0; right: 0; bottom: 0; z-index: 98;
+  position: fixed; top: var(--topo-h); left: 0; right: 0; bottom: 0; z-index: 98;
   background: rgba(0,0,0,.6); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
   opacity: 0; visibility: hidden;
   transition: opacity .18s ease, visibility 0s linear .18s;
@@ -142,10 +152,10 @@ nav :focus-visible, .mobile-menu :focus-visible { outline: 2px solid var(--text)
 /* painel desktop: posicionado em relação ao nav (fixo), centralizado e NUNCA mais largo que a tela:
    left/right 16px + margin auto + max-width. É um container (container queries) para as colunas se ajustarem à largura dele. */
 .mega-menu {
-  position: absolute; top: calc(100% + 8px); left: 16px; right: 16px; margin-inline: auto;
+  position: absolute; top: calc(100% + var(--faixa-h) + 8px); left: 16px; right: 16px; margin-inline: auto;   /* abre abaixo da faixa */
   max-width: min(1180px, calc(100vw - 32px));
   container: mega / inline-size;
-  max-height: calc(100vh - 110px); overflow-y: auto;
+  max-height: calc(100vh - 110px - var(--faixa-h)); overflow-y: auto;
   background: var(--surface);
   border: 1px solid var(--border); border-radius: 16px;
   box-shadow: 0 24px 60px rgba(0,0,0,0.55);
@@ -153,8 +163,8 @@ nav :focus-visible, .mobile-menu :focus-visible { outline: 2px solid var(--text)
   opacity: 0; visibility: hidden; transform: translateY(-8px);
   transition: opacity .18s ease, transform .18s ease, visibility 0s linear .18s;
 }
-/* ponte invisível entre o nav e o painel para o mouse não "cair" no vão */
-.mega-menu::before { content: ''; position: absolute; left: 0; right: 0; top: -9px; height: 9px; }
+/* ponte invisível entre o nav e o painel (atravessando a faixa de cotações) para o mouse não "cair" no vão */
+.mega-menu::before { content: ''; position: absolute; left: 0; right: 0; top: calc(-9px - var(--faixa-h)); height: calc(9px + var(--faixa-h)); }
 .mega-menu.open { opacity: 1; visibility: visible; transform: none; transition-delay: 0s; }
 /* 5 colunas do tamanho do conteúdo (nomes não quebram); a sobra vira espaço ENTRE elas (space-between), que vai
    diminuindo até o mínimo de 16px conforme o painel estreita. As 5 colunas medem ~936px (+ 4 × 16px de espaço = ~1000px);
@@ -225,7 +235,7 @@ nav :focus-visible, .mobile-menu :focus-visible { outline: 2px solid var(--text)
 .nav-burger[aria-expanded="true"] .icon-open { display: none; }
 .nav-burger[aria-expanded="true"] .icon-close { display: block; }
 .mobile-menu {
-  position: fixed; top: calc(73px + env(safe-area-inset-top, 0px)); left: 0; right: 0; bottom: 0; z-index: 99;
+  position: fixed; top: var(--topo-h); left: 0; right: 0; bottom: 0; z-index: 99;
   width: 100%; max-width: 100vw;
   background: var(--bg); overflow-y: auto; overflow-x: hidden; padding: 20px 0 calc(40px + env(safe-area-inset-bottom, 0px));
   opacity: 0; visibility: hidden; transform: translateY(-8px);
@@ -260,6 +270,47 @@ nav :focus-visible, .mobile-menu :focus-visible { outline: 2px solid var(--text)
   padding: 14px 0; border-bottom: 1px solid var(--border);
 }
 body.menu-open { overflow: hidden; }
+
+/* ===== FAIXA DE COTAÇÕES (embaixo do nav, em todas as páginas; montada pelo /assets/nav.js) =====
+   O trilho tem a lista duas vezes; o JS anima de 0 a -50% em loop linear, então o fim encaixa no começo sem salto. */
+.faixa-cotacoes {
+  position: relative; z-index: 1;
+  height: var(--faixa-h); overflow: hidden;
+  display: flex; align-items: center;
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  font-size: .74rem; line-height: 1;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 48px, #000 calc(100% - 48px), transparent);
+          mask-image: linear-gradient(90deg, transparent, #000 48px, #000 calc(100% - 48px), transparent);
+}
+.faixa-trilho { display: flex; width: max-content; will-change: transform; }
+.faixa-lista { display: flex; flex-shrink: 0; list-style: none; }
+.faixa-item { display: flex; align-items: center; gap: 8px; padding-left: 22px; white-space: nowrap; }
+/* separador depois de CADA item (inclusive o último), para a emenda entre as duas cópias ficar igual às outras */
+.faixa-item::after { content: ''; width: 1px; height: 12px; margin-left: 14px; background: var(--border); }
+.faixa-sigla { color: var(--muted); font-weight: 600; letter-spacing: .04em; }
+.faixa-valor { color: var(--text); font-family: 'IBM Plex Mono', ui-monospace, monospace; font-weight: 500; }
+.faixa-var { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-weight: 500; color: var(--muted); }
+.faixa-var:empty { display: none; }
+/* exceção à cor de acento única: verde/vermelho são a cor semântica de alta/queda nas cotações */
+.faixa-var.alta { color: #22C55E; }
+.faixa-var.queda { color: #EF4444; }
+@media (max-width: 900px) {
+  .faixa-cotacoes { font-size: .7rem; }
+  .faixa-item { gap: 6px; padding-left: 18px; }
+  .faixa-item::after { margin-left: 12px; }
+}
+/* sem animação: uma lista só, com rolagem horizontal manual */
+@media (prefers-reduced-motion: reduce) {
+  .faixa-cotacoes {
+    overflow-x: auto; scrollbar-width: none;
+    -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 48px), transparent);
+            mask-image: linear-gradient(90deg, #000 calc(100% - 48px), transparent);
+  }
+  .faixa-cotacoes::-webkit-scrollbar { display: none; }
+  .faixa-lista[aria-hidden="true"] { display: none; }
+  .faixa-item:last-child { padding-right: 48px; }
+  .faixa-item:last-child::after { display: none; }
+}
 
 /* o nav ganhou itens: entre 900 e 1100px aperta espaçamento e logo para caber */
 @media (max-width: 1100px) {

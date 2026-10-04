@@ -44,7 +44,9 @@ async function preparar(page, { taxas = 'fixas', data = DATA_FIXA } = {}) {
     body: JSON.stringify({
       USDBRL: { bid: '5.40', pctChange: '0.50', high: '5.45', low: '5.35' },
       EURBRL: { bid: '6.10', pctChange: '-0.20', high: '6.15', low: '6.05' },
-      BTCBRL: { bid: '350000', pctChange: '1.20', high: '355000', low: '345000' }
+      GBPBRL: { bid: '7.0512', pctChange: '0.001', high: '7.10', low: '7.00' },        // variação que arredonda para 0,00%
+      BTCBRL: { bid: '444303.45', pctChange: '1.20', high: '450000', low: '440000' },  // cripto > R$ 1.000: sem centavos
+      ETHBRL: { bid: '18250.90', pctChange: '-0.8', high: '18500', low: '18000' }
     }) }));
   await page.route('**/api.rss2json.com/**', route => route.fulfill({ status: 200, contentType: 'application/json', headers: CORS,
     body: JSON.stringify({ status: 'ok', items: [] }) }));
@@ -54,8 +56,10 @@ async function preparar(page, { taxas = 'fixas', data = DATA_FIXA } = {}) {
 // abre a página e espera o kit montar tudo (trilha, componentes) e as taxas chegarem
 async function abrir(page, url, opcoes) {
   const erros = await preparar(page, opcoes);
-  await page.goto(url);
-  // a home tem um widget de gráfico que nunca para de usar a rede: espera no máximo 10 s pelo "silêncio"
+  // a home tem o widget do TradingView (iframe de terceiros): com a máquina carregada o "load" dela pode passar
+  // de 1 minuto. Os scripts das páginas já rodaram no domcontentloaded; o load e o "silêncio" da rede têm limite.
+  await page.goto(url, { waitUntil: 'domcontentloaded' });
+  await page.waitForLoadState('load', { timeout: 20_000 }).catch(() => {});
   await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => {});
   return erros;
 }

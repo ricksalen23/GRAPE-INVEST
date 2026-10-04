@@ -28,7 +28,7 @@ test.describe('geral', () => {
       const url = caminho ? caminho : '/index.html';
       const r = await request.get(url);
       if (r.status() !== 200) { quebrados.push(`${href} → HTTP ${r.status()}`); continue; }
-      if (ancora) {   // âncoras da home (#cobranca, #mercado…) precisam existir
+      if (ancora) {   // âncoras da home (#cobranca, #grafico…) precisam existir
         const html = await r.text();
         if (!html.includes(`id="${ancora}"`)) quebrados.push(`${href} → âncora #${ancora} não existe`);
       }

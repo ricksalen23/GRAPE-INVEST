@@ -137,8 +137,8 @@
   }
 
   /* ===== WARDEN COBRANÇA ===== */
-  /* scroll-margin: com o padding-top menor, o link #cobranca pararia com o título embaixo do nav fixo */
-  .cobranca-section { border-top: 1px solid var(--border); padding-top: 32px; scroll-margin-top: calc(85px + env(safe-area-inset-top, 0px)); }
+  /* scroll-margin: com o padding-top menor, o link #cobranca pararia com o título embaixo do nav fixo (o scroll-padding do html soma a faixa de cotações) */
+  .cobranca-section { border-top: 1px solid var(--border); padding-top: 32px; scroll-margin-top: calc(var(--nav-h) + env(safe-area-inset-top, 0px)); }
   /* alinhado ao topo: com "center", o celular (mais alto) empurrava o label para baixo e criava o vão */
   .cobranca-grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: 72px; align-items: start; }
   .cobranca-steps { list-style: none; margin: 32px 0 28px; display: flex; flex-direction: column; gap: 18px; }
@@ -239,30 +239,6 @@
     .grafico-grid { grid-template-columns: 1fr; }
     .grafico-chart-wrap { min-height: 380px; }
   }
-
-  /* ===== MERCADO / TICKER ===== */
-  .mercado-section { background: var(--bg); border-top: 1px solid #33332a; border-bottom: 1px solid #33332a; padding: 64px 0; }
-  .mercado-head { padding: 0 5%; max-width: 1180px; margin: 0 auto 32px; }
-  .ticker-wrap {
-    width: 100%; overflow: hidden; position: relative;
-    -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
-            mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
-  }
-  .ticker-track {
-    display: flex; width: max-content; gap: 0;
-    animation: tickerScroll 28s linear infinite;
-  }
-  @keyframes tickerScroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-  .ticker-item {
-    display: flex; align-items: center; gap: 12px;
-    padding: 0 40px; border-right: 1px solid var(--border); white-space: nowrap;
-  }
-  .ticker-symbol { font-weight: 600; font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
-  .ticker-value { font-size: 1rem; font-weight: 600; color: var(--text); }
-  .ticker-change { font-size: .85rem; font-weight: 700; letter-spacing: .01em; }
-  /* única exceção à paleta preto e branco do site: cor semântica de alta/baixa nas cotações */
-  .ticker-change.up { color: #22C55E; }
-  .ticker-change.down { color: #EF4444; }
 
   /* ===== NOTÍCIAS ===== */
   .noticias-grid {
@@ -496,20 +472,6 @@
   </div>
 </section>
 
-<!-- MERCADO EM TEMPO REAL -->
-<section id="mercado" class="mercado-section">
-  <div class="mercado-head">
-    <p class="section-label fade-up">Mercado em tempo real</p>
-    <h2 class="section-title fade-up">Cotações que importam, direto na sua tela</h2>
-  </div>
-
-  <div class="ticker-wrap fade-up">
-    <div class="ticker-track" id="ticker-track">
-      <!-- preenchido via JS (fetchCotacoes) -->
-    </div>
-  </div>
-</section>
-
 <!-- NOTÍCIAS -->
 <section id="noticias">
   <div class="section-inner">
@@ -637,64 +599,6 @@
     });
   }, { threshold: 0.1 });
   document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
-
-  // ===== COTAÇÕES (AwesomeAPI) =====
-  const TICKER_SYMBOLS = [
-    { code: 'USD', label: 'USD/BRL' },
-    { code: 'EUR', label: 'EUR/BRL' },
-    { code: 'BTC', label: 'BTC/BRL' },
-  ];
-  const TICKER_REPEAT = 3; // repetições dentro de cada metade, só para densidade visual da faixa
-
-  function formatBRL(bidStr) {
-    const n = parseFloat(bidStr);
-    if (isNaN(n)) return '--';
-    return 'R$ ' + n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  }
-
-  function renderTickerHalf(data) {
-    const items = [];
-    for (let r = 0; r < TICKER_REPEAT; r++) {
-      TICKER_SYMBOLS.forEach(s => {
-        const d = data && data[s.code + 'BRL'];
-        const value = d ? formatBRL(d.bid) : '--';
-        const pct = d ? parseFloat(d.pctChange) : NaN;
-        const hasPct = !isNaN(pct);
-        const changeClass = hasPct ? (pct >= 0 ? 'up' : 'down') : '';
-        const changeTxt = hasPct
-          ? (pct >= 0 ? '▲ ' : '▼ ') + Math.abs(pct).toFixed(2).replace('.', ',') + '%'
-          : '--';
-        items.push(
-          '<div class="ticker-item"><span class="ticker-symbol">' + s.label +
-          '</span><span class="ticker-value">' + value +
-          '</span><span class="ticker-change ' + changeClass + '">' + changeTxt + '</span></div>'
-        );
-      });
-    }
-    return items.join('');
-  }
-
-  function updateTicker(data) {
-    const track = document.getElementById('ticker-track');
-    if (!track) return;
-    const half = renderTickerHalf(data);
-    track.innerHTML = half + half; // duplicado para o loop contínuo da animação (translateX -50%)
-  }
-
-  async function fetchCotacoes() {
-    try {
-      const res = await fetch('https://economia.awesomeapi.com.br/last/USD-BRL,EUR-BRL,BTC-BRL');
-      if (!res.ok) throw new Error('status ' + res.status);
-      const data = await res.json();
-      updateTicker(data);
-    } catch (e) {
-      updateTicker(null); // falha de rede: mostra "--" sem quebrar a página
-    }
-  }
-
-  updateTicker(null);
-  fetchCotacoes();
-  setInterval(fetchCotacoes, 60000);
 
   // ===== NOTÍCIAS (RSS via rss2json) =====
   // Fontes: feed dedicado de Mercados do InfoMoney (quando publicar itens) +
@@ -832,6 +736,12 @@
   setInterval(fetchNoticias, 60000);
 
   // ===== CALCULADORA DE JUROS COMPOSTOS =====
+  function formatBRL(bidStr) {
+    const n = parseFloat(bidStr);
+    if (isNaN(n)) return '--';
+    return 'R$ ' + n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
   function calcularJurosCompostos() {
     const inicial = parseFloat(document.getElementById('calc-inicial').value) || 0;
     const aporte = parseFloat(document.getElementById('calc-aporte').value) || 0;

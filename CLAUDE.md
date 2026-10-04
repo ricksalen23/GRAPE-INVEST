@@ -7,7 +7,7 @@ Site estático (HTML/CSS/JS puro, sem build), publicado em wardenfinance.com.br 
 - **Regra geral:** o que é de uma página só fica dentro do próprio `.html` (CSS no `<style>`, JS no `<script>`).
 - **Exceção — código compartilhado entre páginas fica em `/assets/`:**
   - `/assets/warden.css` — variáveis do `:root` (cores, `--accent`, `--accent-ink`), reset, tipografia (`section`, `.section-label`, `.section-title`), botões (`.btn`, `.btn-primary`, `.btn-secondary`), nav, perfil/avatar, mega-menu, menu mobile e os estilos do modelo de ferramenta (`.tool-*`, `.result-card`).
-  - `/assets/nav.js` — monta o nav + mega-menu + menu mobile e contém a lista `FERRAMENTAS` (fonte única do mapa do hub).
+  - `/assets/nav.js` — monta o nav + mega-menu + menu mobile + **faixa de cotações** (embaixo do nav, todas as páginas) e contém a lista `FERRAMENTAS` (fonte única do mapa do hub).
   - `/assets/tools.js` — kit das ferramentas (objeto global `Warden`), ver abaixo.
   - `/assets/tabelas-2026.js` — **único lugar** com números de lei do ano (INSS, IRRF e redução, salário mínimo, FGTS, multas, aviso prévio, 1/3 de férias, VT, hora extra, prazos), com vigência e fonte, em `window.WARDEN_TABELAS` (congelado). Nenhuma página nem o kit escrevem esses valores; textos explicativos usam `<span data-tabela="caminho" data-formato="brl|pct|int">`. Na virada do ano, só este arquivo muda.
   - Nunca copie esses estilos/scripts para dentro de uma página; se algo passar a ser usado por 2+ páginas, mova para `/assets/`.
@@ -28,7 +28,7 @@ Site estático (HTML/CSS/JS puro, sem build), publicado em wardenfinance.com.br 
 ```
 
 - Na home o nav é carregado com `data-page="home"` (links viram `#secao` em vez de `/#secao`).
-- A primeira `<section>` do body recebe automaticamente o recuo do nav fixo.
+- Nav e faixa de cotações ficam num contêiner fixo (`.topo-fixo`); a altura total está em `--topo-h` (`--nav-h` + `--faixa-h`, em `warden.css`). A primeira `<section>` do body recebe esse recuo automaticamente; qualquer outro deslocamento abaixo do topo deve usar essas variáveis, nunca px fixos.
 
 ## Ferramentas do hub — modelo obrigatório
 
@@ -99,8 +99,9 @@ Cada ferramenta é uma página em `/ferramentas/<slug>.html`. Para lançar: crie
 
 ## O que já existe (branch `warden-v2`)
 
-- **Home (`index.html`)**, seções em ordem: `#inicio` (hero), `#cobranca` (Warden Cobrança), `#mercado`, `#noticias`, `#grafico`, `#calculadora` (juros compostos). Usa `/assets/warden.css` + `nav.js` com `data-page="home"`.
-- **Nav / mega-menu / menu mobile:** gerados por `/assets/nav.js` (inclui o card "Warden Cobrança" do mega-menu e o link "Cobrança" com selo "Novo").
+- **Home (`index.html`)**, seções em ordem: `#inicio` (hero), `#cobranca` (Warden Cobrança), `#noticias`, `#grafico`, `#calculadora` (juros compostos). Usa `/assets/warden.css` + `nav.js` com `data-page="home"`.
+- **Nav / mega-menu / menu mobile:** gerados por `/assets/nav.js` (inclui o card "Warden Cobrança" do mega-menu e o link "Cobrança" com selo "Novo"; "Gráfico" leva a `#grafico`).
+- **Faixa de cotações:** USD, EUR, GBP, BTC e ETH (AwesomeAPI, uma chamada) + SELIC, CDI e IPCA 12M (`Warden.getTaxasBCB`; o `nav.js` injeta o `tools.js` nas páginas que não o carregam). Atualiza a cada 60 s, cache em `localStorage` (`warden:cotacoes`), "—" sem dado; taxa de referência não é exibida como cotação. Rolagem por Web Animations (0 → -50%, ~40 px/s, pausa com mouse/toque, sem animação com `prefers-reduced-motion`). Verde/vermelho de alta/queda são a única exceção à cor de acento.
 - **Ferramentas lançadas:** veja os itens com `disponivel: true` em `FERRAMENTAS` (`/assets/nav.js`) — é a lista oficial.
 - **Páginas legadas, fora da base compartilhada:** `app.html` (Control Finance), `escola.html`, `obrigado.html` — não carregam `warden.css`/`nav.js`; só migrar se for pedido.
 

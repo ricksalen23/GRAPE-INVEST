@@ -1,6 +1,7 @@
 /*
- * WARDEN — nav compartilhado (logo, Ferramentas + mega-menu, Cobrança, Mercado, Notícias,
- * Control Finance, Login/avatar, hambúrguer + menu mobile).
+ * WARDEN — nav compartilhado (logo, Ferramentas + mega-menu, Cobrança, Gráfico, Notícias,
+ * Control Finance, Login/avatar, hambúrguer + menu mobile) + faixa de cotações logo abaixo dele.
+ * Nav e faixa ficam juntos num contêiner fixo (.topo-fixo); a altura total está em --topo-h (warden.css).
  *
  * Uso: coloque como PRIMEIRO elemento do <body>, sem async/defer:
  *   <script src="/assets/nav.js" data-page="home"></script>      ← na home (index.html)
@@ -120,7 +121,7 @@ function fazerLogout() {
 (function () {
   const script = document.currentScript;
   const isHome = script && script.dataset.page === 'home';
-  // na home os links de seção são "#mercado"; nas outras páginas, "/#mercado"
+  // na home os links de seção são "#grafico"; nas outras páginas, "/#grafico"
   const H = isHome ? '' : '/';
   const link = url => (isHome && url.startsWith('/#')) ? url.slice(1) : url;
   const paginaAtual = location.pathname.replace(/\/index\.html$/, '/');
@@ -171,7 +172,46 @@ function fazerLogout() {
       <ul>${cat.itens.map(itemFerramenta).join('')}</ul>
     </details>`).join('');
 
+  /* ===== FAIXA DE COTAÇÕES: itens e formatação ===== */
+  // moedas e cripto: AwesomeAPI (uma chamada só); taxas: Banco Central via Warden.getTaxasBCB() do kit
+  const COTACOES = [
+    { id: 'USD', sigla: 'USD/BRL', tipo: 'moeda' },
+    { id: 'EUR', sigla: 'EUR/BRL', tipo: 'moeda' },
+    { id: 'GBP', sigla: 'GBP/BRL', tipo: 'moeda' },
+    { id: 'BTC', sigla: 'BTC/BRL', tipo: 'cripto' },
+    { id: 'ETH', sigla: 'ETH/BRL', tipo: 'cripto' },
+    { id: 'selic', sigla: 'SELIC', tipo: 'taxa' },
+    { id: 'cdi', sigla: 'CDI', tipo: 'taxa' },
+    { id: 'ipca', sigla: 'IPCA 12M', tipo: 'taxa' }
+  ];
+  const num2 = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const num0 = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 });
+  // R$ 5,22 · cripto acima de R$ 1.000 sem centavos (R$ 444.303) · taxas em % (13,75%)
+  function textoValor(c, v) {
+    if (typeof v !== 'number' || !isFinite(v)) return '—';
+    if (c.tipo === 'taxa') return num2.format(v) + '%';
+    return 'R$ ' + (c.tipo === 'cripto' && v > 1000 ? num0 : num2).format(v);
+  }
+  // ▲ 0,35% (alta) · ▼ 0,35% (queda) · 0,00% em cinza; sem dado (ou taxa) → vazio
+  function variacao(p) {
+    if (typeof p !== 'number' || !isFinite(p)) return { texto: '', classe: '' };
+    const r = Math.round(p * 100) / 100;
+    if (r === 0) return { texto: num2.format(0) + '%', classe: 'zero' };
+    return { texto: (r > 0 ? '▲ ' : '▼ ') + num2.format(Math.abs(r)) + '%', classe: r > 0 ? 'alta' : 'queda' };
+  }
+  const itemFaixa = c => `<li class="faixa-item" data-cot="${c.id}"><span class="faixa-sigla">${c.sigla}</span><span class="faixa-valor">—</span>${c.tipo === 'taxa' ? '' : '<span class="faixa-var"></span>'}</li>`;
+  const listaFaixa = COTACOES.map(itemFaixa).join('');
+  // a segunda cópia só existe para o loop sem emenda: escondida de leitores de tela
+  const faixaHtml = `
+<div class="faixa-cotacoes" id="faixa-cotacoes" role="region" aria-label="Cotações">
+  <div class="faixa-trilho" id="faixa-trilho">
+    <ul class="faixa-lista">${listaFaixa}</ul>
+    <ul class="faixa-lista" aria-hidden="true">${listaFaixa}</ul>
+  </div>
+</div>`;
+
   const html = `
+<div class="topo-fixo" id="topo-fixo">
 <nav>
   <a href="${isHome ? '#' : '/'}"><img src="/warden-logo-cropped-transparent.png" alt="Warden Finance" class="logo-img"></a>
   <div class="nav-links">
@@ -186,15 +226,14 @@ function fazerLogout() {
           ${cobrancaCard}
           <div class="mega-quick">
             <p class="section-label">Acesso rápido</p>
-            <a href="${H}#mercado">Mercado ao vivo</a>
+            <a href="${H}#grafico">Gráfico</a>
             <a href="${H}#noticias">Notícias</a>
-            <a href="${H}#grafico">Gráfico Ibovespa</a>
           </div>
         </div>
       </div>
     </div>
     <a class="nav-item nav-cobranca" href="${H}#cobranca">Cobrança <span class="badge-novo">Novo</span></a>
-    <a class="nav-item" href="${H}#mercado">Mercado</a>
+    <a class="nav-item" href="${H}#grafico">Gráfico</a>
     <a class="nav-item" href="${H}#noticias">Notícias</a>
     <a class="nav-item" href="/app.html" data-control-finance>Control Finance</a>
     <button class="nav-login-btn" id="nav-login-btn">Login</button>
@@ -215,6 +254,8 @@ function fazerLogout() {
     </button>
   </div>
 </nav>
+${faixaHtml}
+</div>
 
 <!-- Escurece a página enquanto o mega-menu de Ferramentas está aberto; clicar fecha -->
 <div class="mega-overlay" id="mega-overlay" aria-hidden="true"></div>
@@ -225,7 +266,7 @@ function fazerLogout() {
     ${cobrancaCard}
     <div id="mobile-cats">${mobileCats}</div>
     <div class="mobile-links">
-      <a href="${H}#mercado">Mercado</a>
+      <a href="${H}#grafico">Gráfico</a>
       <a href="${H}#noticias">Notícias</a>
       <a href="/app.html" data-control-finance>Control Finance</a>
     </div>
@@ -245,7 +286,7 @@ function fazerLogout() {
   }));
 
   // --- desktop: mega-menu ---
-  const navEl = document.querySelector('nav');
+  const topoEl = document.getElementById('topo-fixo');
   const navTools = document.getElementById('nav-tools');
   const toolsBtn = document.getElementById('nav-tools-btn');
   const megaMenu = document.getElementById('mega-menu');
@@ -256,8 +297,8 @@ function fazerLogout() {
 
   function setMega(aberto) {
     clearTimeout(megaTimer);
-    // overlay começa exatamente na borda inferior do nav (a altura muda com o breakpoint)
-    if (aberto) megaOverlay.style.top = navEl.getBoundingClientRect().bottom + 'px';
+    // overlay começa exatamente na borda inferior do topo fixo (nav + faixa; a altura muda com o breakpoint)
+    if (aberto) megaOverlay.style.top = topoEl.getBoundingClientRect().bottom + 'px';
     megaMenu.classList.toggle('open', aberto);
     megaOverlay.classList.toggle('open', aberto);
     toolsBtn.setAttribute('aria-expanded', String(aberto));
@@ -330,4 +371,138 @@ function fazerLogout() {
   });
 
   renderNavAuthState();
+  iniciarFaixa();
+
+  /* ===== FAIXA DE COTAÇÕES: dados + rolagem infinita ===== */
+  function iniciarFaixa() {
+    const faixa = document.getElementById('faixa-cotacoes');
+    const trilho = document.getElementById('faixa-trilho');
+    const lista = trilho.querySelector('.faixa-lista');
+    const CACHE = 'warden:cotacoes';
+    const URL_MOEDAS = 'https://economia.awesomeapi.com.br/last/' + COTACOES.filter(c => c.tipo !== 'taxa').map(c => c.id + '-BRL').join(',');
+    const VELOCIDADE = 40;   // px por segundo
+    const ATUALIZAR_MS = 60000;
+
+    // --- dados: últimos valores bons ficam no localStorage para a faixa aparecer cheia ao abrir outra página ---
+    // { USD: { v: 5.22, p: 0.35 }, …, selic: { v: 13.75 }, … }
+    let dados = {};
+    try { dados = JSON.parse(localStorage.getItem(CACHE)) || {}; } catch (e) { dados = {}; }
+    function salvar() {
+      try { localStorage.setItem(CACHE, JSON.stringify(dados)); } catch (e) { /* sem cache, tudo bem */ }
+    }
+    // só troca textos e classes (as duas cópias): a animação não é reiniciada
+    function pintar() {
+      COTACOES.forEach(c => {
+        const d = dados[c.id] || {};
+        const valor = textoValor(c, d.v);
+        const vr = variacao(d.p);
+        faixa.querySelectorAll(`[data-cot="${c.id}"]`).forEach(li => {
+          const v = li.querySelector('.faixa-valor');
+          if (v.textContent !== valor) v.textContent = valor;
+          const p = li.querySelector('.faixa-var');
+          if (p && p.textContent !== vr.texto) { p.textContent = vr.texto; p.className = 'faixa-var ' + vr.classe; }
+        });
+      });
+    }
+
+    async function buscarMoedas() {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 8000);
+      try {
+        const resp = await fetch(URL_MOEDAS, { signal: ctrl.signal });
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        const json = await resp.json();
+        let mudou = false;
+        COTACOES.filter(c => c.tipo !== 'taxa').forEach(c => {
+          const d = json[c.id + 'BRL'];
+          const v = d ? parseFloat(d.bid) : NaN;
+          if (!isFinite(v)) return;   // item sem dado: mantém o último valor bom
+          const p = parseFloat(d.pctChange);
+          dados[c.id] = { v, p: isFinite(p) ? p : null };
+          mudou = true;
+        });
+        if (mudou) { salvar(); pintar(); }
+      } catch (e) {
+        /* API fora do ar: fica com o cache (ou "—") */
+      } finally {
+        clearTimeout(timer);
+      }
+    }
+
+    // o kit (/assets/tools.js) tem o getTaxasBCB; nas páginas que não o carregam (a home), ele é injetado
+    let promessaKit = null;
+    function carregarKit() {
+      if (!promessaKit) promessaKit = new Promise(resolve => {
+        const pronto = () => {
+          if (window.Warden) return resolve(window.Warden);
+          const s = document.createElement('script');
+          s.src = '/assets/tools.js';
+          s.onload = () => resolve(window.Warden || null);
+          s.onerror = () => resolve(null);
+          document.body.appendChild(s);
+        };
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', pronto, { once: true });
+        else pronto();
+      });
+      return promessaKit;
+    }
+    async function buscarTaxas() {
+      try {
+        const W = await carregarKit();
+        if (!W) return;
+        const t = await W.getTaxasBCB();
+        if (t.fonte !== 'bcb') return;   // valor de referência não é cotação do dia: fica com o cache (ou "—")
+        dados.selic = { v: t.selic }; dados.cdi = { v: t.cdi }; dados.ipca = { v: t.ipca };
+        salvar(); pintar();
+      } catch (e) { /* idem */ }
+    }
+
+    function atualizar() { return Promise.all([buscarMoedas(), buscarTaxas()]); }
+    window.WardenFaixa = { atualizar };   // usado pelos testes
+
+    pintar();
+    atualizar();
+    setInterval(atualizar, ATUALIZAR_MS);
+
+    // --- rolagem: Web Animations de 0 a -50% (a 2ª cópia toma o lugar da 1ª), velocidade pela largura real ---
+    const semAnimacao = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let anim = null;
+    let pausas = 0;   // mouse em cima e/ou dedo na tela
+    function duracao() { return lista.getBoundingClientRect().width / VELOCIDADE * 1000; }
+    function ajustar() {
+      if (semAnimacao.matches) {
+        if (anim) { anim.cancel(); anim = null; }
+        faixa.tabIndex = 0;   // rolagem manual também pelo teclado
+        return;
+      }
+      faixa.removeAttribute('tabindex');
+      const d = duracao();
+      if (!d) return;
+      if (!anim) {
+        anim = trilho.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(-50%)' }],
+          { duration: d, iterations: Infinity, easing: 'linear' });
+        if (pausas) anim.pause();
+      } else {
+        // largura mudou (valores chegaram, fonte carregou): mantém ~40px/s sem reiniciar nem pular
+        anim.updatePlaybackRate(anim.effect.getTiming().duration / d);
+      }
+    }
+    function pausar(sim) {
+      pausas = Math.max(0, pausas + (sim ? 1 : -1));
+      if (!anim) return;
+      if (pausas) anim.pause(); else anim.play();
+    }
+    let mouseDentro = false, dedoNaTela = false;
+    faixa.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse' && !mouseDentro) { mouseDentro = true; pausar(true); } });
+    faixa.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse' && mouseDentro) { mouseDentro = false; pausar(false); } });
+    faixa.addEventListener('touchstart', () => { if (!dedoNaTela) { dedoNaTela = true; pausar(true); } }, { passive: true });
+    const soltar = () => { if (dedoNaTela) { dedoNaTela = false; pausar(false); } };
+    faixa.addEventListener('touchend', soltar);
+    faixa.addEventListener('touchcancel', soltar);
+
+    if ('ResizeObserver' in window) new ResizeObserver(ajustar).observe(lista);
+    else window.addEventListener('load', ajustar);
+    semAnimacao.addEventListener('change', ajustar);
+    ajustar();
+  }
 })();

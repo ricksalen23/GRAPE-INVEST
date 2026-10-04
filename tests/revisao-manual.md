@@ -29,6 +29,7 @@
 - Acessibilidade é a básica automática: rótulos, nome dos botões e contraste do texto visível. Não substitui um teste com leitor de tela de verdade.
 - Botões de compartilhar: o link do WhatsApp e o conteúdo copiado são conferidos, mas o WhatsApp não é aberto. PDF e PNG são baixados e conferidos pelo nome e pelo cabeçalho do arquivo, não pelo visual.
 - Screenshots (375px e 1440px) ficam em `tests/screenshots/`, fora do git, para olhar à mão.
+- A home carrega o widget do TradingView (iframe de terceiros). Com várias páginas abertas ao mesmo tempo, o carregamento completo dela passou de 1 minuto nesta máquina (que também tem um antivírus injetando scripts nas páginas). Por isso os testes esperam o `load` por no máximo 20 s e seguem a partir do momento em que os scripts da página já rodaram.
 
 ### Como rodar
 

@@ -1,50 +1,54 @@
 # Relatório de testes — Warden
 
-Gerado por `npm test` em 03/10/2026, 20:31:56.
+Gerado por `npm test` em 03/10/2026, 22:30:46.
 
-## Placar: 234 de 234 testes passando ✅
+## Placar: 267 de 269 testes passando ❌
 
 Cada célula mostra quantos testes daquela área passaram (✅ todos / ❌ passaram/total).
 "Robustez" inclui os botões (copiar, PDF, PNG, WhatsApp, imprimir) e a máscara dos campos.
-Juros compostos fica na home, então celular, SEO e acessibilidade dele são os da home.
+Juros compostos fica na home, então celular, faixa, SEO e acessibilidade dele são os da home.
+"Faixa" é a faixa de cotações embaixo do nav (aparece, fica fixa, 8 itens, sem rolagem lateral).
 
-| Ferramenta | Cálculo | Robustez | Celular | SEO | Acessibilidade | Status |
-|---|---|---|---|---|---|---|
-| Home | — | — | ✅ 3 | ✅ 1 | ✅ 1 | ✅ |
-| Juros compostos | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ |
-| Simulador renda fixa | ✅ 1 | ✅ 2 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ |
-| Poupança x CDB x Tesouro | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ |
-| Viver de renda | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ |
-| Dividendos e preço teto | ✅ 2 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ |
-| Rentabilidade real | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ |
-| Conversor de taxas | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ |
-| Salário líquido | ✅ 5 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ |
-| Rescisão | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ |
-| Férias | ✅ 2 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ |
-| 13º salário | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ |
-| Hora extra | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ |
-| CLT x PJ | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ |
-| Quanto cobrar por hora | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ |
-| Markup e margem | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ |
-| Ponto de equilíbrio | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ |
-| Gerador de recibo | ✅ 5 | ✅ 2 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ |
-| Gerador de QR Code Pix | ✅ 2 | ✅ 2 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ |
-| Gerador de orçamento | ✅ 1 | ✅ 2 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ |
-| Plano de quitação | ✅ 2 | ✅ 2 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ |
-| SAC x Price | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ |
-| Consórcio x financiamento | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ |
-| Juros do cartão | ✅ 4 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ |
-| À vista ou parcelado? | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ |
-| Custo real em horas | ✅ 1 | ✅ 2 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ |
-| Reserva de emergência | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ |
-| Regra 50-30-20 | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ |
-| Meta mensal | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ |
-| Aposentadoria | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ |
-| Geral (links, máscara de R$, taxas do BC, unicidade de SEO) | ✅ 2 | ✅ 7 | — | ✅ 1 | — | ✅ |
+| Ferramenta | Cálculo | Robustez | Celular | Faixa | SEO | Acessibilidade | Status |
+|---|---|---|---|---|---|---|---|
+| Home | — | — | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Juros compostos | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Simulador renda fixa | ✅ 1 | ✅ 2 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Poupança x CDB x Tesouro | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Viver de renda | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Dividendos e preço teto | ✅ 2 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Rentabilidade real | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Conversor de taxas | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Salário líquido | ✅ 5 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Rescisão | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Férias | ✅ 2 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| 13º salário | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Hora extra | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| CLT x PJ | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Quanto cobrar por hora | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Markup e margem | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Ponto de equilíbrio | ✅ 1 | ✅ 1 | ❌ 2/3 | ✅ 1 | ✅ 1 | ✅ 1 | ❌ |
+| Gerador de recibo | ✅ 5 | ✅ 2 | ✅ 3 | ✅ 1 | ❌ 0/1 | ✅ 1 | ❌ |
+| Gerador de QR Code Pix | ✅ 2 | ✅ 2 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Gerador de orçamento | ✅ 1 | ✅ 2 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Plano de quitação | ✅ 2 | ✅ 2 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| SAC x Price | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Consórcio x financiamento | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Juros do cartão | ✅ 4 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| À vista ou parcelado? | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Custo real em horas | ✅ 1 | ✅ 2 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Reserva de emergência | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Regra 50-30-20 | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Meta mensal | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Aposentadoria | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Geral (links, máscara de R$, taxas do BC, faixa de cotações, unicidade de SEO) | ✅ 2 | ✅ 8 | — | ✅ 5 | ✅ 1 | — | ✅ |
 
 ## Testes que falharam
 
-Nenhum.
+- **ponto-de-equilibrio › celular: em 768px não rola para o lado, nada cortado e o menu hambúrguer abre** (failed)
+  Error: erros no console: / console: Failed to load resource: net::ERR_TIMED_OUT (https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js) / expect(received).toEqual(expected) // deep equality / - Expected  - 1 / + Received  + 3 / - Array []
+- **gerador-de-recibo › seo: title, description, um h1, canonical e JSON-LD válidos** (failed)
+  Error: erros no console: / console: Failed to load resource: net::ERR_TIMED_OUT (https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js) / expect(received).toEqual(expected) // deep equality / - Expected  - 1 / + Received  + 3 / - Array []
 
 ## Revisão — o que foi encontrado
 
@@ -77,6 +81,7 @@ Nenhum.
 - Acessibilidade é a básica automática: rótulos, nome dos botões e contraste do texto visível. Não substitui um teste com leitor de tela de verdade.
 - Botões de compartilhar: o link do WhatsApp e o conteúdo copiado são conferidos, mas o WhatsApp não é aberto. PDF e PNG são baixados e conferidos pelo nome e pelo cabeçalho do arquivo, não pelo visual.
 - Screenshots (375px e 1440px) ficam em `tests/screenshots/`, fora do git, para olhar à mão.
+- A home carrega o widget do TradingView (iframe de terceiros). Com várias páginas abertas ao mesmo tempo, o carregamento completo dela passou de 1 minuto nesta máquina (que também tem um antivírus injetando scripts nas páginas). Por isso os testes esperam o `load` por no máximo 20 s e seguem a partir do momento em que os scripts da página já rodaram.
 
 ### Como rodar
 
