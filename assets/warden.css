@@ -668,6 +668,7 @@ section { padding: 96px 5%; position: relative; }
 .rodape-logo { display: inline-flex; align-items: center; min-height: 44px; }
 .rodape-logo img { height: 36px; width: auto; display: block; }
 .rodape-frase { color: var(--muted); font-size: .95rem; line-height: 1.6; margin: 14px 0 22px; max-width: 300px; }
+.rodape-frase:last-child { margin-bottom: 0; }   /* sem redes preenchidas, sem espaço vazio embaixo */
 .rodape-redes { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; }
 .rodape-redes a {
   width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center;

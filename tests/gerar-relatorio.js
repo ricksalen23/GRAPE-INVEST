@@ -28,9 +28,8 @@ const testes = [];
 const total = testes.length;
 const passaram = testes.filter(t => t.ok).length;
 
-// juros compostos vive na home: celular, SEO e acessibilidade dele são os da home
 const linhas = [{ slug: 'home', nome: 'Home', grupos: ['home'] },
-  ...FERRAMENTAS.map(f => ({ slug: f.slug, nome: f.nome, grupos: f.area ? [f.slug, 'home'] : [f.slug] })),
+  ...FERRAMENTAS.map(f => ({ slug: f.slug, nome: f.nome, grupos: [f.slug] })),
   ...require('./ferramentas').INSTITUCIONAIS.map(p => ({ slug: p.slug, nome: p.nome, grupos: [p.slug] })),
   { slug: 'geral', nome: 'Geral (links, máscara de R$, taxas do BC, faixa, rodapé, sitemap, unicidade de SEO)', grupos: ['geral'] }];
 const COLS = ['calculo', 'robustez', 'celular', 'faixa', 'rodape', 'seo', 'acess'];
@@ -43,8 +42,7 @@ const celula = (grupos, col) => {
 
 const tabela = linhas.map(l => {
   const cs = COLS.map(c => {
-    // a home só entra com celular/SEO/acessibilidade dela mesma; juros-compostos herda essas colunas da home
-    const grupos = l.slug === 'home' ? ['home'] : (['celular', 'faixa', 'rodape', 'seo', 'acess'].includes(c) ? l.grupos : [l.grupos[0]]);
+    const grupos = l.grupos;
     return celula(grupos, c);
   });
   const status = cs.some(c => c.startsWith('❌')) ? '❌' : '✅';
@@ -61,7 +59,6 @@ Gerado por \`npm test\` em ${agora}.
 
 Cada célula mostra quantos testes daquela área passaram (✅ todos / ❌ passaram/total).
 "Robustez" inclui os botões (copiar, PDF, PNG, WhatsApp, imprimir) e a máscara dos campos.
-Juros compostos fica na home, então celular, faixa, SEO e acessibilidade dele são os da home.
 "Faixa" é a faixa de cotações embaixo do nav (aparece, fica fixa, 8 itens, sem rolagem lateral).
 "Rodapé" é o rodapé do site (colunas, acordeão no celular, toques de 44px); as páginas institucionais (sobre, contato, privacidade, termos) vêm no fim da tabela.
 

@@ -1,24 +1,23 @@
 # Relatório de testes — Warden
 
-Gerado por `npm test` em 04/10/2026, 11:25:26.
+Gerado por `npm test` em 04/10/2026, 12:21:38.
 
-## Placar: 347 de 347 testes passando ✅
+## Placar: 355 de 356 testes passando ❌
 
 Cada célula mostra quantos testes daquela área passaram (✅ todos / ❌ passaram/total).
 "Robustez" inclui os botões (copiar, PDF, PNG, WhatsApp, imprimir) e a máscara dos campos.
-Juros compostos fica na home, então celular, faixa, SEO e acessibilidade dele são os da home.
 "Faixa" é a faixa de cotações embaixo do nav (aparece, fica fixa, 8 itens, sem rolagem lateral).
 "Rodapé" é o rodapé do site (colunas, acordeão no celular, toques de 44px); as páginas institucionais (sobre, contato, privacidade, termos) vêm no fim da tabela.
 
 | Página | Cálculo | Robustez | Celular | Faixa | Rodapé | SEO | Acessibilidade | Status |
 |---|---|---|---|---|---|---|---|---|
-| Home | — | — | ✅ 5 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
-| Juros compostos | ✅ 1 | ✅ 1 | ✅ 5 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Home | — | ✅ 1 | ✅ 5 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Juros compostos | ✅ 2 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
 | Simulador renda fixa | ✅ 1 | ✅ 2 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
 | Poupança x CDB x Tesouro | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
 | Viver de renda | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
 | Dividendos e preço teto | ✅ 2 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
-| Rentabilidade real | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Rentabilidade real | ✅ 1 | ✅ 1 | ❌ 2/3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ❌ |
 | Conversor de taxas | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
 | Salário líquido | ✅ 5 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
 | Rescisão | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
@@ -50,7 +49,8 @@ Juros compostos fica na home, então celular, faixa, SEO e acessibilidade dele s
 
 ## Testes que falharam
 
-Nenhum.
+- **rentabilidade-real › celular: em 375px não rola para o lado, nada cortado e o menu hambúrguer abre** (timedOut)
+  Tearing down "context" exceeded the test timeout of 90000ms.
 
 ## Revisão — o que foi encontrado
 
@@ -73,7 +73,7 @@ Nenhum.
 
 ### Observações
 
-- **São 29 ferramentas, não 30:** 28 páginas em `/ferramentas` mais os juros compostos na home. É o que está no `FERRAMENTAS` do `nav.js` e todas estão com `disponivel: true`.
+- **São 29 ferramentas, não 30:** todas em `/ferramentas` (os juros compostos saíram da home e viraram página própria em outubro/2026). É o que está no `FERRAMENTAS` do `nav.js` e todas estão com `disponivel: true`.
 - **Taxas do BC:** os testes injetam Selic 13,75 / CDI 13,65 / IPCA 4,22 para os números serem fixos. Um teste à parte bloqueia a API e confirma que as páginas mostram "valores de referência" e continuam calculando.
 - **Data fixa:** os testes rodam como se fosse 02/10/2026 12h (Brasília), para prazos, validade de orçamento e rescisão não mudarem com o dia.
 

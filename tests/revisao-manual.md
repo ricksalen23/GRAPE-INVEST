@@ -19,7 +19,7 @@
 
 ### Observações
 
-- **São 29 ferramentas, não 30:** 28 páginas em `/ferramentas` mais os juros compostos na home. É o que está no `FERRAMENTAS` do `nav.js` e todas estão com `disponivel: true`.
+- **São 29 ferramentas, não 30:** todas em `/ferramentas` (os juros compostos saíram da home e viraram página própria em outubro/2026). É o que está no `FERRAMENTAS` do `nav.js` e todas estão com `disponivel: true`.
 - **Taxas do BC:** os testes injetam Selic 13,75 / CDI 13,65 / IPCA 4,22 para os números serem fixos. Um teste à parte bloqueia a API e confirma que as páginas mostram "valores de referência" e continuam calculando.
 - **Data fixa:** os testes rodam como se fosse 02/10/2026 12h (Brasília), para prazos, validade de orçamento e rescisão não mudarem com o dia.
 

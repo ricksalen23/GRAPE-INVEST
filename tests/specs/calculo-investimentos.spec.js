@@ -1,22 +1,39 @@
-// Testes de cálculo: Investimentos (juros compostos da home, simulador, poupança, viver de renda,
+// Testes de cálculo: Investimentos (juros compostos, simulador, poupança, viver de renda,
 // dividendos, rentabilidade real, conversor). Taxas do BC fixas (Selic 13,75 / CDI 13,65 / IPCA 4,22) e data fixa 02/10/2026.
 const { test, expect } = require('@playwright/test');
 const { abrir, preencher, escolher, card, numero, esperarReais, semErros } = require('../helpers');
 
 test.describe('juros-compostos', () => {
   test('calculo: R$ 1.000 + R$ 200/mês a 1% a.m. por 12 meses = 3.663,33 (aporte no fim do mês)', async ({ page }) => {
-    const erros = await abrir(page, '/index.html');
-    await preencher(page, '#calc-inicial', '1000');
-    await preencher(page, '#calc-aporte', '200');
-    await preencher(page, '#calc-taxa', '1');
-    await preencher(page, '#calc-periodo', '12');
-    await escolher(page, '#calc-periodo-unidade', 'meses');
+    const erros = await abrir(page, '/ferramentas/juros-compostos.html');
+    await preencher(page, '#inicial', '1000');
+    await preencher(page, '#aporte', '200');
+    await preencher(page, '#juros', '1');
+    await escolher(page, '#juros-periodo', 'am');
+    await preencher(page, '#prazo', '12');
+    await escolher(page, '#prazo-unidade', 'meses');
     // aporte no FIM do mês (anuidade postecipada): 1000 × 1,01^12 + 200 × (1,01^12 − 1) ÷ 0,01
     const esperado = 1000 * 1.01 ** 12 + 200 * (1.01 ** 12 - 1) / 0.01;   // 3.663,33
-    esperarReais(await page.locator('#calc-total').textContent(), esperado, 0.01, 'valor final');
+    const c = await card(page, 'Valor final');
+    esperarReais(c.valor, esperado, 0.01, 'valor final');
     esperarReais(esperado, 3663.33, 0.01, 'conta de referência');
+    esperarReais(c.linhas['Total investido'], 3400, 0.01, 'total investido');
+    esperarReais(c.linhas['Total em juros'], esperado - 3400, 0.01, 'total em juros');
     // a convenção precisa estar escrita na página
-    await expect(page.locator('#calculadora')).toContainText(/fim de cada mês/i);
+    await expect(page.locator('#jc-obs')).toContainText(/fim de cada mês/i);
+    semErros(erros);
+  });
+
+  test('calculo: taxa ao ano vira a mensal equivalente (12% a.a. por 2 anos, sem aporte = 1.000 × 1,12² = 1.254,40)', async ({ page }) => {
+    const erros = await abrir(page, '/ferramentas/juros-compostos.html');
+    await preencher(page, '#inicial', '1000');
+    await preencher(page, '#aporte', '');
+    await preencher(page, '#juros', '12');
+    await escolher(page, '#juros-periodo', 'aa');
+    await preencher(page, '#prazo', '2');
+    await escolher(page, '#prazo-unidade', 'anos');
+    esperarReais((await card(page, 'Valor final')).valor, 1254.40, 0.01, '12% a.a. por 2 anos');
+    await expect(page.locator('#juros-dica')).toHaveText('Equivale a 0,95% ao mês');
     semErros(erros);
   });
 });

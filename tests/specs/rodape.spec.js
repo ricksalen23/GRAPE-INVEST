@@ -51,7 +51,7 @@ for (const p of PAGINAS) {
       expect(d.colunas.map(c => c.titulo)).toEqual([...Object.keys(COLUNAS_ESPERADAS), 'Warden']);
       expect(d.colunas.every(c => c.aberta), 'colunas abertas no desktop').toBe(true);
       expect(d.base).toContain('© 2026 Warden Finance. Todos os direitos reservados.');
-      expect(d.base).toContain('As ferramentas têm caráter educativo e não constituem recomendação de investimento. Confira sempre os valores oficiais.');
+      expect(d.base.trim(), 'linha final só com o ©').toBe('© 2026 Warden Finance. Todos os direitos reservados.');
       // celular: acordeão fechado, abre ao tocar, toques de 44px, margens de 16px, sem rolagem lateral
       await page.setViewportSize({ width: 375, height: 800 });
       await expect.poll(async () => (await lerRodape(page)).colunas.every(c => !c.aberta), { message: 'acordeão começa fechado no celular' }).toBe(true);
@@ -99,17 +99,18 @@ test.describe('geral', () => {
     const erros = await abrir(page, '/ferramentas/ferias.html');
     const hrefs = await page.locator('footer.rodape a').evaluateAll(l => l.map(a => a.getAttribute('href')));
     const internos = [...new Set(hrefs.filter(h => h.startsWith('/') || h.startsWith('#')))];
-    expect(internos).toContain('/#cobranca');
+    expect(internos).toContain('/cobranca/');
+    expect(internos).toContain('/ferramentas/juros-compostos.html');
     for (const h of internos) {
       const [caminho, ancora] = h.split('#');
       const r = await request.get(caminho || '/index.html');
       expect(r.status(), h).toBe(200);
       if (ancora) expect(await r.text(), h).toContain(`id="${ancora}"`);
     }
-    // na home, os links de seção não recarregam a página
+    // na home também: Cobrança e juros compostos são páginas próprias
     await abrir(page, '/index.html');
-    expect(await page.locator('footer.rodape a', { hasText: 'Warden Cobrança' }).getAttribute('href')).toBe('#cobranca');
-    expect(await page.locator('footer.rodape a', { hasText: 'Juros compostos' }).getAttribute('href')).toBe('#calculadora');
+    expect(await page.locator('footer.rodape a', { hasText: 'Warden Cobrança' }).getAttribute('href')).toBe('/cobranca/');
+    expect(await page.locator('footer.rodape a', { hasText: 'Juros compostos' }).getAttribute('href')).toBe('/ferramentas/juros-compostos.html');
     semErros(erros);
   });
 
@@ -126,7 +127,7 @@ test.describe('geral', () => {
     semErros(erros);
   });
 
-  test('rodape: links em cinza ficam brancos no hover; ícones de rede em SVG de linha', async ({ page }) => {
+  test('rodape: links em cinza ficam brancos no hover', async ({ page }) => {
     const erros = await abrir(page, '/ferramentas/meta-mensal.html');
     const a = page.locator('.rodape-col a').first();
     const cor = () => a.evaluate(el => getComputedStyle(el).color);
@@ -134,15 +135,15 @@ test.describe('geral', () => {
     expect(await cor()).toBe(muted);
     await a.hover();
     await expect.poll(cor).toBe('rgb(255, 255, 255)');
-    const icone = await page.locator('.rodape-redes a svg').first().evaluate(s => ({ fill: s.getAttribute('fill'), stroke: s.getAttribute('stroke') }));
-    expect(icone).toEqual({ fill: 'none', stroke: 'currentColor' });
     semErros(erros);
   });
 
-  test('rodape: com o FOOTER_CONFIG de hoje só o WhatsApp aparece; campos vazios (redes, CNPJ, e-mail) somem', async ({ page }) => {
+  test('rodape: com o FOOTER_CONFIG de hoje (sem redes) o espaço dos ícones some; WhatsApp não aparece no rodapé; campos vazios somem', async ({ page }) => {
     let erros = await abrir(page, '/ferramentas/ferias.html');
-    const redes = await page.locator('.rodape-redes a').evaluateAll(l => l.map(a => [a.dataset.rede, a.getAttribute('href'), a.getAttribute('aria-label')]));
-    expect(redes).toEqual([['whatsapp', 'https://wa.me/5564993342646?text=' + encodeURIComponent('Olá! Vim pelo site da Warden.'), 'WhatsApp da Warden']]);
+    expect(await page.locator('.rodape-redes').count(), 'bloco de redes').toBe(0);
+    expect(await page.locator('footer.rodape a[href*="wa.me"]').count(), 'WhatsApp no rodapé').toBe(0);
+    // a frase da marca é o último item da coluna, sem margem sobrando embaixo
+    expect(await page.locator('.rodape-frase').evaluate(el => getComputedStyle(el).marginBottom)).toBe('0px');
     expect(await page.locator('.rodape-base').innerText()).not.toMatch(/CNPJ\s*\d/);
     semErros(erros);
     erros = await abrir(page, '/contato.html');
@@ -157,7 +158,7 @@ test.describe('geral', () => {
     semErros(erros);
   });
 
-  test('rodape: com o FOOTER_CONFIG preenchido, redes, e-mail, razão social e CNPJ aparecem no rodapé e nas páginas', async ({ page }) => {
+  test('rodape: com o FOOTER_CONFIG preenchido, redes (sem WhatsApp), e-mail, razão social e CNPJ aparecem no rodapé e nas páginas', async ({ page }) => {
     // valores de teste, trocados na rota (o arquivo do site não muda)
     const cfg = { instagram: '@exemplo', tiktok: 'https://www.tiktok.com/@exemplo', youtube: 'exemplo', whatsapp: '5511999990000', email: 'contato@exemplo.com', cnpj: '00.000.000/0001-00', razaoSocial: 'Exemplo Ltda' };
     await page.route('**/assets/footer.js', async route => {
@@ -170,9 +171,11 @@ test.describe('geral', () => {
     expect(redes).toEqual([
       ['instagram', 'https://www.instagram.com/exemplo'],
       ['tiktok', 'https://www.tiktok.com/@exemplo'],
-      ['youtube', 'https://www.youtube.com/@exemplo'],
-      ['whatsapp', 'https://wa.me/5511999990000?text=' + encodeURIComponent('Olá! Vim pelo site da Warden.')]
+      ['youtube', 'https://www.youtube.com/@exemplo']
     ]);
+    // ícones em SVG de linha (sem emoji)
+    const icones = await page.locator('.rodape-redes a svg').evaluateAll(l => l.map(s => [s.getAttribute('fill'), s.getAttribute('stroke')]));
+    expect(icones).toEqual(Array(3).fill(['none', 'currentColor']));
     expect(await page.locator('.rodape-base').innerText()).toContain('Exemplo Ltda · CNPJ 00.000.000/0001-00');
     semErros(erros);
     erros = await abrir(page, '/contato.html');

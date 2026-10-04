@@ -204,56 +204,6 @@
     .btn { transition: none; }
   }
 
-  /* ===== CALCULADORA DE JUROS COMPOSTOS ===== */
-  .calc-card {
-    background: var(--panel); border: 1px solid var(--border); border-radius: 16px;
-    padding: 40px; margin-top: 44px;
-    display: grid; grid-template-columns: 1fr 1fr; gap: 48px;
-  }
-  .calc-inputs { display: flex; flex-direction: column; gap: 26px; }
-  .calc-field label {
-    display: block; font-size: .74rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
-    color: var(--muted); margin-bottom: 8px;
-  }
-  .calc-input-wrap {
-    display: flex; align-items: baseline; gap: 6px;
-    border-bottom: 1px solid var(--border); padding-bottom: 8px; transition: border-color .2s;
-  }
-  .calc-input-wrap:focus-within { border-color: var(--white); }
-  .calc-prefix, .calc-suffix { font-family: 'Inter', sans-serif; font-size: 1rem; color: var(--muted); }
-  .calc-input-wrap input {
-    flex: 1; min-width: 0; background: none; border: none; outline: none; color: var(--text);
-    font-family: 'Inter', sans-serif; font-size: 1.15rem;
-    -moz-appearance: textfield;
-  }
-  .calc-input-wrap input::-webkit-outer-spin-button,
-  .calc-input-wrap input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-  .calc-input-wrap select { background: none; border: none; outline: none; color: var(--text); font-size: .9rem; cursor: pointer; }
-
-  .calc-results {
-    display: flex; flex-direction: column; justify-content: center; gap: 24px;
-    border-left: 1px solid var(--border); padding-left: 48px;
-  }
-  .calc-result-label {
-    display: block; font-size: .74rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
-    color: var(--muted); margin-bottom: 6px;
-  }
-  .calc-nota { font-size: .78rem; color: var(--muted); line-height: 1.5; }
-  .calc-result-value { display: block; font-family: 'Inter', sans-serif; font-size: 1.5rem; font-weight: 600; color: var(--text); }
-  #calc-total { font-size: 1.9rem; color: var(--white); }
-
-  @media (max-width: 720px) {
-    .calc-card { grid-template-columns: 1fr; padding: 28px; gap: 32px; }
-    .calc-results { border-left: none; padding-left: 0; border-top: 1px solid var(--border); padding-top: 28px; }
-  }
-  /* celular: campos com área de toque de 44px e nota legível */
-  @media (max-width: 600px) {
-    .calc-card { padding: 24px 20px; }
-    .calc-input-wrap input, .calc-input-wrap select { min-height: 44px; }
-    .calc-nota { font-size: 1rem; }
-    /* a Cobrança já termina com 96px de folga: a calculadora não precisa de outros 96 em cima */
-    #calculadora { padding-top: 56px; }
-  }
 </style>
 </head>
 <body>
@@ -407,7 +357,7 @@
         </li>
       </ul>
 
-      <a class="btn btn-primary fade-up" href="https://wa.me/5564993342646?text=Ol%C3%A1!%20Quero%20conhecer%20o%20Warden%20Cobran%C3%A7a." target="_blank" rel="noopener">Quero usar o Warden Cobrança</a>
+      <a class="btn btn-primary fade-up" href="/cobranca/">Quero usar o Warden Cobrança</a>
     </div>
 
     <!-- Mockup de celular: conversa de exemplo (decorativa) -->
@@ -451,55 +401,6 @@
   </div>
 </section>
 
-<!-- CALCULADORA DE JUROS COMPOSTOS -->
-<section id="calculadora">
-  <div class="section-inner">
-    <p class="section-label fade-up">Simule seu futuro</p>
-    <h2 class="section-title fade-up">Calculadora de juros compostos</h2>
-    <div class="calc-card fade-up">
-      <div class="calc-inputs">
-        <div class="calc-field">
-          <label for="calc-inicial">Valor inicial</label>
-          <div class="calc-input-wrap"><span class="calc-prefix">R$</span><input type="number" id="calc-inicial" value="1000" min="0"></div>
-        </div>
-        <div class="calc-field">
-          <label for="calc-aporte">Aporte mensal</label>
-          <div class="calc-input-wrap"><span class="calc-prefix">R$</span><input type="number" id="calc-aporte" value="200" min="0"></div>
-        </div>
-        <div class="calc-field">
-          <label for="calc-taxa">Taxa de juros mensal</label>
-          <div class="calc-input-wrap"><input type="number" id="calc-taxa" value="1" min="0" step="0.01"><span class="calc-suffix">%</span></div>
-        </div>
-        <div class="calc-field">
-          <label for="calc-periodo">Período</label>
-          <div class="calc-input-wrap">
-            <input type="number" id="calc-periodo" value="12" min="1">
-            <select id="calc-periodo-unidade" aria-label="Unidade do período">
-              <option value="meses">meses</option>
-              <option value="anos">anos</option>
-            </select>
-          </div>
-        </div>
-      </div>
-      <div class="calc-results">
-        <div class="calc-result">
-          <span class="calc-result-label">Valor total ao final</span>
-          <span class="calc-result-value" id="calc-total">R$ 0,00</span>
-        </div>
-        <div class="calc-result">
-          <span class="calc-result-label">Total investido</span>
-          <span class="calc-result-value" id="calc-investido">R$ 0,00</span>
-        </div>
-        <div class="calc-result">
-          <span class="calc-result-label">Total em juros</span>
-          <span class="calc-result-value" id="calc-juros">R$ 0,00</span>
-        </div>
-        <p class="calc-nota">Aportes no fim de cada mês, com juros compostos sobre o saldo.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
 <script>
   // ===== SCROLL ANIMATIONS =====
   const observer = new IntersectionObserver((entries) => {
@@ -511,36 +412,6 @@
     });
   }, { threshold: 0.1 });
   document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
-
-  // ===== CALCULADORA DE JUROS COMPOSTOS =====
-  function formatBRL(bidStr) {
-    const n = parseFloat(bidStr);
-    if (isNaN(n)) return '--';
-    return 'R$ ' + n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  }
-
-  function calcularJurosCompostos() {
-    const inicial = parseFloat(document.getElementById('calc-inicial').value) || 0;
-    const aporte = parseFloat(document.getElementById('calc-aporte').value) || 0;
-    const taxa = (parseFloat(document.getElementById('calc-taxa').value) || 0) / 100;
-    const periodoRaw = parseFloat(document.getElementById('calc-periodo').value) || 0;
-    const unidade = document.getElementById('calc-periodo-unidade').value;
-    const meses = unidade === 'anos' ? periodoRaw * 12 : periodoRaw;
-
-    const fator = Math.pow(1 + taxa, meses);
-    const valorFinal = taxa > 0
-      ? inicial * fator + aporte * ((fator - 1) / taxa)
-      : inicial + aporte * meses;
-    const totalInvestido = inicial + aporte * meses;
-    const totalJuros = valorFinal - totalInvestido;
-
-    document.getElementById('calc-total').textContent = formatBRL(valorFinal.toFixed(2));
-    document.getElementById('calc-investido').textContent = formatBRL(totalInvestido.toFixed(2));
-    document.getElementById('calc-juros').textContent = formatBRL(totalJuros.toFixed(2));
-  }
-  ['calc-inicial', 'calc-aporte', 'calc-taxa', 'calc-periodo', 'calc-periodo-unidade']
-    .forEach(id => document.getElementById(id).addEventListener('input', calcularJurosCompostos));
-  calcularJurosCompostos();
 
   // ===== CONTROL FINANCE (tela intermediária pré-login) =====
   function abrirControlFinance(e) {

@@ -1,8 +1,8 @@
-// As 29 ferramentas do hub (28 páginas em /ferramentas + juros compostos na home) e a home.
+// As 29 ferramentas do hub (todas em /ferramentas) e as demais páginas testadas.
 // O teste de páginas confere que esta lista bate com o FERRAMENTAS do /assets/nav.js (fonte oficial do menu).
 const FERRAMENTAS = [
   // Investimentos
-  { slug: 'juros-compostos', url: '/index.html', area: '#calculadora', nome: 'Juros compostos' },
+  { slug: 'juros-compostos', url: '/ferramentas/juros-compostos.html', nome: 'Juros compostos' },
   { slug: 'simulador-renda-fixa', url: '/ferramentas/simulador-renda-fixa.html', nome: 'Simulador renda fixa' },
   { slug: 'poupanca-x-cdb-x-tesouro', url: '/ferramentas/poupanca-x-cdb-x-tesouro.html', nome: 'Poupança x CDB x Tesouro' },
   { slug: 'viver-de-renda', url: '/ferramentas/viver-de-renda.html', nome: 'Viver de renda' },
@@ -44,7 +44,7 @@ const INSTITUCIONAIS = [
   { slug: 'privacidade', url: '/privacidade.html', nome: 'Política de Privacidade', tipo: 'institucional' },
   { slug: 'termos', url: '/termos.html', nome: 'Termos de Uso', tipo: 'institucional' }
 ];
-// páginas para os testes de página (SEO, celular, faixa, rodapé): a home + as 28 ferramentas + as 4 institucionais
-const PAGINAS = [{ slug: 'home', url: '/index.html', nome: 'Home' }, ...FERRAMENTAS.filter(f => !f.area), ...INSTITUCIONAIS];
+// páginas para os testes de página (SEO, celular, faixa, rodapé): a home + as 29 ferramentas + as 4 institucionais
+const PAGINAS = [{ slug: 'home', url: '/index.html', nome: 'Home' }, ...FERRAMENTAS, ...INSTITUCIONAIS];
 
 module.exports = { FERRAMENTAS, PAGINAS, INSTITUCIONAIS };

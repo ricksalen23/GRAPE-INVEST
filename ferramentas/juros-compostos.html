@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Calculadora de juros compostos com aporte mensal | Warden</title>
+<meta name="description" content="Veja quanto seu dinheiro vira com juros compostos: valor inicial, aporte todo mês, taxa ao mês ou ao ano e prazo. Com gráfico e quanto os juros rendem.">
+<link rel="canonical" href="https://wardenfinance.com.br/ferramentas/juros-compostos.html">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Calculadora de juros compostos | Warden">
+<meta property="og:description" content="Valor inicial, aporte mensal, taxa e prazo: quanto o dinheiro vira e quanto vem dos juros.">
+<meta property="og:url" content="https://wardenfinance.com.br/ferramentas/juros-compostos.html">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/warden.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Calculadora de Juros Compostos",
+  "url": "https://wardenfinance.com.br/ferramentas/juros-compostos.html",
+  "applicationCategory": "FinanceApplication",
+  "operatingSystem": "Any",
+  "inLanguage": "pt-BR",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "BRL" },
+  "publisher": { "@type": "Organization", "name": "Warden", "url": "https://wardenfinance.com.br/" }
+}
+</script>
+<style>
+  /* ===== JUROS COMPOSTOS (só desta página; estrutura e componentes vêm do /assets/warden.css) ===== */
+  .jc-form { display: flex; flex-direction: column; gap: 26px; }
+  .jc-obs { margin-top: 16px; }
+</style>
+</head>
+<body>
+
+<script src="/assets/nav.js"></script>
+
+<section class="tool-top">
+  <div class="section-inner">
+
+    <header class="tool-head">
+      <div class="tool-crumbs" data-crumbs></div>
+      <h1 class="tool-title">Calculadora de juros compostos</h1>
+      <p class="tool-lead">Coloque quanto você tem hoje, quanto vai guardar por mês, a taxa e o prazo. Veja quanto o dinheiro vira e quanto disso vem dos juros sobre juros.</p>
+    </header>
+
+    <!-- ENTRADAS -->
+    <form class="tool-card jc-form" id="jc-form" onsubmit="return false">
+      <div class="tool-fields">
+        <div class="tool-field">
+          <label for="inicial">Valor inicial</label>
+          <div class="tool-input"><span class="pre">R$</span><input type="text" id="inicial" value="1000"></div>
+        </div>
+        <div class="tool-field">
+          <label for="aporte">Aporte mensal <span class="opc">(opcional)</span></label>
+          <div class="tool-input"><span class="pre">R$</span><input type="text" id="aporte" value="200"></div>
+          <span class="tool-hint">Depositado no fim de cada mês</span>
+        </div>
+        <div class="tool-field">
+          <label for="juros">Taxa de juros</label>
+          <div class="tool-input">
+            <input type="number" id="juros" value="1" min="0" max="100" step="0.01" inputmode="decimal">
+            <select id="juros-periodo" aria-label="Período da taxa">
+              <option value="am" selected>% ao mês</option>
+              <option value="aa">% ao ano</option>
+            </select>
+          </div>
+          <span class="tool-hint" id="juros-dica"></span>
+        </div>
+        <div class="tool-field">
+          <label for="prazo">Prazo</label>
+          <div class="tool-input">
+            <input type="number" id="prazo" value="12" min="1" step="1" inputmode="numeric">
+            <select id="prazo-unidade" aria-label="Unidade do prazo">
+              <option value="meses" selected>meses</option>
+              <option value="anos">anos</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </form>
+
+    <!-- RESULTADO -->
+    <div class="result-grid" id="resultados" aria-live="polite"></div>
+
+    <div class="tool-card tool-chart">
+      <h2>Evolução mês a mês</h2>
+      <p>O saldo com juros comparado com o que saiu do seu bolso.</p>
+      <div class="tool-chart-box"><canvas id="grafico" role="img" aria-label="Gráfico de linha com o saldo com juros compostos e o total depositado ao longo do prazo"></canvas></div>
+    </div>
+
+    <p class="tool-obs jc-obs" id="jc-obs"></p>
+
+  </div>
+</section>
+
+<!-- EXPLICAÇÃO + FAQ -->
+<section class="tool-prose-section">
+  <div class="section-inner">
+    <article class="tool-prose">
+      <h2>O que são juros compostos</h2>
+      <p>Nos juros compostos, os juros de cada mês entram no saldo e, no mês seguinte, também passam a render. São os <strong>juros sobre juros</strong>. No começo a diferença parece pequena; com o tempo, a curva sobe cada vez mais rápido. Por isso o prazo pesa tanto quanto a taxa.</p>
+
+      <h3>Como a conta é feita</h3>
+      <p>A calculadora soma duas partes: o valor inicial rendendo durante todo o prazo e os aportes mensais, cada um rendendo pelo tempo em que ficou aplicado. Os aportes entram <strong>no fim de cada mês</strong>.</p>
+      <p><strong>valor final = inicial × (1 + i)<sup>n</sup> + aporte × ((1 + i)<sup>n</sup> − 1) ÷ i</strong></p>
+      <p>Onde <strong>i</strong> é a taxa ao mês e <strong>n</strong> é o número de meses. Se a taxa vier ao ano, ela vira a taxa mensal equivalente: (1 + taxa anual)<sup>1/12</sup> − 1. Por isso 12% ao ano equivalem a cerca de 0,95% ao mês, e não a 1%.</p>
+      <p>Exemplo: R$ 1.000 hoje mais R$ 200 por mês, a 1% ao mês, por 12 meses, viram <strong>R$ 3.663,33</strong>. Saíram do bolso R$ 3.400,00; os outros R$ 263,33 são juros.</p>
+
+      <h3>Qual taxa usar?</h3>
+      <p>Para investimentos de renda fixa, use a taxa do produto. Quer comparar CDB, LCI, Tesouro e poupança com as taxas de hoje e já com o Imposto de Renda? Use o <a href="/ferramentas/simulador-renda-fixa.html">simulador de renda fixa</a>. Para saber quanto guardar por mês para chegar num valor, veja a <a href="/ferramentas/meta-mensal.html">calculadora de meta mensal</a>. E para converter uma taxa ao mês em ao ano, o <a href="/ferramentas/conversor-de-taxas.html">conversor de taxas</a>.</p>
+
+      <p class="tool-disclaimer" data-aviso-educativo>A calculadora considera a taxa fixa durante todo o prazo e não desconta Imposto de Renda, taxas, IOF nem inflação.</p>
+    </article>
+
+    <div class="tool-faq" data-faq>
+      <h2>Perguntas frequentes</h2>
+      <details>
+        <summary>Qual a diferença entre juros simples e compostos?</summary>
+        <div><p>Nos juros simples, a taxa incide só sobre o valor inicial, então o ganho é igual todo mês. Nos compostos, a taxa incide sobre o saldo, que já inclui os juros anteriores, então o ganho cresce a cada mês. Investimentos e dívidas como cartão e cheque especial usam juros compostos.</p></div>
+      </details>
+      <details>
+        <summary>Por que o aporte entra no fim do mês?</summary>
+        <div><p>É a convenção mais comum: você recebe o salário e guarda ao longo do mês. Se o depósito for feito no início do mês, cada aporte rende um mês a mais e o resultado fica um pouco maior. No exemplo de R$ 1.000 + R$ 200 por mês a 1% por 12 meses, seriam R$ 3.688,70 em vez de R$ 3.663,33.</p></div>
+      </details>
+      <details>
+        <summary>O resultado já desconta Imposto de Renda?</summary>
+        <div><p>Não. Esta calculadora mostra o valor bruto. Em CDB e Tesouro, o IR incide sobre o rendimento, de 22,5% a 15% conforme o prazo. Para ver o valor líquido, use o <a href="/ferramentas/simulador-renda-fixa.html">simulador de renda fixa</a>.</p></div>
+      </details>
+      <details>
+        <summary>Juros compostos também valem para dívidas?</summary>
+        <div><p>Sim, e é por isso que dívida de cartão cresce tão rápido: os juros do mês viram dívida e passam a pagar juros também. Veja quanto o rotativo cresce na calculadora de <a href="/ferramentas/juros-do-cartao.html">juros do cartão</a>.</p></div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- PONTE PARA O WARDEN COBRANÇA -->
+<section class="tool-bridge">
+  <div class="section-inner">
+    <div data-ponte-cobranca data-titulo="Para os juros trabalharem, o dinheiro precisa entrar em dia." data-texto="Organize as cobranças dos seus clientes e envie o lembrete com o Pix pronto no WhatsApp."></div>
+  </div>
+</section>
+
+<script src="/assets/tools.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+  const { formatBRL: brl, formatBRLCompacto, formatPct, parseNumero, campoBRL, cardResultado, estiloGrafico,
+          taxaMensalDe, serieAcumulacao } = Warden;
+  const $ = id => document.getElementById(id);
+
+  campoBRL($('inicial'));
+  campoBRL($('aporte'));
+  const dinheiro = id => { const v = parseNumero($(id).value); return isFinite(v) && v > 0 ? v : 0; };
+
+  function calcular() {
+    const inicial = dinheiro('inicial');
+    const aporte = dinheiro('aporte');
+    const taxa = Math.min(100, Math.max(0, parseFloat($('juros').value) || 0));
+    const periodo = $('juros-periodo').value;
+    const i = taxaMensalDe(taxa, periodo);
+    const qtd = Math.max(1, Math.round(parseFloat($('prazo').value) || 1));
+    const n = Math.min($('prazo-unidade').value === 'anos' ? qtd * 12 : qtd, 600);
+    $('juros-dica').textContent = periodo === 'am'
+      ? `Equivale a ${formatPct((Math.pow(1 + i, 12) - 1) * 100)} ao ano`
+      : `Equivale a ${formatPct(i * 100)} ao mês`;
+
+    // aporte no FIM de cada mês (anuidade postecipada)
+    const fator = Math.pow(1 + i, n);
+    const final = i > 0 ? inicial * fator + aporte * (fator - 1) / i : inicial + aporte * n;
+    const investido = inicial + aporte * n;
+    const juros = Math.max(0, final - investido);
+    const meses = `${n} ${n === 1 ? 'mês' : 'meses'}`;
+    const pctJuros = final > 0 ? juros / final * 100 : 0;
+
+    $('resultados').innerHTML = [
+      cardResultado({
+        titulo: 'Valor final', destaque: true,
+        descricao: `Depois de ${meses}, a ${formatPct(i * 100)} ao mês`,
+        rotulo: 'Você terá', valor: brl(final),
+        linhas: [
+          ['Total investido', brl(investido)],
+          ['Total em juros', brl(juros)]
+        ]
+      }),
+      cardResultado({
+        titulo: 'Sem juros',
+        descricao: 'O mesmo dinheiro guardado parado',
+        rotulo: 'Você teria', valor: brl(investido),
+        linhas: [
+          ['Os juros acrescentam', brl(juros)],
+          ['Parte do saldo que é juros', formatPct(pctJuros, { casas: 1 })]
+        ]
+      })
+    ].join('');
+
+    $('jc-obs').textContent = `Juros compostos mês a mês, com o aporte no fim de cada mês. Valores brutos, sem Imposto de Renda.`;
+    renderGrafico(serieAcumulacao(inicial, aporte, i, n), i);
+  }
+
+  let grafico = null;
+  function renderGrafico(serie, i) {
+    if (!window.Chart) {
+      document.querySelector('.tool-chart-box').innerHTML = '<p class="tool-obs">Não foi possível carregar o gráfico agora.</p>';
+      return;
+    }
+    const g = estiloGrafico();
+    const labels = serie.saldo.map((_, m) => String(m));
+    const datasets = [
+      { label: i > 0 ? 'Com juros compostos' : 'Saldo', data: serie.saldo, borderColor: g.cor('--accent'), backgroundColor: g.cor('--accent'),
+        borderWidth: 3, pointRadius: 0, pointHoverRadius: 4, tension: 0.15 }
+    ];
+    if (i > 0) datasets.push({ label: 'Só o que você depositou', data: serie.depositado, borderColor: g.cor('--muted'), backgroundColor: g.cor('--muted'),
+      borderDash: [2, 4], borderWidth: 1.8, pointRadius: 0, pointHoverRadius: 4, tension: 0 });
+
+    if (grafico) {
+      grafico.data.labels = labels;
+      grafico.data.datasets = datasets;
+      grafico.update('none');
+      return;
+    }
+    grafico = new Chart($('grafico'), {
+      type: 'line',
+      data: { labels, datasets },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        animation: g.animacao,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: g.legenda,
+          tooltip: { ...g.tooltip, callbacks: {
+            title: items => `Mês ${items[0].label}`,
+            label: ctx => ` ${ctx.dataset.label}: ${brl(ctx.parsed.y)}`
+          } }
+        },
+        scales: {
+          x: { title: { display: true, text: 'meses' }, grid: { display: false }, ticks: { maxTicksLimit: 12, maxRotation: 0 } },
+          y: { grid: { color: g.grade }, ticks: { callback: v => formatBRLCompacto(v) } }
+        }
+      }
+    });
+  }
+
+  ['inicial', 'aporte', 'juros', 'prazo'].forEach(id => $(id).addEventListener('input', calcular));
+  ['juros-periodo', 'prazo-unidade'].forEach(id => $(id).addEventListener('change', calcular));
+
+  calcular();
+</script>
+
+</body>
+</html>

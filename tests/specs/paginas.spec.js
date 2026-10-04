@@ -1,4 +1,4 @@
-// Testes de página: links do menu, celular/tablet, screenshots, SEO e acessibilidade básica (28 ferramentas + home).
+// Testes de página: links do menu, celular/tablet, screenshots, SEO e acessibilidade básica (29 ferramentas, home e institucionais).
 const { test, expect } = require('@playwright/test');
 const path = require('path');
 const { abrir, semErros } = require('../helpers');
@@ -13,7 +13,7 @@ test.describe('geral', () => {
     await abrir(page, '/index.html');
     const doMenu = await page.evaluate(() => window.WARDEN_FERRAMENTAS.flatMap(c => c.itens.map(i => ({ url: i.url, disponivel: i.disponivel }))));
     expect(doMenu.filter(i => !i.disponivel), 'itens indisponíveis').toEqual([]);
-    const urlsTestes = FERRAMENTAS.map(f => f.area ? '/#calculadora' : f.url).sort();
+    const urlsTestes = FERRAMENTAS.map(f => f.url).sort();
     expect(doMenu.map(i => i.url).sort()).toEqual(urlsTestes);
   });
 
@@ -28,7 +28,7 @@ test.describe('geral', () => {
       const url = caminho ? caminho : '/index.html';
       const r = await request.get(url);
       if (r.status() !== 200) { quebrados.push(`${href} → HTTP ${r.status()}`); continue; }
-      if (ancora) {   // âncoras da home (#cobranca, #calculadora) precisam existir
+      if (ancora) {   // âncoras (ex.: /#cobranca) precisam existir
         const html = await r.text();
         if (!html.includes(`id="${ancora}"`)) quebrados.push(`${href} → âncora #${ancora} não existe`);
       }
@@ -183,7 +183,7 @@ for (const p of PAGINAS) {
 
 // títulos e descriptions únicos entre todas as páginas
 test.describe('geral', () => {
-  // title e description estão no HTML estático: lê o arquivo direto, sem abrir as 29 páginas no navegador
+  // title e description estão no HTML estático: lê o arquivo direto, sem abrir as páginas no navegador
   test('seo: title e meta description são únicos entre todas as páginas', async ({ request }) => {
     const titulos = {}, descs = {};
     for (const p of PAGINAS) {

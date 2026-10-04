@@ -27,7 +27,7 @@ for (const f of FERRAMENTAS) {
     test('robustez: entradas vazias, zero, negativas, letras e gigantes não quebram a página', async ({ page }) => {
       test.setTimeout(240_000);
       const erros = await abrir(page, f.url);
-      const escopo = f.area || 'body';
+      const escopo = 'body';
       const sel = ['input:not([type=hidden]):not([type=checkbox]):not([type=radio]):not([type=file])', 'textarea']
         .map(s => `${escopo} ${s}`).join(', ');
       const campos = await page.locator(sel).all();

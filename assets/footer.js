@@ -1,10 +1,12 @@
 /*
  * WARDEN — rodapé do site. Carregado pelo /assets/nav.js (não precisa de <script> na página).
- * Monta o <footer> no fim do <body>: marca + redes, colunas de ferramentas (da lista FERRAMENTAS do nav.js,
- * itens com `rodape: 1..4`), coluna "Warden" e a linha final.
+ * Monta o <footer> no fim do <body>: marca + redes (só as preenchidas), colunas de ferramentas (da lista FERRAMENTAS
+ * do nav.js, itens com `rodape: 1..4`), coluna "Warden" e a linha final (©, + razão social/CNPJ se preenchidos).
+ * O aviso educativo fica dentro de cada ferramenta, não no rodapé.
  *
  * FOOTER_CONFIG: preencha aqui. Campo vazio não aparece em lugar nenhum (nem link, nem linha de CNPJ).
- *   instagram / tiktok / youtube → @usuário ou link completo · whatsapp → só números, com DDI e DDD
+ *   instagram / tiktok / youtube → @usuário ou link completo (ícones no rodapé)
+ *   whatsapp → só números, com DDI e DDD (usado na página de contato; não aparece no rodapé)
  *   email → contato@… · cnpj → "00.000.000/0000-00" · razaoSocial → nome empresarial
  * As páginas também podem mostrar esses dados (privacidade, contato…):
  *   <span data-config="email"></span>              → texto do campo
@@ -17,7 +19,6 @@ const FOOTER_CONFIG = { instagram: "", tiktok: "", youtube: "", whatsapp: "55649
   const C = FOOTER_CONFIG;
   window.WARDEN_CONFIG = C;
   const isHome = !!(document.currentScript && document.currentScript.dataset.page === 'home');
-  const H = isHome ? '' : '/';
   const link = url => (isHome && url.startsWith('/#')) ? url.slice(1) : url;
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const MSG_WHATSAPP = 'Olá! Vim pelo site da Warden.';
@@ -35,9 +36,7 @@ const FOOTER_CONFIG = { instagram: "", tiktok: "", youtube: "", whatsapp: "55649
     { id: 'tiktok', nome: 'TikTok', url: perfil(C.tiktok, 'https://www.tiktok.com/@'),
       svg: '<path d="M14 3v11.5a3.5 3.5 0 1 1-3.5-3.5"/><path d="M14 3c.4 2.6 2.1 4.3 5 4.6"/>' },
     { id: 'youtube', nome: 'YouTube', url: perfil(C.youtube, 'https://www.youtube.com/@'),
-      svg: '<rect x="2.5" y="5.5" width="19" height="13" rx="4"/><path d="M10 9.2v5.6l4.8-2.8z"/>' },
-    { id: 'whatsapp', nome: 'WhatsApp', url: linkWhatsApp(),
-      svg: '<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M9 9.5c0 3 2.5 5.5 5.5 5.5l1-1.5-2-1-1 1c-1-.5-1.5-1-2-2l1-1-1-2z"/>' }
+      svg: '<rect x="2.5" y="5.5" width="19" height="13" rx="4"/><path d="M10 9.2v5.6l4.8-2.8z"/>' }
   ].filter(r => r.url);
   const svg = d => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
   const chev = '<svg class="rodape-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>';
@@ -58,7 +57,7 @@ const FOOTER_CONFIG = { instagram: "", tiktok: "", youtube: "", whatsapp: "55649
       <details class="rodape-col">
         <summary><h2 class="rodape-titulo">Warden</h2>${chev}</summary>
         <ul>
-          <li><a href="${H}#cobranca">Warden Cobrança</a></li>
+          <li><a href="/cobranca/">Warden Cobrança</a></li>
           <li><a href="/app.html" data-control-finance>Control Finance</a></li>
           <li><a href="/sobre.html">Sobre</a></li>
           <li><a href="/contato.html">Contato</a></li>
@@ -82,7 +81,6 @@ const FOOTER_CONFIG = { instagram: "", tiktok: "", youtube: "", whatsapp: "55649
   </div>
   <div class="rodape-base">
     <p>© ${ano} Warden Finance. Todos os direitos reservados.${empresa ? ` <span class="rodape-empresa">${empresa}</span>` : ''}</p>
-    <p class="rodape-aviso">As ferramentas têm caráter educativo e não constituem recomendação de investimento. Confira sempre os valores oficiais.</p>
   </div>
 </footer>`;
 

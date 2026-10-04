@@ -8,7 +8,7 @@
  * Ao carregar, o kit completa sozinho os componentes declarados no HTML:
  *   <div class="tool-crumbs" data-crumbs></div>          → trilha "Início / Ferramentas / <categoria>" (categoria vem do FERRAMENTAS do nav.js)
  *                                                           + schema.org BreadcrumbList
- *   <div data-ponte-cobranca data-titulo="…" data-texto="…"></div>   → card verde do Warden Cobrança (link /#cobranca)
+ *   <div data-ponte-cobranca data-titulo="…" data-texto="…"></div>   → card verde do Warden Cobrança (link /cobranca/)
  *   <p class="tool-disclaimer" data-aviso-educativo>texto extra</p>  → começa com "Simulação educativa. Não é recomendação…"
  *   <div class="tool-faq" data-faq><details><summary>Pergunta</summary><div>Resposta</div></details>…</div>
  *                                                         → perguntas ficam no HTML; o kit gera o schema.org FAQPage
@@ -854,7 +854,7 @@
         <h2>${esc(el.dataset.titulo || 'Cansado de cobrar cliente?')}</h2>
         <p>${esc(el.dataset.texto || 'O Warden Cobrança cobra seus clientes no WhatsApp, com Pix, no automático.')}</p>
       </div>
-      <a class="cobranca-card-btn" href="/#cobranca">${esc(el.dataset.botao || 'Conhecer o Warden Cobrança →')}</a>`;
+      <a class="cobranca-card-btn" href="/cobranca/">${esc(el.dataset.botao || 'Conhecer o Warden Cobrança →')}</a>`;
     });
   }
 

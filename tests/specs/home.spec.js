@@ -33,7 +33,7 @@ test.describe('home', () => {
   test('hero: com HERO_VIDEO.ativo = false a seção não existe (nem espaço) e o h1 é o oculto', async ({ page }) => {
     const erros = await abrir(page, '/index.html');
     expect(await page.locator('#inicio, .hero-video, #hero-video-tpl, video').count()).toBe(0);
-    expect(await page.evaluate(() => [...document.querySelectorAll('body > section')].map(s => s.id))).toEqual(['cobranca', 'calculadora']);
+    expect(await page.evaluate(() => [...document.querySelectorAll('body > section')].map(s => s.id))).toEqual(['cobranca']);
     expect(await h1s(page)).toEqual([{ texto: 'Warden: ferramentas financeiras gratuitas e cobrança automática no WhatsApp', oculto: true }]);
     // a Cobrança vira a 1ª seção e começa abaixo do nav + faixa
     const r = await page.evaluate(() => ({ recuo: parseFloat(getComputedStyle(document.getElementById('cobranca')).paddingTop), topo: document.getElementById('topo-fixo').getBoundingClientRect().bottom, titulo: document.querySelector('#cobranca .section-label').getBoundingClientRect().top }));
@@ -44,7 +44,7 @@ test.describe('home', () => {
 
   test('hero: ativo no desktop → vídeo de fundo (autoplay, muted, loop, playsinline, webm + mp4, poster) e o título vira o h1', async ({ page }) => {
     const { erros, videos } = await abrirComHero(page, COMPLETO);
-    expect(await page.evaluate(() => [...document.querySelectorAll('body > section')].map(s => s.id))).toEqual(['inicio', 'cobranca', 'calculadora']);
+    expect(await page.evaluate(() => [...document.querySelectorAll('body > section')].map(s => s.id))).toEqual(['inicio', 'cobranca']);
     const v = await page.locator('#inicio video').evaluate(el => ({
       autoplay: el.autoplay, muted: el.muted, loop: el.loop, inline: el.playsInline, poster: el.getAttribute('poster'),
       fontes: [...el.querySelectorAll('source')].map(s => [s.getAttribute('src'), s.type]), oculto: el.getAttribute('aria-hidden')
@@ -122,4 +122,23 @@ test.describe('home', () => {
       semErros(erros);
     });
   }
+
+  test('links: "Quero usar", "Cobrança" do nav, "Conhecer" do mega-menu/menu mobile, rodapé, ponte das ferramentas e contato levam a /cobranca/', async ({ page }) => {
+    let erros = await abrir(page, '/index.html');
+    expect(await page.locator('#cobranca a.btn', { hasText: 'Quero usar o Warden Cobrança' }).getAttribute('href')).toBe('/cobranca/');
+    expect(await page.locator('nav a.nav-cobranca').getAttribute('href')).toBe('/cobranca/');
+    expect(await page.locator('#mega-menu .cobranca-card-btn').getAttribute('href')).toBe('/cobranca/');
+    expect(await page.locator('#mobile-menu .cobranca-card-btn').getAttribute('href')).toBe('/cobranca/');
+    // nenhum link da home abre o WhatsApp de suporte nem aponta para a seção antiga
+    expect(await page.locator('a[href*="wa.me"], a[href="#cobranca"], a[href="/#cobranca"]').count()).toBe(0);
+    semErros(erros);
+    erros = await abrir(page, '/ferramentas/sac-x-price.html');
+    expect(await page.locator('.tool-bridge .cobranca-card-btn').getAttribute('href')).toBe('/cobranca/');
+    semErros(erros);
+    erros = await abrir(page, '/contato.html');
+    expect(await page.locator('article a', { hasText: 'Warden Cobrança' }).getAttribute('href')).toBe('/cobranca/');
+    semErros(erros);
+    const r = await page.request.get('/cobranca/');
+    expect(r.status()).toBe(200);
+  });
 });

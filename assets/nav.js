@@ -22,7 +22,7 @@
  * ============================================================ */
 const FERRAMENTAS = [
   { categoria: 'Investimentos', icone: 'invest', itens: [
-    { nome: 'Juros compostos', url: '/#calculadora', disponivel: true, rodape: 1 },
+    { nome: 'Juros compostos', url: '/ferramentas/juros-compostos.html', disponivel: true, rodape: 1 },
     { nome: 'Simulador renda fixa', detalhe: 'CDB, LCI, Tesouro', url: '/ferramentas/simulador-renda-fixa.html', disponivel: true, rodape: 2 },
     { nome: 'Poupança x CDB x Tesouro', url: '/ferramentas/poupanca-x-cdb-x-tesouro.html', disponivel: true, rodape: 3 },
     { nome: 'Viver de renda', url: '/ferramentas/viver-de-renda.html', disponivel: true, rodape: 4 },
@@ -123,8 +123,7 @@ function fazerLogout() {
 (function () {
   const script = document.currentScript;
   const isHome = script && script.dataset.page === 'home';
-  // na home os links de seção são "#cobranca"; nas outras páginas, "/#cobranca"
-  const H = isHome ? '' : '/';
+  // se algum item apontar para uma seção da home ("/#secao"), na própria home ele vira "#secao"
   const link = url => (isHome && url.startsWith('/#')) ? url.slice(1) : url;
   const paginaAtual = location.pathname.replace(/\/index\.html$/, '/');
 
@@ -160,7 +159,7 @@ function fazerLogout() {
         <h4>Warden Cobrança</h4>
         <p>Cobre seus clientes no WhatsApp, com Pix, no automático.</p>
       </div>
-      <a class="cobranca-card-btn" href="${H}#cobranca">Conhecer →</a>
+      <a class="cobranca-card-btn" href="/cobranca/">Conhecer →</a>
     </div>`;
 
   const megaCols = FERRAMENTAS.map(cat => `
@@ -229,7 +228,7 @@ function fazerLogout() {
         </div>
       </div>
     </div>
-    <a class="nav-item nav-cobranca" href="${H}#cobranca">Cobrança <span class="badge-novo">Novo</span></a>
+    <a class="nav-item nav-cobranca" href="/cobranca/">Cobrança <span class="badge-novo">Novo</span></a>
     <a class="nav-item" href="/app.html" data-control-finance>Control Finance</a>
     <button class="nav-login-btn" id="nav-login-btn">Login</button>
     <div id="nav-profile" class="nav-profile hidden">
