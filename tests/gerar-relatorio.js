@@ -11,7 +11,7 @@ const r = JSON.parse(fs.readFileSync(arqJson, 'utf8'));
 const limpar = s => String(s || '').replace(/\x1b\[[0-9;]*m/g, '');
 
 // título do teste "area: descrição" → coluna da tabela
-const COLUNA = { calculo: 'calculo', taxas: 'calculo', robustez: 'robustez', botoes: 'robustez', celular: 'celular', seo: 'seo', acessibilidade: 'acess', faixa: 'faixa', links: 'links' };
+const COLUNA = { calculo: 'calculo', taxas: 'calculo', robustez: 'robustez', botoes: 'robustez', celular: 'celular', seo: 'seo', acessibilidade: 'acess', faixa: 'faixa', rodape: 'rodape', paginas: 'rodape', links: 'links' };
 const testes = [];
 (function andar(suite, caminho) {
   (suite.suites || []).forEach(s => andar(s, [...caminho, s.title]));
@@ -31,8 +31,9 @@ const passaram = testes.filter(t => t.ok).length;
 // juros compostos vive na home: celular, SEO e acessibilidade dele são os da home
 const linhas = [{ slug: 'home', nome: 'Home', grupos: ['home'] },
   ...FERRAMENTAS.map(f => ({ slug: f.slug, nome: f.nome, grupos: f.area ? [f.slug, 'home'] : [f.slug] })),
-  { slug: 'geral', nome: 'Geral (links, máscara de R$, taxas do BC, faixa de cotações, unicidade de SEO)', grupos: ['geral'] }];
-const COLS = ['calculo', 'robustez', 'celular', 'faixa', 'seo', 'acess'];
+  ...require('./ferramentas').INSTITUCIONAIS.map(p => ({ slug: p.slug, nome: p.nome, grupos: [p.slug] })),
+  { slug: 'geral', nome: 'Geral (links, máscara de R$, taxas do BC, faixa, rodapé, sitemap, unicidade de SEO)', grupos: ['geral'] }];
+const COLS = ['calculo', 'robustez', 'celular', 'faixa', 'rodape', 'seo', 'acess'];
 const celula = (grupos, col) => {
   const ts = testes.filter(t => grupos.includes(t.grupo) && (t.coluna === col || (col === 'robustez' && t.coluna === 'links')));
   if (!ts.length) return '—';
@@ -43,7 +44,7 @@ const celula = (grupos, col) => {
 const tabela = linhas.map(l => {
   const cs = COLS.map(c => {
     // a home só entra com celular/SEO/acessibilidade dela mesma; juros-compostos herda essas colunas da home
-    const grupos = l.slug === 'home' ? ['home'] : (['celular', 'faixa', 'seo', 'acess'].includes(c) ? l.grupos : [l.grupos[0]]);
+    const grupos = l.slug === 'home' ? ['home'] : (['celular', 'faixa', 'rodape', 'seo', 'acess'].includes(c) ? l.grupos : [l.grupos[0]]);
     return celula(grupos, c);
   });
   const status = cs.some(c => c.startsWith('❌')) ? '❌' : '✅';
@@ -62,9 +63,10 @@ Cada célula mostra quantos testes daquela área passaram (✅ todos / ❌ passa
 "Robustez" inclui os botões (copiar, PDF, PNG, WhatsApp, imprimir) e a máscara dos campos.
 Juros compostos fica na home, então celular, faixa, SEO e acessibilidade dele são os da home.
 "Faixa" é a faixa de cotações embaixo do nav (aparece, fica fixa, 8 itens, sem rolagem lateral).
+"Rodapé" é o rodapé do site (colunas, acordeão no celular, toques de 44px); as páginas institucionais (sobre, contato, privacidade, termos) vêm no fim da tabela.
 
-| Ferramenta | Cálculo | Robustez | Celular | Faixa | SEO | Acessibilidade | Status |
-|---|---|---|---|---|---|---|---|
+| Página | Cálculo | Robustez | Celular | Faixa | Rodapé | SEO | Acessibilidade | Status |
+|---|---|---|---|---|---|---|---|---|
 ${tabela.join('\n')}
 
 ## Testes que falharam

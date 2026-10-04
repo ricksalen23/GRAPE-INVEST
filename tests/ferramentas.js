@@ -37,7 +37,14 @@ const FERRAMENTAS = [
   { slug: 'aposentadoria', url: '/ferramentas/aposentadoria.html', nome: 'Aposentadoria' }
 ];
 
-// páginas para os testes de página (SEO, celular, links): a home + as 28 páginas de ferramenta
-const PAGINAS = [{ slug: 'home', url: '/index.html', nome: 'Home' }, ...FERRAMENTAS.filter(f => !f.area)];
+// páginas institucionais (rodapé): sem o modelo de ferramenta (sem WebApplication/FAQ)
+const INSTITUCIONAIS = [
+  { slug: 'sobre', url: '/sobre.html', nome: 'Sobre', tipo: 'institucional' },
+  { slug: 'contato', url: '/contato.html', nome: 'Contato', tipo: 'institucional' },
+  { slug: 'privacidade', url: '/privacidade.html', nome: 'Política de Privacidade', tipo: 'institucional' },
+  { slug: 'termos', url: '/termos.html', nome: 'Termos de Uso', tipo: 'institucional' }
+];
+// páginas para os testes de página (SEO, celular, faixa, rodapé): a home + as 28 ferramentas + as 4 institucionais
+const PAGINAS = [{ slug: 'home', url: '/index.html', nome: 'Home' }, ...FERRAMENTAS.filter(f => !f.area), ...INSTITUCIONAIS];
 
-module.exports = { FERRAMENTAS, PAGINAS };
+module.exports = { FERRAMENTAS, PAGINAS, INSTITUCIONAIS };

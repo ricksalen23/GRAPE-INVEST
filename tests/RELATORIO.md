@@ -1,52 +1,56 @@
 # Relatório de testes — Warden
 
-Gerado por `npm test` em 04/10/2026, 00:30:35.
+Gerado por `npm test` em 04/10/2026, 11:25:26.
 
-## Placar: 280 de 281 testes passando ❌
+## Placar: 347 de 347 testes passando ✅
 
 Cada célula mostra quantos testes daquela área passaram (✅ todos / ❌ passaram/total).
 "Robustez" inclui os botões (copiar, PDF, PNG, WhatsApp, imprimir) e a máscara dos campos.
 Juros compostos fica na home, então celular, faixa, SEO e acessibilidade dele são os da home.
 "Faixa" é a faixa de cotações embaixo do nav (aparece, fica fixa, 8 itens, sem rolagem lateral).
+"Rodapé" é o rodapé do site (colunas, acordeão no celular, toques de 44px); as páginas institucionais (sobre, contato, privacidade, termos) vêm no fim da tabela.
 
-| Ferramenta | Cálculo | Robustez | Celular | Faixa | SEO | Acessibilidade | Status |
-|---|---|---|---|---|---|---|---|
-| Home | — | — | ✅ 5 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
-| Juros compostos | ✅ 1 | ✅ 1 | ✅ 5 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
-| Simulador renda fixa | ✅ 1 | ✅ 2 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
-| Poupança x CDB x Tesouro | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
-| Viver de renda | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
-| Dividendos e preço teto | ✅ 2 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
-| Rentabilidade real | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
-| Conversor de taxas | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
-| Salário líquido | ✅ 5 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
-| Rescisão | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
-| Férias | ✅ 2 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
-| 13º salário | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ❌ 0/1 | ❌ |
-| Hora extra | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
-| CLT x PJ | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
-| Quanto cobrar por hora | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
-| Markup e margem | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
-| Ponto de equilíbrio | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
-| Gerador de recibo | ✅ 5 | ✅ 2 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
-| Gerador de QR Code Pix | ✅ 2 | ✅ 2 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
-| Gerador de orçamento | ✅ 1 | ✅ 2 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
-| Plano de quitação | ✅ 2 | ✅ 2 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
-| SAC x Price | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
-| Consórcio x financiamento | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
-| Juros do cartão | ✅ 4 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
-| À vista ou parcelado? | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
-| Custo real em horas | ✅ 1 | ✅ 2 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
-| Reserva de emergência | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
-| Regra 50-30-20 | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
-| Meta mensal | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
-| Aposentadoria | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
-| Geral (links, máscara de R$, taxas do BC, faixa de cotações, unicidade de SEO) | ✅ 5 | ✅ 8 | — | ✅ 6 | ✅ 1 | — | ✅ |
+| Página | Cálculo | Robustez | Celular | Faixa | Rodapé | SEO | Acessibilidade | Status |
+|---|---|---|---|---|---|---|---|---|
+| Home | — | — | ✅ 5 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Juros compostos | ✅ 1 | ✅ 1 | ✅ 5 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Simulador renda fixa | ✅ 1 | ✅ 2 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Poupança x CDB x Tesouro | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Viver de renda | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Dividendos e preço teto | ✅ 2 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Rentabilidade real | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Conversor de taxas | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Salário líquido | ✅ 5 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Rescisão | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Férias | ✅ 2 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| 13º salário | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Hora extra | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| CLT x PJ | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Quanto cobrar por hora | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Markup e margem | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Ponto de equilíbrio | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Gerador de recibo | ✅ 5 | ✅ 2 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Gerador de QR Code Pix | ✅ 2 | ✅ 2 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Gerador de orçamento | ✅ 1 | ✅ 2 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Plano de quitação | ✅ 2 | ✅ 2 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| SAC x Price | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Consórcio x financiamento | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Juros do cartão | ✅ 4 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| À vista ou parcelado? | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Custo real em horas | ✅ 1 | ✅ 2 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Reserva de emergência | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Regra 50-30-20 | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Meta mensal | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Aposentadoria | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Sobre | — | — | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Contato | — | — | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Política de Privacidade | — | — | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Termos de Uso | — | — | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Geral (links, máscara de R$, taxas do BC, faixa, rodapé, sitemap, unicidade de SEO) | ✅ 5 | ✅ 8 | — | ✅ 6 | ✅ 8 | ✅ 2 | — | ✅ |
 
 ## Testes que falharam
 
-- **decimo-terceiro › acessibilidade: todo campo com rótulo, todo botão com nome e contraste legível** (timedOut)
-  Tearing down "context" exceeded the test timeout of 90000ms.
+Nenhum.
 
 ## Revisão — o que foi encontrado
 

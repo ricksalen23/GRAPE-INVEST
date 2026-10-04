@@ -656,3 +656,64 @@ section { padding: 96px 5%; position: relative; }
 .tool-demo li.total { border-bottom: none; border-top: 1.5px solid var(--text); margin-top: 2px; font-weight: 600; font-size: 1rem; }
 .tool-demo li.total .val { color: var(--accent); font-size: 1.15rem; }
 .tool-demo .tag { display: inline-block; margin-left: 8px; padding: 1px 8px; border: 1px solid var(--border); border-radius: 99px; font-size: .64rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); vertical-align: 1px; }
+
+/* ===== RODAPÉ (montado pelo /assets/footer.js em toda página com o nav) =====
+   Desktop: marca à esquerda, 6 colunas de links à direita (summary vira só título).
+   Celular: marca no topo e cada coluna é um acordeão, com toques de 44px. */
+.rodape {
+  background: var(--surface); border-top: 1px solid var(--border);
+  padding: 72px 5% calc(36px + env(safe-area-inset-bottom, 0px));
+}
+.rodape-inner { max-width: 1180px; margin: 0 auto; display: grid; grid-template-columns: minmax(200px, 1fr) 4.2fr; gap: 48px; }
+.rodape-logo { display: inline-flex; align-items: center; min-height: 44px; }
+.rodape-logo img { height: 36px; width: auto; display: block; }
+.rodape-frase { color: var(--muted); font-size: .95rem; line-height: 1.6; margin: 14px 0 22px; max-width: 300px; }
+.rodape-redes { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; }
+.rodape-redes a {
+  width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--border); border-radius: 10px; color: var(--muted); transition: color .2s, border-color .2s;
+}
+.rodape-redes a:hover, .rodape-redes a:focus-visible { color: var(--white); border-color: var(--text); }
+.rodape-redes svg { width: 20px; height: 20px; }
+.rodape-links { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 24px; }
+.rodape-col summary { list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 8px; cursor: default; }
+.rodape-col summary::-webkit-details-marker { display: none; }
+.rodape-titulo {
+  font-family: 'Inter', sans-serif; font-size: .74rem; font-weight: 600; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--text); margin-bottom: 16px;
+}
+.rodape-chev { display: none; width: 16px; height: 16px; color: var(--muted); flex-shrink: 0; transition: transform .18s ease; }
+.rodape-col ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.rodape-col a, .rodape-todas {
+  color: var(--muted); text-decoration: none; font: inherit; font-size: .88rem; line-height: 1.4; text-align: left;
+  background: none; border: 0; padding: 0; cursor: pointer; transition: color .2s;
+}
+.rodape-todas { font-weight: 600; }
+.rodape-col a:hover, .rodape-col a:focus-visible, .rodape-todas:hover, .rodape-todas:focus-visible { color: var(--white); }
+.rodape :focus-visible { outline: 2px solid var(--text); outline-offset: 3px; border-radius: 4px; }
+.rodape-base {
+  max-width: 1180px; margin: 56px auto 0; padding-top: 24px; border-top: 1px solid var(--border);
+  display: flex; flex-direction: column; gap: 6px; color: var(--muted); font-size: .82rem; line-height: 1.6;
+}
+.rodape-empresa::before { content: '· '; }
+@media (max-width: 1180px) {
+  .rodape-inner { grid-template-columns: 1fr; gap: 40px; }
+  .rodape-links { grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: 36px; }
+}
+@media (max-width: 900px) {
+  .rodape { padding: 48px 16px calc(28px + env(safe-area-inset-bottom, 0px)); }
+  .rodape-inner { gap: 28px; }
+  .rodape-frase { font-size: 1rem; }
+  .rodape-links { grid-template-columns: 1fr; gap: 0; row-gap: 0; border-top: 1px solid var(--border); }
+  .rodape-col { border-bottom: 1px solid var(--border); }
+  .rodape-col summary { min-height: 52px; cursor: pointer; }
+  .rodape-titulo { margin: 0; font-size: .8rem; }
+  .rodape-chev { display: block; }
+  .rodape-col[open] .rodape-chev { transform: rotate(180deg); }
+  .rodape-col ul { gap: 0; padding-bottom: 12px; }
+  .rodape-col a, .rodape-todas { display: flex; align-items: center; min-height: 44px; width: 100%; font-size: 1rem; }
+  .rodape-base { margin-top: 32px; font-size: .9rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rodape-chev, .rodape-redes a, .rodape-col a, .rodape-todas { transition: none; }
+}

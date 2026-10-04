@@ -148,7 +148,9 @@ for (const p of PAGINAS) {
       const esperado = p.slug === 'home' ? SITE + '/' : SITE + p.url;
       expect(info.canonical, 'canonical').toBe(esperado);
       expect(info.jsonld.filter(t => String(t).startsWith('INVÁLIDO')), 'JSON-LD inválido').toEqual([]);
-      if (p.slug !== 'home') {
+      if (p.tipo === 'institucional') {
+        expect(info.jsonld, 'schema da página institucional').toEqual(['WebPage']);
+      } else if (p.slug !== 'home') {
         expect(info.jsonld, 'schemas da ferramenta').toEqual(expect.arrayContaining(['WebApplication', 'BreadcrumbList', 'FAQPage']));
         const faq = await page.evaluate(() => JSON.parse([...document.querySelectorAll('script[type="application/ld+json"]')].map(s => s.textContent).find(t => t.includes('FAQPage'))));
         expect(faq.mainEntity.length, 'perguntas no FAQ').toBeGreaterThanOrEqual(3);
@@ -182,7 +184,7 @@ for (const p of PAGINAS) {
 // títulos e descriptions únicos entre todas as páginas
 test.describe('geral', () => {
   // title e description estão no HTML estático: lê o arquivo direto, sem abrir as 29 páginas no navegador
-  test('seo: title e meta description são únicos entre as 29 páginas', async ({ request }) => {
+  test('seo: title e meta description são únicos entre todas as páginas', async ({ request }) => {
     const titulos = {}, descs = {};
     for (const p of PAGINAS) {
       const html = await (await request.get(p.url)).text();

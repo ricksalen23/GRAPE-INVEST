@@ -17,46 +17,48 @@
  * Para lançar uma ferramenta: crie a página em `url` e mude `disponivel` para true.
  * O pontinho verde, a cor e o contador "1/7" se atualizam sozinhos.
  * `detalhe` (opcional) aparece numa segunda linha menor.
+ * Rodapé (/assets/footer.js): cada categoria vira uma coluna com o nome `curto` (ou `categoria`) e mostra
+ * as ferramentas marcadas com `rodape: 1..4`, nessa ordem, + "Ver todas" (abre o mega-menu).
  * ============================================================ */
 const FERRAMENTAS = [
   { categoria: 'Investimentos', icone: 'invest', itens: [
-    { nome: 'Juros compostos', url: '/#calculadora', disponivel: true },
-    { nome: 'Simulador renda fixa', detalhe: 'CDB, LCI, Tesouro', url: '/ferramentas/simulador-renda-fixa.html', disponivel: true },
-    { nome: 'Poupança x CDB x Tesouro', url: '/ferramentas/poupanca-x-cdb-x-tesouro.html', disponivel: true },
-    { nome: 'Viver de renda', url: '/ferramentas/viver-de-renda.html', disponivel: true },
+    { nome: 'Juros compostos', url: '/#calculadora', disponivel: true, rodape: 1 },
+    { nome: 'Simulador renda fixa', detalhe: 'CDB, LCI, Tesouro', url: '/ferramentas/simulador-renda-fixa.html', disponivel: true, rodape: 2 },
+    { nome: 'Poupança x CDB x Tesouro', url: '/ferramentas/poupanca-x-cdb-x-tesouro.html', disponivel: true, rodape: 3 },
+    { nome: 'Viver de renda', url: '/ferramentas/viver-de-renda.html', disponivel: true, rodape: 4 },
     { nome: 'Dividendos e preço teto', url: '/ferramentas/dividendos-e-preco-teto.html', disponivel: true },
     { nome: 'Rentabilidade real', url: '/ferramentas/rentabilidade-real.html', disponivel: true },
     { nome: 'Conversor de taxas', url: '/ferramentas/conversor-de-taxas.html', disponivel: true }
   ] },
-  { categoria: 'Trabalho (CLT)', icone: 'clt', itens: [
-    { nome: 'Salário líquido', url: '/ferramentas/salario-liquido.html', disponivel: true },
-    { nome: 'Rescisão', url: '/ferramentas/rescisao.html', disponivel: true },
-    { nome: 'Férias', url: '/ferramentas/ferias.html', disponivel: true },
-    { nome: '13º salário', url: '/ferramentas/decimo-terceiro.html', disponivel: true },
+  { categoria: 'Trabalho (CLT)', curto: 'Trabalho', icone: 'clt', itens: [
+    { nome: 'Salário líquido', url: '/ferramentas/salario-liquido.html', disponivel: true, rodape: 1 },
+    { nome: 'Rescisão', url: '/ferramentas/rescisao.html', disponivel: true, rodape: 2 },
+    { nome: 'Férias', url: '/ferramentas/ferias.html', disponivel: true, rodape: 3 },
+    { nome: '13º salário', url: '/ferramentas/decimo-terceiro.html', disponivel: true, rodape: 4 },
     { nome: 'Hora extra', url: '/ferramentas/hora-extra.html', disponivel: true },
     { nome: 'CLT x PJ', url: '/ferramentas/clt-x-pj.html', disponivel: true }
   ] },
   { categoria: 'MEI e autônomo', icone: 'mei', itens: [
-    { nome: 'Quanto cobrar por hora', url: '/ferramentas/quanto-cobrar-por-hora.html', disponivel: true },
+    { nome: 'Quanto cobrar por hora', url: '/ferramentas/quanto-cobrar-por-hora.html', disponivel: true, rodape: 2 },
     { nome: 'Markup e margem', url: '/ferramentas/markup-e-margem.html', disponivel: true },
     { nome: 'Ponto de equilíbrio', url: '/ferramentas/ponto-de-equilibrio.html', disponivel: true },
-    { nome: 'Gerador de recibo', url: '/ferramentas/gerador-de-recibo.html', disponivel: true },
-    { nome: 'Gerador de QR Code Pix', url: '/ferramentas/gerador-qr-code-pix.html', disponivel: true },
-    { nome: 'Gerador de orçamento', url: '/ferramentas/gerador-de-orcamento.html', disponivel: true }
+    { nome: 'Gerador de recibo', url: '/ferramentas/gerador-de-recibo.html', disponivel: true, rodape: 3 },
+    { nome: 'Gerador de QR Code Pix', url: '/ferramentas/gerador-qr-code-pix.html', disponivel: true, rodape: 1 },
+    { nome: 'Gerador de orçamento', url: '/ferramentas/gerador-de-orcamento.html', disponivel: true, rodape: 4 }
   ] },
-  { categoria: 'Dívidas e consumo', icone: 'dividas', itens: [
-    { nome: 'Plano de quitação', url: '/ferramentas/plano-de-quitacao.html', disponivel: true },
+  { categoria: 'Dívidas e consumo', curto: 'Dívidas', icone: 'dividas', itens: [
+    { nome: 'Plano de quitação', url: '/ferramentas/plano-de-quitacao.html', disponivel: true, rodape: 1 },
     { nome: 'SAC x Price', url: '/ferramentas/sac-x-price.html', disponivel: true },
     { nome: 'Consórcio x financiamento', url: '/ferramentas/consorcio-x-financiamento.html', disponivel: true },
-    { nome: 'Juros do cartão', url: '/ferramentas/juros-do-cartao.html', disponivel: true },
-    { nome: 'À vista ou parcelado?', url: '/ferramentas/a-vista-ou-parcelado.html', disponivel: true },
-    { nome: 'Custo real em horas', url: '/ferramentas/custo-real-em-horas.html', disponivel: true }
+    { nome: 'Juros do cartão', url: '/ferramentas/juros-do-cartao.html', disponivel: true, rodape: 2 },
+    { nome: 'À vista ou parcelado?', url: '/ferramentas/a-vista-ou-parcelado.html', disponivel: true, rodape: 3 },
+    { nome: 'Custo real em horas', url: '/ferramentas/custo-real-em-horas.html', disponivel: true, rodape: 4 }
   ] },
   { categoria: 'Planejamento', icone: 'plano', itens: [
-    { nome: 'Reserva de emergência', url: '/ferramentas/reserva-de-emergencia.html', disponivel: true },
-    { nome: 'Regra 50-30-20', url: '/ferramentas/regra-50-30-20.html', disponivel: true },
-    { nome: 'Meta mensal', url: '/ferramentas/meta-mensal.html', disponivel: true },
-    { nome: 'Aposentadoria', url: '/ferramentas/aposentadoria.html', disponivel: true }
+    { nome: 'Reserva de emergência', url: '/ferramentas/reserva-de-emergencia.html', disponivel: true, rodape: 1 },
+    { nome: 'Regra 50-30-20', url: '/ferramentas/regra-50-30-20.html', disponivel: true, rodape: 2 },
+    { nome: 'Meta mensal', url: '/ferramentas/meta-mensal.html', disponivel: true, rodape: 3 },
+    { nome: 'Aposentadoria', url: '/ferramentas/aposentadoria.html', disponivel: true, rodape: 4 }
   ] }
 ];
 window.WARDEN_FERRAMENTAS = FERRAMENTAS;
@@ -265,16 +267,23 @@ ${faixaHtml}
 </div>`;
 
   script.insertAdjacentHTML('beforebegin', html);
+  // rodapé do site (monta sozinho no fim do <body>)
+  const rodape = document.createElement('script');
+  rodape.src = '/assets/footer.js';
+  if (isHome) rodape.dataset.page = 'home';
+  document.head.appendChild(rodape);
 
   // --- Login e Control Finance: usam o fluxo da home quando ele existe; senão levam para a home ---
   document.getElementById('nav-login-btn').addEventListener('click', () => {
     if (typeof window.toggleLoginModal === 'function') window.toggleLoginModal();
     else location.href = '/';
   });
-  document.querySelectorAll('[data-control-finance]').forEach(a => a.addEventListener('click', e => {
+  // vale para qualquer link com data-control-finance (nav, menu mobile e rodapé)
+  document.addEventListener('click', e => {
+    if (!e.target.closest || !e.target.closest('[data-control-finance]')) return;
     if (typeof window.abrirControlFinance === 'function') return window.abrirControlFinance(e);
     if (localStorage.getItem('wardenLoggedIn') !== 'true') { e.preventDefault(); location.href = '/'; }
-  }));
+  });
 
   // --- desktop: mega-menu ---
   const topoEl = document.getElementById('topo-fixo');
