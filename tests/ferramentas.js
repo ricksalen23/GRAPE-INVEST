@@ -44,7 +44,7 @@ const INSTITUCIONAIS = [
   { slug: 'privacidade', url: '/privacidade.html', nome: 'Política de Privacidade', tipo: 'institucional' },
   { slug: 'termos', url: '/termos.html', nome: 'Termos de Uso', tipo: 'institucional' }
 ];
-// páginas para os testes de página (SEO, celular, faixa, rodapé): a home + as 29 ferramentas + as 4 institucionais
-const PAGINAS = [{ slug: 'home', url: '/index.html', nome: 'Home' }, ...FERRAMENTAS, ...INSTITUCIONAIS];
+// páginas para os testes de página (SEO, celular, faixa, rodapé): a home, o Warden Cobrança, as 29 ferramentas e as 4 institucionais
+const PAGINAS = [{ slug: 'home', url: '/index.html', nome: 'Home' }, { slug: 'cobranca', url: '/cobranca/', nome: 'Warden Cobrança' }, ...FERRAMENTAS, ...INSTITUCIONAIS];
 
 module.exports = { FERRAMENTAS, PAGINAS, INSTITUCIONAIS };

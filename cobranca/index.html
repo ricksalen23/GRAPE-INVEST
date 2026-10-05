@@ -3,9 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Warden Cobrança: cobre seus clientes no WhatsApp com Pix</title>
-<meta name="description" content="Organize as cobranças dos seus clientes e envie o lembrete no WhatsApp com o Pix copia e cola pronto. Grátis, direto no navegador.">
+<title>Warden Cobrança grátis: cobre clientes no WhatsApp com Pix</title>
+<meta name="description" content="Cadastre seus clientes, organize as cobranças e envie o lembrete no WhatsApp com o Pix copia e cola pronto. Grátis, sem cadastro, direto no navegador.">
 <link rel="canonical" href="https://wardenfinance.com.br/cobranca/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Warden Cobrança grátis | Warden">
+<meta property="og:description" content="Organize as cobranças dos seus clientes e envie o lembrete no WhatsApp com o Pix pronto.">
+<meta property="og:url" content="https://wardenfinance.com.br/cobranca/">
 <meta name="theme-color" content="#000000">
 <link rel="apple-touch-icon" href="/icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
@@ -13,19 +17,1259 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/warden.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Warden Cobrança",
+  "url": "https://wardenfinance.com.br/cobranca/",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "Any",
+  "inLanguage": "pt-BR",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "BRL" },
+  "publisher": { "@type": "Organization", "name": "Warden", "url": "https://wardenfinance.com.br/" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "Início", "item": "https://wardenfinance.com.br/" },
+    { "@type": "ListItem", "position": 2, "name": "Warden Cobrança", "item": "https://wardenfinance.com.br/cobranca/" }
+  ]
+}
+</script>
+<style>
+  /* ===== WARDEN COBRANÇA (só desta página; estrutura e componentes vêm do /assets/warden.css) ===== */
+  .cb-local { display: inline-flex; align-items: center; gap: 8px; margin-top: 16px; font-size: .9rem; color: var(--muted); }
+  .cb-local svg { width: 18px; height: 18px; color: var(--accent); flex-shrink: 0; }
+  .cb-status { min-height: 1.4em; margin: 16px 0 0; font-size: .92rem; color: var(--text); }
+  .cb-status.erro { color: #EF4444; }
+
+  /* onboarding */
+  .cb-onb { max-width: 640px; }
+  .cb-passo { font-size: .78rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; }
+  .cb-onb h2 { font-family: 'Fraunces', serif; font-weight: 600; font-size: clamp(1.4rem, 3vw, 1.8rem); line-height: 1.25; margin-bottom: 8px; }
+  .cb-onb .cb-sub { color: var(--muted); line-height: 1.6; margin-bottom: 24px; }
+  .cb-onb-etapa { display: flex; flex-direction: column; gap: 22px; }
+  .cb-acoes { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px; }
+  .cb-msg { display: block; font-size: .8rem; color: var(--muted); margin-top: 6px; min-height: 1.2em; }
+  .cb-msg.erro { color: #EF4444; }
+  .cb-msg.ok { color: var(--text); }
+
+  /* abas */
+  .cb-abas { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 28px; }
+  .cb-aba {
+    display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 16px; margin-bottom: -1px;
+    background: none; border: 0; border-bottom: 2px solid transparent; color: var(--muted);
+    font: inherit; font-size: .92rem; font-weight: 600; cursor: pointer; transition: color .2s, border-color .2s;
+  }
+  .cb-aba svg { width: 18px; height: 18px; flex-shrink: 0; }
+  .cb-aba:hover { color: var(--text); }
+  .cb-aba[aria-selected="true"] { color: var(--text); border-bottom-color: var(--accent); }
+  .cb-aba-curto { display: none; }
+  .cb-aba:focus-visible { outline: 2px solid var(--text); outline-offset: -2px; border-radius: 6px; }
+
+  /* resumo do painel */
+  .cb-resumo { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+  .cb-num { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 22px 24px; }
+  .cb-num-rotulo { font-size: .74rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .cb-num-valor { display: block; font-size: clamp(1.5rem, 3vw, 1.9rem); font-weight: 700; margin-top: 10px; }
+  .cb-num-qtd { display: block; font-size: .88rem; color: var(--muted); margin-top: 4px; }
+  .cb-num.atrasado.tem .cb-num-valor { color: #EF4444; }
+  .cb-num.atrasado.tem { border-color: rgba(239, 68, 68, .45); }
+
+  .cb-bloco { margin-top: 36px; }
+  .cb-bloco-topo { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+  .cb-bloco-topo h2 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 1.35rem; }
+  .cb-contagem { font-size: .88rem; color: var(--muted); }
+
+  /* listas de clientes e cobranças */
+  .cb-lista { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .cb-item { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px 18px; }
+  .cb-item.atrasada { border-color: rgba(239, 68, 68, .55); }
+  .cb-item-topo { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .cb-item-nome { font-weight: 600; font-size: 1rem; overflow-wrap: anywhere; }
+  .cb-item-sub { color: var(--muted); font-size: .88rem; margin-top: 3px; overflow-wrap: anywhere; }
+  .cb-item-valor { font-weight: 700; font-size: 1.05rem; white-space: nowrap; }
+  .cb-item-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 10px; font-size: .84rem; color: var(--muted); }
+  .cb-item-hist { font-size: .8rem; color: var(--muted); margin-top: 8px; }
+  .cb-item-acoes { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .cb-vazio { color: var(--muted); padding: 20px 0; line-height: 1.6; }
+
+  .cb-badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 99px; border: 1px solid var(--border); font-size: .76rem; font-weight: 600; color: var(--muted); }
+  .cb-badge.atrasada { color: #EF4444; border-color: rgba(239, 68, 68, .6); }
+  .cb-badge.hoje { color: var(--accent-ink); background: var(--accent); border-color: var(--accent); }
+  .cb-badge.breve { color: var(--text); }
+  .cb-badge.paga { color: var(--text); }
+
+  .btn-mini { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px; padding: 0 14px; border-radius: 9px; font: inherit; font-size: .86rem; font-weight: 600; cursor: pointer; text-decoration: none; }
+  .btn-mini svg { width: 16px; height: 16px; }
+  .btn-mini.primario { background: var(--accent); color: var(--accent-ink); border: 1px solid var(--accent); }
+  .btn-mini.secundario { background: transparent; color: var(--text); border: 1px solid var(--border); }
+  .btn-mini.secundario:hover { border-color: var(--text); }
+  .btn-mini.perigo { background: transparent; color: var(--muted); border: 1px solid transparent; }
+  .btn-mini.perigo:hover { color: #EF4444; }
+  .btn-mini:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+
+  .cb-busca { margin-bottom: 16px; }
+  .cb-filtros { margin-bottom: 16px; }
+
+  /* configurações */
+  .cb-cfg { display: flex; flex-direction: column; gap: 20px; }
+  .cb-cfg h2 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 1.3rem; margin-bottom: 6px; }
+  .cb-cfg .cb-sub { color: var(--muted); font-size: .92rem; line-height: 1.6; margin-bottom: 18px; }
+  .cb-modelo + .cb-modelo { margin-top: 20px; }
+  .cb-textarea {
+    width: 100%; min-height: 150px; resize: vertical; margin-top: 4px; padding: 12px 14px; border-radius: 10px;
+    background: var(--bg); border: 1px solid var(--border); color: var(--text); font: inherit; font-size: .92rem; line-height: 1.55;
+  }
+  .cb-textarea:focus { outline: none; border-color: var(--text); }
+  .cb-vars { font-size: .84rem; color: var(--muted); line-height: 1.7; }
+  .cb-vars code { font-family: inherit; color: var(--text); background: var(--surface2); padding: 1px 6px; border-radius: 5px; }
+  .tool-input select.cb-select { width: 100%; font-size: 1.05rem; background: transparent; }
+  .tool-input select.cb-select option { background: var(--surface); }
+  .tool-input input[type="date"] { color-scheme: dark; }
+
+  /* janelas (dialog) */
+  .cb-dlg {
+    width: min(560px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); overflow-y: auto; margin: auto;
+    background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 18px; padding: 26px;
+  }
+  .cb-dlg.largo { width: min(820px, calc(100vw - 32px)); }
+  .cb-dlg::backdrop { background: rgba(0, 0, 0, .72); }
+  .cb-dlg h2 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 1.4rem; line-height: 1.25; margin-bottom: 6px; padding-right: 36px; }
+  .cb-dlg-sub { color: var(--muted); font-size: .92rem; line-height: 1.6; margin-bottom: 20px; }
+  .cb-dlg form { display: flex; flex-direction: column; gap: 20px; }
+  .cb-dlg h2 + form { margin-top: 18px; }
+  .cb-dlg .cb-acoes { margin-top: 8px; }
+  .cb-fechar { position: absolute; top: 14px; right: 14px; width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center; background: none; border: 0; color: var(--muted); cursor: pointer; border-radius: 10px; }
+  .cb-fechar:hover { color: var(--text); }
+  .cb-fechar svg { width: 20px; height: 20px; }
+  .cb-dlg { position: fixed; }
+  .cb-previa {
+    background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; margin: 16px 0;
+    font-size: .9rem; line-height: 1.55; white-space: pre-wrap; overflow-wrap: anywhere; max-height: 280px; overflow-y: auto;
+  }
+  .cb-qr { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 16px; }
+  .cb-qr canvas { width: min(240px, 70vw); height: auto; aspect-ratio: 1; image-rendering: pixelated; border-radius: 10px; background: #FFFFFF; }
+
+  /* planos (modal do Premium) */
+  .cb-planos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .cb-plano { border: 1px solid var(--border); border-radius: 16px; padding: 22px; background: var(--bg); }
+  .cb-plano.premium { border-color: var(--accent); }
+  .cb-plano h3 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 1.25rem; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .cb-plano-preco { font-size: .95rem; color: var(--muted); margin-top: 4px; }
+  .cb-plano ul { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+  .cb-plano li { display: flex; gap: 10px; font-size: .92rem; line-height: 1.45; color: var(--text); }
+  .cb-plano li svg { width: 18px; height: 18px; flex-shrink: 0; color: var(--accent); margin-top: 1px; }
+  .cb-plano:not(.premium) li svg { color: var(--muted); }
+  .cb-selo { font-family: 'Inter', sans-serif; font-size: .68rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 3px 9px; border-radius: 99px; background: var(--accent); color: var(--accent-ink); }
+  .cb-selo.neutro { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+
+  @media (max-width: 760px) {
+    .cb-resumo { grid-template-columns: 1fr; }
+    .cb-planos { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 600px) {
+    .cb-abas { gap: 0; }
+    .cb-aba { flex: 1; flex-direction: column; justify-content: center; gap: 4px; padding: 8px 2px; min-height: 60px; font-size: .74rem; min-width: 0; }
+    .cb-aba span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+    /* "Configurações" não cabe na aba do celular: lá ela se chama "Ajustes" */
+    .cb-aba .cb-aba-longo { display: none; }
+    .cb-aba .cb-aba-curto { display: inline; }
+    .btn-mini { min-height: 44px; }
+    .cb-item-acoes .btn-mini { flex: 1 1 auto; }
+    .cb-acoes .btn { width: 100%; }
+    .cb-dlg { padding: 22px 18px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cb-aba { transition: none; }
+  }
+</style>
 </head>
 <body>
+
 <script src="/assets/nav.js"></script>
 
-<!-- página provisória: a ferramenta do Warden Cobrança entra aqui (etapa 2) -->
 <section class="tool-top">
   <div class="section-inner">
+
     <header class="tool-head">
       <div class="tool-crumbs" role="navigation" aria-label="Você está em"><a href="/">Início</a><span aria-hidden="true">/</span><span>Warden Cobrança</span></div>
       <h1 class="tool-title">Warden Cobrança</h1>
-      <p class="tool-lead">Organize as cobranças dos seus clientes e envie o lembrete no WhatsApp com o Pix pronto.</p>
+      <p class="tool-lead">Cadastre seus clientes, organize as cobranças e envie o lembrete no WhatsApp com o Pix copia e cola pronto. Grátis e sem cadastro.</p>
+      <p class="cb-local"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="2" width="14" height="20" rx="3"/><path d="M11 18h2"/></svg>Seus dados ficam salvos neste aparelho.</p>
     </header>
+
+    <p class="cb-status" id="cb-status" role="status" aria-live="polite"></p>
+
+    <!-- PRIMEIRA VEZ: 3 passos -->
+    <div class="tool-card cb-onb" id="onb" hidden>
+      <form id="onb-form" novalidate>
+        <div class="cb-onb-etapa" data-etapa="1">
+          <div>
+            <p class="cb-passo">Passo 1 de 3</p>
+            <h2>Como se chama o seu negócio?</h2>
+            <p class="cb-sub">O nome aparece no fim das mensagens que seus clientes recebem.</p>
+          </div>
+          <div class="tool-field">
+            <label for="onb-negocio">Nome do negócio</label>
+            <div class="tool-input"><input type="text" id="onb-negocio" maxlength="60" autocomplete="organization" placeholder="Ex.: Studio Bem-Estar"></div>
+            <span class="cb-msg" id="onb-negocio-msg"></span>
+          </div>
+        </div>
+
+        <div class="cb-onb-etapa" data-etapa="2" hidden>
+          <div>
+            <p class="cb-passo">Passo 2 de 3</p>
+            <h2>Para onde vai o dinheiro?</h2>
+            <p class="cb-sub">A chave Pix que vai dentro de cada cobrança. O pagamento cai direto na sua conta; a Warden não toca no dinheiro.</p>
+          </div>
+          <div data-campos-pix="onb"></div>
+        </div>
+
+        <div class="cb-onb-etapa" data-etapa="3" hidden>
+          <div>
+            <p class="cb-passo">Passo 3 de 3</p>
+            <h2>Quem recebe</h2>
+            <p class="cb-sub">Como está na sua conta do banco. Vai dentro do código Pix, sem acentos.</p>
+          </div>
+          <div class="tool-fields">
+            <div class="tool-field">
+              <label for="onb-recebedor">Nome do recebedor</label>
+              <div class="tool-input"><input type="text" id="onb-recebedor" maxlength="25" autocomplete="name" placeholder="MARIA SOUZA"></div>
+              <span class="cb-msg" id="onb-recebedor-msg">Até 25 letras, sem acentos</span>
+            </div>
+            <div class="tool-field">
+              <label for="onb-cidade">Cidade</label>
+              <div class="tool-input"><input type="text" id="onb-cidade" maxlength="15" autocomplete="address-level2" placeholder="SAO PAULO"></div>
+              <span class="cb-msg" id="onb-cidade-msg">Até 15 letras, sem acentos</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="cb-acoes">
+          <button type="button" class="btn btn-secondary" id="onb-voltar" hidden>Voltar</button>
+          <button type="submit" class="btn btn-primary" id="onb-seguir">Continuar</button>
+        </div>
+        <p class="tool-obs" style="margin-top:18px">Já usa em outro aparelho? <button type="button" class="btn-mini perigo" id="onb-importar" style="padding:0 4px;color:var(--text);text-decoration:underline">Importar backup</button></p>
+      </form>
+    </div>
+
+    <!-- APP -->
+    <div id="app" hidden>
+      <div class="cb-abas" role="tablist" aria-label="Warden Cobrança">
+        <button type="button" class="cb-aba" role="tab" id="tab-painel" aria-controls="aba-painel" aria-selected="true" data-aba="painel">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg><span>Painel</span>
+        </button>
+        <button type="button" class="cb-aba" role="tab" id="tab-clientes" aria-controls="aba-clientes" aria-selected="false" tabindex="-1" data-aba="clientes">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="4"/><path d="M2 21c0-4 3.1-6 7-6s7 2 7 6"/><path d="M16 4.5a4 4 0 0 1 0 7"/><path d="M19 15c1.8.7 3 2.4 3 6"/></svg><span>Clientes</span>
+        </button>
+        <button type="button" class="cb-aba" role="tab" id="tab-cobrancas" aria-controls="aba-cobrancas" aria-selected="false" tabindex="-1" data-aba="cobrancas">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/><path d="M6 15h4"/></svg><span>Cobranças</span>
+        </button>
+        <button type="button" class="cb-aba" role="tab" id="tab-config" aria-controls="aba-config" aria-selected="false" tabindex="-1" data-aba="config">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span class="cb-aba-longo">Configurações</span><span class="cb-aba-curto">Ajustes</span>
+        </button>
+      </div>
+
+      <!-- PAINEL -->
+      <div role="tabpanel" id="aba-painel" aria-labelledby="tab-painel">
+        <div class="cb-resumo" id="resumo"></div>
+        <div class="cb-bloco">
+          <div class="cb-bloco-topo">
+            <h2>Cobrar hoje</h2>
+            <button type="button" class="btn-mini primario" data-acao="nova-cobranca">+ Nova cobrança</button>
+          </div>
+          <ul class="cb-lista" id="lista-hoje"></ul>
+        </div>
+      </div>
+
+      <!-- CLIENTES -->
+      <div role="tabpanel" id="aba-clientes" aria-labelledby="tab-clientes" hidden>
+        <div class="cb-bloco-topo">
+          <span class="cb-contagem" id="clientes-contagem"></span>
+          <button type="button" class="btn-mini primario" id="btn-novo-cliente" data-acao="novo-cliente">+ Novo cliente</button>
+        </div>
+        <div class="tool-field cb-busca">
+          <label for="busca-cliente">Buscar cliente</label>
+          <div class="tool-input"><input type="search" id="busca-cliente" placeholder="Nome, WhatsApp ou observação" autocomplete="off"></div>
+        </div>
+        <ul class="cb-lista" id="lista-clientes"></ul>
+      </div>
+
+      <!-- COBRANÇAS -->
+      <div role="tabpanel" id="aba-cobrancas" aria-labelledby="tab-cobrancas" hidden>
+        <div class="cb-bloco-topo">
+          <fieldset class="tool-pillset cb-filtros">
+            <legend class="sr-only">Mostrar</legend>
+            <div class="tool-pills">
+              <label class="tool-pill"><input type="radio" name="filtro" value="pendentes" checked><span>Pendentes</span></label>
+              <label class="tool-pill"><input type="radio" name="filtro" value="atrasadas"><span>Atrasadas</span></label>
+              <label class="tool-pill"><input type="radio" name="filtro" value="pagas"><span>Pagas</span></label>
+            </div>
+          </fieldset>
+          <button type="button" class="btn-mini primario" data-acao="nova-cobranca">+ Nova cobrança</button>
+        </div>
+        <ul class="cb-lista" id="lista-cobrancas"></ul>
+      </div>
+
+      <!-- CONFIGURAÇÕES -->
+      <div role="tabpanel" id="aba-config" aria-labelledby="tab-config" hidden>
+        <div class="cb-cfg">
+          <form class="tool-card" id="cfg-form" novalidate>
+            <h2>Seu negócio e o Pix</h2>
+            <p class="cb-sub">Vão dentro de cada mensagem e de cada código Pix.</p>
+            <div class="tool-field">
+              <label for="cfg-negocio">Nome do negócio</label>
+              <div class="tool-input"><input type="text" id="cfg-negocio" maxlength="60" autocomplete="organization"></div>
+              <span class="cb-msg" id="cfg-negocio-msg"></span>
+            </div>
+            <div data-campos-pix="cfg" style="margin-top:22px"></div>
+            <div class="tool-fields" style="margin-top:22px">
+              <div class="tool-field">
+                <label for="cfg-recebedor">Nome do recebedor</label>
+                <div class="tool-input"><input type="text" id="cfg-recebedor" maxlength="25" autocomplete="name"></div>
+                <span class="cb-msg" id="cfg-recebedor-msg">Até 25 letras, sem acentos</span>
+              </div>
+              <div class="tool-field">
+                <label for="cfg-cidade">Cidade</label>
+                <div class="tool-input"><input type="text" id="cfg-cidade" maxlength="15" autocomplete="address-level2"></div>
+                <span class="cb-msg" id="cfg-cidade-msg">Até 15 letras, sem acentos</span>
+              </div>
+            </div>
+            <div class="cb-acoes"><button type="submit" class="btn btn-primary">Salvar dados</button></div>
+          </form>
+
+          <form class="tool-card" id="modelos-form" novalidate>
+            <h2>Modelos de mensagem</h2>
+            <p class="cb-sub">Escolha o tom na hora de enviar. Use as variáveis abaixo; elas viram os dados de cada cobrança.</p>
+            <p class="cb-vars"><code>{nome}</code> primeiro nome do cliente · <code>{valor}</code> · <code>{vencimento}</code> · <code>{descricao}</code> · <code>{negocio}</code> · <code>{pix}</code> código Pix copia e cola</p>
+            <div class="cb-modelo" style="margin-top:18px">
+              <label class="tool-field" for="modelo-gentil"><span class="tool-label">Gentil · antes do vencimento</span></label>
+              <textarea class="cb-textarea" id="modelo-gentil" data-tom="gentil"></textarea>
+            </div>
+            <div class="cb-modelo">
+              <label class="tool-field" for="modelo-neutro"><span class="tool-label">Neutro · no dia</span></label>
+              <textarea class="cb-textarea" id="modelo-neutro" data-tom="neutro"></textarea>
+            </div>
+            <div class="cb-modelo">
+              <label class="tool-field" for="modelo-firme"><span class="tool-label">Firme · depois do vencimento</span></label>
+              <textarea class="cb-textarea" id="modelo-firme" data-tom="firme"></textarea>
+            </div>
+            <p class="tool-obs" style="margin-top:12px">No plano grátis, toda mensagem termina com a linha "Enviado pelo Warden Cobrança · wardenfinance.com.br/cobranca".</p>
+            <div class="cb-acoes">
+              <button type="submit" class="btn btn-primary">Salvar modelos</button>
+              <button type="button" class="btn btn-secondary" id="modelos-padrao">Restaurar padrão</button>
+            </div>
+          </form>
+
+          <div class="tool-card">
+            <h2>Backup dos dados</h2>
+            <p class="cb-sub">Seus dados ficam salvos neste aparelho, neste navegador. Exporte um backup de vez em quando e importe para levar tudo para outro aparelho.</p>
+            <div class="cb-acoes" style="margin-top:0">
+              <button type="button" class="btn btn-secondary" id="btn-exportar">Exportar backup</button>
+              <button type="button" class="btn btn-secondary" id="btn-importar">Importar backup</button>
+              <input type="file" id="arquivo-backup" accept="application/json,.json" hidden aria-label="Arquivo de backup">
+            </div>
+            <p class="tool-obs" style="margin-top:16px">Plano grátis: até 5 clientes. <button type="button" class="btn-mini perigo" style="padding:0;min-height:0;color:var(--text);text-decoration:underline" data-acao="premium">Conhecer o Premium</button></p>
+            <div class="cb-acoes"><button type="button" class="btn-mini perigo" id="btn-apagar">Apagar todos os dados deste aparelho</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </section>
+
+<!-- EXPLICAÇÃO + FAQ -->
+<section class="tool-prose-section">
+  <div class="section-inner">
+    <article class="tool-prose">
+      <h2>Como funciona</h2>
+      <ol>
+        <li><strong>Cadastre o cliente</strong> com o WhatsApp dele.</li>
+        <li><strong>Crie a cobrança</strong>: valor, o que é e o vencimento. Se for todo mês, marque "Mensal".</li>
+        <li><strong>Toque em Enviar.</strong> A mensagem sai pronta, com o Pix copia e cola daquele valor, e o WhatsApp abre na conversa do cliente. É só apertar enviar.</li>
+        <li><strong>Marque como pago</strong> quando o dinheiro cair na sua conta. Nas mensais, a do mês seguinte é criada sozinha.</li>
+      </ol>
+      <p>O painel mostra quanto falta receber no mês, quanto já entrou e o que está atrasado, e a lista "Cobrar hoje" junta o que vence hoje, nos próximos 3 dias e o que já venceu.</p>
+    </article>
+
+    <div class="tool-faq" data-faq>
+      <h2>Perguntas frequentes</h2>
+      <details>
+        <summary>Preciso criar conta ou pagar alguma coisa?</summary>
+        <div><p>Não. O plano grátis funciona direto no navegador, sem cadastro, para até 5 clientes. Você só informa o nome do seu negócio e a sua chave Pix.</p></div>
+      </details>
+      <details>
+        <summary>Onde ficam os dados dos meus clientes?</summary>
+        <div><p>Só neste aparelho, no armazenamento do navegador. Nada é enviado para a Warden. Por isso, exporte um backup de vez em quando em Configurações; se você limpar os dados do navegador, as informações somem.</p></div>
+      </details>
+      <details>
+        <summary>O Warden envia as mensagens sozinho?</summary>
+        <div><p>No plano grátis, não: o Warden monta a mensagem com o Pix e abre o WhatsApp na conversa do cliente, e você toca em enviar. O envio automático antes, no dia e depois do vencimento é do plano Premium, que está chegando.</p></div>
+      </details>
+      <details>
+        <summary>Como meu cliente paga?</summary>
+        <div><p>A mensagem leva um Pix copia e cola com o valor certo. O cliente copia, cola no app do banco e paga. O dinheiro cai direto na conta da sua chave Pix. Confira no extrato e marque a cobrança como paga.</p></div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- JANELAS -->
+<dialog class="cb-dlg" id="dlg-cliente" aria-labelledby="cliente-titulo">
+  <button type="button" class="cb-fechar" data-fechar aria-label="Fechar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  <h2 id="cliente-titulo">Novo cliente</h2>
+  <form id="cliente-form" novalidate>
+    <div class="tool-field">
+      <label for="cli-nome">Nome</label>
+      <div class="tool-input"><input type="text" id="cli-nome" maxlength="80" autocomplete="off"></div>
+      <span class="cb-msg" id="cli-nome-msg"></span>
+    </div>
+    <div class="tool-field">
+      <label for="cli-whats">WhatsApp</label>
+      <div class="tool-input"><input type="text" id="cli-whats" inputmode="tel" autocomplete="off" placeholder="(11) 98765-4321"></div>
+      <span class="cb-msg" id="cli-whats-msg">Com DDD</span>
+    </div>
+    <div class="tool-field">
+      <label for="cli-obs">Observação <span class="opc">(opcional)</span></label>
+      <div class="tool-input"><input type="text" id="cli-obs" maxlength="120" autocomplete="off" placeholder="Ex.: paga sempre no dia 10"></div>
+    </div>
+    <div class="cb-acoes">
+      <button type="submit" class="btn btn-primary">Salvar cliente</button>
+      <button type="button" class="btn btn-secondary" data-fechar>Cancelar</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog class="cb-dlg" id="dlg-cobranca" aria-labelledby="cobranca-titulo">
+  <button type="button" class="cb-fechar" data-fechar aria-label="Fechar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  <h2 id="cobranca-titulo">Nova cobrança</h2>
+  <form id="cobranca-form" novalidate>
+    <div class="tool-field">
+      <label for="cob-cliente">Cliente</label>
+      <div class="tool-input"><select id="cob-cliente" class="cb-select"></select></div>
+      <span class="cb-msg" id="cob-cliente-msg"></span>
+    </div>
+    <div class="tool-fields">
+      <div class="tool-field">
+        <label for="cob-valor">Valor</label>
+        <div class="tool-input"><span class="pre">R$</span><input type="text" id="cob-valor" inputmode="decimal" autocomplete="off"></div>
+        <span class="cb-msg" id="cob-valor-msg"></span>
+      </div>
+      <div class="tool-field">
+        <label for="cob-vencimento">Vencimento</label>
+        <div class="tool-input"><input type="date" id="cob-vencimento"></div>
+        <span class="cb-msg" id="cob-vencimento-msg"></span>
+      </div>
+    </div>
+    <div class="tool-field">
+      <label for="cob-descricao">Descrição</label>
+      <div class="tool-input"><input type="text" id="cob-descricao" maxlength="60" autocomplete="off" placeholder="Ex.: mensalidade de outubro"></div>
+      <span class="cb-msg" id="cob-descricao-msg"></span>
+    </div>
+    <fieldset class="tool-pillset">
+      <legend class="tool-field"><span class="tool-label">Repetir</span></legend>
+      <div class="tool-pills">
+        <label class="tool-pill"><input type="radio" name="cob-rec" value="unica" checked><span>Única</span></label>
+        <label class="tool-pill"><input type="radio" name="cob-rec" value="mensal"><span>Mensal</span></label>
+      </div>
+      <span class="cb-msg" id="cob-rec-msg">Na mensal, quando esta for paga, a do mês seguinte é criada sozinha.</span>
+    </fieldset>
+    <div class="cb-acoes">
+      <button type="submit" class="btn btn-primary">Salvar cobrança</button>
+      <button type="button" class="btn btn-secondary" data-fechar>Cancelar</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog class="cb-dlg" id="dlg-enviar" aria-labelledby="enviar-titulo">
+  <button type="button" class="cb-fechar" data-fechar aria-label="Fechar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  <h2 id="enviar-titulo">Enviar cobrança</h2>
+  <p class="cb-dlg-sub" id="enviar-sub"></p>
+  <fieldset class="tool-pillset">
+    <legend class="tool-field"><span class="tool-label">Tom da mensagem</span></legend>
+    <div class="tool-pills">
+      <label class="tool-pill"><input type="radio" name="tom" value="gentil"><span>Gentil</span></label>
+      <label class="tool-pill"><input type="radio" name="tom" value="neutro"><span>Neutro</span></label>
+      <label class="tool-pill"><input type="radio" name="tom" value="firme"><span>Firme</span></label>
+    </div>
+  </fieldset>
+  <div class="cb-previa" id="msg-previa" aria-label="Mensagem que vai ser enviada"></div>
+  <div class="cb-acoes" style="margin-top:0">
+    <a class="btn btn-primary" id="btn-enviar-whatsapp" target="_blank" rel="noopener">Enviar no WhatsApp</a>
+    <button type="button" class="btn btn-secondary" id="btn-copiar-msg">Copiar mensagem</button>
+    <button type="button" class="btn btn-secondary" id="btn-mostrar-qr" aria-expanded="false" aria-controls="enviar-qr">Mostrar QR Code</button>
+  </div>
+  <div class="cb-qr" id="enviar-qr" hidden>
+    <canvas id="qr-canvas" role="img" aria-label="QR Code do Pix desta cobrança"></canvas>
+    <p class="tool-obs" id="qr-nota">O cliente pode escanear com o app do banco.</p>
+  </div>
+  <p class="cb-msg" id="enviar-status" role="status" aria-live="polite"></p>
+</dialog>
+
+<dialog class="cb-dlg" id="dlg-pago" aria-labelledby="pago-titulo">
+  <button type="button" class="cb-fechar" data-fechar aria-label="Fechar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  <h2 id="pago-titulo">Marcar como pago</h2>
+  <form id="pago-form" novalidate>
+    <p class="cb-dlg-sub" id="pago-sub" style="margin:0"></p>
+    <div class="tool-field">
+      <label for="pago-data">Data do pagamento</label>
+      <div class="tool-input"><input type="date" id="pago-data"></div>
+    </div>
+    <div class="cb-acoes">
+      <button type="submit" class="btn btn-primary">Confirmar pagamento</button>
+      <button type="button" class="btn btn-secondary" data-fechar>Cancelar</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog class="cb-dlg" id="dlg-confirmar" aria-labelledby="confirmar-titulo">
+  <h2 id="confirmar-titulo">Tem certeza?</h2>
+  <p class="cb-dlg-sub" id="confirmar-texto"></p>
+  <div class="cb-acoes">
+    <button type="button" class="btn btn-primary" id="confirmar-sim">Confirmar</button>
+    <button type="button" class="btn btn-secondary" id="confirmar-nao">Cancelar</button>
+  </div>
+</dialog>
+
+<dialog class="cb-dlg largo" id="dlg-premium" aria-labelledby="premium-titulo">
+  <button type="button" class="cb-fechar" data-fechar aria-label="Fechar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  <h2 id="premium-titulo">Warden Cobrança Premium</h2>
+  <p class="cb-dlg-sub" id="premium-motivo"></p>
+  <div data-planos></div>
+</dialog>
+
+<script src="/assets/tools.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+  /* ===== PREMIUM: preencha quando for lançar =====
+   * preco: texto livre, como aparece na tela (ex.: "R$ 29,90 por mês"); ativo: false → botão "Em breve", desabilitado. */
+  const PREMIUM = { preco: "", ativo: false };
+
+  /* =====================================================================
+   * DADOS: localStorage do aparelho, estrutura versionada (pensada para um dia sincronizar com uma conta):
+   *   { versao: 1, clientes: [], cobrancas: [], config: {}, atualizadoEm }
+   *   cliente  = { id, nome, whatsapp ('11987654321', sem o 55), obs, criadoEm, atualizadoEm }
+   *   cobranca = { id, clienteId, valor, descricao, vencimento ('aaaa-mm-dd'), diaVencimento, recorrencia: 'unica'|'mensal',
+   *                status: 'pendente'|'paga', pagaEm, proximaId, origemId, historico: [{ tipo, em, … }], criadoEm, atualizadoEm }
+   *   config   = { pronto, negocio, pix: { tipo, chave, digitada }, recebedor, cidade, modelos: { gentil, neutro, firme } }
+   * ===================================================================== */
+  const CHAVE = 'warden:cobranca';
+  const VERSAO = 1;
+  const LIMITE_GRATIS = 5;
+  const ASSINATURA = 'Enviado pelo Warden Cobrança · wardenfinance.com.br/cobranca';
+  const MODELOS_PADRAO = Object.freeze({
+    gentil: 'Oi, {nome}! Tudo bem?\nPassando para lembrar do pagamento de {descricao}, no valor de {valor}, com vencimento em {vencimento}.\n\nPara facilitar, é só copiar o código abaixo e colar no app do seu banco (Pix copia e cola):\n{pix}\n\nQualquer dúvida, é só chamar. Obrigado!\n{negocio}',
+    neutro: 'Olá, {nome}.\nSegue a cobrança de {descricao}: {valor}, com vencimento em {vencimento}.\n\nPix copia e cola:\n{pix}\n\n{negocio}',
+    firme: 'Olá, {nome}.\nO pagamento de {descricao}, no valor de {valor} e com vencimento em {vencimento}, ainda está em aberto. Pedimos que regularize o quanto antes pelo Pix copia e cola abaixo:\n{pix}\n\nSe você já pagou, desconsidere esta mensagem e nos envie o comprovante, por favor.\n{negocio}'
+  });
+
+  const { formatBRL: brl, parseNumero, campoBRL, copiarTexto, linkWhatsApp, validarTelefone, mascaraTelefone, pix: PIX } = Warden;
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const novoId = () => (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+  const agoraISO = () => new Date().toISOString();
+
+  function estadoVazio() {
+    const t = agoraISO();
+    return { versao: VERSAO, clientes: [], cobrancas: [], config: { pronto: false, negocio: '', pix: { tipo: 'celular', chave: '', digitada: '' }, recebedor: '', cidade: '', modelos: { ...MODELOS_PADRAO } }, criadoEm: t, atualizadoEm: t };
+  }
+  // confere se um objeto (do aparelho ou de um backup) tem a estrutura esperada
+  function estruturaValida(d) {
+    return !!d && typeof d === 'object' && d.versao === VERSAO && Array.isArray(d.clientes) && Array.isArray(d.cobrancas) && d.config && typeof d.config === 'object';
+  }
+  // completa campos que faltarem (backup antigo ou editado à mão)
+  function normalizar(d) {
+    const base = estadoVazio();
+    d.config = { ...base.config, ...d.config, pix: { ...base.config.pix, ...(d.config.pix || {}) }, modelos: { ...MODELOS_PADRAO, ...(d.config.modelos || {}) } };
+    d.cobrancas.forEach(c => { if (!Array.isArray(c.historico)) c.historico = []; });
+    return d;
+  }
+  function carregar() {
+    try {
+      const d = JSON.parse(localStorage.getItem(CHAVE));
+      if (estruturaValida(d)) return normalizar(d);
+    } catch (e) { /* armazenamento indisponível ou corrompido: começa do zero */ }
+    return estadoVazio();
+  }
+  let db = carregar();
+  function salvar() {
+    db.atualizadoEm = agoraISO();
+    try {
+      localStorage.setItem(CHAVE, JSON.stringify(db));
+      return true;
+    } catch (e) {
+      status('Não foi possível salvar neste aparelho (navegação anônima ou armazenamento cheio). Exporte um backup para não perder os dados.', true);
+      return false;
+    }
+  }
+
+  /* ===== DATAS (no fuso do aparelho) ===== */
+  const pad = n => String(n).padStart(2, '0');
+  const isoDe = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const hoje = () => isoDe(new Date());
+  const dataDe = iso => { const [a, m, d] = iso.split('-').map(Number); return new Date(a, m - 1, d, 12); };
+  const diasAte = iso => Math.round((dataDe(iso) - dataDe(hoje())) / 86400000);
+  const fmtData = iso => iso ? iso.split('-').reverse().join('/') : '';
+  const fmtQuando = ts => { const d = new Date(ts); return `${pad(d.getDate())}/${pad(d.getMonth() + 1)} ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+  const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+  // mesmo dia no mês seguinte; se o mês for mais curto (dia 31 em novembro), vai para o último dia
+  function proximoMes(iso, dia) {
+    const [a, m] = iso.split('-').map(Number);
+    const ano = m === 12 ? a + 1 : a, mes = m === 12 ? 1 : m + 1;
+    const ultimo = new Date(ano, mes, 0).getDate();
+    return `${ano}-${pad(mes)}-${pad(Math.min(dia, ultimo))}`;
+  }
+
+  /* ===== REGRAS ===== */
+  const cliente = id => db.clientes.find(c => c.id === id);
+  // situação de uma cobrança hoje: paga | atrasada | hoje | breve (1 a 3 dias) | futura
+  function situacao(c) {
+    if (c.status === 'paga') return 'paga';
+    const d = diasAte(c.vencimento);
+    if (d < 0) return 'atrasada';
+    if (d === 0) return 'hoje';
+    if (d <= 3) return 'breve';
+    return 'futura';
+  }
+  function rotuloSituacao(c) {
+    const s = situacao(c), d = diasAte(c.vencimento);
+    if (s === 'paga') return `Paga em ${fmtData(c.pagaEm)}`;
+    if (s === 'atrasada') return `Atrasada há ${-d} ${d === -1 ? 'dia' : 'dias'}`;
+    if (s === 'hoje') return 'Vence hoje';
+    return `Vence em ${d} ${d === 1 ? 'dia' : 'dias'}`;
+  }
+  const primeiroNome = nome => String(nome || '').trim().split(/\s+/)[0] || '';
+  // identificador do Pix desta cobrança (até 25 letras/números): o banco mostra no extrato
+  const txidDe = c => ('WC' + String(c.id).replace(/[^A-Za-z0-9]/g, '')).slice(0, 25);
+  const pixPronto = () => !!(db.config.pix.chave && db.config.recebedor && db.config.cidade);
+  function pixDaCobranca(c) {
+    return PIX.montarPayload({ chave: db.config.pix.chave, nome: db.config.recebedor, cidade: db.config.cidade, valor: c.valor, txid: txidDe(c) });
+  }
+  const tomSugerido = c => ({ atrasada: 'firme', hoje: 'neutro' })[situacao(c)] || 'gentil';
+  function montarMensagem(c, tom) {
+    const cli = cliente(c.clienteId) || {};
+    // espaço comum no lugar do espaço fixo (U+00A0) do formatador: o texto é copiado e colado em outros apps
+    const vars = { nome: primeiroNome(cli.nome), valor: brl(c.valor).replace(/\u00a0/g, ' '), vencimento: fmtData(c.vencimento), descricao: c.descricao, negocio: db.config.negocio, pix: pixDaCobranca(c) };
+    const modelo = db.config.modelos[tom] || MODELOS_PADRAO[tom];
+    return modelo.replace(/\{(nome|valor|vencimento|descricao|negocio|pix)\}/g, (_, k) => vars[k]).trim() + '\n\n' + ASSINATURA;
+  }
+  const linkEnvio = (c, tom) => linkWhatsApp(montarMensagem(c, tom), '55' + (cliente(c.clienteId) || {}).whatsapp);
+
+  /* ===== AVISOS ===== */
+  function status(texto, erro = false) {
+    const el = $('cb-status');
+    el.textContent = texto;
+    el.classList.toggle('erro', erro);
+    clearTimeout(status.t);
+    if (!erro) status.t = setTimeout(() => { el.textContent = ''; }, 6000);
+  }
+  function msg(id, texto, estado = '') {
+    const el = $(id);
+    if (!el) return;
+    el.textContent = texto;
+    el.className = 'cb-msg' + (estado ? ' ' + estado : '');
+  }
+  // confirmação dentro da página (o navegador da Warden não usa confirm())
+  function confirmar(texto, botao = 'Confirmar') {
+    return new Promise(resolver => {
+      const dlg = $('dlg-confirmar');
+      $('confirmar-texto').textContent = texto;
+      $('confirmar-sim').textContent = botao;
+      const fim = r => { dlg.close(); resolver(r); };
+      $('confirmar-sim').onclick = () => fim(true);
+      $('confirmar-nao').onclick = () => fim(false);
+      dlg.oncancel = () => resolver(false);
+      dlg.showModal();
+    });
+  }
+  document.querySelectorAll('.cb-dlg [data-fechar]').forEach(b => b.addEventListener('click', () => b.closest('dialog').close()));
+
+  /* ===== CAMPOS DO PIX (onboarding e configurações) ===== */
+  function camposPix(prefixo) {
+    const tipos = Object.entries(PIX.TIPOS_CHAVE).map(([v, t]) =>
+      `<label class="tool-pill"><input type="radio" name="${prefixo}-tipo" value="${v}"><span>${t.nome}</span></label>`).join('');
+    return `
+      <fieldset class="tool-pillset">
+        <legend class="tool-field"><span class="tool-label">Tipo da chave Pix</span></legend>
+        <div class="tool-pills">${tipos}</div>
+      </fieldset>
+      <div class="tool-field" style="margin-top:18px">
+        <label for="${prefixo}-chave">Chave Pix</label>
+        <div class="tool-input"><input type="text" id="${prefixo}-chave" autocomplete="off" spellcheck="false"></div>
+        <span class="cb-msg" id="${prefixo}-chave-msg"></span>
+      </div>`;
+  }
+  const tipoPix = prefixo => (document.querySelector(`input[name="${prefixo}-tipo"]:checked`) || {}).value || 'celular';
+  function ligarCamposPix(prefixo) {
+    const box = document.querySelector(`[data-campos-pix="${prefixo}"]`);
+    box.innerHTML = camposPix(prefixo);
+    const chave = $(prefixo + '-chave');
+    const configurar = () => {
+      const t = PIX.TIPOS_CHAVE[tipoPix(prefixo)];
+      chave.placeholder = t.placeholder;
+      chave.inputMode = t.inputmode;
+      chave.value = PIX.mascaraChave(tipoPix(prefixo), chave.value);
+      conferirChave(prefixo, false);
+    };
+    box.querySelectorAll(`input[name="${prefixo}-tipo"]`).forEach(r => r.addEventListener('change', configurar));
+    chave.addEventListener('input', () => {
+      if (['cpf', 'cnpj', 'celular'].includes(tipoPix(prefixo)) && chave.selectionStart === chave.value.length) chave.value = PIX.mascaraChave(tipoPix(prefixo), chave.value);
+      conferirChave(prefixo, false);
+    });
+    chave.addEventListener('blur', () => conferirChave(prefixo, true));
+    return configurar;
+  }
+  function preencherPix(prefixo) {
+    const r = document.querySelector(`input[name="${prefixo}-tipo"][value="${db.config.pix.tipo || 'celular'}"]`);
+    if (r) r.checked = true;
+    $(prefixo + '-chave').value = db.config.pix.digitada || '';
+  }
+  function conferirChave(prefixo, mostrarErro) {
+    const tipo = tipoPix(prefixo);
+    const r = PIX.validarChave(tipo, $(prefixo + '-chave').value);
+    if (r.ok) msg(prefixo + '-chave-msg', `Chave válida · vai no código como ${r.chave}`, 'ok');
+    else if (r.erro && mostrarErro) msg(prefixo + '-chave-msg', r.erro, 'erro');
+    else msg(prefixo + '-chave-msg', PIX.TIPOS_CHAVE[tipo].ajuda);
+    return r;
+  }
+  // nome e cidade como o padrão Pix aceita: maiúsculas, sem acento
+  ['onb-recebedor', 'onb-cidade', 'cfg-recebedor', 'cfg-cidade'].forEach(id => $(id).addEventListener('input', e => {
+    const el = e.target, limpo = PIX.limparNome(el.value);
+    if (limpo !== el.value) el.value = limpo;
+  }));
+  function lerRecebedor(prefixo) {
+    const recebedor = PIX.limparNome($(prefixo + '-recebedor').value).trim();
+    const cidade = PIX.limparNome($(prefixo + '-cidade').value).trim();
+    msg(prefixo + '-recebedor-msg', recebedor ? 'Até 25 letras, sem acentos' : 'Obrigatório', recebedor ? '' : 'erro');
+    msg(prefixo + '-cidade-msg', cidade ? 'Até 15 letras, sem acentos' : 'Obrigatória', cidade ? '' : 'erro');
+    return { ok: !!(recebedor && cidade), recebedor, cidade };
+  }
+
+  /* ===== PRIMEIRA VEZ ===== */
+  let etapa = 1;
+  const configurarOnbPix = ligarCamposPix('onb');
+  function mostrarEtapa(n, focar = true) {
+    etapa = n;
+    document.querySelectorAll('#onb [data-etapa]').forEach(el => { el.hidden = Number(el.dataset.etapa) !== n; });
+    $('onb-voltar').hidden = n === 1;
+    $('onb-seguir').textContent = n === 3 ? 'Começar' : 'Continuar';
+    const foco = { 1: 'onb-negocio', 2: 'onb-chave', 3: 'onb-recebedor' }[n];
+    if (focar) setTimeout(() => $(foco) && $(foco).focus({ preventScroll: true }), 0);
+  }
+  $('onb-voltar').addEventListener('click', () => mostrarEtapa(etapa - 1));
+  $('onb-form').addEventListener('submit', e => {
+    e.preventDefault();
+    if (etapa === 1) {
+      const negocio = $('onb-negocio').value.trim();
+      if (!negocio) { msg('onb-negocio-msg', 'Diga o nome do seu negócio', 'erro'); return; }
+      msg('onb-negocio-msg', '');
+      db.config.negocio = negocio;
+      return mostrarEtapa(2);
+    }
+    if (etapa === 2) {
+      const r = conferirChave('onb', true);
+      if (!r.ok) { if (!r.erro) msg('onb-chave-msg', 'Digite a sua chave Pix', 'erro'); return; }
+      db.config.pix = { tipo: tipoPix('onb'), chave: r.chave, digitada: $('onb-chave').value.trim() };
+      return mostrarEtapa(3);
+    }
+    const r = lerRecebedor('onb');
+    if (!r.ok) return;
+    db.config.recebedor = r.recebedor;
+    db.config.cidade = r.cidade;
+    db.config.pronto = true;
+    salvar();
+    iniciarApp();
+    status('Tudo pronto! Cadastre seu primeiro cliente para começar.');
+    trocarAba('clientes');
+  });
+
+  /* ===== ABAS ===== */
+  const ABAS = ['painel', 'clientes', 'cobrancas', 'config'];
+  function trocarAba(nome, focar = false) {
+    ABAS.forEach(a => {
+      const sel = a === nome;
+      const tab = $('tab-' + a);
+      tab.setAttribute('aria-selected', String(sel));
+      tab.tabIndex = sel ? 0 : -1;
+      $('aba-' + a).hidden = !sel;
+    });
+    if (focar) $('tab-' + nome).focus();
+    if (nome === 'config') preencherConfig();
+    render();
+  }
+  document.querySelectorAll('.cb-aba').forEach(t => t.addEventListener('click', () => trocarAba(t.dataset.aba)));
+  // setas do teclado entre as abas
+  document.querySelector('.cb-abas').addEventListener('keydown', e => {
+    const i = ABAS.indexOf(document.activeElement.dataset.aba);
+    if (i < 0) return;
+    const prox = { ArrowRight: (i + 1) % ABAS.length, ArrowLeft: (i - 1 + ABAS.length) % ABAS.length, Home: 0, End: ABAS.length - 1 }[e.key];
+    if (prox === undefined) return;
+    e.preventDefault();
+    trocarAba(ABAS[prox], true);
+  });
+
+  /* ===== DESENHO DAS LISTAS ===== */
+  const icone = {
+    enviar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg>',
+    pago: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>'
+  };
+  function ultimoLembrete(c) {
+    const l = [...c.historico].reverse().find(h => h.tipo === 'lembrete');
+    return l ? `Lembrete enviado em ${fmtQuando(l.em)}` : '';
+  }
+  function itemCobranca(c, { compacto = false } = {}) {
+    const cli = cliente(c.clienteId) || { nome: '(cliente excluído)' };
+    const s = situacao(c);
+    const badge = `<span class="cb-badge ${s}">${rotuloSituacao(c)}</span>`;
+    const acoes = c.status === 'paga'
+      ? `<button type="button" class="btn-mini secundario" data-acao="desfazer" data-id="${c.id}">Desfazer pagamento</button>`
+      : `<button type="button" class="btn-mini primario" data-acao="enviar" data-id="${c.id}">${icone.enviar}Enviar</button>
+         <button type="button" class="btn-mini secundario" data-acao="pago" data-id="${c.id}">${icone.pago}Pago</button>`;
+    const extras = compacto ? '' : `
+         <button type="button" class="btn-mini secundario" data-acao="editar-cobranca" data-id="${c.id}">Editar</button>
+         <button type="button" class="btn-mini perigo" data-acao="excluir-cobranca" data-id="${c.id}">Excluir</button>`;
+    const hist = ultimoLembrete(c);
+    return `
+      <li class="cb-item${s === 'atrasada' ? ' atrasada' : ''}" data-cobranca="${c.id}">
+        <div class="cb-item-topo">
+          <div><p class="cb-item-nome">${esc(cli.nome)}</p><p class="cb-item-sub">${esc(c.descricao)}</p></div>
+          <span class="cb-item-valor">${brl(c.valor)}</span>
+        </div>
+        <div class="cb-item-meta">${badge}<span>Vencimento ${fmtData(c.vencimento)}</span>${c.recorrencia === 'mensal' ? '<span class="cb-badge">Mensal</span>' : ''}</div>
+        ${hist ? `<p class="cb-item-hist">${hist}</p>` : ''}
+        <div class="cb-item-acoes">${acoes}${extras}</div>
+      </li>`;
+  }
+
+  function renderPainel() {
+    const mes = hoje().slice(0, 7);
+    const pend = db.cobrancas.filter(c => c.status !== 'paga');
+    const soma = l => l.reduce((t, c) => t + c.valor, 0);
+    const qtd = n => `${n} ${n === 1 ? 'cobrança' : 'cobranças'}`;
+    const aReceber = pend.filter(c => c.vencimento.startsWith(mes));
+    const recebido = db.cobrancas.filter(c => c.status === 'paga' && (c.pagaEm || '').startsWith(mes));
+    const atrasado = pend.filter(c => situacao(c) === 'atrasada');
+    const nomeMes = MESES[Number(mes.slice(5)) - 1];
+    $('resumo').innerHTML = `
+      <div class="cb-num" id="num-receber"><span class="cb-num-rotulo">A receber em ${nomeMes}</span><span class="cb-num-valor">${brl(soma(aReceber))}</span><span class="cb-num-qtd">${qtd(aReceber.length)}</span></div>
+      <div class="cb-num" id="num-recebido"><span class="cb-num-rotulo">Recebido em ${nomeMes}</span><span class="cb-num-valor">${brl(soma(recebido))}</span><span class="cb-num-qtd">${qtd(recebido.length)}</span></div>
+      <div class="cb-num atrasado${atrasado.length ? ' tem' : ''}" id="num-atrasado"><span class="cb-num-rotulo">Atrasado</span><span class="cb-num-valor">${brl(soma(atrasado))}</span><span class="cb-num-qtd">${qtd(atrasado.length)}</span></div>`;
+
+    const ordem = { atrasada: 0, hoje: 1, breve: 2 };
+    const hojeLista = pend.filter(c => situacao(c) in ordem)
+      .sort((a, b) => ordem[situacao(a)] - ordem[situacao(b)] || a.vencimento.localeCompare(b.vencimento));
+    $('lista-hoje').innerHTML = hojeLista.length ? hojeLista.map(c => itemCobranca(c, { compacto: true })).join('')
+      : `<li class="cb-vazio">${db.cobrancas.length ? 'Nada para cobrar hoje: nenhuma cobrança atrasada nem vencendo nos próximos 3 dias.' : 'Nenhuma cobrança ainda. Cadastre um cliente e crie a primeira cobrança.'}</li>`;
+  }
+
+  function renderClientes() {
+    const termo = $('busca-cliente').value.trim().toLowerCase();
+    const n = db.clientes.length;
+    $('clientes-contagem').textContent = `${n} de ${LIMITE_GRATIS} clientes no plano grátis`;
+    const lista = db.clientes
+      .filter(c => !termo || [c.nome, c.whatsapp, mascaraTelefone(c.whatsapp), c.obs].some(v => String(v || '').toLowerCase().includes(termo)))
+      .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+    $('lista-clientes').innerHTML = lista.length ? lista.map(c => {
+      const pend = db.cobrancas.filter(x => x.clienteId === c.id && x.status !== 'paga');
+      return `
+        <li class="cb-item" data-cliente="${c.id}">
+          <div class="cb-item-topo">
+            <div><p class="cb-item-nome">${esc(c.nome)}</p><p class="cb-item-sub">${mascaraTelefone(c.whatsapp)}${c.obs ? ' · ' + esc(c.obs) : ''}</p></div>
+            <span class="cb-item-valor">${pend.length ? brl(pend.reduce((t, x) => t + x.valor, 0)) : ''}</span>
+          </div>
+          <div class="cb-item-meta"><span>${pend.length ? `${pend.length} ${pend.length === 1 ? 'cobrança pendente' : 'cobranças pendentes'}` : 'Nada pendente'}</span></div>
+          <div class="cb-item-acoes">
+            <button type="button" class="btn-mini primario" data-acao="nova-cobranca" data-cliente-id="${c.id}">+ Cobrança</button>
+            <button type="button" class="btn-mini secundario" data-acao="editar-cliente" data-id="${c.id}">Editar</button>
+            <button type="button" class="btn-mini perigo" data-acao="excluir-cliente" data-id="${c.id}">Excluir</button>
+          </div>
+        </li>`;
+    }).join('') : `<li class="cb-vazio">${n ? 'Nenhum cliente encontrado.' : 'Nenhum cliente ainda. Toque em "Novo cliente".'}</li>`;
+  }
+
+  function renderCobrancas() {
+    const filtro = (document.querySelector('input[name="filtro"]:checked') || {}).value || 'pendentes';
+    let lista = db.cobrancas.filter(c => filtro === 'pagas' ? c.status === 'paga' : filtro === 'atrasadas' ? situacao(c) === 'atrasada' : c.status !== 'paga');
+    lista = filtro === 'pagas'
+      ? lista.sort((a, b) => (b.pagaEm || '').localeCompare(a.pagaEm || ''))
+      : lista.sort((a, b) => a.vencimento.localeCompare(b.vencimento));
+    const vazio = { pendentes: 'Nenhuma cobrança pendente.', atrasadas: 'Nenhuma cobrança atrasada.', pagas: 'Nenhuma cobrança paga ainda.' }[filtro];
+    $('lista-cobrancas').innerHTML = lista.length ? lista.map(c => itemCobranca(c)).join('') : `<li class="cb-vazio">${vazio}</li>`;
+  }
+
+  function render() {
+    if (!db.config.pronto) return;
+    renderPainel();
+    renderClientes();
+    renderCobrancas();
+  }
+  $('busca-cliente').addEventListener('input', renderClientes);
+  document.querySelectorAll('input[name="filtro"]').forEach(r => r.addEventListener('change', renderCobrancas));
+
+  // ações das listas e botões (delegação)
+  document.addEventListener('click', e => {
+    const b = e.target.closest('[data-acao]');
+    if (!b) return;
+    const id = b.dataset.id;
+    ({
+      'novo-cliente': () => abrirCliente(),
+      'editar-cliente': () => abrirCliente(id),
+      'excluir-cliente': () => excluirCliente(id),
+      'nova-cobranca': () => abrirCobranca(null, b.dataset.clienteId),
+      'editar-cobranca': () => abrirCobranca(id),
+      'excluir-cobranca': () => excluirCobranca(id),
+      'enviar': () => abrirEnviar(id),
+      'pago': () => abrirPago(id),
+      'desfazer': () => desfazerPagamento(id),
+      'premium': () => abrirPremium()
+    }[b.dataset.acao] || (() => {}))();
+  });
+
+  /* ===== CLIENTES ===== */
+  let clienteEditando = null;
+  $('cli-whats').addEventListener('input', e => {
+    const el = e.target;
+    if (el.selectionStart === el.value.length) el.value = mascaraTelefone(el.value);
+  });
+  function abrirCliente(id) {
+    if (!id && db.clientes.length >= LIMITE_GRATIS) return abrirPremium('limite');
+    clienteEditando = id ? cliente(id) : null;
+    $('cliente-titulo').textContent = clienteEditando ? 'Editar cliente' : 'Novo cliente';
+    $('cli-nome').value = clienteEditando ? clienteEditando.nome : '';
+    $('cli-whats').value = clienteEditando ? mascaraTelefone(clienteEditando.whatsapp) : '';
+    $('cli-obs').value = clienteEditando ? clienteEditando.obs || '' : '';
+    msg('cli-nome-msg', ''); msg('cli-whats-msg', 'Com DDD');
+    $('dlg-cliente').showModal();
+    $('cli-nome').focus();
+  }
+  $('cliente-form').addEventListener('submit', e => {
+    e.preventDefault();
+    const nome = $('cli-nome').value.trim().replace(/\s+/g, ' ');
+    const tel = validarTelefone($('cli-whats').value);
+    let ok = true;
+    if (!nome) { msg('cli-nome-msg', 'Digite o nome do cliente', 'erro'); ok = false; } else msg('cli-nome-msg', '');
+    if (!tel.ok) { msg('cli-whats-msg', tel.vazio ? 'Digite o WhatsApp com DDD' : tel.erro, 'erro'); ok = false; } else msg('cli-whats-msg', 'Com DDD');
+    if (!ok) return;
+    const t = agoraISO();
+    if (clienteEditando) {
+      Object.assign(clienteEditando, { nome, whatsapp: tel.numero, obs: $('cli-obs').value.trim(), atualizadoEm: t });
+      status(`Cliente ${nome} atualizado.`);
+    } else {
+      if (db.clientes.length >= LIMITE_GRATIS) { $('dlg-cliente').close(); return abrirPremium('limite'); }
+      db.clientes.push({ id: novoId(), nome, whatsapp: tel.numero, obs: $('cli-obs').value.trim(), criadoEm: t, atualizadoEm: t });
+      status(`Cliente ${nome} cadastrado.`);
+    }
+    salvar();
+    $('dlg-cliente').close();
+    render();
+  });
+  async function excluirCliente(id) {
+    const c = cliente(id);
+    if (!c) return;
+    const n = db.cobrancas.filter(x => x.clienteId === id).length;
+    const ok = await confirmar(`Excluir ${c.nome}${n ? ` e ${n === 1 ? 'a cobrança' : `as ${n} cobranças`} dele` : ''}? Não dá para desfazer.`, 'Excluir');
+    if (!ok) return;
+    db.clientes = db.clientes.filter(x => x.id !== id);
+    db.cobrancas = db.cobrancas.filter(x => x.clienteId !== id);
+    salvar();
+    status(`${c.nome} foi excluído.`);
+    render();
+  }
+
+  /* ===== COBRANÇAS ===== */
+  let cobrancaEditando = null;
+  campoBRL($('cob-valor'));
+  function abrirCobranca(id, clienteId) {
+    if (!db.clientes.length) {
+      status('Cadastre um cliente antes de criar a cobrança.');
+      trocarAba('clientes');
+      return abrirCliente();
+    }
+    cobrancaEditando = id ? db.cobrancas.find(c => c.id === id) : null;
+    const c = cobrancaEditando;
+    $('cobranca-titulo').textContent = c ? 'Editar cobrança' : 'Nova cobrança';
+    $('cob-cliente').innerHTML = [...db.clientes].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
+      .map(x => `<option value="${x.id}">${esc(x.nome)}</option>`).join('');
+    $('cob-cliente').value = c ? c.clienteId : (clienteId || $('cob-cliente').options[0].value);
+    $('cob-valor').value = c ? Warden.formatNumero(c.valor, { casas: 2 }) : '';
+    $('cob-descricao').value = c ? c.descricao : '';
+    $('cob-vencimento').value = c ? c.vencimento : hoje();
+    document.querySelector(`input[name="cob-rec"][value="${c ? c.recorrencia : 'unica'}"]`).checked = true;
+    ['cob-valor-msg', 'cob-descricao-msg', 'cob-vencimento-msg', 'cob-cliente-msg'].forEach(m => msg(m, ''));
+    msg('cob-rec-msg', 'Na mensal, quando esta for paga, a do mês seguinte é criada sozinha.');
+    $('dlg-cobranca').showModal();
+    $('cob-valor').focus();
+  }
+  $('cobranca-form').addEventListener('submit', e => {
+    e.preventDefault();
+    const valor = Math.round(parseNumero($('cob-valor').value) * 100) / 100;
+    const descricao = $('cob-descricao').value.trim().replace(/\s+/g, ' ');
+    const vencimento = $('cob-vencimento').value;
+    const clienteId = $('cob-cliente').value;
+    let ok = true;
+    if (!isFinite(valor) || valor <= 0) { msg('cob-valor-msg', 'Valor precisa ser maior que zero', 'erro'); ok = false; }
+    else if (valor.toFixed(2).length > 13) { msg('cob-valor-msg', 'Valor alto demais', 'erro'); ok = false; }
+    else msg('cob-valor-msg', '');
+    if (!descricao) { msg('cob-descricao-msg', 'Diga a que se refere (ex.: mensalidade de outubro)', 'erro'); ok = false; } else msg('cob-descricao-msg', '');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(vencimento)) { msg('cob-vencimento-msg', 'Escolha a data de vencimento', 'erro'); ok = false; } else msg('cob-vencimento-msg', '');
+    if (!cliente(clienteId)) { msg('cob-cliente-msg', 'Escolha o cliente', 'erro'); ok = false; }
+    if (!ok) return;
+    const recorrencia = document.querySelector('input[name="cob-rec"]:checked').value;
+    const t = agoraISO();
+    const dados = { clienteId, valor, descricao, vencimento, diaVencimento: Number(vencimento.slice(8)), recorrencia, atualizadoEm: t };
+    if (cobrancaEditando) {
+      Object.assign(cobrancaEditando, dados);
+      cobrancaEditando.historico.push({ tipo: 'editada', em: t });
+      status('Cobrança atualizada.');
+    } else {
+      db.cobrancas.push({ id: novoId(), ...dados, status: 'pendente', pagaEm: null, proximaId: null, origemId: null, historico: [{ tipo: 'criada', em: t }], criadoEm: t });
+      status(`Cobrança de ${brl(valor)} criada para ${cliente(clienteId).nome}.`);
+    }
+    salvar();
+    $('dlg-cobranca').close();
+    render();
+  });
+  async function excluirCobranca(id) {
+    const c = db.cobrancas.find(x => x.id === id);
+    if (!c) return;
+    const ok = await confirmar(`Excluir a cobrança de ${brl(c.valor)} (${c.descricao})? Não dá para desfazer.`, 'Excluir');
+    if (!ok) return;
+    db.cobrancas = db.cobrancas.filter(x => x.id !== id);
+    salvar();
+    status('Cobrança excluída.');
+    render();
+  }
+
+  /* ===== MARCAR COMO PAGO (e recorrência) ===== */
+  let cobrancaPagando = null;
+  function abrirPago(id) {
+    cobrancaPagando = db.cobrancas.find(x => x.id === id);
+    if (!cobrancaPagando) return;
+    const cli = cliente(cobrancaPagando.clienteId) || {};
+    $('pago-sub').textContent = `${brl(cobrancaPagando.valor)} de ${cli.nome || 'cliente'} · ${cobrancaPagando.descricao}. Confira no extrato do banco antes de confirmar.`;
+    $('pago-data').value = hoje();
+    $('dlg-pago').showModal();
+  }
+  $('pago-form').addEventListener('submit', e => {
+    e.preventDefault();
+    const c = cobrancaPagando;
+    const data = /^\d{4}-\d{2}-\d{2}$/.test($('pago-data').value) ? $('pago-data').value : hoje();
+    const t = agoraISO();
+    c.status = 'paga';
+    c.pagaEm = data;
+    c.atualizadoEm = t;
+    c.historico.push({ tipo: 'pago', em: t, data });
+    let extra = '';
+    // mensal: cria a do mês seguinte uma vez só
+    if (c.recorrencia === 'mensal' && !c.proximaId) {
+      const venc = proximoMes(c.vencimento, c.diaVencimento || Number(c.vencimento.slice(8)));
+      const prox = { id: novoId(), clienteId: c.clienteId, valor: c.valor, descricao: c.descricao, vencimento: venc, diaVencimento: c.diaVencimento || Number(c.vencimento.slice(8)),
+        recorrencia: 'mensal', status: 'pendente', pagaEm: null, proximaId: null, origemId: c.id, historico: [{ tipo: 'criada', em: t, origem: c.id }], criadoEm: t, atualizadoEm: t };
+      db.cobrancas.push(prox);
+      c.proximaId = prox.id;
+      extra = ` A próxima, com vencimento em ${fmtData(venc)}, já foi criada.`;
+    }
+    salvar();
+    $('dlg-pago').close();
+    status(`Pagamento de ${brl(c.valor)} registrado.${extra}`);
+    render();
+  });
+  function desfazerPagamento(id) {
+    const c = db.cobrancas.find(x => x.id === id);
+    if (!c) return;
+    const t = agoraISO();
+    c.status = 'pendente';
+    c.pagaEm = null;
+    c.atualizadoEm = t;
+    c.historico.push({ tipo: 'pagamento-desfeito', em: t });
+    salvar();
+    status('Pagamento desfeito: a cobrança voltou para pendente.');
+    render();
+  }
+
+  /* ===== ENVIAR ===== */
+  let cobrancaEnviando = null;
+  const tomAtual = () => (document.querySelector('input[name="tom"]:checked') || {}).value || 'gentil';
+  function abrirEnviar(id) {
+    cobrancaEnviando = db.cobrancas.find(x => x.id === id);
+    if (!cobrancaEnviando) return;
+    if (!pixPronto()) { status('Complete os dados do Pix em Configurações antes de enviar.', true); return trocarAba('config'); }
+    const cli = cliente(cobrancaEnviando.clienteId) || {};
+    $('enviar-titulo').textContent = `Enviar para ${cli.nome || 'cliente'}`;
+    $('enviar-sub').textContent = `${brl(cobrancaEnviando.valor)} · ${cobrancaEnviando.descricao} · ${rotuloSituacao(cobrancaEnviando)}`;
+    document.querySelector(`input[name="tom"][value="${tomSugerido(cobrancaEnviando)}"]`).checked = true;
+    $('enviar-qr').hidden = true;
+    $('btn-mostrar-qr').setAttribute('aria-expanded', 'false');
+    $('btn-mostrar-qr').textContent = 'Mostrar QR Code';
+    msg('enviar-status', '');
+    atualizarEnvio();
+    $('dlg-enviar').showModal();
+  }
+  function atualizarEnvio() {
+    const c = cobrancaEnviando;
+    $('msg-previa').textContent = montarMensagem(c, tomAtual());
+    $('btn-enviar-whatsapp').href = linkEnvio(c, tomAtual());
+  }
+  document.querySelectorAll('input[name="tom"]').forEach(r => r.addEventListener('change', atualizarEnvio));
+  // o link abre o WhatsApp do cliente em nova aba; aqui só registramos o lembrete
+  $('btn-enviar-whatsapp').addEventListener('click', () => {
+    const c = cobrancaEnviando;
+    const t = agoraISO();
+    c.historico.push({ tipo: 'lembrete', em: t, tom: tomAtual() });
+    c.atualizadoEm = t;
+    salvar();
+    msg('enviar-status', `Lembrete enviado em ${fmtQuando(t)}. Volte aqui e marque como pago quando o dinheiro cair.`, 'ok');
+    render();
+  });
+  $('btn-copiar-msg').addEventListener('click', async () => {
+    const ok = await copiarTexto(montarMensagem(cobrancaEnviando, tomAtual()));
+    msg('enviar-status', ok ? 'Mensagem copiada.' : 'Não deu para copiar sozinho: selecione o texto acima e copie.', ok ? 'ok' : 'erro');
+  });
+  $('btn-mostrar-qr').addEventListener('click', () => {
+    const box = $('enviar-qr');
+    const abrir = box.hidden;
+    if (abrir) {
+      const ok = PIX.desenharQR($('qr-canvas'), pixDaCobranca(cobrancaEnviando), 6);
+      $('qr-canvas').hidden = !ok;
+      $('qr-nota').textContent = ok ? 'O cliente pode escanear com o app do banco.' : 'Não foi possível carregar o QR Code agora. O Pix copia e cola da mensagem funciona normalmente.';
+    }
+    box.hidden = !abrir;
+    $('btn-mostrar-qr').setAttribute('aria-expanded', String(abrir));
+    $('btn-mostrar-qr').textContent = abrir ? 'Esconder QR Code' : 'Mostrar QR Code';
+  });
+
+  /* ===== CONFIGURAÇÕES ===== */
+  const configurarCfgPix = ligarCamposPix('cfg');
+  function preencherConfig() {
+    $('cfg-negocio').value = db.config.negocio;
+    preencherPix('cfg');
+    configurarCfgPix();
+    $('cfg-recebedor').value = db.config.recebedor;
+    $('cfg-cidade').value = db.config.cidade;
+    ['gentil', 'neutro', 'firme'].forEach(t => { $('modelo-' + t).value = db.config.modelos[t]; });
+  }
+  $('cfg-form').addEventListener('submit', e => {
+    e.preventDefault();
+    const negocio = $('cfg-negocio').value.trim();
+    const chave = conferirChave('cfg', true);
+    const rec = lerRecebedor('cfg');
+    if (!negocio) msg('cfg-negocio-msg', 'Obrigatório', 'erro'); else msg('cfg-negocio-msg', '');
+    if (!chave.ok && !chave.erro) msg('cfg-chave-msg', 'Digite a sua chave Pix', 'erro');
+    if (!negocio || !chave.ok || !rec.ok) return status('Confira os campos marcados.', true);
+    Object.assign(db.config, { negocio, pix: { tipo: tipoPix('cfg'), chave: chave.chave, digitada: $('cfg-chave').value.trim() }, recebedor: rec.recebedor, cidade: rec.cidade });
+    salvar();
+    status('Dados do negócio e do Pix salvos.');
+  });
+  $('modelos-form').addEventListener('submit', e => {
+    e.preventDefault();
+    ['gentil', 'neutro', 'firme'].forEach(t => { db.config.modelos[t] = $('modelo-' + t).value.trim() || MODELOS_PADRAO[t]; });
+    salvar();
+    preencherConfig();
+    status('Modelos de mensagem salvos.');
+  });
+  $('modelos-padrao').addEventListener('click', async () => {
+    if (!(await confirmar('Voltar os três modelos de mensagem para o texto padrão?', 'Restaurar'))) return;
+    db.config.modelos = { ...MODELOS_PADRAO };
+    salvar();
+    preencherConfig();
+    status('Modelos restaurados.');
+  });
+
+  /* ===== BACKUP ===== */
+  $('btn-exportar').addEventListener('click', () => {
+    const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `warden-cobranca-${hoje()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    status('Backup exportado. Guarde o arquivo num lugar seguro.');
+  });
+  $('btn-importar').addEventListener('click', () => $('arquivo-backup').click());
+  $('onb-importar').addEventListener('click', () => $('arquivo-backup').click());
+  $('arquivo-backup').addEventListener('change', async e => {
+    const arquivo = e.target.files[0];
+    e.target.value = '';
+    if (!arquivo) return;
+    let dados;
+    try { dados = JSON.parse(await arquivo.text()); } catch (err) { return status('Esse arquivo não é um backup do Warden Cobrança.', true); }
+    if (!estruturaValida(dados)) return status('Esse arquivo não é um backup válido do Warden Cobrança (versão 1).', true);
+    const ok = await confirmar(`Substituir os dados deste aparelho (${db.clientes.length} clientes, ${db.cobrancas.length} cobranças) pelos do backup (${dados.clientes.length} clientes, ${dados.cobrancas.length} cobranças)?`, 'Importar');
+    if (!ok) return;
+    db = normalizar(dados);
+    salvar();
+    iniciarApp();
+    status(`Backup importado: ${db.clientes.length} clientes e ${db.cobrancas.length} cobranças.`);
+  });
+  $('btn-apagar').addEventListener('click', async () => {
+    if (!(await confirmar('Apagar todos os clientes, cobranças e configurações deste aparelho? Exporte um backup antes se quiser guardar.', 'Apagar tudo'))) return;
+    try { localStorage.removeItem(CHAVE); } catch (e) { /* nada a apagar */ }
+    db = estadoVazio();
+    iniciarApp();
+    status('Dados apagados deste aparelho.');
+  });
+
+  /* ===== PREMIUM ===== */
+  const check = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+  const PLANOS = {
+    gratis: ['Até 5 clientes', 'Você toca em Enviar', 'Marca o pago na mão', 'Painel básico'],
+    premium: ['Clientes ilimitados', 'Envio 100% automático (antes, no dia e depois do vencimento)', 'Baixa automática do Pix', 'Relatórios em PDF e Excel', 'Seus dados na nuvem, em qualquer aparelho', 'Sem a marca Warden nas mensagens']
+  };
+  function htmlPlanos() {
+    const lista = itens => `<ul>${itens.map(i => `<li>${check}<span>${i}</span></li>`).join('')}</ul>`;
+    const botao = PREMIUM.ativo
+      ? `<a class="btn btn-primary" href="/contato.html" data-premium-botao>Quero o Premium</a>`
+      : `<button type="button" class="btn btn-primary" disabled aria-disabled="true" data-premium-botao>Em breve</button>`;
+    return `
+      <div class="cb-planos">
+        <div class="cb-plano">
+          <h3>Grátis <span class="cb-selo neutro">Seu plano</span></h3>
+          <p class="cb-plano-preco">R$ 0</p>
+          ${lista(PLANOS.gratis)}
+        </div>
+        <div class="cb-plano premium">
+          <h3>Premium ${PREMIUM.ativo ? '' : '<span class="cb-selo">Em breve</span>'}</h3>
+          <p class="cb-plano-preco">${PREMIUM.ativo && PREMIUM.preco ? esc(PREMIUM.preco) : 'O Premium está chegando'}</p>
+          ${lista(PLANOS.premium)}
+          <div class="tool-acoes" style="margin-top:20px">${botao}</div>
+        </div>
+      </div>`;
+  }
+  function abrirPremium(motivo) {
+    $('premium-motivo').textContent = motivo === 'limite'
+      ? `O plano grátis vai até ${LIMITE_GRATIS} clientes. Com o Premium, você cadastra quantos quiser.`
+      : 'Compare o que cada plano oferece.';
+    $('dlg-premium').showModal();
+  }
+  document.querySelectorAll('[data-planos]').forEach(el => { el.innerHTML = htmlPlanos(); });
+
+  /* ===== INÍCIO ===== */
+  function iniciarApp() {
+    const pronto = db.config.pronto;
+    $('onb').hidden = pronto;
+    $('app').hidden = !pronto;
+    if (!pronto) {
+      $('onb-negocio').value = db.config.negocio || '';
+      preencherPix('onb');
+      configurarOnbPix();
+      $('onb-recebedor').value = db.config.recebedor || '';
+      $('onb-cidade').value = db.config.cidade || '';
+      mostrarEtapa(1, false);   // sem foco automático ao abrir a página (no celular, abriria o teclado)
+      return;
+    }
+    trocarAba('painel');
+  }
+  iniciarApp();
+  // outra aba do navegador mudou os dados: recarrega
+  window.addEventListener('storage', e => { if (e.key === CHAVE) { db = carregar(); iniciarApp(); } });
+</script>
+
 </body>
 </html>

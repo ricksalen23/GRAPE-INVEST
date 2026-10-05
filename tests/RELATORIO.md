@@ -1,23 +1,25 @@
 # Relatório de testes — Warden
 
-Gerado por `npm test` em 04/10/2026, 12:21:38.
+Gerado por `npm test` em 05/10/2026, 19:01:56.
 
-## Placar: 355 de 356 testes passando ❌
+## Placar: 373 de 373 testes passando ✅
 
 Cada célula mostra quantos testes daquela área passaram (✅ todos / ❌ passaram/total).
+"Cálculo / funções" inclui, no Warden Cobrança, cadastro, cobrança, envio, recorrência, limite, backup e celular.
 "Robustez" inclui os botões (copiar, PDF, PNG, WhatsApp, imprimir) e a máscara dos campos.
 "Faixa" é a faixa de cotações embaixo do nav (aparece, fica fixa, 8 itens, sem rolagem lateral).
 "Rodapé" é o rodapé do site (colunas, acordeão no celular, toques de 44px); as páginas institucionais (sobre, contato, privacidade, termos) vêm no fim da tabela.
 
-| Página | Cálculo | Robustez | Celular | Faixa | Rodapé | SEO | Acessibilidade | Status |
+| Página | Cálculo / funções | Robustez | Celular | Faixa | Rodapé | SEO | Acessibilidade | Status |
 |---|---|---|---|---|---|---|---|---|
 | Home | — | ✅ 1 | ✅ 5 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Warden Cobrança | ✅ 9 | — | ✅ 4 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
 | Juros compostos | ✅ 2 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
 | Simulador renda fixa | ✅ 1 | ✅ 2 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
 | Poupança x CDB x Tesouro | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
 | Viver de renda | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
 | Dividendos e preço teto | ✅ 2 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
-| Rentabilidade real | ✅ 1 | ✅ 1 | ❌ 2/3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ❌ |
+| Rentabilidade real | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
 | Conversor de taxas | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
 | Salário líquido | ✅ 5 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
 | Rescisão | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
@@ -49,8 +51,7 @@ Cada célula mostra quantos testes daquela área passaram (✅ todos / ❌ passa
 
 ## Testes que falharam
 
-- **rentabilidade-real › celular: em 375px não rola para o lado, nada cortado e o menu hambúrguer abre** (timedOut)
-  Tearing down "context" exceeded the test timeout of 90000ms.
+Nenhum.
 
 ## Revisão — o que foi encontrado
 

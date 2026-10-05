@@ -19,6 +19,7 @@
  *          taxaMensal, taxaMensalDe, parcelaPrice, aporteNecessario, serieAcumulacao,
  *          campoRendimento, copiarTexto, cardResultado, estiloGrafico,
  *          validarCpf/validarCnpj/validarDocumento + máscaras, valorPorExtenso, formatDataLonga, linkWhatsApp,
+ *          pix (BR Code, CRC, chave Pix, QR Code), validarTelefone/mascaraTelefone (WhatsApp com DDD),
  *          novoPdf/textoPdf/rodapePdf (jsPDF) e imprimir(elemento),
  *          calcINSS/calcIRRF/salarioLiquido/impostos13/impostosFerias (precisam de /assets/tabelas-2026.js).
  */
@@ -658,6 +659,191 @@
   // link que abre o WhatsApp com a mensagem pronta; sem número, a pessoa escolhe o contato
   const linkWhatsApp = (texto, numero = '') => `https://wa.me/${soDigitos(numero)}?text=${encodeURIComponent(texto)}`;
 
+  /* ===== PIX (BR Code estático, padrão EMV do Banco Central) =====
+   * Usado pelo gerador de QR Code Pix e pelo Warden Cobrança. Tudo no navegador; nenhum dado sai do aparelho.
+   *   Warden.pix.montarPayload({ chave, nome, cidade, valor, descricao, txid }) → "Pix copia e cola" com CRC
+   *   Warden.pix.validarChave(tipo, texto) → { ok, chave (formato do payload), erro }   tipo: cpf|cnpj|celular|email|aleatoria
+   *   Warden.pix.validarValor(texto) → { ok, valor (número ou null), erro }
+   *   Warden.pix.limparNome(s) / limparDescricao(s), mascaraChave(tipo, s), TIPOS_CHAVE (placeholder/ajuda por tipo)
+   *   QR (precisa da qrcodejs: https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js):
+   *     desenharQR(canvas, payload, pxPorModulo = 8) → true/false (sem a lib ou dados longos demais)
+   *     matrizQR(texto), desenharModulos(ctx, modelo, x0, y0, tam), MARGEM_QR */
+
+  // Um campo EMV: ID (2 dígitos) + tamanho do valor (2 dígitos) + valor.
+  // Ex.: campoEMV('58', 'BR') → '5802BR'. O padrão limita cada valor a 99 caracteres.
+  function campoEMV(id, valor) {
+    if (valor.length > 99) throw new Error(`Campo ${id} passou de 99 caracteres`);
+    return id + String(valor.length).padStart(2, '0') + valor;
+  }
+
+  // CRC16-CCITT (polinômio 0x1021, valor inicial 0xFFFF, sem reflexão e sem XOR final).
+  // Calculado sobre o payload inteiro, já incluindo o "6304" do próprio campo do CRC.
+  // Retorna 4 caracteres hexadecimais maiúsculos. O payload é só ASCII, então 1 caractere = 1 byte.
+  function crc16(texto) {
+    let crc = 0xFFFF;
+    for (let i = 0; i < texto.length; i++) {
+      crc ^= texto.charCodeAt(i) << 8;
+      for (let bit = 0; bit < 8; bit++) {
+        crc = (crc & 0x8000) ? (crc << 1) ^ 0x1021 : crc << 1;
+        crc &= 0xFFFF;
+      }
+    }
+    return crc.toString(16).toUpperCase().padStart(4, '0');
+  }
+
+  // Payload completo do Pix estático (o "Pix copia e cola").
+  // dados = { chave, nome, cidade, valor (número ou null), descricao ('' se não houver), txid (opcional) }
+  // chave, nome, cidade, descricao e txid já devem chegar validados e limpos (validarChave, limparNome, limparDescricao).
+  // Sem txid, a descrição também vira o identificador (comportamento do gerador de QR Code); sem nenhum, "***".
+  function montarPayloadPix({ chave, nome, cidade, valor, descricao = '', txid }) {
+    // 26: Merchant Account Information do Pix = GUI + chave (+ descrição, se couber nos 99 caracteres)
+    const gui = campoEMV('00', 'br.gov.bcb.pix');
+    let conta = gui + campoEMV('01', chave);
+    if (descricao && (conta + campoEMV('02', descricao)).length <= 99) conta += campoEMV('02', descricao);
+
+    const payload =
+      campoEMV('00', '01') +                                  // Payload Format Indicator
+      campoEMV('26', conta) +                                 // conta Pix
+      campoEMV('52', '0000') +                                // Merchant Category Code (não informado)
+      campoEMV('53', '986') +                                 // moeda: real (ISO 4217)
+      (valor ? campoEMV('54', valor.toFixed(2)) : '') +       // valor com ponto e 2 casas (opcional)
+      campoEMV('58', 'BR') +                                  // país
+      campoEMV('59', nome) +                                  // nome do recebedor (até 25)
+      campoEMV('60', cidade) +                                // cidade (até 15)
+      campoEMV('62', campoEMV('05', txid || descricao || '***')) +   // txid: identificador ou "***" (sem identificador)
+      '6304';                                                 // ID + tamanho do CRC, que entra no cálculo
+
+    return payload + crc16(payload);
+  }
+
+  const semAcento = s => s.normalize('NFD').replace(/\p{M}/gu, '');
+  // nome e cidade: maiúsculas, sem acento, só A-Z, 0-9 e espaço (o padrão não aceita outros caracteres)
+  const limparNome = s => semAcento(s).toUpperCase().replace(/[^A-Z0-9 ]/g, '').replace(/ {2,}/g, ' ').replace(/^ /, '');
+  // descrição / txid: só letras e números
+  const limparDescricao = s => semAcento(s).replace(/[^A-Za-z0-9]/g, '');
+
+  // DDDs que existem no Brasil
+  const DDDS = new Set('11 12 13 14 15 16 17 18 19 21 22 24 27 28 31 32 33 34 35 37 38 41 42 43 44 45 46 47 48 49 51 53 54 55 61 62 63 64 65 66 67 68 69 71 73 74 75 77 79 81 82 83 84 85 86 87 88 89 91 92 93 94 95 96 97 98 99'.split(' '));
+  // telefone: aceita com ou sem +55; sobram DDD + número (até 11 dígitos)
+  const digitosTelefone = s => { let d = soDigitos(s); if (d.length > 11 && d.startsWith('55')) d = d.slice(2); return d.slice(0, 11); };
+  // (11) 98765-4321 / (11) 3456-7890 — só para exibir no campo
+  function mascaraTelefone(valor) {
+    const d = digitosTelefone(valor);
+    if (d.length <= 2) return d.length ? '(' + d : '';
+    const n = d.slice(2);
+    const corte = n[0] === '9' ? 5 : 4;   // celular: 9xxxx-xxxx · fixo: xxxx-xxxx
+    if (n.length <= corte) return `(${d.slice(0, 2)}) ${n}`;
+    return `(${d.slice(0, 2)}) ${n.slice(0, corte)}-${n.slice(corte)}`;
+  }
+  // WhatsApp de um cliente: celular (DDD + 9 dígitos começando com 9) ou fixo (DDD + 8 dígitos, WhatsApp Business).
+  // → { vazio, ok, numero ('11987654321'), erro }
+  function validarTelefone(bruto) {
+    const d = digitosTelefone(bruto || '');
+    if (!d) return { vazio: true, ok: false, erro: '' };
+    if (d.length < 10) return { ok: false, erro: 'Use DDD + número' };
+    if (!DDDS.has(d.slice(0, 2))) return { ok: false, erro: `DDD ${d.slice(0, 2)} não existe` };
+    if (d.length === 11 && d[2] !== '9') return { ok: false, erro: 'Celular começa com 9 depois do DDD' };
+    if (d.length === 10 && !/[2-5]/.test(d[2])) return { ok: false, erro: 'Número incompleto: celular tem 9 dígitos depois do DDD' };
+    return { ok: true, numero: d };
+  }
+
+  // máscaras da chave Pix, só para exibir no campo
+  function mascaraChave(tipo, valor) {
+    if (tipo === 'cpf') return mascaraCpf(valor);
+    if (tipo === 'cnpj') return mascaraCnpj(valor);
+    if (tipo === 'celular') return mascaraTelefone(valor);
+    return valor;
+  }
+
+  const TIPOS_CHAVE = {
+    cpf:       { nome: 'CPF', placeholder: '000.000.000-00',     inputmode: 'numeric', ajuda: '11 números' },
+    cnpj:      { nome: 'CNPJ', placeholder: '00.000.000/0000-00', inputmode: 'numeric', ajuda: '14 números' },
+    celular:   { nome: 'Celular', placeholder: '(11) 98765-4321',    inputmode: 'tel',     ajuda: 'Com DDD. Vai no código como +55DDDNÚMERO' },
+    email:     { nome: 'E-mail', placeholder: 'voce@email.com.br',  inputmode: 'email',   ajuda: 'O e-mail cadastrado como chave no banco' },
+    aleatoria: { nome: 'Aleatória', placeholder: '123e4567-e89b-12d3-a456-426614174000', inputmode: 'text', ajuda: 'Copie do app do banco (36 caracteres)' }
+  };
+
+  // valida a chave e devolve no formato que vai no payload. { ok, chave, erro }
+  function validarChave(tipo, bruto) {
+    const v = String(bruto || '').trim();
+    if (!v) return { ok: false, erro: '' };
+    if (tipo === 'cpf') {
+      const d = soDigitos(v);
+      if (d.length < 11) return { ok: false, erro: 'CPF incompleto' };
+      return validarCpf(d) ? { ok: true, chave: d } : { ok: false, erro: 'CPF inválido: confira os números' };
+    }
+    if (tipo === 'cnpj') {
+      const d = soDigitos(v);
+      if (d.length < 14) return { ok: false, erro: 'CNPJ incompleto' };
+      return validarCnpj(d) ? { ok: true, chave: d } : { ok: false, erro: 'CNPJ inválido: confira os números' };
+    }
+    if (tipo === 'celular') {
+      const d = digitosTelefone(v);
+      if (d.length < 11) return { ok: false, erro: 'Use DDD + 9 dígitos' };
+      if (!DDDS.has(d.slice(0, 2))) return { ok: false, erro: `DDD ${d.slice(0, 2)} não existe` };
+      if (d[2] !== '9') return { ok: false, erro: 'Celular começa com 9 depois do DDD' };
+      return { ok: true, chave: '+55' + d };
+    }
+    if (tipo === 'email') {
+      const e = v.toLowerCase();
+      if (e.length > 77) return { ok: false, erro: 'E-mail longo demais para chave Pix (máx. 77)' };
+      return /^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+$/.test(e)
+        ? { ok: true, chave: e } : { ok: false, erro: 'E-mail inválido' };
+    }
+    // chave aleatória: UUID (aceita colada sem hífens e corrige)
+    let u = v.toLowerCase().replace(/\s/g, '');
+    if (/^[0-9a-f]{32}$/.test(u)) u = u.replace(/^(.{8})(.{4})(.{4})(.{4})(.{12})$/, '$1-$2-$3-$4-$5');
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(u)
+      ? { ok: true, chave: u } : { ok: false, erro: 'Chave aleatória tem 32 letras/números no formato 8-4-4-4-12' };
+  }
+
+  // valor em reais: aceita "150", "150,5", "1.500,00" ou "150.00". { ok, valor (número ou null), erro }
+  function validarValorPix(bruto) {
+    if (!/\d/.test(bruto)) return { ok: true, valor: null };
+    const n = Math.round(parseNumero(bruto) * 100) / 100;
+    if (!isFinite(n) || n <= 0) return { ok: false, erro: 'Valor precisa ser maior que zero' };
+    if (n.toFixed(2).length > 13) return { ok: false, erro: 'Valor alto demais' };
+    return { ok: true, valor: n };
+  }
+
+  /* QR Code: a qrcodejs calcula a matriz; o desenho é nosso: módulos com tamanho inteiro (nítido)
+   * e margem branca de 4 módulos em volta (a "zona de silêncio" que os bancos precisam para ler bem). */
+  const MARGEM_QR = 4;
+  let qrTemp = null;   // fora da página: só para a lib montar a matriz
+  function matrizQR(texto) {
+    if (!qrTemp) qrTemp = document.createElement('div');
+    qrTemp.innerHTML = '';
+    const qr = new window.QRCode(qrTemp, { text: texto, width: 64, height: 64, correctLevel: window.QRCode.CorrectLevel.M });
+    return qr._oQRCode;   // QRCodeModel: getModuleCount() / isDark(linha, coluna)
+  }
+  function desenharModulos(ctx, modelo, x0, y0, tamModulo) {
+    const n = modelo.getModuleCount();
+    ctx.fillStyle = '#000000';
+    for (let l = 0; l < n; l++)
+      for (let c = 0; c < n; c++)
+        if (modelo.isDark(l, c)) ctx.fillRect(x0 + (c + MARGEM_QR) * tamModulo, y0 + (l + MARGEM_QR) * tamModulo, tamModulo, tamModulo);
+  }
+  // desenha o QR em fundo branco no canvas; guarda a matriz em canvas._modelo. false: sem a lib ou dados longos demais
+  function desenharQR(canvas, payload, tam = 8) {
+    if (!window.QRCode) return false;
+    let modelo;
+    try { modelo = matrizQR(payload); } catch (e) { return false; }
+    const total = modelo.getModuleCount() + MARGEM_QR * 2;
+    canvas.width = canvas.height = total * tam;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    desenharModulos(ctx, modelo, 0, 0, tam);
+    canvas._modelo = modelo;
+    return true;
+  }
+
+  const pix = Object.freeze({
+    campoEMV, crc16, montarPayload: montarPayloadPix, limparNome, limparDescricao,
+    validarChave, validarValor: validarValorPix, mascaraChave, TIPOS_CHAVE,
+    MARGEM_QR, matrizQR, desenharModulos, desenharQR
+  });
+
   /* ===== PDF (jsPDF) E IMPRESSÃO =====
    * A página carrega o jsPDF: <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
    * const doc = Warden.novoPdf();  … doc.text(Warden.textoPdf('…'), x, y) …;  Warden.rodapePdf(doc);  doc.save('nome.pdf')
@@ -890,6 +1076,7 @@
     campoRendimento, copiarTexto,
     validarCpf, validarCnpj, validarDocumento, mascaraCpf, mascaraCnpj, mascaraDocumento,
     valorPorExtenso, formatDataLonga, linkWhatsApp,
+    pix, validarTelefone, mascaraTelefone,
     PDF, novoPdf, textoPdf, rodapePdf, imprimir,
     cardResultado, estiloGrafico, demonstrativo, barraComposicao
   };

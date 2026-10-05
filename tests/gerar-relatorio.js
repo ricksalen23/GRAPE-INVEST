@@ -11,7 +11,7 @@ const r = JSON.parse(fs.readFileSync(arqJson, 'utf8'));
 const limpar = s => String(s || '').replace(/\x1b\[[0-9;]*m/g, '');
 
 // título do teste "area: descrição" → coluna da tabela
-const COLUNA = { calculo: 'calculo', taxas: 'calculo', robustez: 'robustez', botoes: 'robustez', celular: 'celular', seo: 'seo', acessibilidade: 'acess', faixa: 'faixa', rodape: 'rodape', paginas: 'rodape', links: 'links' };
+const COLUNA = { calculo: 'calculo', cobranca: 'calculo', taxas: 'calculo', robustez: 'robustez', botoes: 'robustez', celular: 'celular', seo: 'seo', acessibilidade: 'acess', faixa: 'faixa', rodape: 'rodape', paginas: 'rodape', links: 'links' };
 const testes = [];
 (function andar(suite, caminho) {
   (suite.suites || []).forEach(s => andar(s, [...caminho, s.title]));
@@ -28,7 +28,7 @@ const testes = [];
 const total = testes.length;
 const passaram = testes.filter(t => t.ok).length;
 
-const linhas = [{ slug: 'home', nome: 'Home', grupos: ['home'] },
+const linhas = [{ slug: 'home', nome: 'Home', grupos: ['home'] }, { slug: 'cobranca', nome: 'Warden Cobrança', grupos: ['cobranca'] },
   ...FERRAMENTAS.map(f => ({ slug: f.slug, nome: f.nome, grupos: [f.slug] })),
   ...require('./ferramentas').INSTITUCIONAIS.map(p => ({ slug: p.slug, nome: p.nome, grupos: [p.slug] })),
   { slug: 'geral', nome: 'Geral (links, máscara de R$, taxas do BC, faixa, rodapé, sitemap, unicidade de SEO)', grupos: ['geral'] }];
@@ -58,11 +58,12 @@ Gerado por \`npm test\` em ${agora}.
 ## Placar: ${passaram} de ${total} testes passando ${passaram === total ? '✅' : '❌'}
 
 Cada célula mostra quantos testes daquela área passaram (✅ todos / ❌ passaram/total).
+"Cálculo / funções" inclui, no Warden Cobrança, cadastro, cobrança, envio, recorrência, limite, backup e celular.
 "Robustez" inclui os botões (copiar, PDF, PNG, WhatsApp, imprimir) e a máscara dos campos.
 "Faixa" é a faixa de cotações embaixo do nav (aparece, fica fixa, 8 itens, sem rolagem lateral).
 "Rodapé" é o rodapé do site (colunas, acordeão no celular, toques de 44px); as páginas institucionais (sobre, contato, privacidade, termos) vêm no fim da tabela.
 
-| Página | Cálculo | Robustez | Celular | Faixa | Rodapé | SEO | Acessibilidade | Status |
+| Página | Cálculo / funções | Robustez | Celular | Faixa | Rodapé | SEO | Acessibilidade | Status |
 |---|---|---|---|---|---|---|---|---|
 ${tabela.join('\n')}
 
