@@ -1,8 +1,8 @@
 # Relatório de testes — Warden
 
-Gerado por `npm test` em 05/10/2026, 19:01:56.
+Gerado por `npm test` em 05/10/2026, 19:27:22.
 
-## Placar: 373 de 373 testes passando ✅
+## Placar: 376 de 376 testes passando ✅
 
 Cada célula mostra quantos testes daquela área passaram (✅ todos / ❌ passaram/total).
 "Cálculo / funções" inclui, no Warden Cobrança, cadastro, cobrança, envio, recorrência, limite, backup e celular.
@@ -13,7 +13,7 @@ Cada célula mostra quantos testes daquela área passaram (✅ todos / ❌ passa
 | Página | Cálculo / funções | Robustez | Celular | Faixa | Rodapé | SEO | Acessibilidade | Status |
 |---|---|---|---|---|---|---|---|---|
 | Home | — | ✅ 1 | ✅ 5 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
-| Warden Cobrança | ✅ 9 | — | ✅ 4 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
+| Warden Cobrança | ✅ 12 | — | ✅ 4 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
 | Juros compostos | ✅ 2 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
 | Simulador renda fixa | ✅ 1 | ✅ 2 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |
 | Poupança x CDB x Tesouro | ✅ 1 | ✅ 1 | ✅ 3 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ 1 | ✅ |

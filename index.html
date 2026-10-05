@@ -127,6 +127,10 @@
     color: var(--accent); font-family: 'Inter', sans-serif; font-size: .85rem; font-weight: 600;
     display: flex; align-items: center; justify-content: center; margin-top: -3px;
   }
+  .cobranca-cta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; }
+  /* link discreto para a seção Planos do /cobranca/ */
+  .cobranca-planos { display: inline-flex; align-items: center; min-height: 44px; color: var(--muted); font-size: .95rem; text-decoration: underline; text-underline-offset: 3px; }
+  .cobranca-planos:hover { color: var(--text); }
   .cobranca-benefits {
     list-style: none; display: flex; flex-direction: column; gap: 12px;
     padding-top: 24px; margin-bottom: 36px; border-top: 1px solid var(--border);
@@ -188,6 +192,7 @@
     section.cobranca-section { padding-top: 24px; }
     body > section.cobranca-section:first-of-type { --first-gap: 32px; }
     .cobranca-copy .btn { width: 100%; min-height: 52px; }
+    .cobranca-planos { width: 100%; justify-content: center; }
     .cobranca-steps { gap: 20px; }
     .cobranca-steps li { font-size: 1.05rem; }
     .cobranca-benefits li { font-size: 1rem; }
@@ -357,7 +362,10 @@
         </li>
       </ul>
 
-      <a class="btn btn-primary fade-up" href="/cobranca/">Quero usar o Warden Cobrança</a>
+      <div class="cobranca-cta fade-up">
+        <a class="btn btn-primary" href="/cobranca/">Quero usar o Warden Cobrança</a>
+        <a class="cobranca-planos" href="/cobranca/#planos">Ver planos</a>
+      </div>
     </div>
 
     <!-- Mockup de celular: conversa de exemplo (decorativa) -->

@@ -156,6 +156,8 @@
   .cb-qr canvas { width: min(240px, 70vw); height: auto; aspect-ratio: 1; image-rendering: pixelated; border-radius: 10px; background: #FFFFFF; }
 
   /* planos (modal do Premium) */
+  .cb-planos-secao { border-top: 1px solid var(--border); }
+  .cb-planos-vitrine { margin-top: 32px; max-width: 900px; }
   .cb-planos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
   .cb-plano { border: 1px solid var(--border); border-radius: 16px; padding: 22px; background: var(--bg); }
   .cb-plano.premium { border-color: var(--accent); }
@@ -193,7 +195,7 @@
 
 <script src="/assets/nav.js"></script>
 
-<section class="tool-top">
+<section class="tool-top" id="ferramenta">
   <div class="section-inner">
 
     <header class="tool-head">
@@ -384,6 +386,16 @@
   </div>
 </section>
 
+<!-- PLANOS (mesma tabela do modal do Premium: htmlPlanos) -->
+<section class="cb-planos-secao" id="planos">
+  <div class="section-inner">
+    <p class="section-label">Planos</p>
+    <h2 class="section-title">Grátis para começar. Premium para cobrar no automático.</h2>
+    <p class="section-sub">O plano grátis organiza e prepara cada cobrança; você só toca em Enviar. O Premium envia sozinho e confirma o pagamento por você.</p>
+    <div class="cb-planos-vitrine" data-planos="vitrine"></div>
+  </div>
+</section>
+
 <!-- EXPLICAÇÃO + FAQ -->
 <section class="tool-prose-section">
   <div class="section-inner">
@@ -541,7 +553,7 @@
   <button type="button" class="cb-fechar" data-fechar aria-label="Fechar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
   <h2 id="premium-titulo">Warden Cobrança Premium</h2>
   <p class="cb-dlg-sub" id="premium-motivo"></p>
-  <div data-planos></div>
+  <div data-planos="modal"></div>
 </dialog>
 
 <script src="/assets/tools.js"></script>
@@ -562,6 +574,9 @@
   const CHAVE = 'warden:cobranca';
   const VERSAO = 1;
   const LIMITE_GRATIS = 5;
+  // plano de quem está usando: por enquanto todos são grátis; o Premium virá de uma conta, não do aparelho
+  const PLANO = 'gratis';
+  // linha da marca no fim das mensagens do plano grátis (fora dos modelos editáveis; o Premium não leva)
   const ASSINATURA = 'Enviado pelo Warden Cobrança · wardenfinance.com.br/cobranca';
   const MODELOS_PADRAO = Object.freeze({
     gentil: 'Oi, {nome}! Tudo bem?\nPassando para lembrar do pagamento de {descricao}, no valor de {valor}, com vencimento em {vencimento}.\n\nPara facilitar, é só copiar o código abaixo e colar no app do seu banco (Pix copia e cola):\n{pix}\n\nQualquer dúvida, é só chamar. Obrigado!\n{negocio}',
@@ -657,7 +672,8 @@
     // espaço comum no lugar do espaço fixo (U+00A0) do formatador: o texto é copiado e colado em outros apps
     const vars = { nome: primeiroNome(cli.nome), valor: brl(c.valor).replace(/\u00a0/g, ' '), vencimento: fmtData(c.vencimento), descricao: c.descricao, negocio: db.config.negocio, pix: pixDaCobranca(c) };
     const modelo = db.config.modelos[tom] || MODELOS_PADRAO[tom];
-    return modelo.replace(/\{(nome|valor|vencimento|descricao|negocio|pix)\}/g, (_, k) => vars[k]).trim() + '\n\n' + ASSINATURA;
+    const texto = modelo.replace(/\{(nome|valor|vencimento|descricao|negocio|pix)\}/g, (_, k) => vars[k]).trim();
+    return PLANO === 'premium' ? texto : texto + '\n\n' + ASSINATURA;
   }
   const linkEnvio = (c, tom) => linkWhatsApp(montarMensagem(c, tom), '55' + (cliente(c.clienteId) || {}).whatsapp);
 
@@ -1222,7 +1238,8 @@
     gratis: ['Até 5 clientes', 'Você toca em Enviar', 'Marca o pago na mão', 'Painel básico'],
     premium: ['Clientes ilimitados', 'Envio 100% automático (antes, no dia e depois do vencimento)', 'Baixa automática do Pix', 'Relatórios em PDF e Excel', 'Seus dados na nuvem, em qualquer aparelho', 'Sem a marca Warden nas mensagens']
   };
-  function htmlPlanos() {
+  // onde = "modal" (selo "Seu plano") ou "vitrine" (seção Planos, com o botão "Usar grátis")
+  function htmlPlanos(onde) {
     const lista = itens => `<ul>${itens.map(i => `<li>${check}<span>${i}</span></li>`).join('')}</ul>`;
     const botao = PREMIUM.ativo
       ? `<a class="btn btn-primary" href="/contato.html" data-premium-botao>Quero o Premium</a>`
@@ -1230,9 +1247,10 @@
     return `
       <div class="cb-planos">
         <div class="cb-plano">
-          <h3>Grátis <span class="cb-selo neutro">Seu plano</span></h3>
+          <h3>Grátis ${onde === 'modal' ? '<span class="cb-selo neutro">Seu plano</span>' : ''}</h3>
           <p class="cb-plano-preco">R$ 0</p>
           ${lista(PLANOS.gratis)}
+          ${onde === 'vitrine' ? '<div class="tool-acoes" style="margin-top:20px"><a class="btn btn-secondary" href="#ferramenta">Usar grátis</a></div>' : ''}
         </div>
         <div class="cb-plano premium">
           <h3>Premium ${PREMIUM.ativo ? '' : '<span class="cb-selo">Em breve</span>'}</h3>
@@ -1248,7 +1266,7 @@
       : 'Compare o que cada plano oferece.';
     $('dlg-premium').showModal();
   }
-  document.querySelectorAll('[data-planos]').forEach(el => { el.innerHTML = htmlPlanos(); });
+  document.querySelectorAll('[data-planos]').forEach(el => { el.innerHTML = htmlPlanos(el.dataset.planos); });
 
   /* ===== INÍCIO ===== */
   function iniciarApp() {

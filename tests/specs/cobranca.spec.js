@@ -385,6 +385,22 @@ test.describe('cobranca', () => {
     semErros(erros);
   });
 
+  test('cobranca: no Premium (PLANO = "premium") a mensagem termina no modelo, sem a linha "Enviado pelo Warden Cobrança"', async ({ page }) => {
+    await page.route('**/cobranca/', async route => {
+      const resp = await route.fetch();
+      const html = (await resp.text()).replace("const PLANO = 'gratis';", "const PLANO = 'premium';");
+      await route.fulfill({ response: resp, body: html });
+    });
+    const erros = await abrirCom(page, base({ clientes: [cli('c1', 'Mariana Souza', '11987654321')], cobrancas: [cob('k1', 'c1', 99.9, '2026-10-02')] }));
+    await page.locator('#lista-hoje [data-acao="enviar"]').click();
+    const texto = await page.locator('#msg-previa').textContent();
+    expect(texto).not.toContain('Enviado pelo Warden Cobrança');
+    expect(texto.endsWith('\nStudio Bem-Estar')).toBe(true);   // último trecho do modelo Neutro (vence hoje)
+    const href = await page.locator('#btn-enviar-whatsapp').getAttribute('href');
+    expect(decodeURIComponent(href.split('?text=')[1])).toBe(texto);
+    semErros(erros);
+  });
+
   test('celular: em 375px, onboarding, abas, listas e a janela de envio sem rolagem lateral', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 800 });
     const rolagem = () => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
@@ -412,5 +428,66 @@ test.describe('cobranca', () => {
     const dlg = await page.locator('#dlg-enviar').evaluate(d => { const r = d.getBoundingClientRect(); return [r.left, r.right]; });
     expect(dlg[0]).toBeGreaterThanOrEqual(15);
     expect(dlg[1]).toBeLessThanOrEqual(360);
+  });
+});
+
+/* ===== VITRINE DO PREMIUM ===== */
+const GRATIS = ['Até 5 clientes', 'Você toca em Enviar', 'Marca o pago na mão', 'Painel básico'];
+const PREMIUM_ITENS = ['Clientes ilimitados', 'Envio 100% automático (antes, no dia e depois do vencimento)', 'Baixa automática do Pix', 'Relatórios em PDF e Excel', 'Seus dados na nuvem, em qualquer aparelho', 'Sem a marca Warden nas mensagens'];
+const lerPlanos = (page, onde) => page.locator(`[data-planos="${onde}"] .cb-plano`).evaluateAll(l => l.map(p => ({
+  nome: p.querySelector('h3').childNodes[0].textContent.trim(),
+  preco: p.querySelector('.cb-plano-preco').textContent.trim(),
+  itens: [...p.querySelectorAll('li')].map(li => li.textContent.trim())
+})));
+
+test.describe('cobranca', () => {
+  test('cobranca: seção Planos com a tabela Grátis x Premium; Premium "Em breve" desabilitado e "O Premium está chegando"', async ({ page }) => {
+    const erros = await abrir(page, URL);
+    const secao = page.locator('#planos');
+    await expect(secao.locator('h2')).toHaveText('Grátis para começar. Premium para cobrar no automático.');
+    expect(await lerPlanos(page, 'vitrine')).toEqual([
+      { nome: 'Grátis', preco: 'R$ 0', itens: GRATIS },
+      { nome: 'Premium', preco: 'O Premium está chegando', itens: PREMIUM_ITENS }
+    ]);
+    const botao = secao.locator('[data-premium-botao]');
+    await expect(botao).toHaveText('Em breve');
+    await expect(botao).toBeDisabled();
+    // "Usar grátis" leva de volta à ferramenta
+    expect(await secao.locator('a', { hasText: 'Usar grátis' }).getAttribute('href')).toBe('#ferramenta');
+    // o modal mostra a mesma tabela (mesma função), com o selo "Seu plano"
+    await page.evaluate(() => document.getElementById('dlg-premium').showModal());
+    expect(await lerPlanos(page, 'modal')).toEqual(await lerPlanos(page, 'vitrine'));
+    await expect(page.locator('#dlg-premium .cb-selo.neutro')).toHaveText('Seu plano');
+    semErros(erros);
+  });
+
+  test('cobranca: com PREMIUM = { preco, ativo: true }, aparece o preço e o botão "Quero o Premium"', async ({ page }) => {
+    await page.route('**/cobranca/', async route => {
+      const resp = await route.fetch();
+      const html = (await resp.text()).replace(/const PREMIUM = \{[^}]*\};/, 'const PREMIUM = { preco: "R$ 19,90 por mês", ativo: true };');
+      await route.fulfill({ response: resp, body: html });
+    });
+    const erros = await abrir(page, URL);
+    const premium = page.locator('[data-planos="vitrine"] .cb-plano.premium');
+    await expect(premium.locator('.cb-plano-preco')).toHaveText('R$ 19,90 por mês');
+    await expect(premium.locator('.cb-selo')).toHaveCount(0);
+    const botao = premium.locator('[data-premium-botao]');
+    await expect(botao).toHaveText('Quero o Premium');
+    await expect(botao).toBeEnabled();
+    expect(await botao.getAttribute('href')).toBe('/contato.html');
+    semErros(erros);
+  });
+
+  test('cobranca: "Ver planos" da home leva à seção Planos; em 375px a vitrine não rola para o lado', async ({ page }) => {
+    let erros = await abrir(page, '/index.html');
+    const link = page.locator('#cobranca a.cobranca-planos');
+    await expect(link).toHaveText('Ver planos');
+    expect(await link.getAttribute('href')).toBe('/cobranca/#planos');
+    semErros(erros);
+    await page.setViewportSize({ width: 375, height: 800 });
+    erros = await abrir(page, '/cobranca/#planos');
+    await expect(page.locator('#planos')).toBeInViewport();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(0);
+    semErros(erros);
   });
 });
