@@ -119,7 +119,7 @@ Cada ferramenta é uma página em `/ferramentas/<slug>.html`. Para lançar: crie
 
 ```js
 const HERO_VIDEO = {
-  ativo: true, titulo: "Seu dinheiro tem um guardião.", destaque: "guardião",
+  ativo: true, titulo: "Bem-vindo à Warden Finance.", destaque: "Warden Finance",
   desktop: { webm: "/assets/video/hero-1080.webm", mp4: "/assets/video/hero-1080.mp4", poster: "/assets/video/hero-poster.jpg" },
   mobile:  { webm: "/assets/video/hero-mobile.webm", mp4: "/assets/video/hero-mobile.mp4", poster: "/assets/video/hero-poster-mobile.jpg" }
 };
@@ -127,7 +127,7 @@ const HERO_VIDEO = {
 
 - **Versões:** até 768px usa `mobile` (720×1080, recorte vertical do leão), acima `desktop` (1920×1080). O JS escolhe a versão **antes** de pôr as fontes (`<source>` webm + mp4) no `<video>`, então só uma é baixada; se a tela mudar de faixa, troca as fontes e recarrega. Atributos: `autoplay muted loop playsinline preload="metadata"`.
 - **O celular toca o vídeo.** Só o poster (`<img>` da versão da tela, e o vídeo nem é baixado) com `prefers-reduced-motion`, economia de dados (`navigator.connection.saveData`) ou conexão `2g`/`slow-2g`.
-- **Layout:** 85vh no desktop, 75svh no celular (`object-position` 40% center / center). Embaixo, sobre o gradiente escuro: título em Fraunces (o `destaque` em `--accent`), subtítulo "Bem-vindo à Warden Finance." e os botões "Conhecer o Warden Cobrança" (`/cobranca/`) e "Explorar ferramentas" (`abrirFerramentas` do `nav.js`: mega-menu no desktop, menu mobile até 900px). Subtítulo e botões ficam no `<template id="hero-video-tpl">`.
+- **Layout:** 85vh no desktop, 75svh no celular (`object-position` 40% center / center). Embaixo, sobre o gradiente escuro: título em Fraunces (o `destaque` em `--accent`), sem subtítulo, e logo abaixo os botões "Conhecer o Warden Cobrança" (`/cobranca/`) e "Explorar ferramentas" (`abrirFerramentas` do `nav.js`: mega-menu no desktop, menu mobile até 900px). Os botões ficam no `<template id="hero-video-tpl">`; o título é montado pelo script a partir do `HERO_VIDEO`. O hero não tem `aria-label`: o nome dele para leitores de tela é o próprio `<h1>`.
 - **titulo** vira o `<h1>` da home (o oculto sai). Vazio = sem título, e o `<h1>` oculto continua.
 - `ativo: false` = a seção não existe (nem espaço) e nada de `/assets/video/` é baixado.
 - **Trocar o vídeo:** arquivos em `/assets/video/` (nunca o original 4K). Gerados com ffmpeg a partir do original com um filtro de loop sem emenda (o 1º segundo entra no fim com `xfade` de 1 s; o `offset` é a duração − 2 s): `scale=1920:1080:flags=lanczos,fps=30,split[a][b];[a]trim=start=1,setpts=PTS-STARTPTS[main];[b]trim=0:1,setpts=PTS-STARTPTS[head];[main][head]xfade=transition=fade:duration=1:offset=<dur-2>,format=yuv420p`. MP4: `-an -c:v libx264 -preset slow -crf 29 -profile:v high -movflags +faststart`; WebM: `-an -c:v libvpx-vp9 -b:v 0 -crf 42 -row-mt 1`; mobile = o MP4 de 1080p com `-vf "crop=720:1080:<x>:0"`; posters = 1º quadro (`-frames:v 1 -q:v 4`). Tamanhos de hoje: 3,3 MB, 2,0 MB, 1,3 MB e 1,0 MB (cada vídeo até ~4 MB).

@@ -13,8 +13,8 @@
      desktop: telas acima de 768px; mobile: até 768px (vídeo vertical). Só a versão da tela é baixada. */
   const HERO_VIDEO = {
     ativo: true,
-    titulo: "Seu dinheiro tem um guardião.",
-    destaque: "guardião",
+    titulo: "Bem-vindo à Warden Finance.",
+    destaque: "Warden Finance",
     desktop: { webm: "/assets/video/hero-1080.webm", mp4: "/assets/video/hero-1080.mp4", poster: "/assets/video/hero-poster.jpg" },
     mobile: { webm: "/assets/video/hero-mobile.webm", mp4: "/assets/video/hero-mobile.mp4", poster: "/assets/video/hero-poster-mobile.jpg" }
   };
@@ -122,7 +122,6 @@
     font-size: clamp(2.1rem, 6vw, 4.2rem); line-height: 1.06; max-width: 16ch;
   }
   .hero-video-titulo em { font-style: normal; color: var(--accent); }
-  .hero-video-sub { margin-top: 18px; max-width: 34rem; font-size: clamp(1rem, 1.5vw, 1.2rem); line-height: 1.6; color: rgba(243,241,234,.88); }
   .hero-video-acoes { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
   /* contorno mais visível sobre o vídeo */
   .hero-video .btn-secondary { background: rgba(0,0,0,.35); border-color: rgba(243,241,234,.45); }
@@ -310,7 +309,6 @@
     <div class="hero-video-midia" aria-hidden="true"></div>
     <div class="hero-video-sombra" aria-hidden="true"></div>
     <div class="section-inner hero-video-conteudo">
-      <p class="hero-video-sub">Bem-vindo à Warden Finance.</p>
       <div class="hero-video-acoes">
         <a class="btn btn-primary" href="/cobranca/">Conhecer o Warden Cobrança</a>
         <button type="button" class="btn btn-secondary" data-explorar>Explorar ferramentas</button>

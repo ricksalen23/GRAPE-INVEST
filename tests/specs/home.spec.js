@@ -29,7 +29,7 @@ async function abrirComHero(page, cfg, { largura = 1440, altura = 900, movimento
   return { erros, videos, posters };
 }
 const COMPLETO = {
-  ativo: true, titulo: 'Seu dinheiro tem um guardião.', destaque: 'guardião',
+  ativo: true, titulo: 'Bem-vindo à Warden Finance.', destaque: 'Warden Finance',
   desktop: { webm: '/assets/video/d.webm', mp4: '/assets/video/d.mp4', poster: '/assets/video/d.png' },
   mobile: { webm: '/assets/video/m.webm', mp4: '/assets/video/m.mp4', poster: '/assets/video/m.png' }
 };
@@ -47,7 +47,7 @@ test.describe('home', () => {
   test('hero: a config de hoje está ligada, com título, e os 6 arquivos de /assets/video/ existem e são leves', async ({ page }) => {
     const erros = await abrir(page, '/index.html');
     const cfg = await page.evaluate(() => HERO_VIDEO);
-    expect(cfg).toMatchObject({ ativo: true, titulo: 'Seu dinheiro tem um guardião.', destaque: 'guardião' });
+    expect(cfg).toMatchObject({ ativo: true, titulo: 'Bem-vindo à Warden Finance.', destaque: 'Warden Finance' });
     const arquivos = { 'desktop.webm': cfg.desktop.webm, 'desktop.mp4': cfg.desktop.mp4, 'desktop.poster': cfg.desktop.poster,
       'mobile.webm': cfg.mobile.webm, 'mobile.mp4': cfg.mobile.mp4, 'mobile.poster': cfg.mobile.poster };
     for (const [qual, url] of Object.entries(arquivos)) {
@@ -90,18 +90,21 @@ test.describe('home', () => {
     expect(r.enquadramento).toBe('40% 50%');
     expect(r.midiaOculta).toBe('true');
     await expect(page.locator('#inicio .hero-video-sombra')).toHaveCount(1);
-    // título (único h1) com "guardião" em destaque, subtítulo e os dois botões
-    expect(await h1s(page)).toEqual([{ texto: 'Seu dinheiro tem um guardião.', oculto: false }]);
+    // título (único h1) com "Warden Finance" em destaque e, embaixo, só os dois botões (sem subtítulo)
+    expect(await h1s(page)).toEqual([{ texto: 'Bem-vindo à Warden Finance.', oculto: false }]);
     await expect(page.locator('#inicio h1')).toBeVisible();
     const titulo = await page.locator('#inicio h1').evaluate(h => ({
-      fonte: getComputedStyle(h).fontFamily, destaque: h.querySelector('em').textContent,
+      fonte: getComputedStyle(h).fontFamily, peso: getComputedStyle(h).fontWeight, tamanho: getComputedStyle(h).fontSize, destaque: h.querySelector('em').textContent,
       cor: getComputedStyle(h.querySelector('em')).color, acento: getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()
     }));
     expect(titulo.fonte).toMatch(/^"?Fraunces/);
-    expect(titulo.destaque).toBe('guardião');
+    expect(titulo.peso).toBe('600');
+    expect(titulo.tamanho).toBe('67.2px');   // clamp(2.1rem, 6vw, 4.2rem) em 1440px
+    expect(titulo.destaque).toBe('Warden Finance');
     expect(titulo.cor).toBe('rgb(200, 242, 107)');   // --accent #C8F26B
     expect(titulo.acento.toUpperCase()).toBe('#C8F26B');
-    await expect(page.locator('#inicio .hero-video-sub')).toHaveText('Bem-vindo à Warden Finance.');
+    expect(await page.locator('#inicio .hero-video-conteudo > *').evaluateAll(l => l.map(el => el.className))).toEqual(['hero-video-titulo', 'hero-video-acoes']);
+    expect(await page.locator('#inicio p').count(), 'nenhum texto pequeno no hero').toBe(0);
     const conhecer = page.locator('#inicio a.btn-primary');
     await expect(conhecer).toHaveText('Conhecer o Warden Cobrança');
     expect(await conhecer.getAttribute('href')).toBe('/cobranca/');
