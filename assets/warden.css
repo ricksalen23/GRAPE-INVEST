@@ -667,9 +667,7 @@ section { padding: 96px 5%; position: relative; }
 .rodape-inner { max-width: 1180px; margin: 0 auto; display: grid; grid-template-columns: minmax(200px, 1fr) 4.2fr; gap: 48px; }
 .rodape-logo { display: inline-flex; align-items: center; min-height: 44px; }
 .rodape-logo img { height: 36px; width: auto; display: block; }
-.rodape-frase { color: var(--muted); font-size: .95rem; line-height: 1.6; margin: 14px 0 22px; max-width: 300px; }
-.rodape-frase:last-child { margin-bottom: 0; }   /* sem redes preenchidas, sem espaço vazio embaixo */
-.rodape-redes { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; }
+.rodape-redes { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; margin-top: 14px; }
 .rodape-redes a {
   width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center;
   border: 1px solid var(--border); border-radius: 10px; color: var(--muted); transition: color .2s, border-color .2s;
@@ -704,7 +702,6 @@ section { padding: 96px 5%; position: relative; }
 @media (max-width: 900px) {
   .rodape { padding: 48px 16px calc(28px + env(safe-area-inset-bottom, 0px)); }
   .rodape-inner { gap: 28px; }
-  .rodape-frase { font-size: 1rem; }
   .rodape-links { grid-template-columns: 1fr; gap: 0; row-gap: 0; border-top: 1px solid var(--border); }
   .rodape-col { border-bottom: 1px solid var(--border); }
   .rodape-col summary { min-height: 52px; cursor: pointer; }

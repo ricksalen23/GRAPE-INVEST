@@ -31,7 +31,8 @@ const lerRodape = page => page.evaluate(() => {
       links: [...c.querySelectorAll('a')].map(a => a.textContent.trim()),
       verTodas: !!c.querySelector('[data-ver-todas]')
     })),
-    frase: r.querySelector('.rodape-frase').textContent.trim(),
+    marca: [...r.querySelector('.rodape-marca').children].map(el => el.className),
+    textoMarca: r.querySelector('.rodape-marca').textContent.trim(),
     logo: r.querySelector('.rodape-logo img').getAttribute('src'),
     base: r.querySelector('.rodape-base').innerText,
     rolagem: document.documentElement.scrollWidth - document.documentElement.clientWidth
@@ -47,7 +48,8 @@ for (const p of PAGINAS) {
       expect(d.quantos, 'um rodapé').toBe(1);
       expect(d.noFim, 'rodapé no fim da página').toBe(true);
       expect(d.logo).toBe('/warden-logo-cropped-transparent.png');
-      expect(d.frase).toBe('Ferramentas financeiras gratuitas e cobrança automática no WhatsApp.');
+      expect(d.marca, 'marca: só a logo (sem frase embaixo)').toEqual(['rodape-logo']);
+      expect(d.textoMarca, 'nenhum texto embaixo da logo').toBe('');
       expect(d.colunas.map(c => c.titulo)).toEqual([...Object.keys(COLUNAS_ESPERADAS), 'Warden']);
       expect(d.colunas.every(c => c.aberta), 'colunas abertas no desktop').toBe(true);
       expect(d.base).toContain('© 2026 Warden Finance. Todos os direitos reservados.');
@@ -142,8 +144,9 @@ test.describe('geral', () => {
     let erros = await abrir(page, '/ferramentas/ferias.html');
     expect(await page.locator('.rodape-redes').count(), 'bloco de redes').toBe(0);
     expect(await page.locator('footer.rodape a[href*="wa.me"]').count(), 'WhatsApp no rodapé').toBe(0);
-    // a frase da marca é o último item da coluna, sem margem sobrando embaixo
-    expect(await page.locator('.rodape-frase').evaluate(el => getComputedStyle(el).marginBottom)).toBe('0px');
+    // sem redes e sem frase, a logo é o único item da coluna da marca
+    expect(await page.locator('.rodape-marca > *').evaluateAll(l => l.map(el => el.className))).toEqual(['rodape-logo']);
+    expect(await page.locator('.rodape-frase').count(), 'frase da marca').toBe(0);
     expect(await page.locator('.rodape-base').innerText()).not.toMatch(/CNPJ\s*\d/);
     semErros(erros);
     erros = await abrir(page, '/contato.html');
@@ -176,6 +179,9 @@ test.describe('geral', () => {
     // ícones em SVG de linha (sem emoji)
     const icones = await page.locator('.rodape-redes a svg').evaluateAll(l => l.map(s => [s.getAttribute('fill'), s.getAttribute('stroke')]));
     expect(icones).toEqual(Array(3).fill(['none', 'currentColor']));
+    // sem a frase, os ícones vêm logo abaixo da logo, com um respiro (não colados)
+    const vao = await page.evaluate(() => document.querySelector('.rodape-redes').getBoundingClientRect().top - document.querySelector('.rodape-logo').getBoundingClientRect().bottom);
+    expect(vao).toBeGreaterThanOrEqual(12);
     expect(await page.locator('.rodape-base').innerText()).toContain('Exemplo Ltda · CNPJ 00.000.000/0001-00');
     semErros(erros);
     erros = await abrir(page, '/contato.html');

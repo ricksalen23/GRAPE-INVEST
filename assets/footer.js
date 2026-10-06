@@ -73,7 +73,6 @@ const FOOTER_CONFIG = { instagram: "", tiktok: "", youtube: "", whatsapp: "55649
   <div class="rodape-inner">
     <div class="rodape-marca">
       <a class="rodape-logo" href="${isHome ? '#' : '/'}"><img src="/warden-logo-cropped-transparent.png" alt="Warden Finance" width="190" height="36" loading="lazy"></a>
-      <p class="rodape-frase">Ferramentas financeiras gratuitas e cobrança automática no WhatsApp.</p>
       ${REDES.length ? `<ul class="rodape-redes">${REDES.map(r => `<li><a href="${esc(r.url)}" target="_blank" rel="noopener" aria-label="${r.nome} da Warden" data-rede="${r.id}">${svg(r.svg)}</a></li>`).join('')}</ul>` : ''}
     </div>
     <div class="rodape-links" role="navigation" aria-label="Rodapé">${colunas}${colunaWarden}

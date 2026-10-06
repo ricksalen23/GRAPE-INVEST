@@ -101,7 +101,7 @@ test.describe('home', () => {
     expect(titulo.destaque).toBe('guardião');
     expect(titulo.cor).toBe('rgb(200, 242, 107)');   // --accent #C8F26B
     expect(titulo.acento.toUpperCase()).toBe('#C8F26B');
-    await expect(page.locator('#inicio .hero-video-sub')).toHaveText('Ferramentas financeiras gratuitas e cobrança automática no WhatsApp.');
+    await expect(page.locator('#inicio .hero-video-sub')).toHaveText('Bem-vindo à Warden Finance.');
     const conhecer = page.locator('#inicio a.btn-primary');
     await expect(conhecer).toHaveText('Conhecer o Warden Cobrança');
     expect(await conhecer.getAttribute('href')).toBe('/cobranca/');
