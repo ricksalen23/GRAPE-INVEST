@@ -9,8 +9,15 @@
 <script>
   /* ===== HERO EM VÍDEO (veja "Hero em vídeo" no CLAUDE.md) =====
      ativo: false → a seção não existe na página. Arquivos em /assets/video/ (caminhos absolutos).
-     titulo: opcional; se preenchido, vira o <h1> da home. */
-  const HERO_VIDEO = { ativo: false, mp4: "", webm: "", poster: "", titulo: "" };
+     titulo: opcional; se preenchido, vira o <h1> da home. destaque: trecho do título em verde-limão.
+     desktop: telas acima de 768px; mobile: até 768px (vídeo vertical). Só a versão da tela é baixada. */
+  const HERO_VIDEO = {
+    ativo: true,
+    titulo: "Seu dinheiro tem um guardião.",
+    destaque: "guardião",
+    desktop: { webm: "/assets/video/hero-1080.webm", mp4: "/assets/video/hero-1080.mp4", poster: "/assets/video/hero-poster.jpg" },
+    mobile: { webm: "/assets/video/hero-mobile.webm", mp4: "/assets/video/hero-mobile.mp4", poster: "/assets/video/hero-poster-mobile.jpg" }
+  };
 </script>
 <meta name="theme-color" content="#000000">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -96,23 +103,34 @@
   }
   .login-welcome-msg.show { opacity: 1; }
   /* ===== HERO EM VÍDEO (só existe com HERO_VIDEO.ativo) ===== */
+  /* altura total (com o recuo do topo fixo): 85vh no desktop, 75svh no celular; o texto fica embaixo */
   .hero-video {
-    display: flex; align-items: flex-end; min-height: min(78vh, 760px); padding-bottom: 64px;
+    display: flex; align-items: flex-end; min-height: 85vh; padding-bottom: 64px;
     background: var(--bg); overflow: hidden; --first-gap: 48px;
   }
-  .hero-video-midia, .hero-video-midia video, .hero-video-midia img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-  /* gradiente escuro: topo (atrás do nav) e base (atrás do título) mais escuros, para legibilidade */
+  .hero-video-midia, .hero-video-midia video, .hero-video-midia img {
+    position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 40% center;
+  }
+  /* gradiente escuro: topo (atrás do nav) e base (atrás do texto e dos botões) mais escuros, para legibilidade */
   .hero-video-sombra {
     position: absolute; inset: 0; pointer-events: none;
-    background: linear-gradient(180deg, rgba(0,0,0,.6) 0%, rgba(0,0,0,.2) 40%, rgba(0,0,0,.35) 65%, rgba(0,0,0,.88) 100%);
+    background: linear-gradient(180deg, rgba(0,0,0,.55) 0%, rgba(0,0,0,.12) 32%, rgba(0,0,0,.3) 55%, rgba(0,0,0,.92) 100%);
   }
   .hero-video-conteudo { position: relative; width: 100%; }
   .hero-video-titulo {
     font-family: 'Fraunces', serif; font-weight: 600; font-optical-sizing: auto; letter-spacing: -.02em;
-    font-size: clamp(2.1rem, 6vw, 4.2rem); line-height: 1.06; max-width: 18ch;
+    font-size: clamp(2.1rem, 6vw, 4.2rem); line-height: 1.06; max-width: 16ch;
   }
+  .hero-video-titulo em { font-style: normal; color: var(--accent); }
+  .hero-video-sub { margin-top: 18px; max-width: 34rem; font-size: clamp(1rem, 1.5vw, 1.2rem); line-height: 1.6; color: rgba(243,241,234,.88); }
+  .hero-video-acoes { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 32px; }
+  /* contorno mais visível sobre o vídeo */
+  .hero-video .btn-secondary { background: rgba(0,0,0,.35); border-color: rgba(243,241,234,.45); }
+  .hero-video .btn-secondary:hover { border-color: var(--text); }
   @media (max-width: 768px) {
-    .hero-video { min-height: 62vh; padding-bottom: 40px; }
+    .hero-video { min-height: 75vh; min-height: 75svh; padding-bottom: 40px; --first-gap: 32px; }
+    .hero-video-midia video, .hero-video-midia img { object-position: center; }
+    .hero-video-acoes .btn { width: 100%; min-height: 52px; }
   }
 
   /* ===== WARDEN COBRANÇA ===== */
@@ -289,9 +307,15 @@
 <!-- HERO EM VÍDEO: modelo inserido pelo script abaixo só quando HERO_VIDEO.ativo for true -->
 <template id="hero-video-tpl">
   <section id="inicio" class="hero-video">
-    <div class="hero-video-midia"></div>
+    <div class="hero-video-midia" aria-hidden="true"></div>
     <div class="hero-video-sombra" aria-hidden="true"></div>
-    <div class="section-inner hero-video-conteudo"></div>
+    <div class="section-inner hero-video-conteudo">
+      <p class="hero-video-sub">Ferramentas financeiras gratuitas e cobrança automática no WhatsApp.</p>
+      <div class="hero-video-acoes">
+        <a class="btn btn-primary" href="/cobranca/">Conhecer o Warden Cobrança</a>
+        <button type="button" class="btn btn-secondary" data-explorar>Explorar ferramentas</button>
+      </div>
+    </div>
   </section>
 </template>
 <script>
@@ -301,35 +325,66 @@
     if (!cfg.ativo) { tpl.remove(); return; }
     const secao = tpl.content.firstElementChild.cloneNode(true);
     const midia = secao.querySelector('.hero-video-midia');
-    // celular, menos movimento ou economia de dados: só o poster, e o vídeo nem é baixado
-    const soPoster = window.matchMedia('(max-width: 768px)').matches
-      || window.matchMedia('(prefers-reduced-motion: reduce)').matches
-      || !!(navigator.connection && navigator.connection.saveData);
-    if ((cfg.webm || cfg.mp4) && !soPoster) {
-      const v = document.createElement('video');
-      v.muted = true; v.autoplay = true; v.loop = true; v.playsInline = true;
-      ['muted', 'autoplay', 'loop', 'playsinline'].forEach(a => v.setAttribute(a, ''));
-      v.setAttribute('aria-hidden', 'true');
-      if (cfg.poster) v.poster = cfg.poster;
-      [['webm', 'video/webm'], ['mp4', 'video/mp4']].forEach(([k, tipo]) => {
-        if (!cfg[k]) return;
-        const src = document.createElement('source');
-        src.src = cfg[k]; src.type = tipo;
-        v.appendChild(src);
-      });
-      midia.appendChild(v);
-    } else if (cfg.poster) {
-      const img = document.createElement('img');
-      img.src = cfg.poster; img.alt = ''; img.decoding = 'async';
-      midia.appendChild(img);
+
+    // até 768px a versão vertical (mobile); acima, a desktop
+    const telaMobile = window.matchMedia('(max-width: 768px)');
+    const versao = () => (telaMobile.matches ? cfg.mobile : cfg.desktop) || {};
+    // menos movimento, economia de dados ou conexão 2G: só o poster, e o vídeo nem é baixado
+    const conexao = navigator.connection || {};
+    const soPoster = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      || !!conexao.saveData || ['slow-2g', '2g'].includes(conexao.effectiveType);
+
+    // monta (ou troca, quando a tela muda de faixa) a mídia da versão certa; as fontes só entram depois da
+    // escolha, então o navegador nunca baixa as duas versões
+    function aplicar() {
+      const v = versao();
+      let el = midia.firstElementChild;
+      if (!soPoster && (v.webm || v.mp4)) {
+        const novo = !el || el.tagName !== 'VIDEO';
+        if (novo) {
+          el = document.createElement('video');
+          el.muted = true; el.autoplay = true; el.loop = true; el.playsInline = true;
+          ['muted', 'autoplay', 'loop', 'playsinline'].forEach(a => el.setAttribute(a, ''));
+          el.preload = 'metadata';
+        }
+        if (v.poster) el.poster = v.poster; else el.removeAttribute('poster');
+        el.replaceChildren(...[['webm', 'video/webm'], ['mp4', 'video/mp4']].filter(([k]) => v[k]).map(([k, tipo]) => {
+          const src = document.createElement('source');
+          src.src = v[k]; src.type = tipo;
+          return src;
+        }));
+        if (novo) midia.replaceChildren(el);
+        else { el.load(); el.play().catch(() => {}); }   // trocou de versão: recarrega as fontes novas
+      } else if (v.poster) {
+        if (!el || el.tagName !== 'IMG') {
+          el = document.createElement('img');
+          el.alt = ''; el.decoding = 'async';
+          midia.replaceChildren(el);
+        }
+        el.src = v.poster;
+      } else {
+        midia.replaceChildren();
+      }
     }
+    aplicar();
+    telaMobile.addEventListener('change', aplicar);
+
     if (cfg.titulo) {
       const h1 = document.createElement('h1');
       h1.className = 'hero-video-titulo';
-      h1.textContent = cfg.titulo;
-      secao.querySelector('.hero-video-conteudo').appendChild(h1);
+      const i = cfg.destaque ? cfg.titulo.indexOf(cfg.destaque) : -1;
+      if (i >= 0) {
+        const em = document.createElement('em');
+        em.textContent = cfg.destaque;
+        h1.append(cfg.titulo.slice(0, i), em, cfg.titulo.slice(i + cfg.destaque.length));
+      } else {
+        h1.textContent = cfg.titulo;
+      }
+      secao.querySelector('.hero-video-conteudo').prepend(h1);
       document.getElementById('titulo-oculto').remove();
     }
+    // mesmo mega-menu do "Ferramentas" do nav (no celular, o menu em tela cheia)
+    secao.querySelector('[data-explorar]').addEventListener('click', e => window.abrirFerramentas(e));
     tpl.replaceWith(secao);
   })();
 </script>

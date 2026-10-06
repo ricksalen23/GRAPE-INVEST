@@ -102,7 +102,7 @@ Cada ferramenta é uma página em `/ferramentas/<slug>.html`. Para lançar: crie
 
 ## O que já existe (branch `warden-v2`)
 
-- **Home (`index.html`)**, seções em ordem: `#inicio` (hero em vídeo, só se ativado) e `#cobranca` (Warden Cobrança; o botão leva a `/cobranca/` e o link discreto "Ver planos" a `/cobranca/#planos`). Os juros compostos são uma ferramenta como as outras (`/ferramentas/juros-compostos.html`). O `<h1>` é oculto (`.sr-only`: "Warden: ferramentas financeiras gratuitas e cobrança automática no WhatsApp"); com o hero ativo e com título, o título do vídeo vira o `<h1>` e o oculto sai. Usa `/assets/warden.css` + `nav.js` com `data-page="home"`.
+- **Home (`index.html`)**, seções em ordem: `#inicio` (hero em vídeo, ligado; ver "Hero em vídeo") e `#cobranca` (Warden Cobrança; o botão leva a `/cobranca/` e o link discreto "Ver planos" a `/cobranca/#planos`). Os juros compostos são uma ferramenta como as outras (`/ferramentas/juros-compostos.html`). O `<h1>` é oculto (`.sr-only`: "Warden: ferramentas financeiras gratuitas e cobrança automática no WhatsApp"); com o hero ativo e com título, o título do vídeo vira o `<h1>` e o oculto sai. Usa `/assets/warden.css` + `nav.js` com `data-page="home"`.
 - **Nav / mega-menu / menu mobile:** gerados por `/assets/nav.js` (links: Ferramentas, Cobrança com selo "Novo", Control Finance, Login; o rodapé do mega-menu é só o card "Warden Cobrança", na largura toda). **Todo link para o Warden Cobrança aponta para `/cobranca/`** (nav, "Conhecer" do mega-menu e do menu mobile, rodapé, ponte `data-ponte-cobranca` das ferramentas, contato); nenhum abre o WhatsApp de suporte. No celular, hambúrguer, Login e logo têm área de toque de 44px.
 - **Faixa de cotações:** USD, EUR, GBP, BTC e ETH (AwesomeAPI, uma chamada) + SELIC, CDI e IPCA 12M (`Warden.getTaxasBCB`; o `nav.js` injeta o `tools.js` nas páginas que não o carregam). Atualiza a cada 60 s, cache em `localStorage` (`warden:cotacoes`). Moeda sem dado mostra "—"; taxa só aparece com dado do BC (API, site ou último valor de até 7 dias), com a data no `title` — CDI estimado e valor de referência não aparecem, o item some. Rolagem por Web Animations (0 → -50%, ~40 px/s, pausa com mouse/toque, sem animação com `prefers-reduced-motion`). Verde/vermelho de alta/queda são a única exceção à cor de acento.
 - **Warden Cobrança grátis (`/cobranca/index.html`):** funciona 100% no navegador. Dados em `localStorage` (`warden:cobranca`, estrutura `{ versao: 1, clientes, cobrancas, config }` com ids e datas em todo registro, pensada para sincronizar com uma conta no futuro); exportar/importar backup JSON (também no 1º passo). Onboarding em 3 passos (negócio, chave Pix, recebedor/cidade), abas Painel / Clientes / Cobranças / Configurações ("Ajustes" no celular). Enviar = mensagem no tom escolhido (Gentil/Neutro/Firme, modelos editáveis com `{nome}` `{valor}` `{vencimento}` `{descricao}` `{negocio}` `{pix}`) + Pix da cobrança (`Warden.pix`, txid por cobrança) → link `wa.me/55NÚMERO` do cliente; registra o lembrete no histórico. Mensagens do plano grátis terminam com "Enviado pelo Warden Cobrança · wardenfinance.com.br/cobranca" (sempre por último, fora dos modelos editáveis); com `PLANO = 'premium'` (constante no script; hoje sempre `'gratis'`, no futuro virá da conta) a linha não entra. Mensal paga gera a do mês seguinte uma vez (dia 31 → último dia do mês). Limite grátis: 5 clientes (o 6º abre o modal do Premium). **Vitrine do Premium:** seção `#planos` e modal com a mesma tabela Grátis x Premium (`htmlPlanos`); `PREMIUM = { preco: "", ativo: false }` no topo do script da página: com `ativo: false`, botão "Em breve" desabilitado e "O Premium está chegando"; com `ativo: true`, mostra `preco` e "Quero o Premium" (leva ao contato). Não invente preço. Atrasadas em vermelho (#EF4444), exceção pedida à cor de acento, como a alta/queda da faixa.
@@ -115,15 +115,22 @@ Cada ferramenta é uma página em `/ferramentas/<slug>.html`. Para lançar: crie
 
 ## Hero em vídeo (home)
 
-Pronto e desligado. Para ativar, no topo do `index.html`:
+**Ligado** (leão deitado na pedra, Pexels, livre de direitos, sem áudio). Config no topo do `index.html`:
 
 ```js
-const HERO_VIDEO = { ativo: true, mp4: "/assets/video/hero.mp4", webm: "/assets/video/hero.webm", poster: "/assets/video/hero.jpg", titulo: "" };
+const HERO_VIDEO = {
+  ativo: true, titulo: "Seu dinheiro tem um guardião.", destaque: "guardião",
+  desktop: { webm: "/assets/video/hero-1080.webm", mp4: "/assets/video/hero-1080.mp4", poster: "/assets/video/hero-poster.jpg" },
+  mobile:  { webm: "/assets/video/hero-mobile.webm", mp4: "/assets/video/hero-mobile.mp4", poster: "/assets/video/hero-poster-mobile.jpg" }
+};
 ```
 
-- **Arquivos** em `/assets/video/` (caminhos absolutos). Vídeo de **até ~4 MB**, **1080p**, **10–20 s em loop**, **sem áudio**; mande MP4 (H.264) e, se possível, WebM (menor, tem prioridade). O **poster** (JPG, mesmo enquadramento, ~200 KB) é obrigatório na prática: é o que aparece no celular, com `prefers-reduced-motion` ou com economia de dados (`navigator.connection.saveData`) — nesses casos o vídeo nem é baixado.
-- **titulo** (opcional): frase curta sobre o vídeo; vira o `<h1>` da home. Vazio = sem texto, e o `<h1>` oculto continua.
-- `ativo: false` = a seção não existe (nem espaço). A sobreposição escura em gradiente já garante a leitura do título e do nav.
+- **Versões:** até 768px usa `mobile` (720×1080, recorte vertical do leão), acima `desktop` (1920×1080). O JS escolhe a versão **antes** de pôr as fontes (`<source>` webm + mp4) no `<video>`, então só uma é baixada; se a tela mudar de faixa, troca as fontes e recarrega. Atributos: `autoplay muted loop playsinline preload="metadata"`.
+- **O celular toca o vídeo.** Só o poster (`<img>` da versão da tela, e o vídeo nem é baixado) com `prefers-reduced-motion`, economia de dados (`navigator.connection.saveData`) ou conexão `2g`/`slow-2g`.
+- **Layout:** 85vh no desktop, 75svh no celular (`object-position` 40% center / center). Embaixo, sobre o gradiente escuro: título em Fraunces (o `destaque` em `--accent`), subtítulo "Ferramentas financeiras gratuitas e cobrança automática no WhatsApp." e os botões "Conhecer o Warden Cobrança" (`/cobranca/`) e "Explorar ferramentas" (`abrirFerramentas` do `nav.js`: mega-menu no desktop, menu mobile até 900px). Subtítulo e botões ficam no `<template id="hero-video-tpl">`.
+- **titulo** vira o `<h1>` da home (o oculto sai). Vazio = sem título, e o `<h1>` oculto continua.
+- `ativo: false` = a seção não existe (nem espaço) e nada de `/assets/video/` é baixado.
+- **Trocar o vídeo:** arquivos em `/assets/video/` (nunca o original 4K). Gerados com ffmpeg a partir do original com um filtro de loop sem emenda (o 1º segundo entra no fim com `xfade` de 1 s; o `offset` é a duração − 2 s): `scale=1920:1080:flags=lanczos,fps=30,split[a][b];[a]trim=start=1,setpts=PTS-STARTPTS[main];[b]trim=0:1,setpts=PTS-STARTPTS[head];[main][head]xfade=transition=fade:duration=1:offset=<dur-2>,format=yuv420p`. MP4: `-an -c:v libx264 -preset slow -crf 29 -profile:v high -movflags +faststart`; WebM: `-an -c:v libvpx-vp9 -b:v 0 -crf 42 -row-mt 1`; mobile = o MP4 de 1080p com `-vf "crop=720:1080:<x>:0"`; posters = 1º quadro (`-frames:v 1 -q:v 4`). Tamanhos de hoje: 3,3 MB, 2,0 MB, 1,3 MB e 1,0 MB (cada vídeo até ~4 MB).
 
 ## Outras regras
 
@@ -135,6 +142,6 @@ const HERO_VIDEO = { ativo: true, mp4: "/assets/video/hero.mp4", webm: "/assets/
 
 ## Testes automáticos (Playwright, pasta `tests/`)
 
-- **Durante o desenvolvimento, rode só os testes da área mexida**, de dentro de `tests/`: `npx playwright test cobranca` (o filtro é o nome do arquivo em `tests/specs/`, ex.: `home`, `rodape`, `calculo-clt`). Assim o `RELATORIO.md` não é reescrito com uma rodada parcial.
+- **Durante o desenvolvimento, rode só os testes da área mexida**, de dentro de `tests/`: `npx playwright test cobranca` (o filtro é o nome do arquivo em `tests/specs/`, ex.: `home`, `rodape`, `calculo-clt`). Para uma página inteira, filtre pelo nome do teste: `npx playwright test -g home` pega o `home.spec.js` e também os testes de SEO, acessibilidade, celular, faixa e rodapé dessa página, que ficam em outros arquivos dentro de `describe('<slug>')`. Assim o `RELATORIO.md` não é reescrito com uma rodada parcial.
 - **A bateria completa (`npm test`, que também gera o `RELATORIO.md`) só antes de lançar ou quando for pedido.** Nunca rode a bateria completa mais de uma vez por tarefa.
 - O servidor dos testes usa a porta 8765; se uma rodada travar, confira se sobrou `node.exe`/`chrome.exe` escutando nela antes de rodar de novo.
