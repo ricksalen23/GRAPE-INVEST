@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Warden Control: suas contas a pagar e a receber em ordem | Warden</title>
+<meta name="description" content="Organize contas a pagar e a receber, dê baixa em um toque e veja o saldo previsto para os próximos 30, 60 e 90 dias. Tudo salvo no seu aparelho.">
+<!-- em construção: sai do índice até ser ligado ao menu (ver CLAUDE.md) -->
+<meta name="robots" content="noindex">
+<link rel="canonical" href="https://wardenfinance.com.br/control/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Warden Control | Warden">
+<meta property="og:description" content="Contas a pagar e a receber, baixa em um toque e fluxo de caixa previsto.">
+<meta property="og:url" content="https://wardenfinance.com.br/control/">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/warden.css">
+<link rel="stylesheet" href="/control/control.css">
+</head>
+<!-- O Control é um app: não carrega o /assets/nav.js (nav do site + faixa de cotações); tem barra lateral/inferior própria. -->
+<body class="ctl">
+<a class="ctl-pular" href="#tela">Pular para o conteúdo</a>
+
+<div class="ctl-app">
+  <aside class="ctl-lateral">
+    <a class="ctl-marca" href="/" aria-label="Warden: voltar ao site"><img src="/warden-logo-cropped-transparent.png" alt="Warden" width="127" height="24"><span>Control</span></a>
+    <div role="navigation" aria-label="Seções do Control" data-menu="lateral"></div>
+    <div class="ctl-lateral-pe">
+      <p><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Seus dados ficam só neste aparelho.</p>
+      <p><a href="/">Voltar ao site</a></p>
+    </div>
+  </aside>
+
+  <div class="ctl-corpo">
+    <header class="ctl-barra">
+      <a class="ctl-marca" href="/" aria-label="Warden: voltar ao site"><img src="/warden-logo-cropped-transparent.png" alt="Warden" width="105" height="20"><span>Control</span></a>
+      <label class="ctl-perfil">
+        <span class="sr-only">Perfil</span>
+        <select id="perfil">
+          <option value="tudo">Tudo</option>
+          <option value="pessoal">Pessoal</option>
+          <option value="negocio">Negócio</option>
+        </select>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+      </label>
+      <button type="button" class="ctl-icone-btn" id="desfazer" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
+        <span class="rot">Desfazer</span>
+      </button>
+      <button type="button" class="btn btn-primary ctl-novo-topo" data-novo>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+        Novo lançamento
+      </button>
+    </header>
+    <main class="ctl-tela" id="tela" tabindex="-1"></main>
+  </div>
+</div>
+
+<div class="ctl-inferior" role="navigation" aria-label="Seções do Control" data-menu="inferior"></div>
+<button type="button" class="ctl-fab" data-novo>
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+  Novo lançamento
+</button>
+
+<div class="ctl-toast" id="toast" role="status" aria-live="polite"><span class="msg"></span><button type="button" hidden>Desfazer</button><span class="tempo" aria-hidden="true"></span></div>
+
+<!-- novo lançamento / editar -->
+<dialog class="ctl-dlg" id="dlg-lanc" aria-labelledby="lanc-titulo">
+  <form method="dialog" id="form-lanc" novalidate>
+    <div class="ctl-dlg-cab">
+      <h2 id="lanc-titulo">Novo lançamento</h2>
+      <button type="button" class="ctl-icone-btn" data-fechar aria-label="Fechar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="ctl-dlg-miolo ctl-form">
+      <div class="ctl-tipo" role="radiogroup" aria-label="Tipo">
+        <label><input type="radio" name="tipo" value="pagar" checked><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>A pagar</span></label>
+        <label><input type="radio" name="tipo" value="receber"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>A receber</span></label>
+      </div>
+      <div class="ctl-campo" data-campo="valor">
+        <label for="lanc-valor" id="lanc-valor-rot">Valor</label>
+        <div class="ctl-dinheiro grande"><span>R$</span><input id="lanc-valor" type="text" inputmode="decimal" autocomplete="off" placeholder="0,00"></div>
+        <span class="msg" id="lanc-valor-msg"></span>
+      </div>
+      <div class="ctl-campo" data-campo="descricao">
+        <label for="lanc-desc">Descrição</label>
+        <input id="lanc-desc" type="text" maxlength="120" autocomplete="off" list="lista-descricoes" placeholder="Ex.: Aluguel, Venda para Ana">
+        <span class="msg"></span>
+      </div>
+      <div class="duas">
+        <div class="ctl-campo" data-campo="vencimento">
+          <label for="lanc-venc">Vencimento</label>
+          <input id="lanc-venc" type="date">
+          <span class="msg"></span>
+        </div>
+        <div class="ctl-campo">
+          <label for="lanc-cat">Categoria</label>
+          <select id="lanc-cat"></select>
+        </div>
+      </div>
+      <div class="ctl-campo">
+        <span class="rot" id="lanc-perfil-rot">Perfil</span>
+        <div class="ctl-pilulas" role="radiogroup" aria-labelledby="lanc-perfil-rot">
+          <label><input type="radio" name="perfil" value="pessoal" checked><span>Pessoal</span></label>
+          <label><input type="radio" name="perfil" value="negocio"><span>Negócio</span></label>
+        </div>
+      </div>
+      <div class="ctl-campo" id="lanc-rep-bloco">
+        <span class="rot" id="lanc-rep-rot">Repetição</span>
+        <div class="ctl-pilulas" role="radiogroup" aria-labelledby="lanc-rep-rot">
+          <label><input type="radio" name="repeticao" value="unica" checked><span>Só uma vez</span></label>
+          <label><input type="radio" name="repeticao" value="parcelada"><span>Parcelada</span></label>
+          <label><input type="radio" name="repeticao" value="recorrente"><span>Repete</span></label>
+        </div>
+        <div class="duas" id="lanc-parcelas-bloco" hidden>
+          <div class="ctl-campo" data-campo="parcelas">
+            <label for="lanc-parcelas">Número de parcelas</label>
+            <input id="lanc-parcelas" type="number" inputmode="numeric" min="2" max="120" value="2">
+            <span class="msg"></span>
+          </div>
+        </div>
+        <div class="duas" id="lanc-freq-bloco" hidden>
+          <div class="ctl-campo">
+            <label for="lanc-freq">Repete a cada</label>
+            <select id="lanc-freq"><option value="mensal">Mês</option><option value="semanal">Semana</option><option value="anual">Ano</option></select>
+          </div>
+        </div>
+        <p class="ctl-dica" id="lanc-rep-dica" hidden></p>
+      </div>
+      <label class="ctl-marcar" id="lanc-serie-bloco" hidden><input type="checkbox" id="lanc-serie"> <span>Aplicar também às próximas desta repetição</span></label>
+      <label class="ctl-marcar" id="lanc-paga-bloco"><input type="checkbox" id="lanc-paga"> <span id="lanc-paga-rot">Já paguei (dá baixa hoje)</span></label>
+      <details class="ctl-mais" id="lanc-mais">
+        <summary>Mais detalhes <span class="opc">(opcional)</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div>
+          <div class="ctl-campo">
+            <label for="lanc-contato" id="lanc-contato-rot">Contato</label>
+            <input id="lanc-contato" type="text" maxlength="120" autocomplete="off" list="lista-contatos" placeholder="Quem recebe ou quem paga">
+          </div>
+          <div class="ctl-campo">
+            <label for="lanc-forma">Forma de pagamento</label>
+            <select id="lanc-forma"></select>
+          </div>
+          <div class="ctl-campo">
+            <label for="lanc-obs">Observação</label>
+            <textarea id="lanc-obs" maxlength="1000" placeholder="Ex.: código do boleto, combinado com o cliente"></textarea>
+          </div>
+        </div>
+      </details>
+    </div>
+    <div class="ctl-dlg-pe">
+      <button type="button" class="btn btn-secondary" data-fechar>Cancelar</button>
+      <button type="submit" class="btn btn-primary" id="lanc-salvar">Salvar</button>
+    </div>
+  </form>
+</dialog>
+<datalist id="lista-descricoes"></datalist>
+<datalist id="lista-contatos"></datalist>
+
+<!-- detalhe de uma conta (conteúdo montado pelo app.js) -->
+<dialog class="ctl-dlg" id="dlg-detalhe" aria-labelledby="det-titulo"></dialog>
+<!-- saldo inicial -->
+<dialog class="ctl-dlg pequena" id="dlg-saldo" aria-labelledby="saldo-titulo">
+  <form method="dialog" id="form-saldo" novalidate>
+    <div class="ctl-dlg-cab">
+      <h2 id="saldo-titulo">Saldo inicial</h2>
+      <button type="button" class="ctl-icone-btn" data-fechar aria-label="Fechar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="ctl-dlg-miolo ctl-form">
+      <p class="ctl-dica">Quanto você tem hoje, somando conta no banco, carteira digital e dinheiro vivo. É o ponto de partida do saldo e da previsão. Pode ser negativo (ex.: cheque especial): use o sinal de menos.</p>
+      <div class="ctl-campo" data-campo="pessoal">
+        <label for="saldo-pessoal">Pessoal</label>
+        <div class="ctl-dinheiro"><span>R$</span><input id="saldo-pessoal" type="text" inputmode="decimal" autocomplete="off" placeholder="0,00"></div>
+        <span class="msg"></span>
+      </div>
+      <div class="ctl-campo" data-campo="negocio">
+        <label for="saldo-negocio">Negócio <span class="opc">(se tiver)</span></label>
+        <div class="ctl-dinheiro"><span>R$</span><input id="saldo-negocio" type="text" inputmode="decimal" autocomplete="off" placeholder="0,00"></div>
+        <span class="msg"></span>
+      </div>
+    </div>
+    <div class="ctl-dlg-pe">
+      <button type="button" class="btn btn-secondary" data-fechar>Cancelar</button>
+      <button type="submit" class="btn btn-primary">Salvar saldo</button>
+    </div>
+  </form>
+</dialog>
+<!-- confirmações e escolhas (conteúdo montado pelo app.js) -->
+<dialog class="ctl-dlg pequena" id="dlg-confirmar" aria-labelledby="conf-titulo"></dialog>
+<input type="file" id="arquivo-backup" accept="application/json,.json" hidden>
+
+<script src="/control/nucleo.js"></script>
+<script src="/control/app.js"></script>
+</body>
+</html>
