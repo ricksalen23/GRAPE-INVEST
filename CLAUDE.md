@@ -111,6 +111,7 @@ Cada ferramenta é uma página em `/ferramentas/<slug>.html`. Para lançar: crie
 - **Páginas institucionais** (raiz, mesmo visual das ferramentas, sem o modelo de ferramenta, schema `WebPage`): `sobre.html` (bloco `#historia` para a história), `contato.html`, `privacidade.html` e `termos.html` (rascunhos: revisar com advogado). Geradas com o mesmo `<head>`; ao mudar o site (novo serviço de terceiros, nova chave no `localStorage`, nova coleta de dados), atualize a Política de Privacidade.
 - **SEO:** `sitemap.xml` (home, /cobranca/, 29 ferramentas e 4 institucionais) e `robots.txt`. Página nova entra no sitemap.
 - **Não use `<nav>` dentro do conteúdo:** `warden.css` estiliza `nav` como o menu do topo. Para trilhas e listas de links, use `<div role="navigation" aria-label="…">`.
+- **Warden Control (`/control/`, em construção):** o app pago (R$ 9,90/mês), refeito por etapas. **Plano completo, estado atual, decisões e modelo de dados em [`docs/control-plano.md`](docs/control-plano.md) — leia antes de mexer no Control.** Arquivos próprios em `/control/` (`index.html`, `control.css`, `nucleo.js` com as regras sem tela, `app.js` com as telas); não carrega o `nav.js`; dados em `localStorage` `warden:control:v1`, dinheiro em centavos inteiros. Ainda com `noindex`, fora do sitemap e fora do menu (o menu aponta para o `app.html` antigo). Testes: `npx playwright test control`.
 - **Páginas legadas, fora da base compartilhada:** `app.html` (Control Finance), `escola.html`, `obrigado.html` — não carregam `warden.css`/`nav.js`; só migrar se for pedido.
 
 ## Hero em vídeo (home)
@@ -144,4 +145,6 @@ const HERO_VIDEO = {
 
 - **Durante o desenvolvimento, rode só os testes da área mexida**, de dentro de `tests/`: `npx playwright test cobranca` (o filtro é o nome do arquivo em `tests/specs/`, ex.: `home`, `rodape`, `calculo-clt`). Para uma página inteira, filtre pelo nome do teste: `npx playwright test -g home` pega o `home.spec.js` e também os testes de SEO, acessibilidade, celular, faixa e rodapé dessa página, que ficam em outros arquivos dentro de `describe('<slug>')`. Assim o `RELATORIO.md` não é reescrito com uma rodada parcial.
 - **A bateria completa (`npm test`, que também gera o `RELATORIO.md`) só antes de lançar ou quando for pedido.** Nunca rode a bateria completa mais de uma vez por tarefa.
+- **Trabalho em etapas (ex.: Warden Control): ao fim de CADA etapa, rodar só os testes da área, fazer commit e `git push origin warden-v2`.** Se o push falhar, parar e avisar. Nunca push na `main`.
+- No Linux (Ubuntu) os testes usam o Chromium do Playwright: uma vez, `npm ci` e `npx playwright install chromium` dentro de `tests/`. No Windows/Mac, o Chrome instalado (`PW_CHANNEL` força um canal).
 - O servidor dos testes usa a porta 8765; se uma rodada travar, confira se sobrou `node.exe`/`chrome.exe` escutando nela antes de rodar de novo.
