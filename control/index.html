@@ -47,6 +47,11 @@
         </select>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
       </label>
+      <button type="button" class="ctl-icone-btn ctl-ori-btn" id="btn-orientador" aria-controls="orientador" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg>
+        <span class="rot">Orientador</span>
+        <span class="ctl-ori-selo" id="ori-selo" hidden></span>
+      </button>
       <button type="button" class="ctl-icone-btn" id="desfazer" hidden>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
         <span class="rot">Desfazer</span>
@@ -58,7 +63,10 @@
     </header>
     <main class="ctl-tela" id="tela" tabindex="-1"></main>
   </div>
+  <!-- Orientador: painel lateral no desktop, gaveta no celular (conteúdo montado pelo app.js; regras no orientador.js) -->
+  <aside class="ctl-orientador" id="orientador" aria-labelledby="ori-titulo" hidden></aside>
 </div>
+<div class="ctl-ori-fundo" id="ori-fundo" hidden></div>
 
 <div class="ctl-inferior" role="navigation" aria-label="Seções do Control" data-menu="inferior"></div>
 <button type="button" class="ctl-fab" data-novo>
@@ -243,6 +251,7 @@
 
 <script src="/control/nucleo.js"></script>
 <script src="/control/relatorio.js"></script>
+<script src="/control/orientador.js"></script>
 <script src="/control/app.js"></script>
 </body>
 </html>

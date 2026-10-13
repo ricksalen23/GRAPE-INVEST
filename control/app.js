@@ -21,7 +21,9 @@
     filtro: { tipo: 'todas', status: 'aberto', busca: '', categoriaId: '' },
     periodo: 30,
     mesRel: null,
-    pagasAbertas: false
+    pagasAbertas: false,
+    orientador: false,
+    chat: []                 // conversa com o Orientador (só nesta visita): [{ quem: 'voce'|'ori', texto, linhas, acao }]
   };
 
   // ---------- ícones (SVG inline, traço) ----------
@@ -59,6 +61,9 @@
     ponto: '<circle cx="12" cy="12" r="3"/>',
     sacola: '<path d="M5 8h14l-1 12H6z"/><path d="M9 8a3 3 0 0 1 6 0"/>',
     ferramenta: '<path d="M14.5 6.5a4 4 0 0 0 5 5L12 19a2.1 2.1 0 0 1-3-3z"/>',
+    lampada: '<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/>',
+    relogio: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    enviar: '<path d="M4 12 20 4l-6 16-3-7z"/><path d="m11 13 9-9"/>',
     mensagem: '<path d="M20 12a8 8 0 0 1-11.6 7.1L4 20l1-4.2A8 8 0 1 1 20 12z"/>',
     imagem: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/>',
     copiar: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>',
@@ -542,7 +547,7 @@
     const foco = document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.foco : null;
     $('#tela').innerHTML = RENDER[estado.tela]();
     carimbar = null;
-    menu(); barra();
+    menu(); barra(); desenharOrientador();
     document.title = `${TELAS.find(t => t.id === estado.tela).nome} · Warden Control`;
     if (foco) { const el = $(`[data-foco="${CSS.escape(foco)}"]`); if (el) el.focus({ preventScroll: true }); }
     if ($('#dlg-detalhe').open && detalheId) desenharDetalhe();
@@ -1098,6 +1103,129 @@
       toast(`${c.descricao} de ${mes}: ${brl(v)}`, { desfazer: acao });
     } catch (err) { toast(err.message, { ms: 5000 }); }
   }
+
+  // ---------- Orientador (painel lateral no desktop, gaveta no celular) ----------
+  const O = window.ControlOrientador;
+  const painelOri = $('#orientador'), fundoOri = $('#ori-fundo'), btnOri = $('#btn-orientador');
+  const desktop = matchMedia('(min-width: 900px)');
+  let acoesOri = new Map();
+  // Etapa 5: no plano grátis, O.LIMITE_GRATIS (1 dica por dia). Hoje tudo liberado.
+  const limiteDicas = () => Infinity;
+  const ctxOri = () => O.contexto(db, perfil(), ref());
+
+  /** quem executa as ações das dicas e das respostas */
+  const apiOri = {
+    filtrar: f => {
+      estado.filtro = { tipo: 'todas', status: 'aberto', busca: '', categoriaId: '', ...(typeof f === 'string' ? { status: f } : f) };
+      fecharOriCelular(); irPara('contas');
+    },
+    irPara: tela => { fecharOriCelular(); irPara(tela); },
+    abrirDetalhe: id => { fecharOriCelular(); abrirDetalhe(id); },
+    novo: () => { fecharOriCelular(); abrirLancamento(); },
+    abrirLink: url => { location.href = url; }
+  };
+
+  function desenharOrientador() {
+    const ctx = ctxOri(), lista = O.dicas(ctx, { limite: limiteDicas() });
+    // selo no botão: quantas dicas há hoje, até a pessoa abrir o painel
+    const selo = $('#ori-selo');
+    selo.hidden = estado.orientador || db.config.orientadorVisto === ref() || !lista.length;
+    selo.textContent = lista.length;
+    btnOri.setAttribute('aria-label', `Orientador${selo.hidden ? '' : `: ${lista.length} ${lista.length === 1 ? 'dica nova' : 'dicas novas'}`}`);
+    btnOri.setAttribute('aria-expanded', String(estado.orientador));
+    document.body.toggleAttribute('data-orientador', estado.orientador);
+    painelOri.hidden = !estado.orientador;
+    fundoOri.hidden = !estado.orientador || desktop.matches;
+    if (!estado.orientador) return;
+
+    const rascunho = ($('#ori-pergunta') || {}).value || '';
+    acoesOri = new Map();
+    const botaoAcao = (chave, acao) => { acoesOri.set(chave, acao.executar); return `<button type="button" class="btn btn-secondary" data-ori="acao" data-k="${esc(chave)}">${esc(acao.rotulo)}</button>`; };
+    const icTom = { alerta: 'alerta', aviso: 'relogio', info: 'lampada' };
+    // "R$ 1.919,90" e "− R$ 10,00" não quebram de linha no meio
+    const t = s => esc(s).replace(/([−+]) R\$ /g, '$1&nbsp;R$$&nbsp;').replace(/R\$ /g, 'R$$&nbsp;');
+    painelOri.innerHTML = `
+      <div class="ctl-ori-cab"><h2 id="ori-titulo" tabindex="-1">${ic('lampada')} Orientador</h2>
+        <button type="button" class="ctl-icone-btn" data-ori="fechar" aria-label="Fechar o Orientador">${ic('x')}</button></div>
+      <div class="ctl-ori-miolo" id="ori-miolo">
+        <p class="ctl-ori-ola" data-ori-ola>${t(O.boasVindas(ctx))}</p>
+        <h3 class="ctl-rotulo">Dicas de hoje</h3>
+        ${lista.length ? `<ul class="ctl-ori-dicas">${lista.map(d => `<li class="ctl-ori-dica ${d.tom}" data-dica="${esc(d.id)}">
+            <span class="ic">${ic(icTom[d.tom])}</span>
+            <div><p>${t(d.texto)}</p>${botaoAcao('dica-' + d.id, d.acao)}</div></li>`).join('')}</ul>`
+          : `<p class="ctl-ori-vazio">${ic('ok')} Nenhum alerta por aqui. Bom sinal!</p>`}
+        <h3 class="ctl-rotulo">Pergunte</h3>
+        <div class="ctl-ori-atalhos">${O.ATALHOS.map(a => `<button type="button" class="ctl-chip" data-ori="perguntar" data-id="${a.id}">${esc(a.pergunta)}</button>`).join('')}</div>
+        <div class="ctl-ori-chat" aria-live="polite">${estado.chat.map((m, i) => `<div class="ctl-ori-msg ${m.quem}">
+            <p>${t(m.texto)}</p>${m.linhas && m.linhas.length ? `<ul>${m.linhas.map(l => `<li>${t(l)}</li>`).join('')}</ul>` : ''}
+            ${m.acao ? botaoAcao('chat-' + i, m.acao) : ''}</div>`).join('')}</div>
+        <form class="ctl-ori-form" id="ori-form" novalidate>
+          <label class="sr-only" for="ori-pergunta">Sua pergunta</label>
+          <input id="ori-pergunta" type="text" maxlength="200" autocomplete="off" placeholder="Pergunte sobre suas contas…" data-foco="ori-pergunta" value="${esc(rascunho)}">
+          <button type="submit" class="ctl-icone-btn" aria-label="Perguntar">${ic('enviar')}</button>
+        </form>
+        <p class="ctl-ori-pe">Dicas feitas aqui no aparelho, a partir dos seus lançamentos. Sem inteligência artificial e sem enviar seus dados.</p>
+      </div>`;
+  }
+
+  function abrirOrientador() {
+    estado.orientador = true;
+    db.config.orientadorVisto = ref();
+    if (desktop.matches) db.config.orientadorAberto = true;
+    gravar();
+    desenharOrientador();
+    if (!desktop.matches) { document.body.setAttribute('data-ori-gaveta', ''); $('#ori-titulo').focus(); }
+  }
+  function fecharOrientador({ devolverFoco = true } = {}) {
+    estado.orientador = false;
+    if (desktop.matches) { db.config.orientadorAberto = false; gravar(); }
+    document.body.removeAttribute('data-ori-gaveta');
+    desenharOrientador();
+    if (devolverFoco) btnOri.focus();
+  }
+  function fecharOriCelular() { if (estado.orientador && !desktop.matches) fecharOrientador({ devolverFoco: false }); }
+
+  async function perguntarOri(texto, id) {
+    const ctx = ctxOri();
+    estado.chat.push({ quem: 'voce', texto });
+    let r = id ? O.responder(id, ctx) : null;
+    if (!r && !id) {
+      const ia = await O.responderComIA(texto, ctx);
+      r = ia || { texto: 'Ainda não sei responder isso. Por enquanto entendo: como estou este mês, o que vence esta semana e onde mais gastei.', linhas: [], acao: null };
+    }
+    estado.chat.push({ quem: 'ori', ...r });
+    if (estado.chat.length > 20) estado.chat.splice(0, estado.chat.length - 20);
+    desenharOrientador();
+    const miolo = $('#ori-miolo');
+    if (miolo) { const ult = $$('.ctl-ori-msg', miolo).pop(); if (ult) ult.scrollIntoView({ block: 'nearest' }); }
+  }
+
+  btnOri.addEventListener('click', () => (estado.orientador ? fecharOrientador() : abrirOrientador()));
+  fundoOri.addEventListener('click', () => fecharOrientador());
+  painelOri.addEventListener('click', e => {
+    const el = e.target.closest('[data-ori]');
+    if (!el) return;
+    const tipo = el.dataset.ori;
+    if (tipo === 'fechar') fecharOrientador();
+    else if (tipo === 'acao') { const fn = acoesOri.get(el.dataset.k); if (fn) fn(apiOri); }
+    else if (tipo === 'perguntar') perguntarOri(el.textContent, el.dataset.id);
+  });
+  painelOri.addEventListener('submit', e => {
+    if (e.target.id !== 'ori-form') return;
+    e.preventDefault();
+    const campo = $('#ori-pergunta'), texto = campo.value.trim();
+    if (!texto) { campo.focus(); return; }
+    campo.value = '';
+    perguntarOri(texto, O.interpretar(texto));
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && estado.orientador && !desktop.matches && !document.querySelector('dialog[open]')) fecharOrientador(); });
+  desktop.addEventListener('change', () => {
+    estado.orientador = desktop.matches && db.config.orientadorAberto !== false;
+    document.body.removeAttribute('data-ori-gaveta');
+    desenharOrientador();
+  });
+  estado.orientador = desktop.matches && db.config.orientadorAberto !== false;
+  if (estado.orientador) db.config.orientadorVisto = ref();
 
   // atalhos: N = novo lançamento, Ctrl/Cmd+Z = desfazer (fora de campos de texto)
   document.addEventListener('keydown', e => {

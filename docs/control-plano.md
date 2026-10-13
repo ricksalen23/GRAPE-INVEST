@@ -23,8 +23,8 @@ Este arquivo é a fonte da verdade para continuar o trabalho em outra conversa: 
 | 1. Núcleo "Recebi / Paguei" [REVISÃO] | **Concluída e aprovada** — commit `50b2b67` |
 | 2. "Meu mês" [REVISÃO] | **Concluída e aprovada** (as 3 decisões da revisão ficaram como estão: menu inferior com 6 itens, atrasadas de meses anteriores no "Meu mês", editar conta fixa vale só para os próximos meses) |
 | 3. Relatório + WhatsApp | **Concluída** |
-| 4. Orientador [REVISÃO] | próxima |
-| 5. Plano e assinatura (demonstração) | pendente |
+| 4. Orientador [REVISÃO] | **Feita, aguardando o OK do dono** (screenshots em `tests/capturas/control/etapa4/`) |
+| 5. Plano e assinatura (demonstração) | próxima (depois do OK da Etapa 4) |
 | 6. Efeitos visuais | pendente |
 | 7. "Salvar no Control" | pendente |
 | Fechamento | pendente |
@@ -36,7 +36,8 @@ Este arquivo é a fonte da verdade para continuar o trabalho em outra conversa: 
 - `control/nucleo.js` — **regras sem tela** em `window.ControlNucleo`: datas, dinheiro, migração/validação, status, criar/editar/baixar/excluir, recorrências, fluxo, resumo do mês, CSV, backup. Regra nova de dinheiro/data entra aqui.
 - `control/app.js` — telas e interações; expõe `window.WardenControl = { db, render, desfazer, toast, abrirLancamento, abrirDetalhe }` (testes e próximas etapas).
 - `control/relatorio.js` — saídas do relatório em `window.ControlRelatorio`: `pdf(d)` (jsPDF 2.5.1 + `Warden.novoPdf`/`textoPdf`/`rodapePdf`, carregados só ao pedir), `imagem(d)` (PNG 1080 px de largura em `<canvas>`, sem html2canvas), `nomeArquivo(d, ext)`, `carregarKit()`. Carregado entre o `nucleo.js` e o `app.js`.
-- `tests/specs/control.spec.js` — 30 testes (19 da Etapa 1 + 7 do "Meu mês" + 4 do relatório, todos passando).
+- `control/orientador.js` — Orientador sem tela em `window.ControlOrientador`: `AGENTE_REGRAS`, `contexto(db, perfil, ref)`, `dicas(ctx, { limite })`, `boasVindas(ctx)`, `ATALHOS`, `responder(id, ctx)`, `interpretar(texto)`, `responderComIA()` (TODO), `LIMITE_GRATIS`. Carregado depois do `relatorio.js`, antes do `app.js`.
+- `tests/specs/control.spec.js` — 35 testes (19 da Etapa 1 + 7 do "Meu mês" + 4 do relatório + 5 do Orientador, todos passando).
 - `control/index.html` também tem `#dlg-modelo` (nova/editar conta fixa do "Meu mês").
 - `tests/playwright.config.js` — no Linux usa o Chromium do Playwright (`npx playwright install chromium` uma vez; `npm ci` em `tests/`); no Windows/Mac, o Chrome instalado. `PW_CHANNEL` força um canal.
 
@@ -60,6 +61,7 @@ Este arquivo é a fonte da verdade para continuar o trabalho em outra conversa: 
 - **Filtros** só aparecem quando há contas; padrão "Em aberto". Busca ignora acento e não perde o foco (só a lista é redesenhada).
 - **Categorias padrão** (`CATEGORIAS_PADRAO` no núcleo) têm `icone` (chave do SVG em `app.js`, objeto `P`), para o "Meu mês" usar. Excluir categoria move as contas para "Outros…" do mesmo tipo.
 - **"Meu mês" (Etapa 2):** tela `#mes`, 2º item do menu (a navegação inferior ficou com 6 itens, fonte .66rem; reavaliar na revisão). Modelos em `db.modelos`; `gerarMes(db, 'aaaa-mm')` só gera o **mês corrente** (ao abrir, ao importar backup e quando o dia vira), chave modelo + mês; dia 31 → último dia. Valor variável = valor da conta mais recente do modelo. Tocar num item variável em aberto abre "Valor deste mês" (`ajustarValor`, muda só aquela conta); os outros abrem o detalhe. Editar o modelo vale só para os próximos meses. Excluir a conta de um mês grava o mês em `modelo.excluidos` (não volta). Excluir o modelo mantém as contas já geradas. Contas de modelo de **meses anteriores ainda em aberto** aparecem em "Atrasadas" (não somem na virada), mas não entram no progresso do mês. Grupos: Atrasadas / Esta semana (hoje + 7 dias) / Mais adiante / Pagas (`<details>` recolhido). Checkbox quadrado de 32px em área de 52px; "carimbo" anima só no item recém-marcado. Pílula de prazo fica embaixo do nome (texto longo no celular). Quitou tudo: cartão "Mês fechado!" + confete uma vez (`config.confeteMes`), sem confete com `prefers-reduced-motion`.
+- **Orientador (Etapa 4):** botão "Orientador" (lâmpada) na barra do topo, com selo do número de dicas até a pessoa abrir o painel no dia (`config.orientadorVisto`). Desktop: coluna fixa de 360px à direita (grade da `.ctl-app`), aberta por padrão; fechar fica lembrado em `config.orientadorAberto`. Celular: gaveta de baixo, com fundo escuro, Esc fecha, foco no título ao abrir e de volta no botão ao fechar; a ação de uma dica fecha a gaveta e navega. Regras (prioridade): atrasadas 100, mês no vermelho 90 (saldo previsto negativo dentro do mês = alerta vermelho; só "sai mais do que entra" = aviso amarelo), vence em até 3 dias 80, reserva baixa 60 (saldo de hoje < média de pagamentos dos meses anteriores com movimento; botão leva à ferramenta Reserva de emergência), gasto acima da média da categoria 50 (precisa de 2+ meses de histórico; > 130% da média e ao menos R$ 50 a mais), 7+ dias sem lançar 40 (contas geradas sozinhas não contam). As ações recebem uma `api` do app (`filtrar`, `irPara`, `abrirDetalhe`, `novo`, `abrirLink`). Atalhos: "Como estou este mês?", "O que vence esta semana?", "Onde mais gastei?"; a caixa de texto entende palavras-chave e, sem resposta, chama `responderComIA()` (hoje `null`) e mostra o que ele sabe responder. Conversa só na memória (some ao recarregar). Corte do grátis pronto: `limiteDicas()` no `app.js` (hoje `Infinity`; na Etapa 5, `LIMITE_GRATIS` = 1).
 - **Backup:** `{ app: 'warden-control', versao, exportadoEm, dados }`; importar substitui tudo (com confirmação e Desfazer). **CSV:** `;` e vírgula decimal, com BOM, para o Excel em português.
 
 ### Modelo de dados (v1)

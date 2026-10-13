@@ -459,6 +459,183 @@ test.describe('control', () => {
     });
   });
 
+  // ---------- Orientador (regras locais) ----------
+  test.describe('orientador', () => {
+    const ANTIGO = '2026-09-20T12:00:00.000Z';
+    const bx = (data, valor) => [{ id: 'b' + data + valor, data, valor, desconto: 0, juros: 0, criadoEm: ANTIGO }];
+    const velha = (id, tipo, desc, valor, venc, extra = {}) => conta(id, tipo, desc, valor, venc, { criadoEm: ANTIGO, ...extra });
+    // roda uma regra sem tela: { dado, texto, rotulo } ou null
+    const regra = (page, d, id) => page.evaluate(([d, id]) => {
+      const N = window.ControlNucleo, O = window.ControlOrientador;
+      const ctx = O.contexto(N.migrar(d), 'tudo', '2026-10-02', new Date('2026-10-02T12:00:00-03:00'));
+      const r = O.AGENTE_REGRAS.find(x => x.id === id), dado = r.quando(ctx);
+      if (!dado) return null;
+      const acao = typeof r.acao === 'function' ? r.acao(dado, ctx) : r.acao;
+      return { dado, texto: r.texto(dado, ctx), rotulo: acao.rotulo };
+    }, [d, id]);
+    const frases = t => t.split(/[.!?](?=\s|$)/).filter(s => s.trim()).length;
+    // um db em que as 6 regras disparam
+    const tudoDispara = () => base({ saldo: { pessoal: 500000, negocio: 0 }, contas: [
+      velha('ago', 'pagar', 'Mercado agosto', 200000, '2026-08-10', { baixas: bx('2026-08-10', 200000), categoriaId: 'cat_alimentacao' }),
+      velha('set', 'pagar', 'Mercado setembro', 200000, '2026-09-10', { baixas: bx('2026-09-10', 200000), categoriaId: 'cat_alimentacao' }),
+      velha('out', 'pagar', 'Mercado outubro', 300000, '2026-10-01', { baixas: bx('2026-10-01', 300000), categoriaId: 'cat_alimentacao' }),
+      velha('luz', 'pagar', 'Luz', 15000, '2026-09-28'),
+      velha('net', 'pagar', 'Internet', 11990, HOJE)
+    ] });
+
+    test('cada regra dispara com o dado certo e fica quieta sem ele', async ({ page }) => {
+      await abrirCom(page, base(), 'inicio');
+      // atrasadas
+      let r = await regra(page, base({ contas: [velha('luz', 'pagar', 'Luz', 15000, '2026-09-28')] }), 'atrasadas');
+      expect(r.texto).toBe('Luz (R$ 150,00) venceu em 28/09. Pagar logo evita mais juros e multa.');
+      expect(r.rotulo).toBe('Dar baixa');
+      r = await regra(page, base({ contas: [velha('luz', 'pagar', 'Luz', 15000, '2026-09-28'), velha('agua', 'pagar', 'Água', 9000, '2026-09-30')] }), 'atrasadas');
+      expect(r.texto).toBe('Você tem 2 contas atrasadas, somando R$ 240,00. Comece pela mais antiga para evitar mais juros e multa.');
+      expect(r.rotulo).toBe('Ver atrasadas');
+      expect(await regra(page, base({ contas: [velha('luz', 'pagar', 'Luz', 15000, '2026-09-28', { baixas: bx('2026-09-28', 15000) })] }), 'atrasadas')).toBeNull();
+      // mês no vermelho: saldo previsto negativo dentro do mês…
+      r = await regra(page, base({ contas: [velha('f', 'pagar', 'Fornecedor', 50000, '2026-10-20')] }), 'vermelho');
+      expect(r.texto).toContain('seu saldo fica em − R$ 500,00 em 20/10');
+      expect(r.rotulo).toBe('Abrir Fluxo');
+      // …ou o mês sai mais do que entra
+      r = await regra(page, base({ saldo: { pessoal: 9000000, negocio: 0 }, contas: [velha('m', 'pagar', 'Mercado', 30000, '2026-10-01', { baixas: bx('2026-10-01', 30000) })] }), 'vermelho');
+      expect(r.texto).toBe('Em outubro, o que sai passa o que entra em R$ 300,00. Veja no Fluxo onde dá para adiar um gasto ou antecipar um recebimento.');
+      expect(await regra(page, base({ saldo: { pessoal: 100000, negocio: 0 }, contas: [
+        velha('s', 'receber', 'Salário', 500000, '2026-10-01', { baixas: bx('2026-10-01', 500000) }), velha('f', 'pagar', 'Fornecedor', 50000, '2026-10-20')] }), 'vermelho')).toBeNull();
+      // vence em até 3 dias
+      r = await regra(page, base({ contas: [velha('net', 'pagar', 'Internet', 11990, HOJE)] }), 'vence-logo');
+      expect(r.texto).toBe('Internet (R$ 119,90) vence hoje. Se já pagou, dê baixa para o saldo ficar certo.');
+      r = await regra(page, base({ contas: [velha('net', 'pagar', 'Internet', 11990, HOJE), velha('cli', 'receber', 'Cliente', 30000, '2026-10-05')] }), 'vence-logo');
+      expect(r.texto).toBe('2 contas vencem até 05/10: R$ 119,90 a pagar e R$ 300,00 a receber. Confira se o saldo dá conta.');
+      expect(r.rotulo).toBe('Ver próximas');
+      expect(await regra(page, base({ contas: [velha('a', 'pagar', 'Aluguel', 180000, '2026-10-06')] }), 'vence-logo')).toBeNull();
+      // reserva baixa: saldo de hoje menor que a média de gastos dos meses anteriores
+      const hist = [velha('ago', 'pagar', 'Ago', 200000, '2026-08-10', { baixas: bx('2026-08-10', 200000) }), velha('set', 'pagar', 'Set', 200000, '2026-09-10', { baixas: bx('2026-09-10', 200000) })];
+      r = await regra(page, base({ saldo: { pessoal: 500000, negocio: 0 }, contas: hist }), 'reserva');
+      expect(r.texto).toBe('Seu saldo de hoje (R$ 1.000,00) não cobre um mês dos seus gastos, que ficam em média em R$ 2.000,00. Guardar um pouco todo mês cria uma reserva para imprevistos.');
+      expect(r.rotulo).toBe('Calcular minha reserva');
+      expect(await regra(page, base({ saldo: { pessoal: 1000000, negocio: 0 }, contas: hist }), 'reserva')).toBeNull();
+      expect(await regra(page, base({ saldo: { pessoal: 0, negocio: 0 } }), 'reserva')).toBeNull();   // sem histórico, sem dica
+      // gasto acima da média da categoria
+      const cat = (out) => base({ saldo: { pessoal: 9000000, negocio: 0 }, contas: [
+        velha('ago', 'pagar', 'Ago', 50000, '2026-08-10', { baixas: bx('2026-08-10', 50000), categoriaId: 'cat_alimentacao' }),
+        velha('set', 'pagar', 'Set', 50000, '2026-09-10', { baixas: bx('2026-09-10', 50000), categoriaId: 'cat_alimentacao' }),
+        velha('out', 'pagar', 'Out', out, '2026-10-01', { baixas: bx('2026-10-01', out), categoriaId: 'cat_alimentacao' })] });
+      r = await regra(page, cat(90000), 'categoria');
+      expect(r.texto).toBe('Em outubro, você já gastou R$ 900,00 com Alimentação, 80% acima da sua média (R$ 500,00). Vale olhar o que pesou mais.');
+      expect(r.rotulo).toBe('Ver Alimentação');
+      expect(await regra(page, cat(60000), 'categoria')).toBeNull();
+      // muitos dias sem lançar (conta gerada sozinha não conta como atividade)
+      r = await regra(page, base({ contas: [velha('a', 'pagar', 'Aluguel', 1000, '2026-10-20'), conta('r', 'pagar', 'Gerada', 1000, '2026-10-25', { recorrenciaId: 'x', ocorrencia: '2026-10-25' })] }), 'sem-lancar');
+      expect(r.texto).toBe('Faz 12 dias que você não anota nada no Control. Gastos pequenos esquecidos somam rápido: anote o que entrou e saiu desde então.');
+      expect(r.rotulo).toBe('Novo lançamento');
+      expect(await regra(page, base({ contas: [conta('a', 'pagar', 'Aluguel', 1000, '2026-10-20')] }), 'sem-lancar')).toBeNull();
+    });
+
+    test('dicas: no máximo 2 frases, com botão que leva à ação; ordem por prioridade e corte do grátis', async ({ page }) => {
+      await abrirCom(page, base(), 'inicio');
+      const r = await page.evaluate(d => {
+        const N = window.ControlNucleo, O = window.ControlOrientador;
+        const ctx = O.contexto(N.migrar(d), 'tudo', '2026-10-02', new Date('2026-10-02T12:00:00-03:00'));
+        const lista = O.dicas(ctx), chamadas = [];
+        const api = { filtrar: f => chamadas.push(['filtrar', f]), irPara: t => chamadas.push(['irPara', t]), abrirDetalhe: id => chamadas.push(['abrirDetalhe', id]),
+          novo: () => chamadas.push(['novo']), abrirLink: u => chamadas.push(['abrirLink', u]) };
+        lista.forEach(x => x.acao.executar(api));
+        return { ids: lista.map(x => x.id), textos: lista.map(x => x.texto), rotulos: lista.map(x => x.acao.rotulo), chamadas,
+          gratis: O.dicas(ctx, { limite: O.LIMITE_GRATIS }).map(x => x.id) };
+      }, tudoDispara());
+      expect(r.ids).toEqual(['atrasadas', 'vermelho', 'vence-logo', 'reserva', 'categoria', 'sem-lancar']);
+      r.textos.forEach(t => expect(frases(t), t).toBeLessThanOrEqual(2));
+      r.rotulos.forEach(t => expect(t.length).toBeGreaterThan(0));
+      expect(r.chamadas).toEqual([
+        ['abrirDetalhe', 'luz'], ['irPara', 'fluxo'], ['abrirDetalhe', 'net'], ['abrirLink', '/ferramentas/reserva-de-emergencia.html'],
+        ['filtrar', { status: 'todas', categoriaId: 'cat_alimentacao', tipo: 'pagar' }], ['novo']
+      ]);
+      expect(r.gratis).toEqual(['atrasadas']);
+    });
+
+    test('desktop: painel lateral com boas-vindas, dicas e botão que leva à lista certa', async ({ page }) => {
+      const erros = await abrirCom(page, base({ contas: [velha('luz', 'pagar', 'Luz', 15000, '2026-09-28'), velha('agua', 'pagar', 'Água', 9000, '2026-09-30')] }), 'inicio');
+      const painel = page.locator('#orientador');
+      await expect(painel).toBeVisible();
+      await expect(painel.locator('[data-ori-ola]')).toHaveText('Boa tarde! Hoje é sexta, 2 de outubro. Hoje pede atenção: 2 contas atrasadas.');
+      await expect(page.locator('#ori-selo')).toBeHidden();
+      const dica = painel.locator('[data-dica="atrasadas"]');
+      await expect(dica).toContainText('Você tem 2 contas atrasadas');
+      await dica.getByRole('button', { name: 'Ver atrasadas' }).click();
+      await expect(page).toHaveURL(/#contas$/);
+      await expect(page.locator('[data-acao="filtro-status"][data-v="atrasadas"]')).toHaveAttribute('aria-pressed', 'true');
+      await expect(page.locator('#tela .ctl-linha')).toHaveCount(2);
+      // fechar fica lembrado
+      await painel.locator('[data-ori="fechar"]').click();
+      await expect(painel).toBeHidden();
+      await page.reload();
+      await expect(page.locator('#orientador')).toBeHidden();
+      await expect(page.locator('#ori-selo')).toBeHidden();   // as dicas de hoje já foram vistas (o painel abriu hoje)
+      semErros(erros);
+    });
+
+    test('atalhos de chat respondem com os números certos; pergunta livre sem resposta mostra o que ele sabe', async ({ page }) => {
+      const b = (data, valor) => [{ id: 'b' + data + valor, data, valor, desconto: 0, juros: 0 }];
+      await abrirCom(page, base({ saldo: { pessoal: 100000, negocio: 0 }, contas: [
+        conta('sal', 'receber', 'Salário', 500000, '2026-10-01', { baixas: b('2026-10-01', 500000), categoriaId: 'cat_salario' }),
+        conta('mer', 'pagar', 'Mercado', 80000, '2026-10-01', { baixas: b('2026-10-01', 80000), categoriaId: 'cat_alimentacao' }),
+        conta('far', 'pagar', 'Farmácia', 20000, '2026-09-30', { baixas: b('2026-10-02', 20000), categoriaId: 'cat_saude' }),
+        conta('luz', 'pagar', 'Luz', 15000, '2026-09-28'),
+        conta('alu', 'pagar', 'Aluguel', 180000, '2026-10-05'),
+        conta('cli', 'receber', 'Cliente', 30000, '2026-10-08')
+      ] }), 'inicio');
+      const painel = page.locator('#orientador'), ultima = () => painel.locator('.ctl-ori-msg.ori').last();
+      await painel.getByRole('button', { name: 'Como estou este mês?' }).click();
+      await expect(ultima()).toContainText('Em outubro, entrou R$ 5.000,00 e saiu R$ 1.000,00 até agora (resultado de + R$ 4.000,00). Se tudo correr como previsto, você fecha o mês com R$ 3.350,00 de saldo.');
+      await painel.getByRole('button', { name: 'O que vence esta semana?' }).click();
+      await expect(ultima()).toContainText('Até 09/10, 2 contas vencem: R$ 1.800,00 a pagar e R$ 300,00 a receber. Fora isso, 1 conta está atrasada.');
+      await expect(ultima().locator('li')).toHaveText(['seg, 5 out · Aluguel · − R$ 1.800,00', 'qui, 8 out · Cliente · + R$ 300,00']);
+      await painel.getByRole('button', { name: 'Onde mais gastei?' }).click();
+      await expect(ultima()).toContainText('Em outubro, o que mais pesou foi Alimentação: R$ 800,00 (80% do que saiu).');
+      // escrita livre: palavra-chave → atalho; sem palavra conhecida → o que ele sabe responder
+      await page.locator('#ori-pergunta').fill('quanto gastei e com o quê?');
+      await page.locator('#ori-pergunta').press('Enter');
+      await expect(ultima()).toContainText('o que mais pesou foi Alimentação');
+      await page.locator('#ori-pergunta').fill('qual a capital da França?');
+      await page.locator('#ori-pergunta').press('Enter');
+      await expect(ultima()).toContainText('Ainda não sei responder isso');
+      // o botão da resposta leva à ação
+      await painel.getByRole('button', { name: 'O que vence esta semana?' }).click();
+      await ultima().getByRole('button', { name: 'Ver na lista' }).click();
+      await expect(page.locator('[data-acao="filtro-status"][data-v="semana"]')).toHaveAttribute('aria-pressed', 'true');
+    });
+
+    test.describe('celular', () => {
+      test.use({ viewport: { width: 390, height: 844 } });
+      test('gaveta: começa fechada com selo, abre, a ação fecha e navega; Esc fecha', async ({ page }) => {
+        const erros = await abrirCom(page, base({ contas: [conta('f', 'pagar', 'Fornecedor', 50000, '2026-10-20'), conta('net', 'pagar', 'Internet', 11990, HOJE)] }), 'inicio');
+        const painel = page.locator('#orientador');
+        await expect(painel).toBeHidden();
+        await expect(page.locator('#ori-selo')).toHaveText('2');
+        await page.locator('#btn-orientador').click();
+        await expect(painel).toBeVisible();
+        await expect(page.locator('#ori-titulo')).toBeFocused();
+        await expect(page.locator('#ori-selo')).toBeHidden();
+        expect((await lerDb(page)).config.orientadorVisto).toBe(HOJE);
+        await painel.getByRole('button', { name: 'Abrir Fluxo' }).click();
+        await expect(painel).toBeHidden();
+        await expect(page).toHaveURL(/#fluxo$/);
+        await page.locator('#btn-orientador').click();
+        await expect(painel).toBeVisible();
+        await page.keyboard.press('Escape');
+        await expect(painel).toBeHidden();
+        await expect(page.locator('#btn-orientador')).toBeFocused();
+        // barra do topo com Desfazer visível continua cabendo em 390px
+        await page.locator('a[href="#contas"]:visible').click();
+        await linha(page, 'Internet').locator('.ctl-check').click();
+        await expect(page.locator('#desfazer')).toBeVisible();
+        expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+        semErros(erros);
+      });
+    });
+  });
+
   test('dados corrompidos ou de outra versão não derrubam o app', async ({ page }) => {
     await page.addInitScript(k => { if (!sessionStorage.getItem('x')) { localStorage.setItem(k, '{quebrado'); sessionStorage.setItem('x', 1); } }, CHAVE);
     const erros = await abrir(page, URL);
