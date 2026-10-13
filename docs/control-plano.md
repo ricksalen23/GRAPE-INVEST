@@ -21,8 +21,8 @@ Este arquivo é a fonte da verdade para continuar o trabalho em outra conversa: 
 | Etapa | Situação |
 |---|---|
 | 1. Núcleo "Recebi / Paguei" [REVISÃO] | **Concluída e aprovada** — commit `50b2b67` |
-| 2. "Meu mês" [REVISÃO] | próxima |
-| 3. Relatório + WhatsApp | pendente |
+| 2. "Meu mês" [REVISÃO] | **Feita, aguardando o OK do dono** (screenshots em `tests/capturas/control/etapa2/`) |
+| 3. Relatório + WhatsApp | próxima (depois do OK da Etapa 2) |
 | 4. Orientador [REVISÃO] | pendente |
 | 5. Plano e assinatura (demonstração) | pendente |
 | 6. Efeitos visuais | pendente |
@@ -35,7 +35,8 @@ Este arquivo é a fonte da verdade para continuar o trabalho em outra conversa: 
 - `control/control.css` — estilos do app (prefixo `.ctl-`), mobile-first; desktop a partir de 900px.
 - `control/nucleo.js` — **regras sem tela** em `window.ControlNucleo`: datas, dinheiro, migração/validação, status, criar/editar/baixar/excluir, recorrências, fluxo, resumo do mês, CSV, backup. Regra nova de dinheiro/data entra aqui.
 - `control/app.js` — telas e interações; expõe `window.WardenControl = { db, render, desfazer, toast, abrirLancamento, abrirDetalhe }` (testes e próximas etapas).
-- `tests/specs/control.spec.js` — 19 testes (todos passando na Etapa 1).
+- `tests/specs/control.spec.js` — 26 testes (19 da Etapa 1 + 7 do "Meu mês", todos passando).
+- `control/index.html` também tem `#dlg-modelo` (nova/editar conta fixa do "Meu mês").
 - `tests/playwright.config.js` — no Linux usa o Chromium do Playwright (`npx playwright install chromium` uma vez; `npm ci` em `tests/`); no Windows/Mac, o Chrome instalado. `PW_CHANNEL` força um canal.
 
 ### Decisões tomadas
@@ -56,6 +57,7 @@ Este arquivo é a fonte da verdade para continuar o trabalho em outra conversa: 
 - **"UM botão Novo lançamento por tela":** no desktop fica na barra do topo; no celular é o flutuante. Some no estado vazio (que tem os dois botões grandes "Tenho uma conta a pagar" / "Tenho algo a receber") e em Ajustes (`body[data-sem-novo]`).
 - **Filtros** só aparecem quando há contas; padrão "Em aberto". Busca ignora acento e não perde o foco (só a lista é redesenhada).
 - **Categorias padrão** (`CATEGORIAS_PADRAO` no núcleo) têm `icone` (chave do SVG em `app.js`, objeto `P`), para o "Meu mês" usar. Excluir categoria move as contas para "Outros…" do mesmo tipo.
+- **"Meu mês" (Etapa 2):** tela `#mes`, 2º item do menu (a navegação inferior ficou com 6 itens, fonte .66rem; reavaliar na revisão). Modelos em `db.modelos`; `gerarMes(db, 'aaaa-mm')` só gera o **mês corrente** (ao abrir, ao importar backup e quando o dia vira), chave modelo + mês; dia 31 → último dia. Valor variável = valor da conta mais recente do modelo. Tocar num item variável em aberto abre "Valor deste mês" (`ajustarValor`, muda só aquela conta); os outros abrem o detalhe. Editar o modelo vale só para os próximos meses. Excluir a conta de um mês grava o mês em `modelo.excluidos` (não volta). Excluir o modelo mantém as contas já geradas. Contas de modelo de **meses anteriores ainda em aberto** aparecem em "Atrasadas" (não somem na virada), mas não entram no progresso do mês. Grupos: Atrasadas / Esta semana (hoje + 7 dias) / Mais adiante / Pagas (`<details>` recolhido). Checkbox quadrado de 32px em área de 52px; "carimbo" anima só no item recém-marcado. Pílula de prazo fica embaixo do nome (texto longo no celular). Quitou tudo: cartão "Mês fechado!" + confete uma vez (`config.confeteMes`), sem confete com `prefers-reduced-motion`.
 - **Backup:** `{ app: 'warden-control', versao, exportadoEm, dados }`; importar substitui tudo (com confirmação e Desfazer). **CSV:** `;` e vírgula decimal, com BOM, para o Excel em português.
 
 ### Modelo de dados (v1)
@@ -69,11 +71,13 @@ Este arquivo é a fonte da verdade para continuar o trabalho em outra conversa: 
              grupoId, parcela: { n, total } | null, recorrenciaId, ocorrencia, modeloId,
              baixas: [{ id, data, valor, desconto, juros, criadoEm }], criadoEm, atualizadoEm }],
   recorrencias: [{ id, tipo, descricao, valor, categoriaId, contato, forma, obs, perfil,
-                   freq, inicio, dia, fim, excluidas: [], criadoEm }]
+                   freq, inicio, dia, fim, excluidas: [], criadoEm }],
+  modelos: [{ id, tipo, descricao, valor, dia, categoriaId, perfil, variavel, ativo, excluidos: ['aaaa-mm'], criadoEm }]
 }
+// config também tem confeteMes: 'aaaa-mm' | null
 ```
 
-`modeloId` já existe na conta (reservado para o "Meu mês"). Campo novo de etapa futura: adicionar em `limparConta`/`migrar` no núcleo e no `dbVazio()`. Se a estrutura mudar de forma incompatível, subir para `versao: 2`, com migração da v1.
+Conta gerada pelo "Meu mês": `modeloId` + `ocorrencia` (a data original). Campo novo de etapa futura: adicionar em `limparConta`/`migrar` no núcleo e no `dbVazio()`. Se a estrutura mudar de forma incompatível, subir para `versao: 2`, com migração da v1.
 
 ### Testes e screenshots
 

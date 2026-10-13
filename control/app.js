@@ -1,6 +1,6 @@
 /*
  * WARDEN CONTROL — telas e interações. Regras e contas ficam no nucleo.js (window.ControlNucleo).
- * Telas por hash: #inicio, #contas, #fluxo, #relatorio, #ajustes. Tudo é redesenhado a partir do `db` depois de cada mudança.
+ * Telas por hash: #inicio, #mes, #contas, #fluxo, #relatorio, #ajustes. Tudo é redesenhado a partir do `db` depois de cada mudança.
  * Toda mudança passa por mudar()/substituirDb(): guardam uma cópia antes (pilha do Desfazer), gravam e redesenham.
  */
 (function () {
@@ -20,7 +20,8 @@
     tela: 'inicio',
     filtro: { tipo: 'todas', status: 'aberto', busca: '', categoriaId: '' },
     periodo: 30,
-    mesRel: null
+    mesRel: null,
+    pagasAbertas: false
   };
 
   // ---------- ícones (SVG inline, traço) ----------
@@ -57,12 +58,14 @@
     caixa: '<path d="m3 7 9-4 9 4v10l-9 4-9-4z"/><path d="m3 7 9 4 9-4M12 11v10"/>',
     ponto: '<circle cx="12" cy="12" r="3"/>',
     sacola: '<path d="M5 8h14l-1 12H6z"/><path d="M9 8a3 3 0 0 1 6 0"/>',
-    ferramenta: '<path d="M14.5 6.5a4 4 0 0 0 5 5L12 19a2.1 2.1 0 0 1-3-3z"/>'
+    ferramenta: '<path d="M14.5 6.5a4 4 0 0 0 5 5L12 19a2.1 2.1 0 0 1-3-3z"/>',
+    calendario: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="m9 15 2 2 4-4"/>'
   };
   const ic = (nome, extra = '') => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ${extra}>${P[nome] || P.ponto}</svg>`;
 
   const TELAS = [
     { id: 'inicio', nome: 'Início', icone: 'casa' },
+    { id: 'mes', nome: 'Meu mês', icone: 'calendario' },
     { id: 'contas', nome: 'Contas', icone: 'lista' },
     { id: 'fluxo', nome: 'Fluxo de caixa', curto: 'Fluxo', icone: 'grafico' },
     { id: 'relatorio', nome: 'Relatório', icone: 'documento' },
@@ -127,23 +130,26 @@
   function classePill(cod) { return { paga: 'paga', parcial: 'parcial', atrasada: 'atrasada', hoje: 'hoje', previsto: '' }[cod]; }
 
   /** uma linha do extrato: círculo (baixa total) + corpo (abre o detalhe) */
-  function linha(c, { hojeRef = ref(), saldoApos = null } = {}) {
+  function linha(c, { hojeRef = ref(), saldoApos = null, pilula = null, icone = false, acaoCorpo = 'abrir', carimbo = false, meta: metaExtra = '' } = {}) {
     const st = N.status(c, hojeRef), falta = N.restante(c), paga = st.codigo === 'paga';
-    const meta = [N.nomeCategoria(db, c.categoriaId)];
+    const meta = [metaExtra || N.nomeCategoria(db, c.categoriaId)];
     if (c.contato) meta.push(c.contato);
     if (c.parcela) meta.push(`parcela ${c.parcela.n}/${c.parcela.total}`);
     if (c.recorrenciaId) meta.push({ mensal: 'todo mês', semanal: 'toda semana', anual: 'todo ano' }[(db.recorrencias.find(r => r.id === c.recorrenciaId) || {}).freq] || 'repete');
     if (perfil() === 'tudo') meta.push(N.PERFIS[c.perfil]);
     const pct = c.valor ? Math.round(N.totalAbatido(c) / c.valor * 100) : 0;
     const rotCheck = paga ? `Reabrir ${c.descricao}` : `Dar baixa total em ${c.descricao}: ${brl(falta)} hoje`;
-    return `<li class="ctl-linha ${c.tipo} ${st.codigo}${st.atrasada ? ' atrasada' : ''}" data-id="${esc(c.id)}"${st.codigo === 'parcial' ? ` style="--p:${pct}%"` : ''}>
-      <button type="button" class="ctl-check" data-acao="baixar" data-id="${esc(c.id)}" aria-label="${esc(rotCheck)}" data-foco="check-${esc(c.id)}"><span class="aro">${ic('check', 'stroke-width="3"')}</span></button>
-      <button type="button" class="ctl-linha-corpo" data-acao="abrir" data-id="${esc(c.id)}" data-foco="abrir-${esc(c.id)}">
-        <span class="ctl-linha-txt"><span class="ctl-linha-desc">${esc(c.descricao)}</span><span class="ctl-linha-meta">${esc(meta.join(' · '))}</span></span>
+    return `<li class="ctl-linha ${c.tipo} ${st.codigo}${st.atrasada ? ' atrasada' : ''}${carimbo && paga ? ' carimbo' : ''}" data-id="${esc(c.id)}"${st.codigo === 'parcial' ? ` style="--p:${pct}%"` : ''}>
+      <button type="button" class="ctl-check" data-acao="baixar" data-id="${esc(c.id)}" aria-label="${esc(rotCheck)}" aria-pressed="${paga}" data-foco="check-${esc(c.id)}"><span class="aro">${ic('check', 'stroke-width="3"')}</span></button>
+      <button type="button" class="ctl-linha-corpo" data-acao="${acaoCorpo}" data-id="${esc(c.id)}" data-foco="abrir-${esc(c.id)}">
+        ${icone ? `<span class="ctl-linha-icone">${ic((N.categoria(db, c.categoriaId) || {}).icone)}</span>` : ''}
+        <span class="ctl-linha-txt"><span class="ctl-linha-desc">${esc(c.descricao)}</span>${pilula
+          ? `<span class="ctl-linha-prazo"><span class="ctl-pill ${pilula.cls}">${esc(pilula.texto)}</span>${metaExtra ? `<span class="ctl-linha-meta">${esc(metaExtra)}</span>` : ''}</span>`
+          : `<span class="ctl-linha-meta">${esc(meta.join(' · '))}</span>`}</span>
         <span class="ctl-linha-dir">
           <span class="ctl-num">${sinal(c, paga ? N.totalMovido(c) : falta)}</span>
           ${st.codigo === 'parcial' ? `<span class="de">faltam, de ${brl(c.valor)}</span>` : ''}
-          ${saldoApos != null ? `<span class="saldo-apos${saldoApos < 0 ? ' neg' : ''}">saldo ${brl(saldoApos)}</span>` : `<span class="ctl-pill ${classePill(st.codigo)}">${esc(N.rotuloStatus(c, hojeRef))}</span>`}
+          ${saldoApos != null ? `<span class="saldo-apos${saldoApos < 0 ? ' neg' : ''}">saldo ${brl(saldoApos)}</span>` : pilula ? '' : `<span class="ctl-pill ${classePill(st.codigo)}">${esc(N.rotuloStatus(c, hojeRef))}</span>`}
         </span>
       </button>
     </li>`;
@@ -249,6 +255,89 @@
       ${alertaNegativo(serie)}
       ${primeirosPassos()}
       ${temContas ? lista : `<div class="ctl-bloco">${vazio()}</div>`}`;
+  }
+
+  /** pílula de prazo do "Meu mês" (texto e cor pelo vencimento e pela data real da baixa) */
+  function pilulaMes(c, r) {
+    const rec = c.tipo === 'receber', dia = N.dataBR(c.vencimento).slice(0, 5);
+    if (N.quitada(c)) return { cls: 'paga', texto: `${rec ? 'Recebida' : 'Paga'} dia ${N.dataBR(N.ultimaBaixa(c).data).slice(0, 5)}` };
+    const n = N.diffDias(r, c.vencimento);
+    const prazo = n < 0 ? `Venceu dia ${dia} · ${-n} ${n === -1 ? 'dia' : 'dias'} de atraso`
+      : n === 0 ? (rec ? 'Recebe hoje' : 'Vence hoje')
+      : `${rec ? 'Recebe' : 'Vence'} dia ${dia}${n <= 3 ? ` · em ${n} ${n === 1 ? 'dia' : 'dias'}` : ''}`;
+    if (c.baixas.length) return { cls: n < 0 ? 'atrasada' : 'parcial', texto: `Parcial · ${prazo}` };
+    return { cls: n < 0 ? 'atrasada' : n === 0 ? 'hoje' : n <= 3 ? 'breve' : '', texto: prazo };
+  }
+
+  let carimbar = null;   // id da conta recém-marcada no "Meu mês" (anima o carimbo só nela)
+  function confete() {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const host = document.createElement('div');
+    host.className = 'ctl-confete'; host.setAttribute('aria-hidden', 'true');
+    const cores = ['#C8F26B', '#F3F1EA', '#C8F26B', '#8A887E'];
+    for (let i = 0; i < 36; i++) {
+      const p = document.createElement('i');
+      p.style.cssText = `left:${(i * 37) % 100}%;background:${cores[i % 4]};--x:${(i % 7 - 3) * 14}px;--r:${(i * 53) % 360}deg;animation-delay:${(i % 9) * 45}ms`;
+      host.appendChild(p);
+    }
+    document.body.appendChild(host);
+    setTimeout(() => host.remove(), 2400);
+  }
+
+  function telaMes() {
+    const r = ref(), ym = N.mesDe(r), nomeMes = N.nomeMes(ym).replace(/^./, l => l.toUpperCase());
+    const modelos = db.modelos.filter(doPerfil);
+    document.body.toggleAttribute('data-sem-novo', !modelos.length);
+    if (!modelos.length) {
+      return `${cabecalho('Meu mês', nomeMes)}
+        <div class="ctl-vazio"><div class="ic">${ic('calendario')}</div>
+          <h2>Suas contas fixas, prontas todo mês</h2>
+          <p>Cadastre uma vez o aluguel, a luz, a internet, o salário… Todo mês o Control monta a lista sozinho, tudo desmarcado, e você vai marcando o que pagou.</p>
+          <div class="ctl-vazio-botoes um"><button type="button" class="btn btn-primary" data-acao="novo-modelo">${ic('mais')} Cadastrar conta fixa</button></div>
+        </div>`;
+    }
+    const todas = N.contasMes(db, perfil(), ym).sort((a, b) => a.vencimento.localeCompare(b.vencimento) || a.descricao.localeCompare(b.descricao));
+    const pagas = todas.filter(N.quitada), abertas = todas.filter(c => !N.quitada(c));
+    const semana = N.addDias(r, 7);
+    // de meses anteriores, só o que ficou em aberto (o mês passado em si fica intacto; a conta não some da lista)
+    const antigas = contasPerfil().filter(c => c.modeloId && c.ocorrencia && N.mesDe(c.ocorrencia) < ym && !N.quitada(c))
+      .sort((a, b) => a.vencimento.localeCompare(b.vencimento));
+    const grupos = [
+      ['Atrasadas', [...antigas, ...abertas.filter(c => c.vencimento < r)], 'atrasadas'],
+      ['Esta semana', abertas.filter(c => c.vencimento >= r && c.vencimento <= semana), ''],
+      ['Mais adiante', abertas.filter(c => c.vencimento > semana), '']
+    ];
+    const faltam = abertas.reduce((s, c) => s + N.restante(c), 0);
+    const tudo = todas.length > 0 && !abertas.length;
+    if (tudo && db.config.confeteMes !== ym) { db.config.confeteMes = ym; gravar(); setTimeout(confete, 60); }
+
+    const variavel = c => (db.modelos.find(m => m.id === c.modeloId) || {}).variavel;
+    const lista = itens => `<div class="ctl-extrato"><ul>${itens.map(c => linha(c, {
+      hojeRef: r, icone: true, pilula: pilulaMes(c, r), acaoCorpo: 'mes-abrir', carimbo: c.id === carimbar,
+      meta: variavel(c) && !N.quitada(c) ? 'ajustar valor' : ''
+    })).join('')}</ul></div>`;
+
+    return `${cabecalho('Meu mês', nomeMes)}
+      ${!todas.length ? '' : `<div class="ctl-card ctl-mes-prog${tudo ? ' tudo' : ''}">
+        ${tudo ? `<div class="ctl-mes-fim">${ic('ok')}<div><strong>Mês fechado!</strong><span>Todas as contas fixas de ${N.MESES[Number(ym.slice(5)) - 1]} estão em dia.</span></div></div>`
+          : `<p class="ctl-mes-prog-txt" data-mes="progresso"><strong>${pagas.length} de ${todas.length}</strong> pagas · faltam <strong class="ctl-num">${brl(faltam)}</strong></p>`}
+        <div class="ctl-progresso" role="progressbar" aria-label="Contas fixas do mês em dia" aria-valuemin="0" aria-valuemax="${todas.length}" aria-valuenow="${pagas.length}"><span style="width:${pagas.length / todas.length * 100}%"></span></div>
+      </div>`}
+      <div class="ctl-mes">
+        ${grupos.filter(g => g[1].length).map(([t, itens, cls]) => `<div class="ctl-bloco" data-grupo="${esc(t)}">
+          <div class="ctl-bloco-cab"><h2 class="${cls}">${t}</h2><span class="ctl-rotulo">${itens.length}</span></div>${lista(itens)}</div>`).join('')}
+        ${pagas.length ? `<details class="ctl-bloco ctl-mes-pagas" data-grupo="Pagas"${estado.pagasAbertas ? ' open' : ''}>
+          <summary class="ctl-bloco-cab"><h2>Pagas</h2><span class="ctl-rotulo">${pagas.length} ${ic('dir')}</span></summary>${lista(pagas)}</details>` : ''}
+      </div>
+      <div class="ctl-card ctl-modelos">
+        <div class="ctl-bloco-cab" style="margin:0"><h2>Contas fixas</h2><button type="button" class="btn btn-secondary" data-acao="novo-modelo">${ic('mais')} Nova</button></div>
+        <p class="sub">Cadastradas uma vez, viram um item novo, desmarcado, todo mês. Mudar aqui vale para os próximos meses.</p>
+        <ul class="ctl-cats">${[...modelos].sort((a, b) => a.dia - b.dia || a.descricao.localeCompare(b.descricao)).map(m => `<li>
+          <span class="ic">${ic((N.categoria(db, m.categoriaId) || {}).icone)}</span>
+          <span class="nome">${esc(m.descricao)}<small>${m.tipo === 'receber' ? '+ ' : ''}${brl(m.valor)} · todo dia ${m.dia}${m.variavel ? ' · varia' : ''}</small></span>
+          <button type="button" class="ctl-icone-btn" data-acao="modelo-editar" data-id="${esc(m.id)}" aria-label="Editar ${esc(m.descricao)}">${ic('lapis')}</button>
+          <button type="button" class="ctl-icone-btn" data-acao="modelo-excluir" data-id="${esc(m.id)}" aria-label="Excluir ${esc(m.descricao)}">${ic('lixo')}</button></li>`).join('')}</ul>
+      </div>`;
   }
 
   function telaContas() {
@@ -414,7 +503,7 @@
   }
 
   // ---------- desenho geral ----------
-  const RENDER = { inicio: telaInicio, contas: telaContas, fluxo: telaFluxo, relatorio: telaRelatorio, ajustes: telaAjustes };
+  const RENDER = { inicio: telaInicio, mes: telaMes, contas: telaContas, fluxo: telaFluxo, relatorio: telaRelatorio, ajustes: telaAjustes };
 
   function menu() {
     const item = (t, cls) => `<a href="#${t.id}" class="${cls}"${estado.tela === t.id ? ' aria-current="page"' : ''}>${ic(t.icone)}<span>${t.nome}</span></a>`;
@@ -430,6 +519,7 @@
   function render() {
     const foco = document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.foco : null;
     $('#tela').innerHTML = RENDER[estado.tela]();
+    carimbar = null;
     menu(); barra();
     document.title = `${TELAS.find(t => t.id === estado.tela).nome} · Warden Control`;
     if (foco) { const el = $(`[data-foco="${CSS.escape(foco)}"]`); if (el) el.focus({ preventScroll: true }); }
@@ -669,7 +759,9 @@
       dlgConf.innerHTML = `<form method="dialog" novalidate>
         <div class="ctl-dlg-cab"><h2 id="conf-titulo">${esc(titulo)}</h2><button type="button" class="ctl-icone-btn" data-fechar aria-label="Fechar">${ic('x')}</button></div>
         <div class="ctl-dlg-miolo ctl-form">${texto ? `<p class="ctl-dica" style="font-size:.92rem">${texto}</p>` : ''}
-          ${campo ? `<div class="ctl-campo"><label for="conf-campo">${esc(campo.rotulo)}</label><input id="conf-campo" type="text" maxlength="60" value="${esc(campo.valor || '')}" autocomplete="off"></div>` : ''}
+          ${campo ? `<div class="ctl-campo"><label for="conf-campo">${esc(campo.rotulo)}</label>${campo.dinheiro
+            ? `<div class="ctl-dinheiro grande"><span>R$</span><input id="conf-campo" type="text" inputmode="decimal" value="${esc(campo.valor || '')}" autocomplete="off"></div>`
+            : `<input id="conf-campo" type="text" maxlength="60" value="${esc(campo.valor || '')}" autocomplete="off">`}</div>` : ''}
           <div class="ctl-escolhas">${botoes.map((b, i) => `<button type="${i === 0 ? 'submit' : 'button'}" class="btn ${b.classe || 'btn-secondary'}" data-v="${esc(b.valor)}">${esc(b.rotulo)}</button>`).join('')}
             <button type="button" class="btn btn-secondary" data-fechar>Cancelar</button></div>
         </div></form>`;
@@ -694,6 +786,7 @@
       toast(`${c.descricao}: reaberta`, { desfazer: acao });
     } else {
       const falta = N.restante(c);
+      carimbar = id;
       const { acao } = mudar(c.tipo === 'receber' ? 'Recebimento' : 'Pagamento', d => N.baixaTotal(d, id, ref()));
       toast(`${c.descricao}: ${c.tipo === 'receber' ? 'recebida' : 'paga'} · ${brl(falta)}`, { desfazer: acao });
     }
@@ -770,6 +863,10 @@
       const acao = substituirDb('Apagar tudo', N.dbVazio());
       toast('Dados apagados', { desfazer: acao });
     },
+    'novo-modelo': () => abrirModelo(),
+    'modelo-editar': el => abrirModelo(el.dataset.id),
+    'modelo-excluir': el => excluirModelo(el.dataset.id),
+    'mes-abrir': el => abrirItemMes(el.dataset.id),
     'cat-renomear': el => categoriaRenomear(el.dataset.id),
     'cat-excluir': el => categoriaExcluir(el.dataset.id),
     'det-baixa-total': () => { const id = detalheId; dlgDet.close(); baixarPeloCirculo(id); },
@@ -790,6 +887,7 @@
     if (el && !el.disabled && ACOES[el.dataset.acao]) ACOES[el.dataset.acao](el);
   });
   dlgDet.addEventListener('close', () => { detalheId = null; });
+  document.addEventListener('toggle', e => { if (e.target.matches && e.target.matches('.ctl-mes-pagas')) estado.pagasAbertas = e.target.open; }, true);
 
   // busca e categoria: só a lista é redesenhada (o campo não perde o foco)
   document.addEventListener('input', e => {
@@ -825,6 +923,7 @@
     });
     if (!r) return;
     N.gerarRecorrencias(novo, ref());
+    N.gerarMes(novo, N.mesDe(ref()));
     const acao = substituirDb('Importar backup', novo);
     toast('Backup importado', { desfazer: acao });
   });
@@ -851,6 +950,92 @@
     toast('Saldo inicial salvo', { desfazer: acao });
   });
 
+  // ---------- "Meu mês": contas fixas ----------
+  const dlgModelo = $('#dlg-modelo'), formModelo = $('#form-modelo');
+  let editandoModeloId = null;
+  const valModelo = nome => (formModelo.querySelector(`input[name="${nome}"]:checked`) || {}).value;
+  function categoriasModelo(tipo, selecionada) {
+    const cats = db.config.categorias.filter(c => c.tipo === tipo), sel = $('#modelo-cat');
+    sel.innerHTML = '<option value="">Sem categoria</option>' + cats.map(c => `<option value="${esc(c.id)}">${esc(c.nome)}</option>`).join('');
+    sel.value = cats.some(c => c.id === selecionada) ? selecionada : '';
+  }
+  function abrirModelo(id = null) {
+    const m = id ? db.modelos.find(x => x.id === id) : null;
+    editandoModeloId = m ? m.id : null;
+    formModelo.reset(); limparErros(formModelo);
+    const tipo = m ? m.tipo : 'pagar';
+    formModelo.querySelector(`input[name="modelo-tipo"][value="${tipo}"]`).checked = true;
+    const pf = m ? m.perfil : (perfil() === 'tudo' ? (db.config.ultimoPerfil || 'pessoal') : perfil());
+    formModelo.querySelector(`input[name="modelo-perfil"][value="${pf}"]`).checked = true;
+    categoriasModelo(tipo, m ? m.categoriaId : '');
+    $('#modelo-titulo').textContent = m ? 'Editar conta fixa' : 'Nova conta fixa';
+    $('#modelo-salvar').textContent = m ? 'Salvar alterações' : 'Salvar';
+    $('#modelo-desc').value = m ? m.descricao : '';
+    $('#modelo-valor').value = m ? N.formatBRL(m.valor, { semSimbolo: true }) : '';
+    $('#modelo-dia').value = m ? m.dia : Number(ref().slice(8));
+    $('#modelo-variavel').checked = m ? m.variavel : false;
+    $('#modelo-aviso').hidden = !m;
+    dlgModelo.showModal();
+    setTimeout(() => $('#modelo-desc').focus(), 30);
+  }
+  formModelo.addEventListener('change', e => { if (e.target.name === 'modelo-tipo') categoriasModelo(e.target.value, $('#modelo-cat').value); });
+  $('#modelo-valor').addEventListener('blur', e => formatarCampo(e.target));
+  formModelo.addEventListener('submit', e => {
+    e.preventDefault();
+    limparErros(formModelo);
+    const valor = lerDinheiro($('#modelo-valor'));
+    const dados = {
+      tipo: valModelo('modelo-tipo'), descricao: $('#modelo-desc').value, valor: valor == null ? NaN : valor, dia: Number($('#modelo-dia').value),
+      categoriaId: $('#modelo-cat').value, perfil: valModelo('modelo-perfil'), variavel: $('#modelo-variavel').checked
+    };
+    const erros = N.validarModelo(dados);
+    if (valor == null) erros.unshift({ campo: 'valor', msg: 'Não entendi esse valor. Use só números, como 1.250,90.' });
+    if (erros.length) {
+      erros.forEach(er => erroCampo(formModelo, er.campo, er.msg));
+      const primeiro = $(`[data-campo="${erros[0].campo}"] input`, formModelo);
+      if (primeiro) primeiro.focus();
+      return;
+    }
+    if (editandoModeloId) {
+      const { acao } = mudar('Editar conta fixa', d => N.editarModelo(d, editandoModeloId, dados));
+      dlgModelo.close();
+      toast('Conta fixa alterada. Vale a partir do próximo mês.', { desfazer: acao });
+    } else {
+      const { acao } = mudar('Nova conta fixa', d => { d.config.ultimoPerfil = dados.perfil; N.criarModelo(d, dados); N.gerarMes(d, N.mesDe(ref())); });
+      dlgModelo.close();
+      toast('Conta fixa cadastrada. Já está na lista deste mês.', { desfazer: acao });
+    }
+  });
+  async function excluirModelo(id) {
+    const m = db.modelos.find(x => x.id === id);
+    if (!m) return;
+    const r = await perguntar({ titulo: 'Excluir conta fixa?', texto: `<strong>${esc(m.descricao)}</strong> deixa de aparecer nos próximos meses. As contas já lançadas continuam em Contas.`, botoes: [{ rotulo: 'Excluir', valor: 'sim', classe: 'btn-perigo' }] });
+    if (!r) return;
+    const { acao } = mudar('Excluir conta fixa', d => N.excluirModelo(d, id));
+    toast('Conta fixa excluída', { desfazer: acao });
+  }
+  /** toque no item do "Meu mês": valor variável em aberto pergunta o valor deste mês; o resto abre o detalhe */
+  async function abrirItemMes(id) {
+    const c = N.acharConta(db, id), m = c && db.modelos.find(x => x.id === c.modeloId);
+    if (!c || !m || !m.variavel || N.quitada(c)) { abrirDetalhe(id); return; }
+    const mes = N.MESES[Number(c.vencimento.slice(5, 7)) - 1];
+    const r = await perguntar({
+      titulo: `${c.descricao} de ${mes}`,
+      texto: `Sugerimos <strong>${brl(c.valor)}</strong>, o valor do mês anterior. Se a conta deste mês veio diferente, ajuste aqui: muda só ${mes}.`,
+      campo: { rotulo: 'Valor deste mês', valor: N.formatBRL(c.valor, { semSimbolo: true }), dinheiro: true },
+      botoes: [{ rotulo: 'Salvar valor', valor: 'ok', classe: 'btn-primary' }, { rotulo: 'Ver detalhes da conta', valor: 'detalhe' }]
+    });
+    if (!r) return;
+    if (r.valor === 'detalhe') { abrirDetalhe(id); return; }
+    const v = N.parseCentavos(r.texto);
+    if (v == null || v <= 0) { toast('Não entendi esse valor. Use só números, como 1.250,90.'); return; }
+    if (v === c.valor) return;
+    try {
+      const { acao } = mudar('Ajustar valor', d => N.ajustarValor(d, id, v));
+      toast(`${c.descricao} de ${mes}: ${brl(v)}`, { desfazer: acao });
+    } catch (err) { toast(err.message, { ms: 5000 }); }
+  }
+
   // atalhos: N = novo lançamento, Ctrl/Cmd+Z = desfazer (fora de campos de texto)
   document.addEventListener('keydown', e => {
     if (document.querySelector('dialog[open]') || e.target.closest('input, textarea, select')) return;
@@ -864,12 +1049,18 @@
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState !== 'visible' || ref() === diaCarregado) return;
     diaCarregado = ref();
-    if (N.gerarRecorrencias(db, diaCarregado).length) gravar();
+    if (gerarTudo()) gravar();
     render();
   });
 
+  // recorrências até o horizonte + a lista do "Meu mês" do mês corrente (virada do mês = lista nova, desmarcada)
+  function gerarTudo() {
+    const r = ref();
+    return N.gerarRecorrencias(db, r).length + N.gerarMes(db, N.mesDe(r)).length;
+  }
+
   // ---------- início ----------
-  if (N.gerarRecorrencias(db, ref()).length) gravar();
+  if (gerarTudo()) gravar();
   window.addEventListener('hashchange', rotaAtual);
   rotaAtual();
 

@@ -136,10 +136,10 @@
       versao: VERSAO, criadoEm: t, atualizadoEm: t,
       config: {
         saldoInicial: { pessoal: 0, negocio: 0 }, saldoDefinido: false,
-        perfil: 'tudo', primeirosPassosOcultos: false,
+        perfil: 'tudo', primeirosPassosOcultos: false, confeteMes: null,
         categorias: CATEGORIAS_PADRAO.map(c => ({ ...c }))
       },
-      contas: [], recorrencias: []
+      contas: [], recorrencias: [], modelos: []
     };
   }
 
@@ -184,6 +184,17 @@
     };
   }
 
+  function limparModelo(m) {
+    if (!m || !TIPOS.includes(m.tipo) || !inteiro(m.valor) || m.valor <= 0 || !inteiro(m.dia) || m.dia < 1 || m.dia > 31) return null;
+    return {
+      id: txt(m.id, 60) || novoId('m'), tipo: m.tipo, descricao: txt(m.descricao, 120) || 'Sem descrição', valor: m.valor, dia: m.dia,
+      categoriaId: txt(m.categoriaId, 60), perfil: PERFIS[m.perfil] ? m.perfil : 'pessoal',
+      variavel: !!m.variavel, ativo: m.ativo !== false,
+      excluidos: Array.isArray(m.excluidos) ? m.excluidos.filter(x => /^\d{4}-\d{2}$/.test(x)) : [],
+      criadoEm: txt(m.criadoEm, 40) || agoraISO()
+    };
+  }
+
   /** aceita o db salvo ou um backup (com ou sem envelope) e devolve um db limpo, ou lança um Error com a explicação */
   function migrar(bruto) {
     let d = bruto && bruto.app === 'warden-control' && bruto.dados ? bruto.dados : bruto;
@@ -203,10 +214,12 @@
         saldoDefinido: !!cfg.saldoDefinido,
         perfil: ['pessoal', 'negocio', 'tudo'].includes(cfg.perfil) ? cfg.perfil : 'tudo',
         primeirosPassosOcultos: !!cfg.primeirosPassosOcultos,
+        confeteMes: /^\d{4}-\d{2}$/.test(cfg.confeteMes) ? cfg.confeteMes : null,
         categorias: cats.length ? cats : base.config.categorias
       },
       contas: d.contas.map(limparConta).filter(Boolean),
-      recorrencias: Array.isArray(d.recorrencias) ? d.recorrencias.map(limparRecorrencia).filter(Boolean) : []
+      recorrencias: Array.isArray(d.recorrencias) ? d.recorrencias.map(limparRecorrencia).filter(Boolean) : [],
+      modelos: Array.isArray(d.modelos) ? d.modelos.map(limparModelo).filter(Boolean) : []
     };
   }
 
@@ -343,6 +356,79 @@
     return novas;
   }
 
+  // ---------- "Meu mês": contas fixas (modelos) ----------
+  function validarModelo(d) {
+    const e = [];
+    if (!TIPOS.includes(d.tipo)) e.push({ campo: 'tipo', msg: 'Escolha se é para pagar ou receber.' });
+    if (!txt(d.descricao).trim()) e.push({ campo: 'descricao', msg: 'Dê um nome para a conta (ex.: Aluguel).' });
+    if (!inteiro(d.valor) || d.valor <= 0) e.push({ campo: 'valor', msg: 'Digite um valor maior que zero.' });
+    if (!inteiro(d.dia) || d.dia < 1 || d.dia > 31) e.push({ campo: 'dia', msg: 'Escolha um dia de 1 a 31.' });
+    return e;
+  }
+  function camposModelo(dados) {
+    return {
+      tipo: dados.tipo, descricao: txt(dados.descricao, 120).trim(), valor: dados.valor, dia: dados.dia,
+      categoriaId: dados.categoriaId || '', perfil: PERFIS[dados.perfil] ? dados.perfil : 'pessoal', variavel: !!dados.variavel
+    };
+  }
+  function criarModelo(db, dados) {
+    const erros = validarModelo(dados);
+    if (erros.length) throw Object.assign(new Error(erros[0].msg), { erros });
+    const m = { id: novoId('m'), ...camposModelo(dados), ativo: true, excluidos: [], criadoEm: agoraISO() };
+    db.modelos.push(m);
+    return m;
+  }
+  /** muda só o modelo: os meses já gerados ficam como estão (cada um se edita na própria conta) */
+  function editarModelo(db, id, dados) {
+    const m = db.modelos.find(x => x.id === id);
+    if (!m) throw new Error('Conta fixa não encontrada.');
+    const erros = validarModelo(dados);
+    if (erros.length) throw Object.assign(new Error(erros[0].msg), { erros });
+    return Object.assign(m, camposModelo(dados));
+  }
+  /** tira o modelo; as contas já geradas continuam (com o modeloId) */
+  function excluirModelo(db, id) {
+    const antes = db.modelos.length;
+    db.modelos = db.modelos.filter(m => m.id !== id);
+    return antes - db.modelos.length;
+  }
+
+  /**
+   * Gera as contas do mês 'aaaa-mm' a partir dos modelos ativos, sem duplicar (chave = modelo + mês da ocorrência).
+   * Dia 31 vira o último dia do mês. Valor variável: o valor da conta mais recente desse modelo, senão o padrão.
+   * Devolve as contas novas.
+   */
+  function gerarMes(db, ym = mesDe(hoje())) {
+    const [a, m] = ym.split('-').map(Number), novas = [];
+    const feitos = new Set(db.contas.filter(c => c.modeloId && c.ocorrencia).map(c => c.modeloId + '|' + mesDe(c.ocorrencia)));
+    for (const mod of db.modelos) {
+      if (!mod.ativo || feitos.has(mod.id + '|' + ym) || mod.excluidos.includes(ym)) continue;
+      const data = `${ym}-${pad(Math.min(mod.dia, diasNoMes(a, m)))}`;
+      let valor = mod.valor;
+      if (mod.variavel) {
+        const anterior = db.contas.filter(c => c.modeloId === mod.id && c.ocorrencia && c.ocorrencia < data)
+          .sort((x, y) => y.ocorrencia.localeCompare(x.ocorrencia))[0];
+        if (anterior) valor = anterior.valor;
+      }
+      const c = { ...contaBase({ ...mod, valor, vencimento: data }), modeloId: mod.id, ocorrencia: data };
+      db.contas.push(c); novas.push(c); feitos.add(mod.id + '|' + ym);
+    }
+    return novas;
+  }
+  /** muda o valor só desta conta (ex.: a luz deste mês); o modelo e os outros meses não mudam */
+  function ajustarValor(db, id, valor) {
+    const c = acharConta(db, id);
+    if (!c) throw new Error('Conta não encontrada.');
+    if (!inteiro(valor) || valor <= 0) throw new Error('Digite um valor maior que zero.');
+    if (valor < totalAbatido(c)) throw new Error(`Esta conta já tem ${formatBRL(totalAbatido(c))} de baixa; o valor não pode ser menor que isso.`);
+    c.valor = valor; c.atualizadoEm = agoraISO();
+    return c;
+  }
+  /** contas geradas por modelo no mês 'aaaa-mm' */
+  function contasMes(db, perfil, ym) {
+    return db.contas.filter(doPerfil(perfil)).filter(c => c.modeloId && c.ocorrencia && mesDe(c.ocorrencia) === ym);
+  }
+
   function acharConta(db, id) { return db.contas.find(c => c.id === id) || null; }
 
   /** baixa com ajustes. b: { valor (o que entrou/saiu), data, desconto, juros }. Lança Error com a explicação se não couber. */
@@ -406,6 +492,11 @@
     const c = acharConta(db, id);
     if (!c) return 0;
     let sai = new Set([c.id]);
+    if (c.modeloId && c.ocorrencia) {
+      // a conta do mês saiu: o "Meu mês" não gera de novo neste mês
+      const mod = (db.modelos || []).find(m => m.id === c.modeloId);
+      if (mod && !mod.excluidos.includes(mesDe(c.ocorrencia))) mod.excluidos.push(mesDe(c.ocorrencia));
+    }
     if (c.recorrenciaId) {
       const rec = db.recorrencias.find(r => r.id === c.recorrenciaId);
       if (rec && escopo === 'proximas') {
@@ -556,7 +647,8 @@
     parseCentavos, formatBRL, centavosTexto, repartir, novoId, semAcento,
     dbVazio, migrar, carregar, salvar, backup,
     abatido, totalAbatido, totalMovido, restante, quitada, ultimaBaixa, status, rotuloStatus,
-    validarLancamento, criarLancamento, gerarRecorrencias, acharConta, darBaixa, baixaTotal, reabrir, removerBaixa, editarConta, excluir,
+    validarLancamento, criarLancamento, gerarRecorrencias, acharConta,
+    validarModelo, criarModelo, editarModelo, excluirModelo, gerarMes, contasMes, ajustarValor, darBaixa, baixaTotal, reabrir, removerBaixa, editarConta, excluir,
     categoria, nomeCategoria, filtrar, saldoInicial, saldoAtual, serieFluxo, previsao, proximas, resumoMes, csv
   };
 })();

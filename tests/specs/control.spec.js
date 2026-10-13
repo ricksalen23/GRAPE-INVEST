@@ -8,13 +8,19 @@ const CHAVE = 'warden:control:v1';
 const HOJE = '2026-10-02';
 
 // db pronto (pula a tela vazia); semeado uma vez por aba, para recarregar não apagar mudanças
-function base({ contas = [], recorrencias = [], saldo = { pessoal: 0, negocio: 0 }, config = {} } = {}) {
+function base({ contas = [], recorrencias = [], modelos = [], saldo = { pessoal: 0, negocio: 0 }, config = {} } = {}) {
   const t = '2026-10-01T12:00:00.000Z';
-  return { versao: 1, criadoEm: t, atualizadoEm: t, contas, recorrencias,
+  return { versao: 1, criadoEm: t, atualizadoEm: t, contas, recorrencias, modelos,
     config: { saldoInicial: saldo, saldoDefinido: true, perfil: 'tudo', primeirosPassosOcultos: false, ...config } };   // sem categorias: o app completa
 }
 const conta = (id, tipo, descricao, valor, vencimento, extra = {}) => ({ id, tipo, descricao, valor, vencimento, categoriaId: '', contato: '', forma: '', obs: '',
   perfil: 'pessoal', grupoId: null, parcela: null, recorrenciaId: null, ocorrencia: null, baixas: [], criadoEm: '2026-10-01T12:00:00.000Z', atualizadoEm: '2026-10-01T12:00:00.000Z', ...extra });
+
+// conta fixa do "Meu mês"
+const modelo = (id, tipo, descricao, valor, dia, extra = {}) => ({ id, tipo, descricao, valor, dia, categoriaId: '', perfil: 'pessoal', variavel: false, ativo: true,
+  excluidos: [], criadoEm: '2026-09-01T12:00:00.000Z', ...extra });
+const doMes = (page, desc) => page.locator('.ctl-mes .ctl-linha', { has: page.locator('.ctl-linha-desc', { hasText: desc }) });
+const grupo = (page, nome) => page.locator(`.ctl-mes [data-grupo="${nome}"]`);
 
 async function abrirCom(page, dados, tela = 'contas', opcoes) {
   if (dados) {
@@ -358,6 +364,215 @@ test.describe('control', () => {
     semErros(erros);
   });
 
+  // ---------- Meu mês (contas fixas) ----------
+  test.describe('meu mês', () => {
+    const tres = () => [
+      modelo('m1', 'pagar', 'Aluguel', 180000, 5, { categoriaId: 'cat_moradia' }),
+      modelo('m2', 'pagar', 'Internet', 11990, 15, { categoriaId: 'cat_contas-casa' }),
+      modelo('m3', 'receber', 'Salário', 450000, 31, { categoriaId: 'cat_salario' })
+    ];
+
+    test('a lista do mês se gera sozinha, uma vez só, tudo desmarcado (dia 31 → último dia do mês)', async ({ page }) => {
+      const erros = await abrirCom(page, base({ modelos: tres() }), 'mes');
+      await expect(page.locator('.ctl-mes .ctl-linha')).toHaveCount(3);
+      await expect(page.locator('.ctl-mes .ctl-check[aria-pressed="true"]')).toHaveCount(0);
+      await page.reload();
+      await page.reload();
+      const db = await lerDb(page);
+      expect(db.contas).toHaveLength(3);
+      expect(db.contas.map(c => [c.modeloId, c.vencimento, c.baixas.length]).sort()).toEqual([
+        ['m1', '2026-10-05', 0], ['m2', '2026-10-15', 0], ['m3', '2026-10-31', 0]
+      ]);
+      expect(db.contas.every(c => c.ocorrencia === c.vencimento)).toBe(true);
+      // ícone da categoria em cada item
+      await expect(doMes(page, 'Aluguel').locator('.ctl-linha-icone svg')).toHaveCount(1);
+      // novembro: dia 31 vira 30/11; rodar de novo não duplica
+      const nov = await page.evaluate(() => {
+        const N = window.ControlNucleo, d = JSON.parse(JSON.stringify(window.WardenControl.db));
+        const a = N.gerarMes(d, '2026-11').map(c => c.vencimento), b = N.gerarMes(d, '2026-11').length;
+        return { a, b };
+      });
+      expect(nov.a.sort()).toEqual(['2026-11-05', '2026-11-15', '2026-11-30']);
+      expect(nov.b).toBe(0);
+      // as contas geradas são contas normais: aparecem em Contas
+      await page.locator('a[href="#contas"]:visible').first().click();
+      await expect(linha(page, 'Aluguel')).toBeVisible();
+      semErros(erros);
+    });
+
+    test('marcar = baixa total hoje, desmarcar = reabrir, ambos com Desfazer; progresso "N de M pagas · faltam R$ X"', async ({ page }) => {
+      const erros = await abrirCom(page, base({ modelos: tres() }), 'mes');
+      const prog = page.locator('[data-mes="progresso"]');
+      await expect(prog).toHaveText('0 de 3 pagas · faltam R$ 6.419,90');
+      await doMes(page, 'Aluguel').locator('.ctl-check').click();
+      await expect(prog).toHaveText('1 de 3 pagas · faltam R$ 4.619,90');
+      let db = await lerDb(page);
+      expect(db.contas.find(c => c.modeloId === 'm1').baixas).toMatchObject([{ valor: 180000, data: HOJE }]);
+      // Desfazer no toast
+      await expect(page.locator('#toast')).toContainText('Aluguel: paga');
+      await page.locator('#toast button').click();
+      await expect(prog).toHaveText('0 de 3 pagas · faltam R$ 6.419,90');
+      expect((await lerDb(page)).contas.find(c => c.modeloId === 'm1').baixas).toHaveLength(0);
+      // marca de novo; o item vai para "Pagas" (recolhido)
+      await doMes(page, 'Aluguel').locator('.ctl-check').click();
+      const pagas = grupo(page, 'Pagas');
+      await expect(pagas).not.toHaveAttribute('open', '');
+      await pagas.locator('summary').click();
+      await expect(doMes(page, 'Aluguel').locator('.ctl-pill')).toHaveText('Paga dia 02/10');
+      // desmarcar reabre, com Desfazer
+      await doMes(page, 'Aluguel').locator('.ctl-check').click();
+      await expect(page.locator('#toast')).toContainText('Aluguel: reaberta');
+      expect((await lerDb(page)).contas.find(c => c.modeloId === 'm1').baixas).toHaveLength(0);
+      await page.locator('#toast button').click();
+      db = await lerDb(page);
+      expect(db.contas.find(c => c.modeloId === 'm1').baixas).toHaveLength(1);
+      semErros(erros);
+    });
+
+    test('valor variável: sugere o do mês anterior e o ajuste muda só aquele mês', async ({ page }) => {
+      const set = conta('set', 'pagar', 'Luz', 18750, '2026-09-28', { modeloId: 'luz', ocorrencia: '2026-09-28',
+        baixas: [{ id: 'b', data: '2026-09-28', valor: 18750, desconto: 0, juros: 0 }] });
+      const erros = await abrirCom(page, base({ modelos: [modelo('luz', 'pagar', 'Luz', 15000, 28, { variavel: true, categoriaId: 'cat_contas-casa' })], contas: [set] }), 'mes');
+      const out = () => lerDb(page).then(d => d.contas.find(c => c.modeloId === 'luz' && c.ocorrencia === '2026-10-28'));
+      expect((await out()).valor).toBe(18750);   // o de setembro, não o padrão
+      await expect(doMes(page, 'Luz').locator('.ctl-linha-meta')).toContainText('ajustar valor');
+      await doMes(page, 'Luz').locator('.ctl-linha-corpo').click();
+      const dlg = page.locator('#dlg-confirmar');
+      await expect(dlg).toContainText('R$ 187,50');
+      await preencher(page, '#conf-campo', '210,40');
+      await dlg.locator('[data-v="ok"]').click();
+      await expect.poll(async () => (await out()).valor).toBe(21040);
+      const db = await lerDb(page);
+      expect(db.contas.find(c => c.id === 'set').valor).toBe(18750);
+      expect(db.modelos[0].valor).toBe(15000);
+      await expect(doMes(page, 'Luz').locator('.ctl-num')).toHaveText('− R$ 210,40');
+      // novembro sugere o valor ajustado de outubro
+      const nov = await page.evaluate(() => { const d = JSON.parse(JSON.stringify(window.WardenControl.db)); return window.ControlNucleo.gerarMes(d, '2026-11')[0].valor; });
+      expect(nov).toBe(21040);
+      // Desfazer volta o valor sugerido
+      await page.locator('#toast button').click();
+      expect((await out()).valor).toBe(18750);
+      semErros(erros);
+    });
+
+    test('prazos em pílulas: atrasada, hoje, em 2 dias, futura, paga (e para receber)', async ({ page }) => {
+      // 'ant' (só a de setembro) está pausado: não gera outubro
+      const ms = ['a', 'h', 'd2', 'f', 'p', 'r', 'rr', 'ant'].map((id, i) => modelo(id, 'pagar', id, 1000, 1 + i, { ativo: id !== 'ant' }));
+      const c = (id, desc, venc, extra = {}) => conta('c' + id, 'pagar', desc, 1000, venc, { modeloId: id, ocorrencia: venc, ...extra });
+      const pago = d => ({ baixas: [{ id: 'b' + d, data: d, valor: 1000, desconto: 0, juros: 0 }] });
+      await abrirCom(page, base({ modelos: ms, contas: [
+        c('a', 'Atrasada', '2026-10-01'), c('h', 'Hoje', HOJE), c('d2', 'Em dois', '2026-10-04'), c('f', 'Futura', '2026-10-20'),
+        c('p', 'Paga', '2026-10-05', pago('2026-10-01')), c('r', 'Cliente', '2026-10-10', { tipo: 'receber' }),
+        c('rr', 'Recebida', '2026-10-03', { tipo: 'receber', ...pago(HOJE) }), c('ant', 'Do mês passado', '2026-09-28')
+      ] }), 'mes');
+      const pill = d => doMes(page, d).locator('.ctl-pill');
+      await expect(pill('Atrasada')).toHaveText('Venceu dia 01/10 · 1 dia de atraso');
+      await expect(pill('Atrasada')).toHaveClass(/atrasada/);
+      await expect(pill('Do mês passado')).toHaveText('Venceu dia 28/09 · 4 dias de atraso');
+      await expect(pill('Hoje')).toHaveText('Vence hoje');
+      await expect(pill('Hoje')).toHaveClass(/hoje/);
+      await expect(pill('Em dois')).toHaveText('Vence dia 04/10 · em 2 dias');
+      await expect(pill('Em dois')).toHaveClass(/breve/);
+      await expect(pill('Futura')).toHaveText('Vence dia 20/10');
+      await expect(pill('Futura')).toHaveClass(/^ctl-pill\s*$/);
+      await expect(pill('Cliente')).toHaveText('Recebe dia 10/10');
+      await grupo(page, 'Pagas').locator('summary').click();
+      await expect(pill('Paga')).toHaveText('Paga dia 01/10');
+      await expect(pill('Paga')).toHaveClass(/paga/);
+      await expect(pill('Recebida')).toHaveText('Recebida dia 02/10');
+      // grupos
+      await expect(grupo(page, 'Atrasadas').locator('.ctl-linha')).toHaveCount(2);
+      await expect(grupo(page, 'Esta semana').locator('.ctl-linha')).toHaveCount(2);
+      await expect(grupo(page, 'Mais adiante').locator('.ctl-linha')).toHaveCount(2);
+      await expect(grupo(page, 'Pagas').locator('.ctl-linha')).toHaveCount(2);
+      // o progresso é só do mês (a de setembro não conta): 2 de 7
+      await expect(page.locator('[data-mes="progresso"]')).toContainText('2 de 7 pagas');
+    });
+
+    test('virada do mês: lista nova desmarcada e o mês anterior intacto', async ({ page }) => {
+      await abrirCom(page, base({ modelos: tres() }), 'mes');
+      await doMes(page, 'Aluguel').locator('.ctl-check').click();
+      await doMes(page, 'Salário').locator('.ctl-check').click();
+      await page.clock.setFixedTime(new Date('2026-11-02T12:00:00-03:00'));
+      await page.reload();
+      await expect(page.locator('.ctl-tela-cab h1 + p')).toHaveText('Novembro de 2026');
+      await expect(page.locator('[data-mes="progresso"]')).toHaveText('0 de 3 pagas · faltam R$ 6.419,90');
+      const db = await lerDb(page);
+      expect(db.contas).toHaveLength(6);
+      const out = db.contas.filter(c => c.ocorrencia < '2026-11-01');
+      expect(out.filter(c => c.baixas.length).map(c => c.descricao).sort()).toEqual(['Aluguel', 'Salário']);
+      expect(db.contas.filter(c => c.ocorrencia >= '2026-11-01').every(c => !c.baixas.length)).toBe(true);
+      // a internet de outubro, que ficou em aberto, continua aparecendo em "Atrasadas"
+      await expect(grupo(page, 'Atrasadas').locator('.ctl-linha')).toHaveCount(1);
+      await expect(grupo(page, 'Atrasadas')).toContainText('Venceu dia 15/10');
+    });
+
+    test('cadastrar, editar e excluir conta fixa; confete uma vez por mês ao quitar tudo', async ({ page }) => {
+      const erros = await abrirCom(page, null, 'mes');
+      await expect(page.locator('[data-novo]:visible')).toHaveCount(0);
+      await page.locator('.ctl-vazio [data-acao="novo-modelo"]').click();
+      const dlg = page.locator('#dlg-modelo');
+      await preencher(page, '#modelo-desc', 'Academia');
+      await preencher(page, '#modelo-valor', '99,90');
+      await preencher(page, '#modelo-dia', '31');
+      await page.locator('#modelo-salvar').click();
+      await expect(dlg).toBeHidden();
+      await expect(doMes(page, 'Academia')).toBeVisible();
+      let db = await lerDb(page);
+      expect(db.modelos[0]).toMatchObject({ descricao: 'Academia', valor: 9990, dia: 31, tipo: 'pagar', variavel: false });
+      expect(db.contas[0]).toMatchObject({ modeloId: db.modelos[0].id, vencimento: '2026-10-31', valor: 9990 });
+      // erro de validação
+      await page.locator('.ctl-modelos [data-acao="novo-modelo"]').click();
+      await preencher(page, '#modelo-desc', 'X');
+      await preencher(page, '#modelo-dia', '40');
+      await page.locator('#modelo-salvar').click();
+      await expect(dlg.locator('[data-campo="valor"]')).toHaveClass(/erro/);
+      await expect(dlg.locator('[data-campo="dia"]')).toHaveClass(/erro/);
+      await dlg.locator('.ctl-dlg-pe [data-fechar]').click();
+      // editar o modelo não mexe na conta deste mês
+      await page.locator('[data-acao="modelo-editar"]').click();
+      await preencher(page, '#modelo-valor', '120');
+      await page.locator('#modelo-salvar').click();
+      db = await lerDb(page);
+      expect(db.modelos[0].valor).toBe(12000);
+      expect(db.contas[0].valor).toBe(9990);
+      // quitou tudo: "Mês fechado!" e confete, uma vez por mês
+      await doMes(page, 'Academia').locator('.ctl-check').click();
+      await expect(page.locator('.ctl-mes-fim')).toContainText('Mês fechado!');
+      await expect(page.locator('.ctl-confete')).toHaveCount(1);
+      expect((await lerDb(page)).config.confeteMes).toBe('2026-10');
+      await expect(page.locator('.ctl-confete')).toHaveCount(0, { timeout: 4000 });
+      await grupo(page, 'Pagas').locator('summary').click();
+      await doMes(page, 'Academia').locator('.ctl-check').click();   // reabre
+      await doMes(page, 'Academia').locator('.ctl-check').click();   // quita de novo
+      await page.waitForTimeout(200);
+      await expect(page.locator('.ctl-confete')).toHaveCount(0);
+      // excluir a conta deste mês não faz ela voltar ao recarregar
+      await doMes(page, 'Academia').locator('.ctl-linha-corpo').click();
+      await page.locator('[data-acao="det-excluir"]').click();
+      await page.locator('#dlg-confirmar [data-v="sim"]').click();
+      await expect.poll(async () => (await lerDb(page)).contas.length).toBe(0);
+      await page.reload();
+      expect((await lerDb(page)).contas).toHaveLength(0);
+      // excluir o modelo
+      await page.locator('[data-acao="modelo-excluir"]').click();
+      await page.locator('#dlg-confirmar [data-v="sim"]').click();
+      await expect.poll(async () => (await lerDb(page)).modelos.length).toBe(0);
+      await expect(page.locator('.ctl-vazio [data-acao="novo-modelo"]')).toBeVisible();
+      semErros(erros);
+    });
+
+    test('sem animação com prefers-reduced-motion: nada de confete', async ({ page }) => {
+      await page.emulateMedia({ reducedMotion: 'reduce' });
+      await abrirCom(page, base({ modelos: [modelo('m1', 'pagar', 'Aluguel', 180000, 5)] }), 'mes');
+      await doMes(page, 'Aluguel').locator('.ctl-check').click();
+      await expect(page.locator('.ctl-mes-fim')).toBeVisible();
+      await page.waitForTimeout(200);
+      await expect(page.locator('.ctl-confete')).toHaveCount(0);
+      expect((await lerDb(page)).config.confeteMes).toBe('2026-10');
+    });
+  });
+
   test.describe('celular (390px)', () => {
     test.use({ viewport: { width: 390, height: 844 } });
     test('navegação inferior, botão flutuante e nada mais largo que a tela', async ({ page }) => {
@@ -366,7 +581,7 @@ test.describe('control', () => {
       await expect(page.locator('.ctl-lateral')).toBeHidden();
       await expect(page.locator('.ctl-fab')).toBeVisible();
       await expect(page.locator('[data-novo]:visible')).toHaveCount(1);
-      for (const t of ['inicio', 'contas', 'fluxo', 'relatorio', 'ajustes']) {
+      for (const t of ['inicio', 'mes', 'contas', 'fluxo', 'relatorio', 'ajustes']) {
         await page.locator(`.ctl-inferior a[href="#${t}"]`).click();
         await expect(page.locator(`.ctl-inferior a[href="#${t}"]`)).toHaveAttribute('aria-current', 'page');
         const largura = await page.evaluate(() => document.documentElement.scrollWidth);

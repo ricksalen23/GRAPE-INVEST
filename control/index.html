@@ -159,6 +159,56 @@
 <datalist id="lista-descricoes"></datalist>
 <datalist id="lista-contatos"></datalist>
 
+<!-- conta fixa do "Meu mês" (modelo): nova / editar -->
+<dialog class="ctl-dlg" id="dlg-modelo" aria-labelledby="modelo-titulo">
+  <form method="dialog" id="form-modelo" novalidate>
+    <div class="ctl-dlg-cab">
+      <h2 id="modelo-titulo">Nova conta fixa</h2>
+      <button type="button" class="ctl-icone-btn" data-fechar aria-label="Fechar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="ctl-dlg-miolo ctl-form">
+      <div class="ctl-tipo" role="radiogroup" aria-label="Tipo">
+        <label><input type="radio" name="modelo-tipo" value="pagar" checked><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>A pagar</span></label>
+        <label><input type="radio" name="modelo-tipo" value="receber"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>A receber</span></label>
+      </div>
+      <div class="ctl-campo" data-campo="descricao">
+        <label for="modelo-desc">Nome</label>
+        <input id="modelo-desc" type="text" maxlength="120" autocomplete="off" placeholder="Ex.: Aluguel, Luz, Internet, Salário">
+        <span class="msg"></span>
+      </div>
+      <div class="duas">
+        <div class="ctl-campo" data-campo="valor">
+          <label for="modelo-valor">Valor de sempre</label>
+          <div class="ctl-dinheiro"><span>R$</span><input id="modelo-valor" type="text" inputmode="decimal" autocomplete="off" placeholder="0,00"></div>
+          <span class="msg"></span>
+        </div>
+        <div class="ctl-campo" data-campo="dia">
+          <label for="modelo-dia">Vence todo dia</label>
+          <input id="modelo-dia" type="number" inputmode="numeric" min="1" max="31">
+          <span class="msg"></span>
+        </div>
+      </div>
+      <label class="ctl-marcar"><input type="checkbox" id="modelo-variavel"> <span>O valor muda todo mês (luz, água…). Sugerimos o do mês anterior e você ajusta.</span></label>
+      <div class="ctl-campo">
+        <label for="modelo-cat">Categoria</label>
+        <select id="modelo-cat"></select>
+      </div>
+      <div class="ctl-campo">
+        <span class="rot" id="modelo-perfil-rot">Perfil</span>
+        <div class="ctl-pilulas" role="radiogroup" aria-labelledby="modelo-perfil-rot">
+          <label><input type="radio" name="modelo-perfil" value="pessoal" checked><span>Pessoal</span></label>
+          <label><input type="radio" name="modelo-perfil" value="negocio"><span>Negócio</span></label>
+        </div>
+      </div>
+      <p class="ctl-dica" id="modelo-aviso" hidden>As mudanças valem a partir do próximo mês. A conta deste mês você ajusta direto nela, no "Meu mês".</p>
+    </div>
+    <div class="ctl-dlg-pe">
+      <button type="button" class="btn btn-secondary" data-fechar>Cancelar</button>
+      <button type="submit" class="btn btn-primary" id="modelo-salvar">Salvar</button>
+    </div>
+  </form>
+</dialog>
+
 <!-- detalhe de uma conta (conteúdo montado pelo app.js) -->
 <dialog class="ctl-dlg" id="dlg-detalhe" aria-labelledby="det-titulo"></dialog>
 <!-- saldo inicial -->
