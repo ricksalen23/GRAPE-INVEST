@@ -59,6 +59,9 @@
     ponto: '<circle cx="12" cy="12" r="3"/>',
     sacola: '<path d="M5 8h14l-1 12H6z"/><path d="M9 8a3 3 0 0 1 6 0"/>',
     ferramenta: '<path d="M14.5 6.5a4 4 0 0 0 5 5L12 19a2.1 2.1 0 0 1-3-3z"/>',
+    mensagem: '<path d="M20 12a8 8 0 0 1-11.6 7.1L4 20l1-4.2A8 8 0 1 1 20 12z"/>',
+    imagem: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/>',
+    copiar: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>',
     calendario: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="m9 15 2 2 4-4"/>'
   };
   const ic = (nome, extra = '') => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ${extra}>${P[nome] || P.ponto}</svg>`;
@@ -438,13 +441,23 @@
   function telaRelatorio() {
     document.body.removeAttribute('data-sem-novo');
     const r = ref(), ym = estado.mesRel || N.mesDe(r);
-    const res = N.resumoMes(db, perfil(), ym);
+    const res = N.dadosRelatorio(db, perfil(), ym, r);
     const maxCat = res.porCategoria.length ? res.porCategoria[0].valor : 1;
+    const prox = N.proximas(db, perfil(), 30, r);
+    const fm = res.fimMes;
     return `${cabecalho('Relatório', 'O que entrou e o que saiu no mês, pela data em que o dinheiro mexeu.')}
-      <div class="ctl-mes-nav" role="group" aria-label="Mês do relatório">
-        <button type="button" data-acao="mes" data-v="-1" aria-label="Mês anterior">${ic('esq')}</button>
-        <strong aria-live="polite">${N.nomeMes(ym).replace(/^./, l => l.toUpperCase())}</strong>
-        <button type="button" data-acao="mes" data-v="1" aria-label="Próximo mês"${ym >= N.addMesYM(N.mesDe(r), 12) ? ' disabled' : ''}>${ic('dir')}</button>
+      <div class="ctl-rel-topo">
+        <div class="ctl-mes-nav" role="group" aria-label="Mês do relatório">
+          <button type="button" data-acao="mes" data-v="-1" aria-label="Mês anterior">${ic('esq')}</button>
+          <strong aria-live="polite">${N.nomeMes(ym).replace(/^./, l => l.toUpperCase())}</strong>
+          <button type="button" data-acao="mes" data-v="1" aria-label="Próximo mês"${ym >= N.addMesYM(N.mesDe(r), 12) ? ' disabled' : ''}>${ic('dir')}</button>
+        </div>
+        <div class="ctl-rel-acoes" role="group" aria-label="Enviar ou baixar o relatório">
+          <button type="button" class="btn btn-primary" data-acao="relatorio" data-canal="whatsapp">${ic('mensagem')} Enviar pelo WhatsApp</button>
+          <button type="button" class="btn btn-secondary" data-acao="relatorio" data-canal="pdf">${ic('documento')} PDF</button>
+          <button type="button" class="btn btn-secondary" data-acao="relatorio" data-canal="imagem">${ic('imagem')} Imagem</button>
+          <button type="button" class="btn btn-secondary" data-acao="relatorio" data-canal="texto">${ic('copiar')} Copiar<span class="ctl-so-largo">&nbsp;texto</span></button>
+        </div>
       </div>
       <div class="ctl-grade g3" style="margin-top:14px">
         <div class="ctl-card"><span class="ctl-rotulo">Recebido</span><div class="ctl-num m" style="margin-top:6px" data-rel="recebido">${brl(res.recebido)}</div></div>
@@ -463,6 +476,15 @@
             <div><span class="ctl-rotulo">A pagar</span><span class="v">${brl(res.aPagar)}</span></div>
           </div>
         </div>
+      </div>
+      <div class="ctl-grade g2" style="margin-top:12px">
+        <div class="ctl-card"><span class="ctl-rotulo">Saldo de hoje · ${N.dataCurta(r)}</span><div class="ctl-num m${res.saldoHoje < 0 ? ' neg' : ''}" style="margin-top:6px" data-rel="saldo-hoje">${brl(res.saldoHoje)}</div></div>
+        <div class="ctl-card"><span class="ctl-rotulo">${fm ? `${fm.previsto ? 'Previsto' : 'Saldo'} em ${N.dataCurta(fm.data)}` : 'Fim do mês'}</span>
+          ${fm ? `<div class="ctl-num m${fm.saldo < 0 ? ' neg' : ''}" style="margin-top:6px" data-rel="fim-mes">${brl(fm.saldo)}</div>${fm.previsto ? '<p class="sub" style="margin-top:4px">Se tudo for pago e recebido no vencimento.</p>' : ''}`
+            : `<p class="sub" style="margin-top:6px">Longe demais para prever (o fluxo vai até ${N.HORIZONTE_DIAS} dias).</p>`}</div>
+      </div>
+      <div class="ctl-bloco"><div class="ctl-bloco-cab"><h2>Próximas contas</h2><span class="ctl-rotulo">30 dias a partir de hoje</span></div>
+        ${prox.length ? extrato(prox) : `<div class="ctl-alerta ok">${ic('ok')}<p>Nada vencendo nos próximos 30 dias.</p></div>`}
       </div>`;
   }
 
@@ -863,6 +885,13 @@
       const acao = substituirDb('Apagar tudo', N.dbVazio());
       toast('Dados apagados', { desfazer: acao });
     },
+    relatorio: async el => {
+      const botoes = $$('[data-acao="relatorio"]');
+      botoes.forEach(b => { b.disabled = true; });
+      el.setAttribute('aria-busy', 'true');
+      try { await enviarRelatorio(el.dataset.canal); }
+      finally { botoes.forEach(b => { b.disabled = false; }); el.removeAttribute('aria-busy'); }
+    },
     'novo-modelo': () => abrirModelo(),
     'modelo-editar': el => abrirModelo(el.dataset.id),
     'modelo-excluir': el => excluirModelo(el.dataset.id),
@@ -949,6 +978,40 @@
     dlgSaldo.close();
     toast('Saldo inicial salvo', { desfazer: acao });
   });
+
+  // ---------- relatório: enviar / baixar ----------
+  /**
+   * Envia ou baixa o relatório do mês que está na tela. canal: 'whatsapp' | 'compartilhar' | 'pdf' | 'imagem' | 'texto'.
+   * 'whatsapp' e 'compartilhar': com Web Share de arquivos (celular), vai a imagem + o texto pela folha de compartilhar;
+   * sem ela, abre o wa.me com o texto pronto (sem número: a pessoa escolhe o contato). Devolve o que de fato aconteceu.
+   * TODO (Etapa 2 do projeto): envio automático pelo servidor — o relatório chega sozinho no WhatsApp da pessoa todo mês
+   * (precisa de login, número confirmado e da API oficial do WhatsApp). Hoje tudo sai deste aparelho, pela própria pessoa.
+   */
+  async function enviarRelatorio(canal) {
+    const R = window.ControlRelatorio, r = ref();
+    const d = N.dadosRelatorio(db, perfil(), estado.mesRel || N.mesDe(r), r), texto = N.textoRelatorio(d);
+    try {
+      if (canal === 'texto') {
+        const ok = await (await R.carregarKit()).copiarTexto(texto);
+        toast(ok ? 'Texto do relatório copiado. É só colar na conversa.' : 'Não consegui copiar aqui. Use o botão do WhatsApp.');
+        return ok ? 'texto' : 'erro';
+      }
+      if (canal === 'pdf') { (await R.pdf(d)).save(R.nomeArquivo(d, 'pdf')); toast('PDF do relatório baixado.'); return 'pdf'; }
+      if (canal === 'imagem') { baixarArquivo(R.nomeArquivo(d, 'png'), await R.imagem(d), 'image/png'); toast('Imagem do relatório baixada.'); return 'imagem'; }
+      if (navigator.share && navigator.canShare) {
+        const arquivo = new File([await R.imagem(d)], R.nomeArquivo(d, 'png'), { type: 'image/png' });
+        if (navigator.canShare({ files: [arquivo] })) {
+          try { await navigator.share({ files: [arquivo], title: `Relatório de ${N.nomeMes(d.ym)}`, text: texto }); return 'compartilhar'; }
+          catch (e) { if (e && e.name === 'AbortError') return 'cancelado'; }   // outro erro: cai no wa.me
+        }
+      }
+      window.open('https://wa.me/?text=' + encodeURIComponent(texto), '_blank', 'noopener');
+      return 'whatsapp';
+    } catch (err) {
+      toast(err.message || 'Não deu certo agora. Tente de novo.', { ms: 5000 });
+      return 'erro';
+    }
+  }
 
   // ---------- "Meu mês": contas fixas ----------
   const dlgModelo = $('#dlg-modelo'), formModelo = $('#form-modelo');
@@ -1065,5 +1128,5 @@
   rotaAtual();
 
   // para os testes e para as próximas etapas
-  window.WardenControl = { get db() { return db; }, render, desfazer, toast, abrirLancamento, abrirDetalhe };
+  window.WardenControl = { get db() { return db; }, render, desfazer, toast, abrirLancamento, abrirDetalhe, enviarRelatorio };
 })();

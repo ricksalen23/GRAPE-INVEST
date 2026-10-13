@@ -626,6 +626,46 @@
     return { recebido, pago, resultado: recebido - pago, porCategoria, aPagar, aReceber };
   }
 
+  const NOME_PERFIL = { tudo: 'Pessoal + Negócio', pessoal: 'Pessoal', negocio: 'Negócio' };
+
+  /**
+   * tudo o que o relatório mensal mostra (tela, PDF, imagem e texto):
+   * números do mês 'aaaa-mm' (pela data da baixa) + saldo de hoje, saldo no fim do mês e próximas contas (30 dias a partir de hoje).
+   * fimMes: { data, saldo, previsto } — previsto = true se o fim do mês ainda não chegou (fluxo de caixa); null além do horizonte.
+   */
+  function dadosRelatorio(db, perfil = 'tudo', ym = mesDe(hoje()), ref = hoje()) {
+    const res = resumoMes(db, perfil, ym), fim = fimDoMes(ym + '-01');
+    let fimMes = null;
+    if (fim < ref) fimMes = { data: fim, saldo: saldoAtual(db, perfil, fim), previsto: false };
+    else if (diffDias(ref, fim) <= HORIZONTE_DIAS) {
+      const { pontos } = serieFluxo(db, perfil, diffDias(ref, fim), ref);
+      fimMes = { data: fim, saldo: pontos[pontos.length - 1].saldo, previsto: true };
+    }
+    const prox = proximas(db, perfil, 30, ref).map(c => ({
+      id: c.id, tipo: c.tipo, descricao: c.descricao, valor: restante(c), vencimento: c.vencimento, atrasada: c.vencimento < ref
+    }));
+    return { ym, perfil, ref, ...res, saldoHoje: saldoAtual(db, perfil, ref), fimMes, proximas: prox };
+  }
+
+  /** texto pronto (WhatsApp / copiar), com *negrito* do WhatsApp */
+  function textoRelatorio(d, { maxProximas = 10 } = {}) {
+    const L = [`*Relatório de ${nomeMes(d.ym)}*`, `Warden Control · ${NOME_PERFIL[d.perfil]}`, '',
+      `Recebido: ${formatBRL(d.recebido)}`, `Pago: ${formatBRL(d.pago)}`, `Resultado: ${formatBRL(d.resultado, { sinal: true })}`, '',
+      `Saldo de hoje (${dataBR(d.ref)}): ${formatBRL(d.saldoHoje)}`];
+    if (d.fimMes) L.push(`${d.fimMes.previsto ? 'Previsto' : 'Saldo'} em ${dataBR(d.fimMes.data)}: ${formatBRL(d.fimMes.saldo)}`);
+    if (d.porCategoria.length) {
+      L.push('', '*Onde mais gastou*');
+      d.porCategoria.slice(0, 5).forEach((c, i) => L.push(`${i + 1}. ${c.nome}: ${formatBRL(c.valor)}`));
+    }
+    L.push('', '*Próximas contas (30 dias)*');
+    if (!d.proximas.length) L.push('Nada vencendo nos próximos 30 dias.');
+    d.proximas.slice(0, maxProximas).forEach(c => L.push(
+      `${dataBR(c.vencimento).slice(0, 5)} ${c.descricao}: ${c.tipo === 'receber' ? '+' : '−'} ${formatBRL(c.valor)}${c.atrasada ? ' (atrasada)' : ''}`));
+    if (d.proximas.length > maxProximas) L.push(`e mais ${d.proximas.length - maxProximas}`);
+    L.push('', 'Gerado com Warden · wardenfinance.com.br');
+    return L.join('\n');
+  }
+
   /** CSV (separador ; e vírgula decimal, como o Excel em português) */
   function csv(db, perfil = 'tudo', ref = hoje()) {
     const q = v => { const s = String(v == null ? '' : v); return /[";\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
@@ -642,13 +682,13 @@
   function backup(db) { return { app: 'warden-control', versao: VERSAO, exportadoEm: agoraISO(), dados: db }; }
 
   window.ControlNucleo = {
-    CHAVE, VERSAO, FUSO, HORIZONTE_DIAS, FORMAS, PERFIS, CATEGORIAS_PADRAO, MESES,
+    CHAVE, VERSAO, FUSO, HORIZONTE_DIAS, FORMAS, PERFIS, NOME_PERFIL, CATEGORIAS_PADRAO, MESES,
     hoje, horaSP, addDias, addMeses, addMesYM, diffDias, mesDe, fimDoMes, dataValida, dataBR, dataCurta, nomeMes, rotuloDia, diaSemana,
     parseCentavos, formatBRL, centavosTexto, repartir, novoId, semAcento,
     dbVazio, migrar, carregar, salvar, backup,
     abatido, totalAbatido, totalMovido, restante, quitada, ultimaBaixa, status, rotuloStatus,
     validarLancamento, criarLancamento, gerarRecorrencias, acharConta,
     validarModelo, criarModelo, editarModelo, excluirModelo, gerarMes, contasMes, ajustarValor, darBaixa, baixaTotal, reabrir, removerBaixa, editarConta, excluir,
-    categoria, nomeCategoria, filtrar, saldoInicial, saldoAtual, serieFluxo, previsao, proximas, resumoMes, csv
+    categoria, nomeCategoria, filtrar, saldoInicial, saldoAtual, serieFluxo, previsao, proximas, resumoMes, dadosRelatorio, textoRelatorio, csv
   };
 })();

@@ -326,6 +326,19 @@ body[data-sem-novo] .ctl-fab, body[data-sem-novo] .ctl-novo-topo { display: none
 .ctl-mes-nav button:hover { background: var(--surface2); }
 .ctl-mes-nav button:disabled { opacity: .3; cursor: default; background: none; }
 .ctl-mes-nav svg { width: 18px; height: 18px; }
+.ctl-rel-topo { display: grid; gap: 12px; }
+.ctl-rel-topo .ctl-mes-nav { justify-self: start; }
+.ctl-rel-acoes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.ctl-rel-acoes .btn { min-height: 46px; padding: 10px 8px; font-size: .84rem; gap: 6px; justify-content: center; }
+.ctl-rel-acoes .btn-primary { grid-column: 1 / -1; min-height: 52px; font-size: .95rem; }
+.ctl-rel-acoes .btn[aria-busy="true"] { opacity: .7; cursor: progress; }
+.ctl-so-largo { display: none; }
+@media (min-width: 900px) {
+  .ctl-rel-topo { grid-template-columns: auto 1fr; align-items: center; }
+  .ctl-rel-acoes { display: flex; justify-content: flex-end; flex-wrap: wrap; }
+  .ctl-rel-acoes .btn, .ctl-rel-acoes .btn-primary { min-height: 44px; padding: 10px 16px; font-size: .86rem; }
+  .ctl-so-largo { display: inline; }
+}
 .ctl-barras { list-style: none; display: grid; gap: 14px; margin-top: 14px; }
 .ctl-barras .l { display: flex; justify-content: space-between; gap: 12px; font-size: .88rem; margin-bottom: 6px; }
 .ctl-barras .l span:first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

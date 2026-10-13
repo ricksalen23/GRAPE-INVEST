@@ -355,6 +355,110 @@ test.describe('control', () => {
     await expect(page.locator('[data-rel="pago"]')).toHaveText('R$ 999,00');
   });
 
+  // ---------- relatório: números, PDF, imagem, texto e WhatsApp ----------
+  test.describe('relatório e envio', () => {
+    const b = (data, valor) => [{ id: 'b' + data + valor, data, valor, desconto: 0, juros: 0 }];
+    const dados = () => base({ saldo: { pessoal: 100000, negocio: 0 }, contas: [
+      conta('sal', 'receber', 'Salário', 500000, '2026-10-01', { baixas: b('2026-10-01', 500000), categoriaId: 'cat_salario' }),
+      conta('mer', 'pagar', 'Mercado', 80000, '2026-10-01', { baixas: b('2026-10-01', 80000), categoriaId: 'cat_alimentacao' }),
+      conta('far', 'pagar', 'Farmácia', 20000, '2026-09-30', { baixas: b('2026-10-02', 20000), categoriaId: 'cat_saude' }),
+      conta('ant', 'pagar', 'Antiga', 99900, '2026-09-10', { baixas: b('2026-09-10', 99900) }),
+      conta('luz', 'pagar', 'Luz', 15000, '2026-09-28'),                 // atrasada: entra hoje
+      conta('alu', 'pagar', 'Aluguel', 180000, '2026-10-05'),
+      conta('cli', 'receber', 'Cliente', 30000, '2026-10-20'),
+      conta('via', 'pagar', 'Viagem', 50000, '2026-11-15')               // depois dos 30 dias
+    ] });
+
+    test('dadosRelatorio: números conferidos à mão (mês atual, passado e longe demais)', async ({ page }) => {
+      const erros = await abrirCom(page, dados(), 'relatorio');
+      const d = await page.evaluate(() => window.ControlNucleo.dadosRelatorio(window.WardenControl.db, 'tudo', '2026-10', '2026-10-02'));
+      expect(d).toMatchObject({ recebido: 500000, pago: 100000, resultado: 400000, aPagar: 180000, aReceber: 30000 });
+      expect(d.porCategoria.map(c => [c.nome, c.valor])).toEqual([['Alimentação', 80000], ['Saúde', 20000]]);
+      // saldo de hoje: 1.000 − 999 (set) + 5.000 − 800 − 200 = 4.001
+      expect(d.saldoHoje).toBe(400100);
+      // fim do mês: 4.001 − 150 (luz atrasada) − 1.800 + 300 = 2.351
+      expect(d.fimMes).toEqual({ data: '2026-10-31', saldo: 235100, previsto: true });
+      expect(d.proximas.map(c => [c.descricao, c.valor, c.atrasada])).toEqual([['Luz', 15000, true], ['Aluguel', 180000, false], ['Cliente', 30000, false]]);
+      const set = await page.evaluate(() => window.ControlNucleo.dadosRelatorio(window.WardenControl.db, 'tudo', '2026-09', '2026-10-02'));
+      expect(set).toMatchObject({ recebido: 0, pago: 99900, fimMes: { data: '2026-09-30', saldo: 100, previsto: false } });
+      const longe = await page.evaluate(() => window.ControlNucleo.dadosRelatorio(window.WardenControl.db, 'tudo', '2027-03', '2026-10-02'));
+      expect(longe.fimMes).toBeNull();
+      // a tela mostra os mesmos números
+      await expect(page.locator('[data-rel="saldo-hoje"]')).toHaveText('R$ 4.001,00');
+      await expect(page.locator('[data-rel="fim-mes"]')).toHaveText('R$ 2.351,00');
+      await expect(page.locator('.ctl-bloco .ctl-linha')).toHaveCount(3);
+      semErros(erros);
+    });
+
+    test('WhatsApp sem Web Share: abre o wa.me com o texto pronto e sem número', async ({ page }) => {
+      await page.addInitScript(() => {
+        delete Navigator.prototype.share; delete Navigator.prototype.canShare;
+        window.open = u => { window.__aberto = u; return null; };
+      });
+      const erros = await abrirCom(page, dados(), 'relatorio');
+      await page.locator('[data-acao="relatorio"][data-canal="whatsapp"]').click();
+      await expect.poll(() => page.evaluate(() => window.__aberto || '')).toMatch(/^https:\/\/wa\.me\/\?text=/);
+      const url = await page.evaluate(() => window.__aberto);
+      const texto = decodeURIComponent(url.split('?text=')[1]);
+      expect(texto.split('\n').slice(0, 2)).toEqual(['*Relatório de outubro de 2026*', 'Warden Control · Pessoal + Negócio']);
+      expect(texto).toContain('Recebido: R$ 5.000,00');
+      expect(texto).toContain('Resultado: + R$ 4.000,00');
+      expect(texto).toContain('Saldo de hoje (02/10/2026): R$ 4.001,00');
+      expect(texto).toContain('Previsto em 31/10/2026: R$ 2.351,00');
+      expect(texto).toContain('1. Alimentação: R$ 800,00');
+      expect(texto).toContain('28/09 Luz: − R$ 150,00 (atrasada)');
+      expect(texto).toContain('20/10 Cliente: + R$ 300,00');
+      expect(texto).not.toContain('Viagem');
+      expect(texto.trim().endsWith('Gerado com Warden · wardenfinance.com.br')).toBe(true);
+      semErros(erros);
+    });
+
+    test('WhatsApp com Web Share: manda a imagem do relatório e o texto pela folha de compartilhar', async ({ page }) => {
+      await page.addInitScript(() => {
+        Object.defineProperty(navigator, 'canShare', { configurable: true, value: d => !!(d && d.files && d.files.length) });
+        Object.defineProperty(navigator, 'share', { configurable: true, value: async d => {
+          const f = d.files[0];
+          window.__compartilhado = { n: d.files.length, nome: f.name, tipo: f.type, tamanho: f.size, texto: d.text };
+        } });
+        window.open = u => { window.__aberto = u; return null; };
+      });
+      const erros = await abrirCom(page, dados(), 'relatorio');
+      await page.locator('[data-acao="relatorio"][data-canal="whatsapp"]').click();
+      await expect.poll(() => page.evaluate(() => window.__compartilhado), { timeout: 15000 }).toBeTruthy();
+      const s = await page.evaluate(() => window.__compartilhado);
+      expect(s).toMatchObject({ n: 1, nome: 'warden-relatorio-2026-10.png', tipo: 'image/png' });
+      expect(s.tamanho).toBeGreaterThan(5000);
+      expect(s.texto).toContain('*Relatório de outubro de 2026*');
+      expect(await page.evaluate(() => window.__aberto)).toBeUndefined();
+      semErros(erros);
+    });
+
+    test('PDF e imagem baixam com o nome certo; copiar texto', async ({ page, context }) => {
+      await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+      const erros = await abrirCom(page, dados(), 'relatorio');
+      const [pdf] = await Promise.all([page.waitForEvent('download', { timeout: 30000 }), page.locator('[data-canal="pdf"]').click()]);
+      expect(pdf.suggestedFilename()).toBe('warden-relatorio-2026-10.pdf');
+      const bytesPdf = require('fs').readFileSync(await pdf.path());
+      expect(bytesPdf.length).toBeGreaterThan(1000);
+      expect(bytesPdf.toString('latin1', 0, 4)).toBe('%PDF');
+      const [png] = await Promise.all([page.waitForEvent('download', { timeout: 30000 }), page.locator('[data-canal="imagem"]').click()]);
+      expect(png.suggestedFilename()).toBe('warden-relatorio-2026-10.png');
+      const bytesPng = require('fs').readFileSync(await png.path());
+      expect(bytesPng.slice(1, 4).toString()).toBe('PNG');
+      expect(bytesPng.readUInt32BE(16)).toBe(1080);   // largura no cabeçalho IHDR
+      // com o perfil Negócio, o nome do arquivo diz o perfil
+      await page.locator('#perfil').selectOption('negocio');
+      const [pdfN] = await Promise.all([page.waitForEvent('download', { timeout: 30000 }), page.locator('[data-canal="pdf"]').click()]);
+      expect(pdfN.suggestedFilename()).toBe('warden-relatorio-2026-10-negocio.pdf');
+      await page.locator('#perfil').selectOption('tudo');
+      await page.locator('[data-canal="texto"]').click();
+      await expect(page.locator('#toast')).toContainText('copiado');
+      const copiado = await page.evaluate(() => navigator.clipboard.readText());
+      expect(copiado).toContain('Resultado: + R$ 4.000,00');
+      semErros(erros);
+    });
+  });
+
   test('dados corrompidos ou de outra versão não derrubam o app', async ({ page }) => {
     await page.addInitScript(k => { if (!sessionStorage.getItem('x')) { localStorage.setItem(k, '{quebrado'); sessionStorage.setItem('x', 1); } }, CHAVE);
     const erros = await abrir(page, URL);

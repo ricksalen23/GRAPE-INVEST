@@ -21,9 +21,9 @@ Este arquivo é a fonte da verdade para continuar o trabalho em outra conversa: 
 | Etapa | Situação |
 |---|---|
 | 1. Núcleo "Recebi / Paguei" [REVISÃO] | **Concluída e aprovada** — commit `50b2b67` |
-| 2. "Meu mês" [REVISÃO] | **Feita, aguardando o OK do dono** (screenshots em `tests/capturas/control/etapa2/`) |
-| 3. Relatório + WhatsApp | próxima (depois do OK da Etapa 2) |
-| 4. Orientador [REVISÃO] | pendente |
+| 2. "Meu mês" [REVISÃO] | **Concluída e aprovada** (as 3 decisões da revisão ficaram como estão: menu inferior com 6 itens, atrasadas de meses anteriores no "Meu mês", editar conta fixa vale só para os próximos meses) |
+| 3. Relatório + WhatsApp | **Concluída** |
+| 4. Orientador [REVISÃO] | próxima |
 | 5. Plano e assinatura (demonstração) | pendente |
 | 6. Efeitos visuais | pendente |
 | 7. "Salvar no Control" | pendente |
@@ -35,7 +35,8 @@ Este arquivo é a fonte da verdade para continuar o trabalho em outra conversa: 
 - `control/control.css` — estilos do app (prefixo `.ctl-`), mobile-first; desktop a partir de 900px.
 - `control/nucleo.js` — **regras sem tela** em `window.ControlNucleo`: datas, dinheiro, migração/validação, status, criar/editar/baixar/excluir, recorrências, fluxo, resumo do mês, CSV, backup. Regra nova de dinheiro/data entra aqui.
 - `control/app.js` — telas e interações; expõe `window.WardenControl = { db, render, desfazer, toast, abrirLancamento, abrirDetalhe }` (testes e próximas etapas).
-- `tests/specs/control.spec.js` — 26 testes (19 da Etapa 1 + 7 do "Meu mês", todos passando).
+- `control/relatorio.js` — saídas do relatório em `window.ControlRelatorio`: `pdf(d)` (jsPDF 2.5.1 + `Warden.novoPdf`/`textoPdf`/`rodapePdf`, carregados só ao pedir), `imagem(d)` (PNG 1080 px de largura em `<canvas>`, sem html2canvas), `nomeArquivo(d, ext)`, `carregarKit()`. Carregado entre o `nucleo.js` e o `app.js`.
+- `tests/specs/control.spec.js` — 30 testes (19 da Etapa 1 + 7 do "Meu mês" + 4 do relatório, todos passando).
 - `control/index.html` também tem `#dlg-modelo` (nova/editar conta fixa do "Meu mês").
 - `tests/playwright.config.js` — no Linux usa o Chromium do Playwright (`npx playwright install chromium` uma vez; `npm ci` em `tests/`); no Windows/Mac, o Chrome instalado. `PW_CHANNEL` força um canal.
 
@@ -53,7 +54,8 @@ Este arquivo é a fonte da verdade para continuar o trabalho em outra conversa: 
 - **Parcelamento:** N contas com o mesmo `grupoId` e `parcela: { n, total }`; o valor digitado é o total. Excluir "esta e as próximas" apaga as seguintes sem baixa.
 - **Perfis:** cada conta é `pessoal` ou `negocio`; o seletor (Tudo/Pessoal/Negócio) filtra tudo e fica em `config.perfil`. Saldo inicial separado por perfil (`config.saldoInicial = { pessoal, negocio }`).
 - **Saldo de hoje** = saldo inicial + todas as baixas de receber até hoje − todas as de pagar. **Fluxo:** contas em aberto entram no vencimento; atrasadas entram hoje. Alerta no primeiro dia em que o saldo previsto fica negativo (até 90 dias).
-- **Relatório (tela):** pelo dia em que o dinheiro mexeu (data da baixa): recebido, pago, resultado, "onde mais gastou" (pagamentos por categoria), em aberto no mês. A Etapa 3 acrescenta PDF/imagem/texto/WhatsApp.
+- **Relatório (tela):** pelo dia em que o dinheiro mexeu (data da baixa): recebido, pago, resultado, "onde mais gastou" (pagamentos por categoria), em aberto no mês, saldo de hoje, saldo no fim do mês e próximas contas (30 dias a partir de hoje).
+- **Relatório (Etapa 3):** números em `dadosRelatorio(db, perfil, ym, ref)` e texto em `textoRelatorio(d)` (núcleo, testáveis). Fim do mês: mês que já passou = saldo real no último dia (`previsto: false`); mês corrente/próximo = fluxo previsto; além de 90 dias = `null` ("Longe demais para prever"). Botões: "Enviar pelo WhatsApp", PDF, Imagem, Copiar texto, todos via `enviarRelatorio(canal)` no `app.js` (`'whatsapp' | 'compartilhar' | 'pdf' | 'imagem' | 'texto'`). WhatsApp: com `navigator.canShare({ files })` manda a imagem + o texto pela folha de compartilhar; sem, abre `wa.me/?text=` (sem número); cancelar a folha não abre o wa.me. Arquivos: `warden-relatorio-aaaa-mm[-pessoal|-negocio].pdf/.png`. **TODO** marcado: envio automático pelo servidor (Etapa 2 do projeto). O limite do grátis (sem relatório no WhatsApp) entra na Etapa 5.
 - **"UM botão Novo lançamento por tela":** no desktop fica na barra do topo; no celular é o flutuante. Some no estado vazio (que tem os dois botões grandes "Tenho uma conta a pagar" / "Tenho algo a receber") e em Ajustes (`body[data-sem-novo]`).
 - **Filtros** só aparecem quando há contas; padrão "Em aberto". Busca ignora acento e não perde o foco (só a lista é redesenhada).
 - **Categorias padrão** (`CATEGORIAS_PADRAO` no núcleo) têm `icone` (chave do SVG em `app.js`, objeto `P`), para o "Meu mês" usar. Excluir categoria move as contas para "Outros…" do mesmo tipo.
