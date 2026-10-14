@@ -770,8 +770,9 @@
   // Hoje config.plano é só uma demonstração neste aparelho: { tipo: 'gratis'|'pro', testeInicio: 'aaaa-mm-dd'|null }.
   const DIAS_TESTE = 7;
   const RECURSOS = {
-    gratis: { lancamentosMes: 30, perfis: 1, whatsapp: false, dicasDia: 1, csv: false, backup: true },
-    pro: { lancamentosMes: Infinity, perfis: 2, whatsapp: true, dicasDia: Infinity, csv: true, backup: true }
+    // consultasPro: as consultas do Orientador marcadas como 'pro' (no grátis, só a da parcela)
+    gratis: { lancamentosMes: 30, perfis: 1, whatsapp: false, dicasDia: 1, csv: false, backup: true, consultasPro: false },
+    pro: { lancamentosMes: Infinity, perfis: 2, whatsapp: true, dicasDia: Infinity, csv: true, backup: true, consultasPro: true }
   };
   function limparPlano(p) {
     p = p || {};

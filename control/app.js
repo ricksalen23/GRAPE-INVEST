@@ -539,12 +539,12 @@
     const p = plano(), r = ref(), lim = N.RECURSOS.gratis.lancamentosMes, usados = N.lancamentosNoMes(db, N.mesDe(r));
     let corpo;
     if (p.codigo === 'pro') {
-      corpo = `<p class="sub">Tudo liberado: lançamentos ilimitados, Pessoal + Negócio, relatório no WhatsApp, Orientador completo e planilha.</p>`;
+      corpo = `<p class="sub">Tudo liberado: lançamentos ilimitados, Pessoal + Negócio, relatório no WhatsApp, Orientador completo com as 4 consultas e planilha.</p>`;
     } else if (p.codigo === 'teste') {
       corpo = `<p class="sub">Tudo do Pro liberado até <strong>${N.dataBR(p.testeFim)}</strong> (${p.diasRestantes === 1 ? 'último dia' : `faltam ${p.diasRestantes} dias`}). Depois, se não assinar, volta para o grátis sem perder nada.</p>
         <div class="ctl-acoes"><a class="btn btn-primary" href="/assinar.html">Assinar o Pro · R$ ${PRO.preco}/mês</a><button type="button" class="btn btn-secondary" data-acao="pro">Ver o que muda</button></div>`;
     } else {
-      corpo = `<p class="sub">Até ${lim} lançamentos por mês, 1 perfil e 1 dica do Orientador por dia. Backup liberado.${p.testeUsado ? ` Seu teste do Pro terminou em ${N.dataBR(p.testeFim)}; seus dados continuam todos aqui.` : ''}</p>
+      corpo = `<p class="sub">Até ${lim} lançamentos por mês, 1 perfil, 1 dica do Orientador por dia e a consulta da parcela. Backup liberado.${p.testeUsado ? ` Seu teste do Pro terminou em ${N.dataBR(p.testeFim)}; seus dados continuam todos aqui.` : ''}</p>
         <p class="ctl-plano-uso" data-plano-uso><strong>${Math.min(usados, lim)} de ${lim}</strong> lançamentos este mês</p>
         <div class="ctl-progresso" role="progressbar" aria-label="Lançamentos do mês no plano grátis" aria-valuemin="0" aria-valuemax="${lim}" aria-valuenow="${Math.min(usados, lim)}"><span style="width:${Math.min(100, usados / lim * 100)}%"></span></div>
         <div class="ctl-acoes">${p.testeUsado ? '' : '<button type="button" class="btn btn-primary" data-acao="pro-teste">Testar o Pro por 7 dias</button>'}
@@ -1089,11 +1089,12 @@
     perfis: 'Separar as contas em Pessoal e Negócio é do Pro.',
     whatsapp: 'Mandar o relatório pelo WhatsApp é do Pro. PDF, imagem e texto continuam liberados.',
     csv: 'A planilha (CSV) é do Pro. O backup continua liberado para todos.',
-    dicas: 'No grátis, o Orientador traz 1 dica por dia. No Pro, todas as dicas, sempre que aparecerem.'
+    dicas: 'No grátis, o Orientador traz 1 dica por dia. No Pro, todas as dicas, sempre que aparecerem.',
+    consultas: 'No grátis, a consulta "Essa parcela cabe no meu bolso?" é liberada. No Pro, as quatro: também o plano de saída das dívidas, quitar ou guardar e quanto dá para gastar no mês.'
   };
   const LINHAS_PRO = [
     ['Lançamentos por mês', '30', 'Ilimitados'], ['Pessoal + Negócio', false, true], ['Relatório no WhatsApp', false, true],
-    ['Orientador', '1 dica por dia', 'Completo'], ['Planilha (CSV)', false, true], ['Backup', true, true]
+    ['Orientador', '1 dica por dia', 'Completo'], ['Consultas com os seus números', '1 de 4', 'As 4'], ['Planilha (CSV)', false, true], ['Backup', true, true]
   ];
   const celulaPro = v => v === true ? `${ic('check')}<span class="sr-only">Sim</span>` : v === false ? '<span aria-hidden="true">—</span><span class="sr-only">Não</span>' : esc(v);
   function abrirPro(motivo = 'plano') {
@@ -1318,7 +1319,7 @@
         ${ocultas ? `<p class="ctl-ori-mais">${ocultas === 1 ? 'Tem mais 1 dica' : `Tem mais ${ocultas} dicas`} para hoje no Pro.
           <button type="button" class="ctl-link" data-ori="pro">Conhecer o Pro</button></p>` : ''}
         <h3 class="ctl-rotulo">Consultas com os seus números</h3>
-        <div class="ctl-ori-atalhos ctl-ori-consultas">${window.ControlConsultas.CONSULTAS.map(q => `<button type="button" class="ctl-chip" data-ori="consulta" data-id="${q.id}">${esc(q.pergunta)}</button>`).join('')}</div>
+        ${listaConsultas()}
         <h3 class="ctl-rotulo">Pergunte</h3>
         <div class="ctl-ori-atalhos">${O.ATALHOS.map(a => `<button type="button" class="ctl-chip" data-ori="perguntar" data-id="${a.id}">${esc(a.pergunta)}</button>`).join('')}</div>
         <div class="ctl-ori-chat" aria-live="polite">${estado.chat.map((m, i) => `<div class="ctl-ori-msg ${m.quem}">
@@ -1376,6 +1377,7 @@
     else if (tipo === 'perguntar') perguntarOri(el.textContent, el.dataset.id);
     else if (tipo === 'pro') abrirPro('dicas');
     else if (tipo === 'consulta') { fecharOriCelular(); abrirConsulta(el.dataset.id); }
+    else if (tipo === 'consulta-pro') { fecharOriCelular(); abrirPro('consultas'); }
   });
   painelOri.addEventListener('submit', e => {
     if (e.target.id !== 'ori-form') return;
@@ -1456,9 +1458,20 @@
     if (consulta.cdi) return;
     try { const W = await window.ControlRelatorio.carregarKit(); consulta.cdi = (await W.getTaxasBCB()).cdi; } catch (e) { consulta.cdi = null; }
   }
+  /** consultas no painel: liberadas como atalho; as do Pro, no grátis, em vitrine com o que respondem */
+  function listaConsultas() {
+    const pro = recursos().consultasPro;
+    const livres = window.ControlConsultas.CONSULTAS.filter(q => pro || q.plano !== 'pro');
+    const vitrine = window.ControlConsultas.CONSULTAS.filter(q => !pro && q.plano === 'pro');
+    return `<div class="ctl-ori-atalhos ctl-ori-consultas">${livres.map(q => `<button type="button" class="ctl-chip" data-ori="consulta" data-id="${q.id}">${esc(q.pergunta)}</button>`).join('')}</div>
+      ${vitrine.length ? `<ul class="ctl-ori-vitrine" aria-label="Consultas do Warden Pro">${vitrine.map(q => `<li data-vitrine="${q.id}">
+          <div><strong>${esc(q.pergunta)}</strong><p>${esc(q.resumo)}</p></div>
+          <button type="button" class="ctl-link" data-ori="consulta-pro" data-id="${q.id}" aria-label="Ver no Pro: ${esc(q.pergunta)}">Ver no Pro</button></li>`).join('')}</ul>` : ''}`;
+  }
   async function abrirConsulta(id) {
     const q = CQ.CONSULTAS.find(x => x.id === id);
     if (!q) return;
+    if (q.plano === 'pro' && !recursos().consultasPro) { abrirPro('consultas'); return; }
     consulta.id = id;
     dlgCons.innerHTML = `<div class="ctl-dlg-cab"><h2 id="consulta-titulo">${esc(q.pergunta)}</h2><button type="button" class="ctl-icone-btn" data-fechar aria-label="Fechar">${ic('x')}</button></div>
       <div class="ctl-dlg-miolo ctl-consulta">${camposConsulta(id)}<div id="consulta-res" aria-live="polite"></div></div>`;

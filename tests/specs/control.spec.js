@@ -1235,6 +1235,46 @@ test.describe('control', () => {
       expect(await page.evaluate(() => window.ControlConsultas.escreverComIA({}))).toBeNull();
     });
 
+    test('consultas por plano: grátis vê 1 liberada e 3 em vitrine; o teste de 7 dias libera as 4; no fim do teste volta ao grátis sem apagar nada', async ({ page }) => {
+      const erros = await abrirCom(page, base({ saldo: { pessoal: 300000, negocio: 0 }, contas: [...historico(500000, 300000),
+        conta('cartao', 'pagar', 'Cartão', 300000, '2026-10-15', { divida: { taxa: 899 } })] }), 'inicio');
+      const painel = page.locator('#orientador'), chips = painel.locator('.ctl-ori-consultas .ctl-chip'), vitrine = painel.locator('.ctl-ori-vitrine li');
+      // grátis: a da parcela liberada; as outras três com o que respondem e "Ver no Pro" (sem cadeado)
+      await expect(chips).toHaveText(['Essa parcela cabe no meu bolso?']);
+      await expect(vitrine).toHaveCount(3);
+      await expect(vitrine.locator('strong')).toHaveText(['Como saio das dívidas?', 'Quito a dívida ou guardo o dinheiro?', 'Posso gastar R$ X este mês?']);
+      await expect(painel.locator('[data-vitrine="dividas"] p')).toHaveText('Monta um plano de saída das suas dívidas usando a sua sobra real.');
+      await expect(vitrine.getByRole('button', { name: /^Ver no Pro/ })).toHaveCount(3);
+      // a liberada abre normalmente
+      await chips.first().click();
+      await expect(page.locator('#dlg-consulta')).toBeVisible();
+      await page.locator('#dlg-consulta [data-fechar]').click();
+      // "Ver no Pro" (e qualquer outro caminho para uma consulta do Pro) abre a vitrine do Pro
+      await painel.getByRole('button', { name: 'Ver no Pro: Como saio das dívidas?' }).click();
+      const pro = page.locator('#dlg-pro');
+      await expect(pro.locator('[data-pro-motivo]')).toContainText('No grátis, a consulta "Essa parcela cabe no meu bolso?" é liberada');
+      await expect(pro.locator('.ctl-pro-tabela')).toContainText('Consultas com os seus números');
+      await pro.getByRole('button', { name: 'Agora não' }).click();
+      await page.evaluate(() => window.WardenControl.abrirConsulta('gasto'));
+      await expect(pro).toBeVisible();
+      await expect(page.locator('#dlg-consulta')).toBeHidden();
+      // teste de 7 dias: as quatro liberadas
+      await pro.getByRole('button', { name: 'Testar 7 dias grátis' }).click();
+      await expect(chips).toHaveCount(4);
+      await expect(vitrine).toHaveCount(0);
+      await painel.getByRole('button', { name: 'Como saio das dívidas?' }).click();
+      await expect(page.locator('#dlg-consulta .ctl-consulta-texto')).toContainText('Quitar primeiro as de juros mais altos');
+      await page.locator('#dlg-consulta [data-fechar]').click();
+      const antes = (await lerDb(page)).contas.length;
+      // acabou o teste: volta ao grátis, com a vitrine, e nada se perde
+      await page.clock.setFixedTime(new Date('2026-10-09T12:00:00-03:00'));
+      await page.reload();
+      await expect(page.locator('#orientador .ctl-ori-consultas .ctl-chip')).toHaveText(['Essa parcela cabe no meu bolso?']);
+      await expect(page.locator('#orientador .ctl-ori-vitrine li')).toHaveCount(3);
+      expect((await lerDb(page)).contas.length).toBe(antes);
+      semErros(erros);
+    });
+
     test('dívida com juros: marcar no lançamento (vale para o parcelamento), validar a taxa e mostrar no detalhe', async ({ page }) => {
       const erros = await abrirCom(page, base(), 'contas');
       await page.locator('.ctl-vazio [data-acao="novo"][data-tipo="pagar"]').click();
@@ -1270,7 +1310,7 @@ test.describe('control', () => {
     });
 
     test('consultas na tela: atalhos no Orientador abrem a análise com números, situação, decisão e aviso', async ({ page }) => {
-      const erros = await abrirCom(page, base({ saldo: { pessoal: 1000000, negocio: 0 }, contas: [...historico(500000, 300000),
+      const erros = await abrirCom(page, base({ config: PRO, saldo: { pessoal: 1000000, negocio: 0 }, contas: [...historico(500000, 300000),
         conta('cartao', 'pagar', 'Cartão', 300000, '2026-10-15', { divida: { taxa: 899 } })] }), 'inicio');
       const painel = page.locator('#orientador'), dlg = page.locator('#dlg-consulta');
       await painel.getByRole('button', { name: 'Essa parcela cabe no meu bolso?' }).click();

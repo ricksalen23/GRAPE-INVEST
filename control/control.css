@@ -568,6 +568,12 @@ body[data-ori-gaveta] { overflow: hidden; }
 
 /* ===== CONSULTAS DO ORIENTADOR ===== */
 .ctl-ori-consultas .ctl-chip { border-color: rgba(200,242,107,.35); }
+.ctl-ori-vitrine { list-style: none; display: grid; gap: 6px; }
+.ctl-ori-vitrine li { display: flex; align-items: center; gap: 10px; padding: 10px 6px 10px 12px; border-radius: 12px; border: 1px dashed rgba(243,241,234,.14); }
+.ctl-ori-vitrine li > div { flex: 1; min-width: 0; }
+.ctl-ori-vitrine strong { display: block; font-size: .86rem; font-weight: 600; }
+.ctl-ori-vitrine p { margin-top: 2px; font-size: .78rem; color: var(--muted); line-height: 1.45; }
+.ctl-ori-vitrine .ctl-link { flex-shrink: 0; font-size: .8rem; white-space: nowrap; color: var(--accent); }
 .ctl-consulta { display: grid; gap: 16px; }
 .ctl-consulta .ctl-form .btn { width: 100%; justify-content: center; }
 .ctl-consulta-res { display: grid; gap: 12px; }

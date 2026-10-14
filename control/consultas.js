@@ -227,13 +227,17 @@
 
   // ---------- catálogo e texto ----------
   const CONSULTAS = [
-    { id: 'parcela', pergunta: 'Essa parcela cabe no meu bolso?', calcular: calcularParcela, redigir: redigirParcela },
+    // plano: 'gratis' = liberada para todos; 'pro' = no grátis aparece em vitrine com o `resumo` (o que ela responde)
+    { id: 'parcela', plano: 'gratis', pergunta: 'Essa parcela cabe no meu bolso?', calcular: calcularParcela, redigir: redigirParcela },
     // nas consultas de dívida, a situação fala do prazo e da folga (o mesmo "com folga" da parcela confundiria)
-    { id: 'dividas', pergunta: 'Como saio das dívidas?', calcular: calcularDividas, redigir: redigirDividas,
+    { id: 'dividas', plano: 'pro', pergunta: 'Como saio das dívidas?', resumo: 'Monta um plano de saída das suas dívidas usando a sua sobra real.',
+      calcular: calcularDividas, redigir: redigirDividas,
       rotulos: { folga: 'Prazo curto', limite: 'Prazo longo', vermelho: 'Sem prazo com a sobra atual' } },
-    { id: 'quitar', pergunta: 'Quito a dívida ou guardo o dinheiro?', calcular: calcularQuitarOuGuardar, redigir: redigirQuitarOuGuardar,
+    { id: 'quitar', plano: 'pro', pergunta: 'Quito a dívida ou guardo o dinheiro?', resumo: 'Compara os juros da sua dívida com o que o mesmo dinheiro renderia guardado.',
+      calcular: calcularQuitarOuGuardar, redigir: redigirQuitarOuGuardar,
       rotulos: { folga: 'A folga cobre a dívida', limite: 'A folga cobre parte', vermelho: 'Sem folga' } },
-    { id: 'gasto', pergunta: 'Posso gastar R$ X este mês?', calcular: calcularGasto, redigir: redigirGasto }
+    { id: 'gasto', plano: 'pro', pergunta: 'Posso gastar R$ X este mês?', resumo: 'Mostra como fica o seu fim de mês se você gastar esse valor agora.',
+      calcular: calcularGasto, redigir: redigirGasto }
   ];
   /** completa o resultado com o texto fixo (ou o que falta), a decisão e o aviso */
   function redigir(r) {
