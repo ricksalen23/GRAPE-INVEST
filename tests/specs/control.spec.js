@@ -193,8 +193,9 @@ test.describe('control', () => {
     expect(ps.map(p => p.vencimento)).toEqual(['2026-10-31', '2026-11-30', '2026-12-31']);
     expect(new Set(ps.map(p => p.grupoId)).size).toBe(1);
     await expect(linha(page, 'Geladeira').first().locator('.ctl-linha-meta')).toContainText('parcela 1/3');
-    // excluir "esta e as próximas" a partir da 2ª
-    await linha(page, 'Geladeira').nth(1).locator('.ctl-linha-corpo').click();
+    // excluir "esta e as próximas" a partir da 2ª (as parcelas futuras ficam na linha resumo: expandir primeiro)
+    await page.locator('.ctl-serie-cab', { hasText: 'Geladeira' }).click();
+    await page.locator('.ctl-serie-lista .ctl-linha').nth(1).locator('.ctl-linha-corpo').click();
     await page.locator('[data-acao="det-excluir"]').click();
     await page.locator('#dlg-confirmar [data-v="proximas"]').click();
     await expect.poll(async () => (await lerDb(page)).contas.map(c => c.parcela.n)).toEqual([1]);
@@ -1694,6 +1695,91 @@ test.describe('control', () => {
       await expect(page.locator('#dlg-lanc')).toBeHidden();
       await expect(conf).toBeHidden();
       semErros(erros);
+    });
+  });
+
+  // ---------- Contas: parcelas e repetições futuras agrupadas ----------
+  test.describe('series', () => {
+    // 22x de R$ 415,54 a partir de 15/10, aluguel e internet que se repetem todo mês e uma conta avulsa
+    const VOZE = Array.from({ length: 22 }, (_, i) => conta('vz' + (i + 1), 'pagar', 'VO ZE', 41554,
+      `${2026 + Math.floor((9 + i) / 12)}-${String((9 + i) % 12 + 1).padStart(2, '0')}-15`, { grupoId: 'gvz', parcela: { n: i + 1, total: 22 } }));
+    const rec = (id, descricao, valor, inicio) => ({ id, tipo: 'pagar', descricao, valor, categoriaId: '', contato: '', forma: '', obs: '', perfil: 'pessoal',
+      freq: 'mensal', inicio, dia: Number(inicio.slice(8)), fim: null, excluidas: [], criadoEm: '2026-10-01T12:00:00.000Z' });
+    const cenario = () => base({ contas: [...VOZE, conta('av', 'pagar', 'Dentista', 25000, '2026-10-25')],
+      recorrencias: [rec('ral', 'Aluguel', 120000, '2026-10-14'), rec('rnet', 'Internet', 9990, '2026-10-20')] });
+    const soltas = page => page.locator('#lista-contas .ctl-extrato:not(.ctl-series) .ctl-linha');
+    const serie = (page, nome) => page.locator('.ctl-serie', { has: page.locator('.ctl-serie-cab .ctl-linha-desc', { hasText: nome }) });
+
+    test('series: a lista do mês mostra só as do período e uma linha resumo por série; expandir mostra as 22; a baixa é por parcela', async ({ page }) => {
+      const erros = await abrirCom(page, cenario(), 'contas');
+      // soltas: só as que vencem até o fim de outubro
+      await expect(soltas(page).locator('.ctl-linha-desc')).toHaveText(['Aluguel', 'VO ZE', 'Internet', 'Dentista']);
+      await expect(page.locator('.ctl-serie-cab .ctl-linha-desc')).toHaveText(['Aluguel', 'VO ZE', 'Internet']);
+      await expect(serie(page, 'VO ZE').locator('[data-serie-resumo]')).toHaveText('22x de R$ 415,54 · faltam 22 · última em jul/2028');
+      await expect(serie(page, 'VO ZE').locator('.ctl-serie-cab .ctl-num')).toHaveText('− R$ 9.141,88');
+      await expect(serie(page, 'Aluguel').locator('[data-serie-resumo]')).toHaveText('todo dia 14 · mais 2 até 14 dez');
+      // a linha resumo não tem círculo de baixa
+      await expect(page.locator('.ctl-serie .ctl-check')).toHaveCount(0);
+      // os totais do topo continuam contando cada parcela do filtro (22 + 3 + 3 + 1 contas)
+      await expect(page.locator('.ctl-resumo-lista')).toContainText('29 contas');
+      await expect(page.locator('.ctl-resumo-lista')).toContainText('A pagar: R$ 13.291,58');
+      // expandir: as 22 parcelas, cada uma com o seu círculo
+      const cab = serie(page, 'VO ZE').locator('.ctl-serie-cab');
+      await expect(cab).toHaveAttribute('aria-expanded', 'false');
+      await cab.click();
+      await expect(cab).toHaveAttribute('aria-expanded', 'true');
+      await expect(serie(page, 'VO ZE').locator('.ctl-serie-lista .ctl-linha')).toHaveCount(22);
+      await expect(serie(page, 'VO ZE').locator('.ctl-serie-lista .ctl-check')).toHaveCount(22);
+      // a escolha fica guardada
+      await page.reload();
+      await expect(serie(page, 'VO ZE').locator('.ctl-serie-lista .ctl-linha')).toHaveCount(22);
+      await expect(serie(page, 'Aluguel').locator('.ctl-serie-lista')).toHaveCount(0);
+      // baixa na parcela do mês: só ela
+      await soltas(page).filter({ hasText: 'VO ZE' }).locator('.ctl-check').click();
+      await expect(page.locator('#toast')).toContainText('VO ZE: paga');
+      const db = await lerDb(page);
+      expect(db.contas.filter(c => c.grupoId === 'gvz' && c.baixas.length).map(c => c.parcela.n)).toEqual([1]);
+      await expect(serie(page, 'VO ZE').locator('[data-serie-resumo]')).toHaveText('22x de R$ 415,54 · faltam 21 · última em jul/2028');
+      await expect(serie(page, 'VO ZE').locator('.ctl-serie-cab .ctl-num')).toHaveText('− R$ 8.726,34');
+      // recolher
+      await serie(page, 'VO ZE').locator('.ctl-serie-cab').click();
+      await expect(serie(page, 'VO ZE').locator('.ctl-serie-lista')).toHaveCount(0);
+      expect((await lerDb(page)).config.seriesAbertas).toEqual([]);
+      // no Fluxo de caixa nada muda: as parcelas futuras continuam contando
+      await page.locator('.ctl-lateral a[href="#fluxo"]').click();
+      await page.locator('[data-acao="periodo"][data-v="90"]').click();
+      await expect(page.locator('.ctl-mov .ctl-linha-desc', { hasText: 'VO ZE' })).toHaveCount(2);   // nov e dez (a de out foi paga)
+      await expect(page.locator('.ctl-mov .ctl-linha-desc', { hasText: 'Aluguel' })).toHaveCount(3);
+      await expect(page.locator('.ctl-series')).toHaveCount(0);
+      semErros(erros);
+    });
+
+    test('series: Próximos 7 dias agrupa o que vem depois da semana; Pagas e Atrasadas não agrupam', async ({ page }) => {
+      const erros = await abrirCom(page, cenario(), 'contas');
+      await page.locator('[data-acao="filtro-status"][data-v="semana"]').click();
+      await expect(soltas(page)).toHaveCount(0);
+      await expect(page.locator('.ctl-serie')).toHaveCount(0);   // nada vence em 7 dias: o filtro não traz nenhuma
+      await page.locator('[data-acao="filtro-status"][data-v="todas"]').click();
+      await expect(page.locator('.ctl-serie-cab .ctl-linha-desc')).toHaveText(['Aluguel', 'VO ZE', 'Internet']);
+      const n = await nucleo(page, 'agruparSeries', await lerDb(page), (await lerDb(page)).contas, '2026-10-31');
+      expect(n.soltas).toHaveLength(4);
+      expect(n.series.map(s => [s.descricao, s.tipo, s.ocultas, s.faltam])).toEqual([['Aluguel', 'recorrente', 2, 3], ['VO ZE', 'parcelada', 21, 22], ['Internet', 'recorrente', 2, 3]]);
+      await page.locator('[data-acao="filtro-status"][data-v="pagas"]').click();
+      await expect(page.locator('.ctl-series')).toHaveCount(0);
+      semErros(erros);
+    });
+
+    test.describe('celular (390px)', () => {
+      test.use({ viewport: { width: 390, height: 844 } });
+      test('series no celular: resumo e série aberta sem passar da largura da tela', async ({ page }) => {
+        const erros = await abrirCom(page, cenario(), 'contas');
+        await serie(page, 'VO ZE').locator('.ctl-serie-cab').click();
+        await expect(serie(page, 'VO ZE').locator('.ctl-serie-lista .ctl-linha')).toHaveCount(22);
+        expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+        const box = await serie(page, 'VO ZE').locator('.ctl-serie-cab').boundingBox();
+        expect(box.height).toBeGreaterThanOrEqual(44);
+        semErros(erros);
+      });
     });
   });
 

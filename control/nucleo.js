@@ -862,6 +862,49 @@
     return lista.sort((a, b) => a.vencimento.localeCompare(b.vencimento) || a.tipo.localeCompare(b.tipo) || a.descricao.localeCompare(b.descricao));
   }
 
+  /** série de uma conta: parcelamento (grupo), recorrência ou parcelas de uma dívida; null para conta avulsa */
+  function chaveSerie(c) {
+    if (c.grupoId) return 'g:' + c.grupoId;
+    if (c.recorrenciaId) return 'r:' + c.recorrenciaId;
+    if (c.dividaId && c.ocorrencia) return 'd:' + c.dividaId;
+    return null;
+  }
+  /**
+   * lista de Contas com as parcelas e repetições futuras agrupadas: das contas da `lista` (já filtrada), as de uma série que
+   * vencem depois de `ate` (fim do período visível) e não estão quitadas saem da lista solta e viram UM resumo por série.
+   * Só muda a apresentação: os totais e o fluxo continuam contando cada parcela.
+   * Devolve { soltas, series: [{ chave, tipo: 'parcelada'|'recorrente'|'divida', contaTipo, descricao, contas (a série inteira),
+   *   ocultas, proxima, ultima, faltam (em aberto na série), restante (o que falta na série), previsto (das agrupadas),
+   *   total e valor (parcelada), freq e dia (recorrente), dia (dívida) }] }
+   */
+  function agruparSeries(db, lista, ate) {
+    const soltas = [], ocultas = new Map();
+    for (const c of lista) {
+      const k = chaveSerie(c);
+      if (k && !quitada(c) && c.vencimento > ate) { if (!ocultas.has(k)) ocultas.set(k, []); ocultas.get(k).push(c); }
+      else soltas.push(c);
+    }
+    const series = [...ocultas].map(([chave, escondidas]) => {
+      escondidas.sort((a, b) => a.vencimento.localeCompare(b.vencimento));
+      const todas = db.contas.filter(c => chaveSerie(c) === chave)
+        .sort((a, b) => a.vencimento.localeCompare(b.vencimento) || ((a.parcela || {}).n || 0) - ((b.parcela || {}).n || 0));
+      const abertas = todas.filter(c => !quitada(c)), base = escondidas[0];
+      const tipo = { g: 'parcelada', r: 'recorrente', d: 'divida' }[chave[0]];
+      const s = {
+        chave, tipo, contaTipo: base.tipo, descricao: base.descricao, perfil: base.perfil, contas: todas, ocultas: escondidas.length,
+        proxima: base.vencimento, ultima: todas[todas.length - 1].vencimento, faltam: abertas.length,
+        restante: abertas.reduce((t, c) => t + restante(c), 0), previsto: escondidas.reduce((t, c) => t + restante(c), 0)
+      };
+      if (tipo === 'parcelada') { s.total = base.parcela ? base.parcela.total : todas.length; s.valor = todas[todas.length - 1].valor; }
+      if (tipo === 'recorrente') { const rec = db.recorrencias.find(r => 'r:' + r.id === chave) || {}; s.freq = rec.freq || null; s.dia = rec.dia || null; }
+      if (tipo === 'divida') { const d = (db.dividas || []).find(x => 'd:' + x.id === chave) || {}; s.dia = d.dia || null; }
+      return s;
+    }).sort((a, b) => a.proxima.localeCompare(b.proxima) || a.descricao.localeCompare(b.descricao));
+    return { soltas, series };
+  }
+  /** '2028-09-15' → 'set/2028' */
+  function mesAno(iso) { const { a, m } = partes(iso); return `${MESES_CURTOS[m - 1]}/${a}`; }
+
   function saldoInicial(db, perfil) {
     const si = db.config.saldoInicial;
     return perfil === 'tudo' ? si.pessoal + si.negocio : si[perfil] || 0;
@@ -1095,7 +1138,7 @@
     validarDivida, criarDivida, editarDivida, excluirDivida, quitarDivida, gerarDividas, devidoHoje, parcelasFaltam, dadosDeConta, contasParaDivida,
     infoDivida, resumoDividas, pagandoNormal, formatPct,
     CHAVE_ENTRADA, ORIGENS, entradaValida, importarEntrada, limparDivida, parseTaxa, formatTaxa, darBaixa, baixaTotal, reabrir, removerBaixa, editarConta, excluir,
-    categoria, nomeCategoria, filtrar, saldoInicial, saldoAtual, serieFluxo, previsao, proximas, resumoMes, dadosRelatorio, textoRelatorio, saudeFinanceira, csv,
+    categoria, nomeCategoria, filtrar, chaveSerie, agruparSeries, mesAno, saldoInicial, saldoAtual, serieFluxo, previsao, proximas, resumoMes, dadosRelatorio, textoRelatorio, saudeFinanceira, csv,
     DIAS_TESTE, RECURSOS, planoAtual, lancamentosNoMes, podeLancar
   };
 })();

@@ -87,7 +87,7 @@
   // ---------- gravação, Desfazer, toast ----------
   // estado da conta e escolhas de tela não voltam com o Desfazer nem com importar backup / apagar tudo
   const PREFS_CONTA = ['plano', 'avisoFimTeste', 'orientadorAberto', 'orientadorVisto', 'dicaDoDia', 'calcRecolhida'];
-  const PREFS = [...PREFS_CONTA, 'perfil', 'primeirosPassosOcultos', 'confeteMes'];
+  const PREFS = [...PREFS_CONTA, 'perfil', 'primeirosPassosOcultos', 'confeteMes', 'seriesAbertas'];
   function manter(novo, chaves) {
     chaves.forEach(k => { if (db.config[k] !== undefined) novo.config[k] = db.config[k]; });
     return novo;
@@ -437,13 +437,44 @@
         <p>${f.status === 'aberto' && !f.busca && !f.categoriaId ? 'Não há nada em aberto com esses filtros.' : 'Tente outra busca ou mude os filtros.'}</p>
         ${algum ? '<div class="ctl-acoes" style="justify-content:center"><button type="button" class="btn btn-secondary" data-acao="limpar-filtros">Limpar filtros</button></div>' : ''}</div>`;
     }
+    // totais: todas as contas do filtro, cada parcela contando (o agrupamento abaixo é só de apresentação)
     let pagar = 0, receber = 0;
     for (const c of lista) { const v = N.quitada(c) ? N.totalMovido(c) : N.restante(c); if (c.tipo === 'receber') receber += v; else pagar += v; }
     const rot = f.status === 'pagas' ? ['Pago', 'Recebido'] : ['A pagar', 'A receber'];
+    // período visível: até o fim do mês (Em aberto, Todas) ou os próximos 7 dias; atrasadas e pagas não agrupam
+    const ate = f.status === 'semana' ? N.addDias(r, 7) : f.status === 'aberto' || f.status === 'todas' ? N.fimDoMes(r) : null;
+    const { soltas, series } = ate ? N.agruparSeries(db, lista, ate) : { soltas: lista, series: [] };
     return `<p class="ctl-resumo-lista" aria-live="polite"><span>${lista.length} ${lista.length === 1 ? 'conta' : 'contas'}</span>
         ${f.tipo !== 'receber' ? `<span>${rot[0]}: <strong>${brl(pagar)}</strong></span>` : ''}
         ${f.tipo !== 'pagar' ? `<span>${rot[1]}: <strong>${brl(receber)}</strong></span>` : ''}</p>
-      ${extrato(lista, { modo: f.status === 'pagas' ? 'pagas' : 'venc' })}`;
+      ${soltas.length ? extrato(soltas, { modo: f.status === 'pagas' ? 'pagas' : 'venc' }) : ''}
+      ${series.length ? blocoSeries(series) : ''}`;
+  }
+  /** "22x de R$ 415,54 · faltam 21 · última em set/2028" / "todo dia 14 · mais 2 até 14 dez" */
+  function resumoSerie(s) {
+    if (s.tipo === 'parcelada') return `${s.total}x de ${brl(s.valor)} · faltam ${s.faltam} · última em ${N.mesAno(s.ultima)}`;
+    const quando = s.tipo === 'divida' ? 'parcelas da dívida'
+      : s.freq === 'semanal' ? 'toda semana' : s.freq === 'anual' ? 'todo ano' : `todo dia ${s.dia}`;
+    return `${quando} · mais ${s.ocultas} até ${N.dataCurta(s.ultima)}`;
+  }
+  /** parcelas e repetições futuras: uma linha por série (sem círculo de baixa); tocar expande todas as contas da série */
+  function blocoSeries(series) {
+    const abertas = db.config.seriesAbertas || [];
+    return `<div class="ctl-extrato ctl-series" data-series>
+      <div class="ctl-dia"><span>Parcelas e repetições futuras</span><span class="tot">${series.length} ${series.length === 1 ? 'série' : 'séries'}</span></div>
+      <ul>${series.map(s => {
+        const aberta = abertas.includes(s.chave), id = 'serie-' + s.chave.replace(/[^\w-]/g, '_');
+        const valor = s.tipo === 'parcelada' ? s.restante : s.previsto;
+        return `<li class="ctl-serie ${s.contaTipo}${aberta ? ' aberta' : ''}" data-serie="${esc(s.chave)}">
+          <button type="button" class="ctl-serie-cab" data-acao="serie" data-chave="${esc(s.chave)}" aria-expanded="${aberta}" aria-controls="${id}" data-foco="${esc(id)}-cab">
+            <span class="ctl-serie-ic">${ic(s.tipo === 'recorrente' ? 'repetir' : s.tipo === 'divida' ? 'divida' : 'lista')}</span>
+            <span class="ctl-linha-txt"><span class="ctl-linha-desc">${esc(s.descricao)}</span><span class="ctl-linha-meta" data-serie-resumo>${esc(resumoSerie(s))}</span></span>
+            <span class="ctl-linha-dir"><span class="ctl-num">${s.contaTipo === 'receber' ? '+ ' : '− '}${brl(valor)}</span><span class="de">${s.tipo === 'parcelada' ? 'restante' : 'previsto'}</span></span>
+            <span class="ctl-serie-seta">${ic('dir')}</span>
+          </button>
+          ${aberta ? `<ul class="ctl-serie-lista" id="${id}" aria-label="Todas as contas de ${esc(s.descricao)}">${s.contas.map(c => linha(c, { hojeRef: ref(), meta: N.dataBR(c.vencimento) })).join('')}</ul>` : ''}
+        </li>`;
+      }).join('')}</ul></div>`;
   }
 
   function graficoFluxo(pontos) {
@@ -1140,6 +1171,12 @@
     'ocultar-passos': () => { db.config.primeirosPassosOcultos = true; gravar(); render(); },
     'filtro-tipo': el => { estado.filtro.tipo = el.dataset.v; if (estado.filtro.categoriaId && (N.categoria(db, estado.filtro.categoriaId) || {}).tipo !== el.dataset.v && el.dataset.v !== 'todas') estado.filtro.categoriaId = ''; render(); },
     'filtro-status': el => { estado.filtro.status = el.dataset.v; render(); },
+    // expandir/recolher uma série; a escolha fica guardada (fora do Desfazer)
+    serie: el => {
+      const k = el.dataset.chave, lista = new Set(db.config.seriesAbertas || []);
+      if (lista.has(k)) lista.delete(k); else lista.add(k);
+      db.config.seriesAbertas = [...lista]; gravar(); render();
+    },
     'limpar-filtros': () => { estado.filtro = { tipo: 'todas', status: 'aberto', busca: '', categoriaId: '' }; render(); },
     periodo: el => { estado.periodo = Number(el.dataset.v); render(); },
     mes: el => { estado.mesRel = N.addMesYM(estado.mesRel || N.mesDe(ref()), Number(el.dataset.v)); render(); },
