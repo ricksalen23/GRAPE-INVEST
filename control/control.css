@@ -520,6 +520,47 @@ body[data-ori-gaveta] { overflow: hidden; }
 .ctl-ori-mais { font-size: .84rem; color: var(--muted); line-height: 1.5; }
 .ctl-ori-mais .ctl-link { min-height: 32px; font-size: .84rem; }
 
+/* ===== MINI CALCULADORA (barra lateral, só a partir de 960px) ===== */
+.ctl-calc { display: none; }
+@media (min-width: 960px) {
+  .ctl-lateral { overflow-y: auto; scrollbar-width: none; }
+  .ctl-calc { display: block; margin: 22px 4px 18px; padding-top: 14px; border-top: 1px solid var(--ctl-linha); }
+  .ctl-calc-cab {
+    display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 32px; padding: 0 8px;
+    background: none; border: none; cursor: pointer; border-radius: 8px;
+    font: 600 .68rem 'Inter', sans-serif; letter-spacing: .12em; text-transform: uppercase; color: var(--muted);
+  }
+  .ctl-calc-cab:hover { color: var(--text); }
+  .ctl-calc-cab svg { width: 14px; height: 14px; transition: transform .2s; }
+  .ctl-calc-cab[aria-expanded="false"] svg { transform: rotate(-90deg); }
+  .ctl-calc-corpo { padding: 8px 4px 0; }
+  .ctl-calc-corpo[hidden] { display: none; }
+  .ctl-calc-visor {
+    display: grid; justify-items: end; gap: 2px; min-height: 58px; padding: 8px 10px; border-radius: 10px;
+    background: var(--ctl-cinza-bg); border: 1px solid transparent; cursor: text; outline: none; transition: border-color .15s;
+  }
+  .ctl-calc-visor:focus, .ctl-calc-visor:focus-visible { border-color: rgba(200,242,107,.45); outline: none; }
+  .ctl-calc-visor .expr { min-height: 15px; font-size: .72rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .ctl-calc-visor output { font-size: 1.3rem; font-weight: 600; letter-spacing: -.01em; font-variant-numeric: tabular-nums; max-width: 100%; overflow-wrap: anywhere; text-align: right; line-height: 1.15; }
+  .ctl-calc-teclas { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; margin-top: 8px; }
+  .ctl-calc-teclas button {
+    min-height: 34px; border: none; border-radius: 8px; background: transparent; color: var(--text); cursor: pointer;
+    font: 500 .95rem 'Inter', sans-serif; font-variant-numeric: tabular-nums; transition: background .15s, transform .1s;
+  }
+  .ctl-calc-teclas button:hover { background: var(--ctl-cinza-bg); }
+  .ctl-calc-teclas button:active { transform: scale(.94); }
+  .ctl-calc-teclas .op, .ctl-calc-teclas .limpar { color: var(--muted); font-weight: 600; }
+  .ctl-calc-teclas .igual { grid-column: 4; grid-row: 3 / span 3; background: var(--ctl-cinza-bg); color: var(--accent); font-weight: 700; font-size: 1.1rem; }
+  .ctl-calc-teclas .zero { grid-column: span 2; }
+  .ctl-calc-usar {
+    width: 100%; min-height: 36px; margin-top: 8px; border-radius: 9px; border: 1px solid var(--border); background: transparent;
+    color: var(--text); font: 600 .8rem 'Inter', sans-serif; cursor: pointer; transition: border-color .15s;
+  }
+  .ctl-calc-usar:hover { border-color: var(--accent); }
+  .ctl-calc-msg { min-height: 0; margin-top: 6px; font-size: .72rem; color: var(--muted); line-height: 1.4; }
+  .ctl-calc-msg:empty { display: none; }
+}
+
 /* ===== DÍVIDA COM JUROS (formulário) ===== */
 .ctl-divida { display: grid; gap: 10px; }
 .ctl-taxa input { padding-left: 14px !important; padding-right: 96px !important; }

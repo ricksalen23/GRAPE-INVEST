@@ -1304,6 +1304,88 @@ test.describe('control', () => {
     });
   });
 
+  // ---------- mini calculadora da barra lateral (só desktop) ----------
+  test.describe('calculadora', () => {
+    // aperta as teclas na lógica pura e devolve { visor, centavos, erro }
+    const contas = (page, teclas) => page.evaluate(t => {
+      const c = window.ControlCalculadora.criar();
+      let e;
+      for (const k of t) e = c.tecla(k);
+      return { visor: e.visor, erro: e.erro, centavos: c.centavos() };
+    }, teclas);
+
+    test('calculadora: contas exatas, sem erro de arredondamento, e centavos com meio centavo para cima', async ({ page }) => {
+      await abrirCom(page, base(), 'inicio');
+      expect(await contas(page, ['0', '.', '1', '+', '0', '.', '2', '='])).toEqual({ visor: '0,3', erro: '', centavos: 30 });
+      expect(await contas(page, ['1', '÷', '3', '×', '3', '='])).toEqual({ visor: '1', erro: '', centavos: 100 });
+      expect(await contas(page, ['1', '0', '÷', '3', '='])).toMatchObject({ visor: '3,33333333', centavos: 333 });
+      expect(await contas(page, ['2', '.', '6', '7', '5'])).toMatchObject({ visor: '2,675', centavos: 268 });
+      expect(await contas(page, ['2', '+', '3', '×', '4', '='])).toMatchObject({ visor: '20', centavos: 2000 });   // executa na hora, como no celular
+      expect(await contas(page, ['1', '2', '5', '0', '−', '2', '0', '0', '0', '='])).toMatchObject({ visor: '−750', centavos: -75000 });
+      expect(await contas(page, ['1', '2', '3', '4', '5', '6', '7', '.', '5'])).toMatchObject({ visor: '1.234.567,5', centavos: 123456750 });
+      expect(await contas(page, ['5', '÷', '0', '='])).toEqual({ visor: 'Erro', erro: 'Não dá para dividir por zero.', centavos: null });
+      expect(await contas(page, ['5', '÷', '0', '=', 'C'])).toMatchObject({ visor: '0', erro: '' });
+    });
+
+    test('calculadora: na barra lateral do desktop, teclado no visor e "Usar este valor" preenche o novo lançamento', async ({ page }) => {
+      const erros = await abrirCom(page, base(), 'contas');
+      const calc = page.locator('#calc'), visor = page.locator('#calc-visor');
+      await expect(calc).toBeVisible();
+      // fica entre o menu (depois de Ajustes) e o "Seus dados ficam só neste aparelho"
+      const y = sel => page.locator(sel).evaluate(el => el.getBoundingClientRect().top);
+      expect(await y('#calc')).toBeGreaterThan(await y('.ctl-lateral a[href="#ajustes"]'));
+      expect(await y('#calc')).toBeLessThan(await y('.ctl-lateral-pe'));
+      // cliques: 1250,5 × 2 = 2.501
+      for (const k of ['1', '2', '5', '0', '.', '5', '×', '2', '=']) await page.locator(`#calc [data-calc="${k}"]`).click();
+      await expect(visor).toHaveText('2.501');
+      await page.locator('#calc-usar').click();
+      await expect(page.locator('#dlg-lanc')).toBeVisible();
+      await expect(page.locator('#lanc-valor')).toHaveValue('2.501,00');
+      await preencher(page, '#lanc-desc', 'Compra da semana');
+      await page.locator('#lanc-salvar').click();
+      expect((await lerDb(page)).contas[0]).toMatchObject({ descricao: 'Compra da semana', valor: 250100 });
+      // teclado com o visor focado: números, operadores, Enter = igual, Esc = limpar; "n" não abre o novo lançamento
+      await page.locator('#calc-visor-box').focus();
+      await page.keyboard.type('0.1+0.2');
+      await expect(page.locator('#calc-expr')).toHaveText('0,1 +');
+      await page.keyboard.press('Enter');
+      await expect(visor).toHaveText('0,3');
+      await page.locator('#calc-usar').click();
+      await expect(page.locator('#lanc-valor')).toHaveValue('0,30');
+      await page.locator('#dlg-lanc [data-fechar]').first().click();
+      await page.locator('#calc-visor-box').focus();
+      await page.keyboard.press('Escape');
+      await expect(visor).toHaveText('0');
+      await page.keyboard.press('n');
+      await expect(page.locator('#dlg-lanc')).toBeHidden();
+      // zero não vira lançamento
+      await page.locator('#calc-usar').click();
+      await expect(page.locator('#calc-msg')).toHaveText('O valor precisa ser maior que zero.');
+      await expect(page.locator('#dlg-lanc')).toBeHidden();
+      // recolher fica lembrado
+      await page.locator('#calc-alternar').click();
+      await expect(page.locator('#calc-corpo')).toBeHidden();
+      await expect(page.locator('#calc-alternar')).toHaveAttribute('aria-expanded', 'false');
+      await page.reload();
+      await expect(page.locator('#calc-corpo')).toBeHidden();
+      expect((await lerDb(page)).config.calcRecolhida).toBe(true);
+      await page.locator('#calc-alternar').click();
+      await expect(page.locator('#calc-corpo')).toBeVisible();
+      semErros(erros);
+    });
+
+    test('calculadora: não aparece abaixo de 960px (nem em 940px, com a barra lateral, nem no celular)', async ({ page }) => {
+      await page.setViewportSize({ width: 940, height: 900 });
+      await abrirCom(page, base(), 'inicio');
+      await expect(page.locator('.ctl-lateral')).toBeVisible();
+      await expect(page.locator('#calc')).toBeHidden();
+      await page.setViewportSize({ width: 390, height: 844 });
+      await expect(page.locator('#calc')).toBeHidden();
+      await expect(page.getByRole('button', { name: 'Usar este valor' })).toHaveCount(0);   // fora da árvore acessível
+      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+    });
+  });
+
   // ---------- página /assinar.html e textos legais ----------
   test.describe('assinar', () => {
     test('assinar: preço, botão desabilitado sem checkoutUrl e habilitado com a URL; links de Termos e Privacidade', async ({ page }) => {

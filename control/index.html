@@ -29,6 +29,40 @@
   <aside class="ctl-lateral">
     <a class="ctl-marca" href="/" aria-label="Warden: voltar ao site"><img src="/warden-logo-cropped-transparent.png" alt="Warden" width="127" height="24"><span>Control</span></a>
     <div role="navigation" aria-label="Seções do Control" data-menu="lateral"></div>
+    <!-- mini calculadora (só desktop, a partir de 960px): só as quatro operações; nada financeiro, isso é das ferramentas -->
+    <div class="ctl-calc" id="calc">
+      <button type="button" class="ctl-calc-cab" id="calc-alternar" aria-expanded="true" aria-controls="calc-corpo">
+        <span>Calculadora</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="ctl-calc-corpo" id="calc-corpo">
+        <div class="ctl-calc-visor" id="calc-visor-box" tabindex="0" role="group" aria-label="Visor da calculadora. Com ele selecionado, dá para usar o teclado: números, + − * /, Enter para igual e Esc para limpar">
+          <span class="expr" id="calc-expr" aria-hidden="true"></span>
+          <output id="calc-visor" aria-live="polite">0</output>
+        </div>
+        <div class="ctl-calc-teclas" id="calc-teclas" role="group" aria-label="Teclas da calculadora">
+          <button type="button" data-calc="C" aria-label="Limpar" class="limpar">C</button>
+          <button type="button" data-calc="÷" aria-label="Dividir" class="op">÷</button>
+          <button type="button" data-calc="×" aria-label="Multiplicar" class="op">×</button>
+          <button type="button" data-calc="−" aria-label="Subtrair" class="op">−</button>
+          <button type="button" data-calc="7">7</button>
+          <button type="button" data-calc="8">8</button>
+          <button type="button" data-calc="9">9</button>
+          <button type="button" data-calc="+" aria-label="Somar" class="op">+</button>
+          <button type="button" data-calc="4">4</button>
+          <button type="button" data-calc="5">5</button>
+          <button type="button" data-calc="6">6</button>
+          <button type="button" data-calc="=" aria-label="Igual" class="igual">=</button>
+          <button type="button" data-calc="1">1</button>
+          <button type="button" data-calc="2">2</button>
+          <button type="button" data-calc="3">3</button>
+          <button type="button" data-calc="0" class="zero">0</button>
+          <button type="button" data-calc="." aria-label="Vírgula">,</button>
+        </div>
+        <button type="button" class="ctl-calc-usar" id="calc-usar">Usar este valor</button>
+        <p class="ctl-calc-msg" id="calc-msg" role="status"></p>
+      </div>
+    </div>
     <div class="ctl-lateral-pe">
       <p><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Seus dados ficam só neste aparelho.</p>
       <p class="ctl-lateral-plano" data-plano-lateral></p>
@@ -145,7 +179,7 @@
       <label class="ctl-marcar" id="lanc-serie-bloco" hidden><input type="checkbox" id="lanc-serie"> <span>Aplicar também às próximas desta repetição</span></label>
       <label class="ctl-marcar" id="lanc-paga-bloco"><input type="checkbox" id="lanc-paga"> <span id="lanc-paga-rot">Já paguei (dá baixa hoje)</span></label>
       <details class="ctl-mais" id="lanc-mais">
-        <summary>Mais detalhes <span class="opc">(opcional)</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <summary><span>Mais detalhes <span class="opc">(opcional)</span></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
         <div>
           <div class="ctl-campo">
             <label for="lanc-contato" id="lanc-contato-rot">Contato</label>
@@ -271,6 +305,7 @@
 <script src="/control/orientador.js"></script>
 <script src="/control/consultas.js"></script>
 <script src="/control/efeitos.js"></script>
+<script src="/control/calculadora.js"></script>
 <script src="/control/app.js"></script>
 </body>
 </html>

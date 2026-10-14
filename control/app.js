@@ -84,7 +84,7 @@
 
   // ---------- gravação, Desfazer, toast ----------
   // estado da conta e escolhas de tela não voltam com o Desfazer nem com importar backup / apagar tudo
-  const PREFS_CONTA = ['plano', 'avisoFimTeste', 'orientadorAberto', 'orientadorVisto', 'dicaDoDia'];
+  const PREFS_CONTA = ['plano', 'avisoFimTeste', 'orientadorAberto', 'orientadorVisto', 'dicaDoDia', 'calcRecolhida'];
   const PREFS = [...PREFS_CONTA, 'perfil', 'primeirosPassosOcultos', 'confeteMes'];
   function manter(novo, chaves) {
     chaves.forEach(k => { if (db.config[k] !== undefined) novo.config[k] = db.config[k]; });
@@ -1472,9 +1472,48 @@
   dlgCons.addEventListener('focusout', e => { if (e.target.id === 'cons-valor') formatarCampo(e.target); });
   dlgCons.addEventListener('close', () => { consulta.id = null; });
 
+  // ---------- mini calculadora da barra lateral (só desktop; contas no calculadora.js) ----------
+  const calc = window.ControlCalculadora.criar(), visorCalc = $('#calc-visor-box');
+  function desenharCalc() {
+    const e = calc.estado();
+    $('#calc-visor').textContent = e.visor;
+    $('#calc-expr').textContent = e.expressao;
+    $('#calc-msg').textContent = e.erro;
+  }
+  function calcAberta(aberta) {
+    $('#calc-corpo').hidden = !aberta;
+    $('#calc-alternar').setAttribute('aria-expanded', String(aberta));
+  }
+  $('#calc-alternar').addEventListener('click', () => {
+    const aberta = $('#calc-corpo').hidden;
+    calcAberta(aberta);
+    db.config.calcRecolhida = !aberta; gravar();   // lembra a escolha (não entra no Desfazer)
+  });
+  $('#calc-teclas').addEventListener('click', e => {
+    const b = e.target.closest('[data-calc]');
+    if (!b) return;
+    calc.tecla(b.dataset.calc); desenharCalc();
+    if (e.detail > 0) visorCalc.focus({ preventScroll: true });   // clique com o mouse: o teclado continua valendo
+  });
+  visorCalc.addEventListener('keydown', e => {
+    const k = window.ControlCalculadora.teclaDoTeclado(e);
+    if (!k) return;
+    e.preventDefault(); e.stopPropagation();
+    calc.tecla(k); desenharCalc();
+  });
+  $('#calc-usar').addEventListener('click', () => {
+    const c = calc.centavos();
+    if (c == null || c <= 0) { $('#calc-msg').textContent = 'O valor precisa ser maior que zero.'; return; }
+    abrirLancamento();
+    $('#lanc-valor').value = N.formatBRL(c, { semSimbolo: true });
+    atualizarFormLanc();
+  });
+  calcAberta(!db.config.calcRecolhida);
+  desenharCalc();
+
   // atalhos: N = novo lançamento, Ctrl/Cmd+Z = desfazer (fora de campos de texto)
   document.addEventListener('keydown', e => {
-    if (document.querySelector('dialog[open]') || e.target.closest('input, textarea, select')) return;
+    if (document.querySelector('dialog[open]') || e.target.closest('input, textarea, select, .ctl-calc-visor')) return;
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { if (desfazer()) e.preventDefault(); return; }
     if (e.key === 'n' && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); abrirLancamento(); }
   });
