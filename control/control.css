@@ -464,6 +464,7 @@ body[data-sem-novo] .ctl-fab, body[data-sem-novo] .ctl-novo-topo { display: none
   position: absolute; top: 4px; right: 4px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 99px;
   background: var(--accent); color: var(--accent-ink); font: 700 .66rem/18px 'Inter', sans-serif; text-align: center;
 }
+@media (min-width: 900px) { .ctl-ori-selo { position: static; margin-left: 2px; } }
 .ctl-orientador {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 310; display: flex; flex-direction: column;
   max-height: 88dvh; background: var(--surface); border-radius: 22px 22px 0 0; box-shadow: var(--ctl-sombra);
@@ -566,8 +567,75 @@ body[data-ori-gaveta] { overflow: hidden; }
 @keyframes ctl-tempo { from { transform: scaleX(1); } to { transform: scaleX(0); } }
 @media (min-width: 900px) { .ctl-toast { bottom: 28px; left: calc(50% + var(--ctl-lateral) / 2); } }
 
+/* ===== EFEITOS (efeitos.js): só transform e opacity ===== */
+.ctl-tela { position: relative; isolation: isolate; }
+
+/* gradiente vivo no topo do Início */
+.ctl-aurora {
+  position: absolute; z-index: -1; left: -16px; right: -16px; top: -20px; height: 460px; overflow: hidden; pointer-events: none;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent), linear-gradient(180deg, #000 30%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent), linear-gradient(180deg, #000 30%, transparent);
+  mask-composite: intersect;
+}
+@media (min-width: 900px) { .ctl-aurora { left: -32px; right: -32px; top: -8px; } }
+.ctl-aurora span { position: absolute; width: 560px; height: 560px; border-radius: 50%; will-change: transform; }
+.ctl-aurora span:nth-child(1) { left: -180px; top: -300px; background: radial-gradient(circle, rgba(200,242,107,.20), rgba(200,242,107,0) 62%); animation: ctl-aurora-a 18s ease-in-out infinite alternate; }
+.ctl-aurora span:nth-child(2) { right: -220px; top: -260px; background: radial-gradient(circle, rgba(200,242,107,.13), rgba(200,242,107,0) 60%); animation: ctl-aurora-b 23s ease-in-out infinite alternate; }
+.ctl-aurora span:nth-child(3) { left: 30%; top: -380px; background: radial-gradient(circle, rgba(243,241,234,.06), rgba(243,241,234,0) 60%); animation: ctl-aurora-a 29s ease-in-out infinite alternate-reverse; }
+@keyframes ctl-aurora-a { from { transform: translate3d(0, 0, 0) scale(1); } to { transform: translate3d(140px, 60px, 0) scale(1.18); } }
+@keyframes ctl-aurora-b { from { transform: translate3d(0, 0, 0) scale(1.1); } to { transform: translate3d(-160px, 80px, 0) scale(.9); } }
+
+/* esqueleto ao carregar */
+.ctl-esqueleto { display: grid; gap: 14px; }
+.ctl-esqueleto span { position: relative; overflow: hidden; display: block; border-radius: 14px; background: var(--surface); }
+.ctl-esqueleto span::after { content: ''; position: absolute; inset: 0; transform: translateX(-100%); background: linear-gradient(90deg, transparent, rgba(243,241,234,.06), transparent); animation: ctl-brilho-esq 1.2s ease-in-out infinite; }
+.ctl-esqueleto .l.t { height: 34px; width: 46%; border-radius: 10px; }
+.ctl-esqueleto .l.s { height: 16px; width: 30%; border-radius: 8px; margin-bottom: 6px; }
+.ctl-esqueleto .b { height: 72px; }
+.ctl-esqueleto .b.g { height: 190px; border-radius: 20px; }
+.ctl-esqueleto .b.m { height: 120px; }
+@keyframes ctl-brilho-esq { to { transform: translateX(100%); } }
+
+/* brilho que segue o cursor/toque */
+.ctl-brilho { position: relative; overflow: hidden; isolation: isolate; }
+.ctl-brilho::before {
+  content: ''; position: absolute; z-index: -1; left: 0; top: 0; width: 360px; height: 360px; margin: -180px 0 0 -180px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(200,242,107,.10), rgba(200,242,107,0) 65%); pointer-events: none;
+  transform: translate3d(var(--mx, -400px), var(--my, -400px), 0); opacity: 0; transition: opacity .3s ease;
+}
+.ctl-brilho.aceso::before { opacity: 1; }
+
+/* anel de saúde financeira */
+.ctl-saude { display: flex; align-items: center; gap: 18px; margin-top: 12px; }
+.ctl-anel { position: relative; width: 104px; height: 104px; flex-shrink: 0; }
+.ctl-anel svg { width: 100%; height: 100%; display: block; transform-origin: 50% 50%; }
+.ctl-anel circle { fill: none; stroke-width: 10; }
+.ctl-anel .trilho { stroke: var(--ctl-cinza-bg); }
+.ctl-anel .arco { stroke: var(--accent); stroke-linecap: round; }
+.ctl-anel-num { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; line-height: 1; }
+.ctl-anel-num strong { font-size: 1.7rem; font-weight: 700; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.ctl-anel-num small { display: block; margin-top: 4px; font-size: .66rem; color: var(--muted); }
+.ctl-saude-txt { min-width: 0; }
+.ctl-saude-txt h2 { margin: 2px 0 8px; }
+.ctl-saude-txt ul { list-style: none; display: grid; gap: 5px; }
+.ctl-saude-txt li { display: flex; align-items: center; gap: 8px; font-size: .84rem; color: var(--muted); line-height: 1.35; }
+.ctl-saude-txt li svg { width: 14px; height: 14px; flex-shrink: 0; color: var(--subtle); }
+.ctl-saude-txt li.ok { color: var(--text); }
+.ctl-saude-txt li.ok svg { color: var(--accent); }
+@media (min-width: 640px) { .ctl-saude-txt ul { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 18px; } }
+
+/* micro-interações: aperto nos botões */
+.ctl .btn, .ctl-chip, .ctl-seg button, .ctl-icone-btn, .ctl-inferior a svg { transition: transform .12s ease, background .2s, border-color .2s, color .2s; }
+.ctl .btn:active, .ctl-chip:active, .ctl-seg button:active, .ctl-icone-btn:active { transform: scale(.96); }
+.ctl-check:active .aro { transform: scale(.88); }
+.ctl-inferior a:active svg { transform: scale(.88); }
+
 /* menos movimento: nada desliza nem anima */
 @media (prefers-reduced-motion: reduce) {
   .ctl *, .ctl *::before, .ctl *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
   .ctl-toast.on .tempo { animation: none; }
+  .ctl-aurora span, .ctl-esqueleto span::after { animation: none !important; }
+  .ctl-brilho::before { display: none; }
+  .ctl .btn:active, .ctl-chip:active, .ctl-seg button:active, .ctl-icone-btn:active, .ctl-check:active .aro, .ctl-inferior a:active svg { transform: none; }
 }

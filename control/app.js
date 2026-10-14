@@ -240,6 +240,19 @@
     return `<div class="ctl-tela-cab"><div><h1>${titulo}</h1>${sub ? `<p>${sub}</p>` : ''}</div></div>`;
   }
 
+  /** anel de saúde financeira (0 a 100) com os 4 critérios logo ao lado */
+  function cartaoSaude(s) {
+    return `<div class="ctl-card ctl-saude">
+      <div class="ctl-anel" data-anel="${s.pontos}" role="img" aria-label="Saúde financeira: ${s.pontos} de 100, ${esc(s.rotulo)}">
+        <svg viewBox="0 0 120 120" aria-hidden="true"><circle class="trilho" cx="60" cy="60" r="50"/>
+          <circle class="arco" cx="60" cy="60" r="50" pathLength="100" stroke-dasharray="${s.pontos} 100" transform="rotate(-90 60 60)"/></svg>
+        <span class="ctl-anel-num" aria-hidden="true"><strong data-contar="${s.pontos}" data-formato="int" data-chave="saude">${s.pontos}</strong><small>de 100</small></span>
+      </div>
+      <div class="ctl-saude-txt"><span class="ctl-rotulo">Saúde financeira</span><h2 data-saude-rotulo>${esc(s.rotulo)}</h2>
+        <ul>${s.itens.map(i => `<li class="${i.ok ? 'ok' : ''}">${ic(i.ok ? 'check' : 'ponto', i.ok ? 'stroke-width="3"' : '')}<span>${esc(i.texto)}</span></li>`).join('')}</ul></div>
+    </div>`;
+  }
+
   // ---------- telas ----------
   function telaInicio() {
     const r = ref(), h = N.horaSP();
@@ -262,17 +275,20 @@
           : `<div class="ctl-alerta ok">${ic('ok')}<p>Nada vencendo nos próximos 7 dias. Aproveite a folga.</p></div>`}
       </div>`;
     }
-    return `${cabecalho(`${saudacao}!`, dia.charAt(0).toUpperCase() + dia.slice(1))}
+    const saude = N.saudeFinanceira(db, perfil(), r);
+    return `<div class="ctl-aurora" aria-hidden="true"><span></span><span></span><span></span></div>
+      ${cabecalho(`${saudacao}!`, dia.charAt(0).toUpperCase() + dia.slice(1))}
       <div class="ctl-saldo">
         <span class="ctl-rotulo">Saldo de hoje · ${esc(nomePerfil())}</span>
-        <div class="ctl-num g${saldo < 0 ? ' neg' : ''}" data-valor="saldo">${brl(saldo)}</div>
+        <div class="ctl-num g${saldo < 0 ? ' neg' : ''}" data-valor="saldo" data-contar="${saldo}">${brl(saldo)}</div>
         ${db.config.saldoDefinido ? '' : `<button type="button" class="ctl-link" data-acao="saldo">Informar quanto tenho hoje</button>`}
         <div class="ctl-saldo-pe">
-          <div><span class="ctl-rotulo">A receber até ${N.dataCurta(fim)}</span><span class="v">${brl(aReceber)}</span></div>
-          <div><span class="ctl-rotulo">A pagar até ${N.dataCurta(fim)}</span><span class="v">${brl(aPagar)}</span></div>
-          <div><span class="ctl-rotulo">Previsto em ${N.dataCurta(fim)}</span><span class="v${pFim.saldo < 0 ? ' ctl-num neg' : ''}">${brl(pFim.saldo)}</span></div>
+          <div><span class="ctl-rotulo">A receber até ${N.dataCurta(fim)}</span><span class="v" data-contar="${aReceber}" data-chave="inicio-receber">${brl(aReceber)}</span></div>
+          <div><span class="ctl-rotulo">A pagar até ${N.dataCurta(fim)}</span><span class="v" data-contar="${aPagar}" data-chave="inicio-pagar">${brl(aPagar)}</span></div>
+          <div><span class="ctl-rotulo">Previsto em ${N.dataCurta(fim)}</span><span class="v${pFim.saldo < 0 ? ' ctl-num neg' : ''}" data-contar="${pFim.saldo}" data-chave="inicio-fim">${brl(pFim.saldo)}</span></div>
         </div>
       </div>
+      ${saude ? cartaoSaude(saude) : ''}
       ${alertaNegativo(serie)}
       ${primeirosPassos()}
       ${temContas ? lista : `<div class="ctl-bloco">${vazio()}</div>`}`;
@@ -416,9 +432,9 @@
     return `<div class="ctl-grafico">
       <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Saldo previsto dia a dia: começa em ${esc(brl(vals[0]))} e termina em ${esc(brl(vals[vals.length - 1]))}">
         <defs><linearGradient id="g-fluxo" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#C8F26B" stop-opacity=".28"/><stop offset="1" stop-color="#C8F26B" stop-opacity="0"/></linearGradient></defs>
-        <path d="${area}" fill="url(#g-fluxo)"/>
         ${min < 0 ? `<line x1="0" x2="${W}" y1="${y(0).toFixed(1)}" y2="${y(0).toFixed(1)}" stroke="#F87171" stroke-dasharray="4 4" stroke-width="1" vector-effect="non-scaling-stroke"/>` : ''}
-        <path d="${linhaD}" fill="none" stroke="#C8F26B" stroke-width="2.2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>
+        <g data-curva><path d="${area}" fill="url(#g-fluxo)"/>
+        <path d="${linhaD}" fill="none" stroke="#C8F26B" stroke-width="2.2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/></g>
       </svg>
       <div class="ctl-grafico-legenda"><span>Hoje</span><span>Menor saldo: <strong class="${vals[iMin] < 0 ? 'ctl-num neg' : ''}">${brl(vals[iMin])}</strong> em ${N.dataCurta(pontos[iMin].data)}</span><span>${N.dataCurta(pontos[pontos.length - 1].data)}</span></div>
     </div>`;
@@ -432,7 +448,7 @@
       const pts = serie.pontos.slice(0, d + 1);
       const ent = pts.reduce((s, p) => s + p.entradas, 0), sai = pts.reduce((s, p) => s + p.saidas, 0), fim = pts[pts.length - 1].saldo;
       return `<div class="ctl-card ctl-prev" data-previsto="${d}"><div class="topo"><span class="ctl-rotulo">Em ${d} dias · ${N.dataCurta(pts[pts.length - 1].data)}</span>
-        <div class="ctl-num m${fim < 0 ? ' neg' : ''}">${brl(fim)}</div></div>
+        <div class="ctl-num m${fim < 0 ? ' neg' : ''}" data-contar="${fim}" data-chave="previsto-${d}">${brl(fim)}</div></div>
         <p class="sub">Entra ${brl(ent)} · Sai ${brl(sai)}</p></div>`;
     }).join('');
     const per = estado.periodo, pts = serie.pontos.slice(0, per + 1);
@@ -441,7 +457,7 @@
     const movs = N.proximas(db, perfil(), per, r).map(c => { corrente += (c.tipo === 'receber' ? 1 : -1) * N.restante(c); return linha(c, { hojeRef: r, saldoApos: corrente }); });
     return `${cabecalho('Fluxo de caixa', 'Quanto você vai ter nos próximos dias, se tudo for pago e recebido no vencimento.')}
       <div class="ctl-grade g2">
-        <div class="ctl-saldo" style="grid-column:1/-1"><span class="ctl-rotulo">Saldo de hoje · ${esc(nomePerfil())}</span><div class="ctl-num g${saldo < 0 ? ' neg' : ''}" data-valor="saldo-fluxo">${brl(saldo)}</div>
+        <div class="ctl-saldo" style="grid-column:1/-1"><span class="ctl-rotulo">Saldo de hoje · ${esc(nomePerfil())}</span><div class="ctl-num g${saldo < 0 ? ' neg' : ''}" data-valor="saldo-fluxo" data-contar="${saldo}">${brl(saldo)}</div>
           <p class="sub" style="color:var(--muted);font-size:.86rem">Saldo inicial ${brl(N.saldoInicial(db, perfil()))} + o que entrou − o que saiu.</p></div>
       </div>
       <div class="ctl-grade g3" style="margin-top:12px;gap:8px">${cards}</div>
@@ -478,9 +494,9 @@
         </div>
       </div>
       <div class="ctl-grade g3" style="margin-top:14px">
-        <div class="ctl-card"><span class="ctl-rotulo">Recebido</span><div class="ctl-num m" style="margin-top:6px" data-rel="recebido">${brl(res.recebido)}</div></div>
-        <div class="ctl-card"><span class="ctl-rotulo">Pago</span><div class="ctl-num m" style="margin-top:6px" data-rel="pago">${brl(res.pago)}</div></div>
-        <div class="ctl-card"><span class="ctl-rotulo">Resultado</span><div class="ctl-num m ${res.resultado < 0 ? 'neg' : res.resultado > 0 ? 'pos' : ''}" style="margin-top:6px" data-rel="resultado">${brl(res.resultado, { sinal: true })}</div></div>
+        <div class="ctl-card"><span class="ctl-rotulo">Recebido</span><div class="ctl-num m" style="margin-top:6px" data-rel="recebido" data-contar="${res.recebido}">${brl(res.recebido)}</div></div>
+        <div class="ctl-card"><span class="ctl-rotulo">Pago</span><div class="ctl-num m" style="margin-top:6px" data-rel="pago" data-contar="${res.pago}">${brl(res.pago)}</div></div>
+        <div class="ctl-card"><span class="ctl-rotulo">Resultado</span><div class="ctl-num m ${res.resultado < 0 ? 'neg' : res.resultado > 0 ? 'pos' : ''}" style="margin-top:6px" data-rel="resultado" data-contar="${res.resultado}" data-formato="sinal">${brl(res.resultado, { sinal: true })}</div></div>
       </div>
       <div class="ctl-grade g2" style="margin-top:12px">
         <div class="ctl-card"><h2>Onde mais gastou</h2>
@@ -496,9 +512,9 @@
         </div>
       </div>
       <div class="ctl-grade g2" style="margin-top:12px">
-        <div class="ctl-card"><span class="ctl-rotulo">Saldo de hoje · ${N.dataCurta(r)}</span><div class="ctl-num m${res.saldoHoje < 0 ? ' neg' : ''}" style="margin-top:6px" data-rel="saldo-hoje">${brl(res.saldoHoje)}</div></div>
+        <div class="ctl-card"><span class="ctl-rotulo">Saldo de hoje · ${N.dataCurta(r)}</span><div class="ctl-num m${res.saldoHoje < 0 ? ' neg' : ''}" style="margin-top:6px" data-rel="saldo-hoje" data-contar="${res.saldoHoje}">${brl(res.saldoHoje)}</div></div>
         <div class="ctl-card"><span class="ctl-rotulo">${fm ? `${fm.previsto ? 'Previsto' : 'Saldo'} em ${N.dataCurta(fm.data)}` : 'Fim do mês'}</span>
-          ${fm ? `<div class="ctl-num m${fm.saldo < 0 ? ' neg' : ''}" style="margin-top:6px" data-rel="fim-mes">${brl(fm.saldo)}</div>${fm.previsto ? '<p class="sub" style="margin-top:4px">Se tudo for pago e recebido no vencimento.</p>' : ''}`
+          ${fm ? `<div class="ctl-num m${fm.saldo < 0 ? ' neg' : ''}" style="margin-top:6px" data-rel="fim-mes" data-contar="${fm.saldo}">${brl(fm.saldo)}</div>${fm.previsto ? '<p class="sub" style="margin-top:4px">Se tudo for pago e recebido no vencimento.</p>' : ''}`
             : `<p class="sub" style="margin-top:6px">Longe demais para prever (o fluxo vai até ${N.HORIZONTE_DIAS} dias).</p>`}</div>
       </div>
       <div class="ctl-bloco"><div class="ctl-bloco-cab"><h2>Próximas contas</h2><span class="ctl-rotulo">30 dias a partir de hoje</span></div>
@@ -596,6 +612,7 @@
     menu(); barra(); desenharOrientador();
     document.title = `${TELAS.find(t => t.id === estado.tela).nome} · Warden Control`;
     if (foco) { const el = $(`[data-foco="${CSS.escape(foco)}"]`); if (el) el.focus({ preventScroll: true }); }
+    window.ControlEfeitos.aplicar($('#tela'));
     if ($('#dlg-detalhe').open && detalheId) desenharDetalhe();
   }
   function irPara(tela) {
@@ -608,6 +625,7 @@
     const t = location.hash.replace('#', '');
     estado.tela = RENDER[t] ? t : 'inicio';
     render();
+    window.ControlEfeitos.entrarTela($('#tela'));
     window.scrollTo(0, 0);
     $('#tela').focus({ preventScroll: true });
   }

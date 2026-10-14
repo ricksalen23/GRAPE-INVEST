@@ -630,6 +630,34 @@
   const NOME_PERFIL = { tudo: 'Pessoal + Negócio', pessoal: 'Pessoal', negocio: 'Negócio' };
 
   /**
+   * saúde financeira de 0 a 100 (o anel do Início), com 4 critérios simples de explicar:
+   * contas em dia (30; −10 por atrasada), mês fecha no azul (30), saldo positivo nos próximos 90 dias (20),
+   * caixa cobre um mês de gastos (20, proporcional; sem histórico, basta o saldo estar positivo).
+   * null sem contas. { pontos, rotulo, itens: [{ id, texto, ok, pontos }] }
+   */
+  function saudeFinanceira(db, perfil = 'tudo', ref = hoje()) {
+    const contas = db.contas.filter(doPerfil(perfil));
+    if (!contas.length) return null;
+    const atrasadas = contas.filter(c => !quitada(c) && c.vencimento < ref).length;
+    const serie = serieFluxo(db, perfil, HORIZONTE_DIAS, ref);
+    const fimMes = serie.pontos[diffDias(ref, fimDoMes(ref))].saldo;
+    const ym = mesDe(ref);
+    const hist = [1, 2, 3].map(k => resumoMes(db, perfil, addMesYM(ym, -k)).pago).filter(v => v > 0);
+    const media = hist.length ? hist.reduce((s, v) => s + v, 0) / hist.length : 0;
+    const saldo = saldoAtual(db, perfil, ref);
+    const itens = [
+      { id: 'em-dia', texto: 'Contas em dia', ok: !atrasadas, pontos: Math.max(0, 30 - atrasadas * 10) },
+      { id: 'fim-mes', texto: 'Mês fecha no azul', ok: fimMes >= 0, pontos: fimMes >= 0 ? 30 : 0 },
+      { id: 'fluxo', texto: 'Saldo positivo nos próximos 90 dias', ok: !serie.negativo, pontos: serie.negativo ? 0 : 20 },
+      media
+        ? { id: 'folga', texto: 'Caixa cobre um mês de gastos', ok: saldo >= media, pontos: Math.round(20 * Math.max(0, Math.min(1, saldo / media))) }
+        : { id: 'folga', texto: 'Caixa positivo', ok: saldo > 0, pontos: saldo > 0 ? 20 : 0 }
+    ];
+    const pontos = itens.reduce((s, i) => s + i.pontos, 0);
+    return { pontos, rotulo: pontos >= 80 ? 'Ótima' : pontos >= 60 ? 'Boa' : pontos >= 40 ? 'Pede atenção' : 'Apertada', itens };
+  }
+
+  /**
    * tudo o que o relatório mensal mostra (tela, PDF, imagem e texto):
    * números do mês 'aaaa-mm' (pela data da baixa) + saldo de hoje, saldo no fim do mês e próximas contas (30 dias a partir de hoje).
    * fimMes: { data, saldo, previsto } — previsto = true se o fim do mês ainda não chegou (fluxo de caixa); null além do horizonte.
@@ -736,7 +764,7 @@
     abatido, totalAbatido, totalMovido, restante, quitada, ultimaBaixa, status, rotuloStatus,
     validarLancamento, criarLancamento, gerarRecorrencias, acharConta,
     validarModelo, criarModelo, editarModelo, excluirModelo, gerarMes, contasMes, ajustarValor, darBaixa, baixaTotal, reabrir, removerBaixa, editarConta, excluir,
-    categoria, nomeCategoria, filtrar, saldoInicial, saldoAtual, serieFluxo, previsao, proximas, resumoMes, dadosRelatorio, textoRelatorio, csv,
+    categoria, nomeCategoria, filtrar, saldoInicial, saldoAtual, serieFluxo, previsao, proximas, resumoMes, dadosRelatorio, textoRelatorio, saudeFinanceira, csv,
     DIAS_TESTE, RECURSOS, planoAtual, lancamentosNoMes, podeLancar
   };
 })();

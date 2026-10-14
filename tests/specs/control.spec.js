@@ -794,6 +794,108 @@ test.describe('control', () => {
     });
   });
 
+  // ---------- efeitos visuais ----------
+  test.describe('efeitos', () => {
+    // amostra o texto do saldo a cada quadro desde o começo da página (para ver a contagem acontecer)
+    const amostrar = page => page.addInitScript(() => {
+      window.__amostras = [];
+      const t0 = performance.now();
+      const passo = () => {
+        const el = document.querySelector('[data-valor="saldo"]');
+        if (el) { const t = el.textContent; if (window.__amostras[window.__amostras.length - 1] !== t) window.__amostras.push(t); }
+        if (performance.now() - t0 < 4000) requestAnimationFrame(passo);
+      };
+      requestAnimationFrame(passo);
+    });
+    const centavos = t => { const s = t.replace(/\s/g, ''); const v = Number(s.replace(/[^\d]/g, '')); return /^[−-]/.test(s) ? -v : v; };
+
+    test('contagem: o saldo sobe até o valor exato (centavos) e anima de novo só quando o valor muda', async ({ page }) => {
+      await amostrar(page);
+      const erros = await abrirCom(page, base({ saldo: { pessoal: 12345678, negocio: 0 }, contas: [conta('c1', 'pagar', 'Internet', 11990, HOJE)] }), 'inicio');
+      await expect(page.locator('[data-valor="saldo"]')).toHaveText('R$ 123.456,78');
+      await expect.poll(() => page.evaluate(() => window.__amostras.length)).toBeGreaterThan(3);
+      const a = await page.evaluate(() => window.__amostras);
+      expect(a[a.length - 1]).toBe('R$ 123.456,78');
+      const vals = a.map(centavos);
+      vals.forEach((v, i) => { expect(v).toBeGreaterThanOrEqual(0); expect(v).toBeLessThanOrEqual(12345678); if (i) expect(v).toBeGreaterThanOrEqual(vals[i - 1]); });
+      // pagar a internet: o saldo desce animando e para no centavo certo
+      await linha(page, 'Internet').locator('.ctl-check').click();
+      await expect(page.locator('[data-valor="saldo"]')).toHaveText('R$ 123.336,88');
+      // redesenhar sem mudar o valor não reanima
+      await page.evaluate(() => { window.__amostras = []; window.WardenControl.render(); });
+      await page.waitForTimeout(300);
+      const depois = await page.evaluate(() => [...new Set([...window.__amostras, document.querySelector('[data-valor="saldo"]').textContent])]);
+      expect(depois).toEqual(['R$ 123.336,88']);
+      semErros(erros);
+    });
+
+    test('com prefers-reduced-motion: números já no valor final, sem animações nem gradiente que se mexe', async ({ page }) => {
+      await page.emulateMedia({ reducedMotion: 'reduce' });
+      await amostrar(page);
+      const erros = await abrirCom(page, base({ saldo: { pessoal: 12345678, negocio: 0 }, contas: [conta('c1', 'pagar', 'Internet', 11990, HOJE)] }), 'inicio');
+      await expect(page.locator('[data-valor="saldo"]')).toHaveText('R$ 123.456,78');
+      await page.waitForTimeout(400);
+      expect(await page.evaluate(() => window.__amostras)).toEqual(['R$ 123.456,78']);
+      const rodando = () => page.evaluate(() => document.getAnimations().filter(a => a.playState === 'running').length);
+      expect(await rodando()).toBe(0);
+      expect(await page.locator('.ctl-aurora span').first().evaluate(el => getComputedStyle(el).animationName)).toBe('none');
+      expect(await page.locator('.ctl-saldo').evaluate(el => getComputedStyle(el, '::before').display)).toBe('none');
+      // trocar de aba, mudar o período do gráfico e dar baixa também não animam
+      await page.locator('a[href="#fluxo"]:visible').first().click();
+      await page.locator('[data-acao="periodo"][data-v="90"]').click();
+      expect(await rodando()).toBe(0);
+      await expect(page.locator('[data-valor="saldo-fluxo"]')).toHaveText('R$ 123.456,78');
+      await page.locator('a[href="#contas"]:visible').first().click();
+      await linha(page, 'Internet').locator('.ctl-check').click();
+      expect(await rodando()).toBe(0);
+      semErros(erros);
+    });
+
+    test('anel de saúde financeira: pontos conferidos à mão e o brilho segue o cursor', async ({ page }) => {
+      const bx = (data, valor) => [{ id: 'b' + data, data, valor, desconto: 0, juros: 0 }];
+      const erros = await abrirCom(page, base({ saldo: { pessoal: 100000, negocio: 0 }, contas: [
+        conta('set', 'pagar', 'Setembro', 200000, '2026-09-10', { baixas: bx('2026-09-10', 200000) }),   // média de gastos: R$ 2.000
+        conta('luz', 'pagar', 'Luz', 15000, '2026-09-28'),                                                 // 1 atrasada
+        conta('sal', 'receber', 'Salário', 500000, '2026-10-05')
+      ] }), 'inicio');
+      // saldo hoje: 1.000 − 2.000 = −1.000 → folga 0; 1 atrasada → 20; fim do mês: −1.000 − 150 + 5.000 > 0 → 30; fica negativo hoje → fluxo 0
+      const s = await page.evaluate(() => window.ControlNucleo.saudeFinanceira(window.WardenControl.db, 'tudo', '2026-10-02'));
+      expect(s.itens.map(i => [i.id, i.pontos])).toEqual([['em-dia', 20], ['fim-mes', 30], ['fluxo', 0], ['folga', 0]]);
+      expect(s).toMatchObject({ pontos: 50, rotulo: 'Pede atenção' });
+      await expect(page.locator('.ctl-anel')).toHaveAttribute('aria-label', 'Saúde financeira: 50 de 100, Pede atenção');
+      await expect(page.locator('.ctl-anel-num strong')).toHaveText('50');
+      await expect(page.locator('.ctl-saude li.ok')).toHaveCount(1);
+      // brilho: passa o mouse no cartão do saldo
+      const card = page.locator('.ctl-saldo');
+      const box = await card.boundingBox();
+      await page.mouse.move(box.x + 40, box.y + 30);
+      await page.mouse.move(box.x + 120, box.y + 60);
+      await expect(card).toHaveClass(/aceso/);
+      await expect.poll(() => card.evaluate(el => el.style.getPropertyValue('--mx'))).toBe('120px');
+      semErros(erros);
+    });
+
+    test.describe('celular (390px)', () => {
+      test.use({ viewport: { width: 390, height: 844 }, hasTouch: true });
+      test('com os efeitos rodando, nada fica mais largo que a tela; o toque acende o brilho', async ({ page }) => {
+        const erros = await abrirCom(page, base({ config: PRO, saldo: { pessoal: 98765432, negocio: 0 }, contas: [
+          conta('c1', 'pagar', 'Conta com um nome bem comprido para ver se corta direitinho', 123456789, HOJE),
+          conta('c2', 'receber', 'Cliente', 50000, '2026-10-12')] }), 'inicio');
+        await expect(page.locator('.ctl-esqueleto')).toHaveCount(0);
+        await expect(page.locator('.ctl-aurora')).toHaveCount(1);
+        for (const t of ['inicio', 'mes', 'contas', 'fluxo', 'relatorio', 'ajustes']) {
+          await page.locator(`.ctl-inferior a[href="#${t}"]`).click();
+          await page.waitForTimeout(500);
+          expect(await page.evaluate(() => document.documentElement.scrollWidth), `tela ${t}`).toBeLessThanOrEqual(390);
+        }
+        await page.locator('.ctl-inferior a[href="#inicio"]').click();
+        await page.locator('.ctl-saude').tap();
+        await expect(page.locator('.ctl-saude')).toHaveClass(/aceso/);
+        semErros(erros);
+      });
+    });
+  });
+
   // ---------- página /assinar.html e textos legais ----------
   test.describe('assinar', () => {
     test('assinar: preço, botão desabilitado sem checkoutUrl e habilitado com a URL; links de Termos e Privacidade', async ({ page }) => {

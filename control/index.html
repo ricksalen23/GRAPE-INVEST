@@ -62,7 +62,10 @@
         Novo lançamento
       </button>
     </header>
-    <main class="ctl-tela" id="tela" tabindex="-1"></main>
+    <main class="ctl-tela" id="tela" tabindex="-1" aria-busy="true">
+      <!-- esqueleto enquanto o app monta a primeira tela (o app.js troca pelo conteúdo) -->
+      <div class="ctl-esqueleto" aria-hidden="true"><span class="l t"></span><span class="l s"></span><span class="b g"></span><span class="b"></span><span class="b m"></span></div>
+    </main>
   </div>
   <!-- Orientador: painel lateral no desktop, gaveta no celular (conteúdo montado pelo app.js; regras no orientador.js) -->
   <aside class="ctl-orientador" id="orientador" aria-labelledby="ori-titulo" hidden></aside>
@@ -256,6 +259,7 @@
 <script src="/control/nucleo.js"></script>
 <script src="/control/relatorio.js"></script>
 <script src="/control/orientador.js"></script>
+<script src="/control/efeitos.js"></script>
 <script src="/control/app.js"></script>
 </body>
 </html>
