@@ -668,6 +668,14 @@ test.describe('control', () => {
       const pro = page.locator('#dlg-pro');
       await expect(pro).toBeVisible();
       await expect(pro.locator('[data-pro-motivo]')).toContainText('30 lançamentos deste mês');
+      // um só botão principal; o texto do teste vem da constante única (/assets/warden-pro.js)
+      await expect(pro.locator('.btn-primary')).toHaveCount(1);
+      await expect(pro.locator('.btn-primary')).toHaveText('Testar 7 dias grátis');
+      const copy = await page.evaluate(() => window.WARDEN_PRO.COPY_TESTE);
+      expect(copy).toBe('Sem cartão para testar. Cancele quando quiser.');
+      await expect(pro.locator('[data-copy-teste]')).toHaveText(copy);
+      await expect(pro.locator('[data-pro-dia]')).toHaveText('menos de R$ 0,34 por dia');
+      await expect(pro.locator('.ctl-pro-links').getByRole('link', { name: 'Assinar o Pro' })).toHaveAttribute('href', '/assinar.html');
       await pro.getByRole('button', { name: 'Agora não' }).click();
       await expect(pro).toBeHidden();
       await expect(page.locator('#dlg-lanc')).toBeVisible();
@@ -720,6 +728,8 @@ test.describe('control', () => {
       await expect(pro.locator('[data-pro-motivo]')).toContainText('relatório pelo WhatsApp é do Pro');
       await expect(pro.getByRole('button', { name: 'Testar 7 dias grátis' })).toHaveCount(0);
       await expect(pro.getByRole('link', { name: 'Assinar o Pro' })).toHaveAttribute('href', '/assinar.html');
+      await expect(pro.locator('.btn-primary')).toHaveText('Assinar o Pro');   // sem teste para oferecer, o principal é assinar
+      await expect(pro.locator('[data-copy-teste]')).toHaveCount(0);
       expect(await page.evaluate(() => window.__aberto)).toBe('');
       await pro.getByRole('button', { name: 'Agora não' }).click();
       await page.locator('a[href="#ajustes"]:visible').first().click();
@@ -795,6 +805,10 @@ test.describe('control', () => {
       await expect(page.locator('#assinar-nota a[href="/termos.html"]')).toBeVisible();
       await expect(page.locator('#assinar-nota a[href="/privacidade.html"]')).toBeVisible();
       await expect(page.locator('#assinar-nota')).toContainText('processado pela Kiwify');
+      // o texto do teste grátis vem da mesma constante do Control
+      const copy = await page.evaluate(() => window.WARDEN_PRO.COPY_TESTE);
+      await expect(page.locator('[data-copy-teste]').first()).toHaveText(copy);
+      await expect(page.locator('.tool-faq')).toContainText(copy);
       expect(await page.evaluate(() => window.WardenAssinar.PLANO)).toEqual({ preco: '9,90', checkoutUrl: '' });
       await page.evaluate(() => window.WardenAssinar.aplicarPlano({ preco: '9,90', checkoutUrl: 'https://pay.kiwify.com.br/exemplo' }));
       await expect(btn).toBeEnabled();

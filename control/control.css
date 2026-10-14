@@ -542,9 +542,13 @@ body[data-ori-gaveta] { overflow: hidden; }
 .ctl-pro-tabela td { color: var(--muted); }
 .ctl-pro-tabela td.pro { color: var(--text); font-weight: 600; }
 .ctl-pro-tabela td svg { width: 18px; height: 18px; color: var(--accent); vertical-align: middle; }
-.ctl-pro-pe { flex-wrap: wrap; }
-.ctl-pro-pe .btn { text-decoration: none; justify-content: center; }
-@media (max-width: 639px) { .ctl-pro-pe .btn-primary { flex: 1 1 100%; } .ctl-pro-pe .btn-secondary { flex: 1 1 0; padding-left: 10px; padding-right: 10px; } }
+.ctl-pro-dia { display: block; margin-top: 4px; font-size: .82rem; color: var(--muted); }
+.ctl-dlg-pe.ctl-pro-pe { flex-direction: column; align-items: stretch; gap: 8px; }
+.ctl-pro-pe .ctl-pro-cta { flex: none; width: 100%; min-height: 56px; font-size: 1.05rem; text-decoration: none; justify-content: center; }
+.ctl-pro-copy { text-align: center; font-size: .8rem; color: var(--muted); }
+.ctl-pro-links { display: flex; justify-content: center; align-items: center; gap: 4px 10px; flex-wrap: wrap; color: var(--subtle); }
+.ctl-pro-links .ctl-link { display: inline-flex; align-items: center; min-height: 40px; font-size: .84rem; font-weight: 500; color: var(--muted); }
+.ctl-pro-links .ctl-link:hover { color: var(--text); }
 
 /* ===== TOAST ===== */
 .ctl-toast {

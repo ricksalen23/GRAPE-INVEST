@@ -1058,21 +1058,25 @@
   ];
   const celulaPro = v => v === true ? `${ic('check')}<span class="sr-only">Sim</span>` : v === false ? '<span aria-hidden="true">—</span><span class="sr-only">Não</span>' : esc(v);
   function abrirPro(motivo = 'plano') {
-    const p = plano(), dlg = $('#dlg-pro');
-    const botoes = p.codigo === 'pro' ? ''
-      : p.codigo === 'gratis' && !p.testeUsado
-        ? `<button type="button" class="btn btn-primary" data-acao="pro-teste">Testar 7 dias grátis</button><a class="btn btn-secondary" href="/assinar.html">Assinar o Pro</a>`
-        : `<a class="btn btn-primary" href="/assinar.html">Assinar o Pro</a>`;
+    const p = plano(), dlg = $('#dlg-pro'), teste = p.codigo === 'gratis' && !p.testeUsado;
+    // "menos de R$ 0,34 por dia": o preço do mês dividido por 30, arredondado para o centavo de cima
+    const porDia = N.formatBRL(Math.floor(N.parseCentavos(PRO.preco) / 30) + 1);
+    const agoraNao = `<button type="button" class="ctl-link" data-fechar>${p.codigo === 'pro' ? 'Fechar' : 'Agora não'}</button>`;
+    const pe = p.codigo === 'pro' ? `<div class="ctl-pro-links">${agoraNao}</div>`
+      : `${teste ? '<button type="button" class="btn btn-primary ctl-pro-cta" data-acao="pro-teste">Testar 7 dias grátis</button>'
+          : '<a class="btn btn-primary ctl-pro-cta" href="/assinar.html">Assinar o Pro</a>'}
+        ${teste ? `<p class="ctl-pro-copy" data-copy-teste>${esc(window.WARDEN_PRO.COPY_TESTE)}</p>` : ''}
+        <div class="ctl-pro-links">${teste ? '<a class="ctl-link" href="/assinar.html">Assinar o Pro</a><span aria-hidden="true">·</span>' : ''}${agoraNao}</div>`;
     dlg.innerHTML = `
       <div class="ctl-dlg-cab"><h2 id="pro-titulo">${PRO.nome}</h2><button type="button" class="ctl-icone-btn" data-fechar aria-label="Fechar">${ic('x')}</button></div>
       <div class="ctl-dlg-miolo ctl-pro">
         ${MOTIVOS_PRO[motivo] ? `<p class="ctl-pro-motivo" data-pro-motivo>${MOTIVOS_PRO[motivo]}</p>` : ''}
-        <p class="ctl-pro-preco"><strong class="ctl-num">R$ ${PRO.preco}</strong> por mês${p.codigo === 'teste' ? ` · <span>você está no teste até ${N.dataBR(p.testeFim)}</span>` : ''}</p>
+        <p class="ctl-pro-preco"><strong class="ctl-num">R$ ${PRO.preco}</strong> por mês <span class="ctl-pro-dia" data-pro-dia>menos de ${porDia} por dia</span>${p.codigo === 'teste' ? `<span class="ctl-pro-dia">Você está no teste até ${N.dataBR(p.testeFim)}.</span>` : ''}</p>
         <table class="ctl-pro-tabela"><thead><tr><th scope="col"><span class="sr-only">Recurso</span></th><th scope="col">Grátis</th><th scope="col">Pro</th></tr></thead>
           <tbody>${LINHAS_PRO.map(([r, g, pr]) => `<tr><th scope="row">${r}</th><td>${celulaPro(g)}</td><td class="pro">${celulaPro(pr)}</td></tr>`).join('')}</tbody></table>
         <p class="ctl-dica">Parcelamento conta como 1 lançamento; contas que se repetem e as do "Meu mês" não contam. Em qualquer plano, seus dados ficam neste aparelho.</p>
       </div>
-      <div class="ctl-dlg-pe ctl-pro-pe">${botoes}<button type="button" class="btn btn-secondary" data-fechar>${p.codigo === 'pro' ? 'Fechar' : 'Agora não'}</button></div>`;
+      <div class="ctl-dlg-pe ctl-pro-pe">${pe}</div>`;
     if (!dlg.open) dlg.showModal();
   }
   /** muda o plano de demonstração (não entra no Desfazer: é estado da conta, não dado) */
