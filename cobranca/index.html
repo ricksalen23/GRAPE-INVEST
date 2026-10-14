@@ -849,7 +849,8 @@
          <button type="button" class="btn-mini secundario" data-acao="pago" data-id="${c.id}">${icone.pago}Pago</button>`;
     const extras = compacto ? '' : `
          <button type="button" class="btn-mini secundario" data-acao="editar-cobranca" data-id="${c.id}">Editar</button>
-         <button type="button" class="btn-mini perigo" data-acao="excluir-cobranca" data-id="${c.id}">Excluir</button>`;
+         <button type="button" class="btn-mini perigo" data-acao="excluir-cobranca" data-id="${c.id}">Excluir</button>
+         <button type="button" class="btn-mini secundario" data-acao="salvar-control" data-id="${c.id}">Salvar no Control</button>`;
     const hist = ultimoLembrete(c);
     return `
       <li class="cb-item${s === 'atrasada' ? ' atrasada' : ''}" data-cobranca="${c.id}">
@@ -943,9 +944,20 @@
       'enviar': () => abrirEnviar(id),
       'pago': () => abrirPago(id),
       'desfazer': () => desfazerPagamento(id),
-      'premium': () => abrirPremium()
+      'premium': () => abrirPremium(),
+      'salvar-control': () => salvarCobrancaNoControl(id)
     }[b.dataset.acao] || (() => {}))();
   });
+  // "Salvar no Control": a cobrança vira uma conta a receber no Warden Control (paga, se já foi paga)
+  function salvarCobrancaNoControl(id) {
+    const c = db.cobrancas.find(x => x.id === id);
+    if (!c) return;
+    const r = Warden.salvarNoControl({
+      origem: 'cobranca', tipo: 'receber', descricao: c.descricao || 'Cobrança', valor: Math.round(c.valor * 100),
+      vencimento: c.vencimento, contato: (cliente(c.clienteId) || {}).nome || '', pagoEm: c.status === 'paga' ? c.pagaEm : null
+    });
+    status(!r.ok ? r.erro : r.repetido ? 'Esta cobrança já está esperando no Control.' : 'Cobrança salva no Warden Control. Ela aparece lá quando você abrir o Control.', !r.ok);
+  }
 
   /* ===== CLIENTES ===== */
   let clienteEditando = null;

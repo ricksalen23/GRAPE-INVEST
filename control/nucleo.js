@@ -430,6 +430,34 @@
     return db.contas.filter(doPerfil(perfil)).filter(c => c.modeloId && c.ocorrencia && mesDe(c.ocorrencia) === ym);
   }
 
+  // ---------- "Salvar no Control": caixa de entrada vinda do Pix, do Recibo e da Cobrança ----------
+  const CHAVE_ENTRADA = 'warden:control-entrada';
+  const ORIGENS = { pix: 'gerador de Pix', recibo: 'gerador de recibo', cobranca: 'Warden Cobrança' };
+  /** item da caixa de entrada que pode virar conta (as mesmas regras de um lançamento digitado) */
+  function entradaValida(e) {
+    return !!e && typeof e === 'object' && !!ORIGENS[e.origem] && typeof e.descricao === 'string'
+      && validarLancamento({ ...e, repeticao: 'unica' }).length === 0;
+  }
+  /**
+   * cria as contas dos itens válidos (inválidos são descartados sem quebrar). Com pagoEm, a conta já entra quitada nessa data.
+   * Cobrança entra no perfil Negócio; Pix e Recibo, no Pessoal. Devolve { importadas, descartadas, porOrigem: { pix: n, … } }.
+   */
+  function importarEntrada(db, lista) {
+    const importadas = [], porOrigem = {};
+    let descartadas = 0;
+    for (const e of Array.isArray(lista) ? lista : []) {
+      if (!entradaValida(e)) { descartadas++; continue; }
+      const c = contaBase({
+        tipo: e.tipo, descricao: e.descricao, valor: e.valor, vencimento: e.vencimento, contato: e.contato, forma: e.forma,
+        obs: `Veio do ${ORIGENS[e.origem]}.`, perfil: e.origem === 'cobranca' ? 'negocio' : 'pessoal', categoriaId: ''
+      });
+      if (dataValida(e.pagoEm)) c.baixas.push({ id: novoId('b'), data: e.pagoEm, valor: c.valor, desconto: 0, juros: 0, criadoEm: agoraISO() });
+      db.contas.push(c); importadas.push(c);
+      porOrigem[e.origem] = (porOrigem[e.origem] || 0) + 1;
+    }
+    return { importadas, descartadas, porOrigem };
+  }
+
   function acharConta(db, id) { return db.contas.find(c => c.id === id) || null; }
 
   /** baixa com ajustes. b: { valor (o que entrou/saiu), data, desconto, juros }. Lança Error com a explicação se não couber. */
@@ -774,7 +802,8 @@
     dbVazio, migrar, carregar, salvar, backup,
     abatido, totalAbatido, totalMovido, restante, quitada, ultimaBaixa, status, rotuloStatus,
     validarLancamento, criarLancamento, gerarRecorrencias, acharConta,
-    validarModelo, criarModelo, editarModelo, excluirModelo, gerarMes, contasMes, ajustarValor, darBaixa, baixaTotal, reabrir, removerBaixa, editarConta, excluir,
+    validarModelo, criarModelo, editarModelo, excluirModelo, gerarMes, contasMes, ajustarValor,
+    CHAVE_ENTRADA, ORIGENS, entradaValida, importarEntrada, darBaixa, baixaTotal, reabrir, removerBaixa, editarConta, excluir,
     categoria, nomeCategoria, filtrar, saldoInicial, saldoAtual, serieFluxo, previsao, proximas, resumoMes, dadosRelatorio, textoRelatorio, saudeFinanceira, csv,
     DIAS_TESTE, RECURSOS, planoAtual, lancamentosNoMes, podeLancar
   };

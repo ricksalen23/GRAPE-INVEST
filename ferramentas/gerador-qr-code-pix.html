@@ -228,6 +228,10 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>
                 Enviar no WhatsApp
               </a>
+              <button type="button" class="btn btn-secondary" id="btn-control">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 13h4l2 3h4l2-3h4"/><path d="M4 13 6.5 5h11L20 13v6H4z"/></svg>
+                Salvar no Control
+              </button>
             </div>
             <p class="pix-status" id="pix-status" role="status"></p>
           </div>
@@ -516,6 +520,18 @@
       setTimeout(() => URL.revokeObjectURL(url), 1000);
       status('QR Code baixado.');
     }, 'image/png');
+  });
+
+  // "Salvar no Control": o Pix vira uma conta a receber no Warden Control (entra quando o Control abrir)
+  $('btn-control').addEventListener('click', () => {
+    if (!atual) return;
+    const d = atual.dados, h = new Date();
+    const r = Warden.salvarNoControl({
+      origem: 'pix', tipo: 'receber', descricao: d.descricao ? `Pix: ${d.descricao}` : 'Pix a receber',
+      valor: Math.round((d.valor || 0) * 100), contato: '',
+      vencimento: `${h.getFullYear()}-${String(h.getMonth() + 1).padStart(2, '0')}-${String(h.getDate()).padStart(2, '0')}`
+    });
+    status(!r.ok ? r.erro : r.repetido ? 'Este Pix já está esperando no Control.' : 'Salvo no Warden Control. Ele aparece lá quando você abrir o Control.');
   });
 
   function mensagemWhatsApp({ payload, dados }) {

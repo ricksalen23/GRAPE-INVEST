@@ -1067,7 +1067,41 @@
   montarAvisos();
   montarFaq();
 
+  /* ===== SALVAR NO CONTROL =====
+   * Pix, Recibo e Cobrança mandam um lançamento para o Warden Control por uma caixa de entrada no próprio aparelho
+   * (localStorage 'warden:control-entrada'). O Control valida, importa ao abrir e esvazia a caixa.
+   * item: { origem: 'pix'|'recibo'|'cobranca', tipo: 'pagar'|'receber', descricao, valor (CENTAVOS, inteiro),
+   *         vencimento 'aaaa-mm-dd', contato?, forma?, pagoEm? 'aaaa-mm-dd' (já recebido/pago nessa data) }
+   * Devolve { ok: true, item } | { ok: true, repetido: true } (igual a um que ainda espera na caixa) | { ok: false, erro }. */
+  const CHAVE_ENTRADA_CONTROL = 'warden:control-entrada';
+  function salvarNoControl(dados) {
+    const data = /^\d{4}-\d{2}-\d{2}$/;
+    const item = {
+      origem: dados.origem, tipo: dados.tipo, descricao: String(dados.descricao || '').trim().slice(0, 120),
+      valor: dados.valor, vencimento: dados.vencimento, contato: String(dados.contato || '').trim().slice(0, 120),
+      forma: String(dados.forma || '').slice(0, 40), pagoEm: data.test(dados.pagoEm || '') ? dados.pagoEm : null
+    };
+    if (!['pix', 'recibo', 'cobranca'].includes(item.origem) || !['pagar', 'receber'].includes(item.tipo)) return { ok: false, erro: 'Lançamento inválido.' };
+    if (!Number.isSafeInteger(item.valor) || item.valor <= 0) return { ok: false, erro: 'Informe um valor para salvar no Control.' };
+    if (!data.test(item.vencimento || '')) return { ok: false, erro: 'Informe a data para salvar no Control.' };
+    if (!item.descricao) return { ok: false, erro: 'Informe uma descrição para salvar no Control.' };
+    try {
+      let caixa = [];
+      try { caixa = JSON.parse(localStorage.getItem(CHAVE_ENTRADA_CONTROL)) || []; } catch (e) { caixa = []; }
+      if (!Array.isArray(caixa)) caixa = [];
+      const igual = i => i && ['origem', 'tipo', 'descricao', 'valor', 'vencimento', 'contato', 'pagoEm'].every(k => i[k] === item[k]);
+      if (caixa.some(igual)) return { ok: true, repetido: true };
+      const novo = { id: 'e_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7), ...item, criadoEm: new Date().toISOString() };
+      caixa.push(novo);
+      localStorage.setItem(CHAVE_ENTRADA_CONTROL, JSON.stringify(caixa.slice(-200)));
+      return { ok: true, item: novo };
+    } catch (e) {
+      return { ok: false, erro: 'Não consegui salvar neste navegador (modo anônimo ou sem espaço).' };
+    }
+  }
+
   window.Warden = {
+    salvarNoControl, CHAVE_ENTRADA_CONTROL,
     formatBRL, formatBRLCompacto, formatNumero, formatPct, parseNumero, campoBRL,
     TAXAS_REFERENCIA, getTaxasBCB, fonteTaxa,
     IR_REGRESSIVO, aliquotaIR, liquidaDeIR, rendaFixa,

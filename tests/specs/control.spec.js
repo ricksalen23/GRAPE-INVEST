@@ -959,6 +959,123 @@ test.describe('control', () => {
     });
   });
 
+  // ---------- "Salvar no Control" (Pix, Recibo e Cobrança → caixa de entrada → Control) ----------
+  test.describe('salvar no control', () => {
+    const ENTRADA = 'warden:control-entrada';
+    const lerEntrada = page => page.evaluate(k => JSON.parse(localStorage.getItem(k)), ENTRADA);
+    const botao = page => page.getByRole('button', { name: 'Salvar no Control' });
+
+    test('salvar no control: o gerador de Pix grava um Pix a receber (sem duplicar)', async ({ page }) => {
+      const erros = await abrir(page, '/ferramentas/gerador-qr-code-pix.html');
+      await preencher(page, '#chave', 'loja@exemplo.com');
+      await preencher(page, '#nome', 'Ana Souza');
+      await preencher(page, '#cidade', 'Sao Paulo');
+      await preencher(page, '#descricao', 'Pedido123');
+      await expect(page.locator('#pix-resultado')).toBeVisible();
+      // sem valor: avisa e não grava
+      await botao(page).click();
+      await expect(page.locator('#pix-status')).toContainText('Informe um valor');
+      expect(await lerEntrada(page)).toBeNull();
+      await preencher(page, '#valor', '150,00');
+      await botao(page).click();
+      await expect(page.locator('#pix-status')).toContainText('Salvo no Warden Control');
+      let e = await lerEntrada(page);
+      expect(e).toHaveLength(1);
+      expect(e[0]).toMatchObject({ origem: 'pix', tipo: 'receber', descricao: 'Pix: Pedido123', valor: 15000, vencimento: HOJE, contato: '', pagoEm: null });
+      expect(e[0].id).toMatch(/^e_/);
+      await botao(page).click();
+      await expect(page.locator('#pix-status')).toContainText('já está esperando no Control');
+      expect(await lerEntrada(page)).toHaveLength(1);
+      semErros(erros);
+    });
+
+    test('salvar no control: o gerador de recibo grava um recebimento já recebido na data do recibo', async ({ page }) => {
+      const erros = await abrir(page, '/ferramentas/gerador-de-recibo.html');
+      await expect(botao(page)).toBeDisabled();
+      await preencher(page, '#rec-nome', 'Ana Souza');
+      await preencher(page, '#rec-doc', '52998224725');
+      await preencher(page, '#pag-nome', 'Padaria Pão Bom');
+      await preencher(page, '#valor', '1234,56');
+      await preencher(page, '#referente', 'criação de logotipo');
+      await preencher(page, '#cidade', 'São Paulo');
+      await preencher(page, '#data', '2026-09-30');
+      await expect(botao(page)).toBeEnabled();
+      await botao(page).click();
+      await expect(page.locator('#falta')).toContainText('Salvo no Warden Control como recebido');
+      const e = await lerEntrada(page);
+      expect(e).toHaveLength(1);
+      expect(e[0]).toMatchObject({ origem: 'recibo', tipo: 'receber', descricao: 'Criação de logotipo', valor: 123456, vencimento: '2026-09-30', pagoEm: '2026-09-30', contato: 'Padaria Pão Bom' });
+      semErros(erros);
+    });
+
+    test('salvar no control: o Warden Cobrança grava a cobrança (paga entra como recebida)', async ({ page }) => {
+      const cobranca = {
+        versao: 1, criadoEm: '2026-10-01T12:00:00.000Z', atualizadoEm: '2026-10-01T12:00:00.000Z',
+        clientes: [{ id: 'k1', nome: 'Carla Dias', whatsapp: '11987654321', obs: '', criadoEm: '2026-10-01T12:00:00.000Z', atualizadoEm: '2026-10-01T12:00:00.000Z' }],
+        cobrancas: [
+          { id: 'b1', clienteId: 'k1', valor: 180, descricao: 'Mensalidade', vencimento: '2026-10-10', diaVencimento: 10, recorrencia: 'unica', status: 'pendente', pagaEm: null, proximaId: null, origemId: null, historico: [], criadoEm: '2026-10-01T12:00:00.000Z', atualizadoEm: '2026-10-01T12:00:00.000Z' },
+          { id: 'b2', clienteId: 'k1', valor: 99.9, descricao: 'Avaliação', vencimento: '2026-09-25', diaVencimento: 25, recorrencia: 'unica', status: 'paga', pagaEm: '2026-09-26', proximaId: null, origemId: null, historico: [], criadoEm: '2026-09-20T12:00:00.000Z', atualizadoEm: '2026-09-26T12:00:00.000Z' }
+        ],
+        config: { pronto: true, negocio: 'Studio Bem-Estar', pix: { tipo: 'email', chave: 'teste@warden.com.br', digitada: 'teste@warden.com.br' }, recebedor: 'WARDEN FINANCE', cidade: 'SAO PAULO', modelos: {} }
+      };
+      await page.addInitScript(d => { if (!sessionStorage.getItem('s')) { localStorage.setItem('warden:cobranca', JSON.stringify(d)); sessionStorage.setItem('s', 1); } }, cobranca);
+      const erros = await abrir(page, '/cobranca/');
+      await page.locator('#tab-cobrancas').click();
+      await page.locator('[data-acao="salvar-control"][data-id="b1"]').click();
+      await expect(page.locator('#cb-status')).toContainText('Cobrança salva no Warden Control');
+      await page.locator('input[name="filtro"][value="pagas"]').check({ force: true });
+      await page.locator('[data-acao="salvar-control"][data-id="b2"]').click();
+      const e = await lerEntrada(page);
+      expect(e.map(x => [x.origem, x.descricao, x.valor, x.vencimento, x.contato, x.pagoEm])).toEqual([
+        ['cobranca', 'Mensalidade', 18000, '2026-10-10', 'Carla Dias', null],
+        ['cobranca', 'Avaliação', 9990, '2026-09-25', 'Carla Dias', '2026-09-26']
+      ]);
+      semErros(erros);
+    });
+
+    test('salvar no control: o Juros compostos não tem o botão', async ({ page }) => {
+      await abrir(page, '/ferramentas/juros-compostos.html');
+      await expect(botao(page)).toHaveCount(0);
+      expect(await page.content()).not.toContain('Salvar no Control');
+    });
+
+    test('salvar no control: o Control importa ao abrir, uma vez só, descarta o inválido e recebe o que chega com ele aberto', async ({ page, context }) => {
+      const item = (id, origem, extra) => ({ id, origem, tipo: 'receber', descricao: 'Item ' + id, valor: 1000, vencimento: '2026-10-10', contato: '', forma: '', pagoEm: null, criadoEm: '2026-10-02T10:00:00.000Z', ...extra });
+      await page.addInitScript(([k, lista]) => { if (!sessionStorage.getItem('entrada')) { localStorage.setItem(k, JSON.stringify(lista)); sessionStorage.setItem('entrada', 1); } }, [ENTRADA, [
+        item('a', 'pix', { descricao: 'Pix: Pedido123', valor: 15000, vencimento: HOJE }),
+        item('b', 'recibo', { descricao: 'Criação de logotipo', valor: 123456, vencimento: '2026-09-30', pagoEm: '2026-09-30', contato: 'Padaria Pão Bom', forma: 'Pix' }),
+        item('c', 'pix', { valor: -5 }),                      // inválido: valor negativo
+        item('d', 'site-estranho', {}),                        // inválido: origem desconhecida
+        { lixo: true }
+      ]]);
+      const erros = await abrirCom(page, base({ config: PRO }), 'contas');
+      await expect(page.locator('#toast')).toContainText('2 lançamentos chegaram do Pix e do Recibo');
+      let db = await lerDb(page);
+      expect(db.contas).toHaveLength(2);
+      const pix = db.contas.find(c => c.descricao === 'Pix: Pedido123'), rec = db.contas.find(c => c.descricao === 'Criação de logotipo');
+      expect(pix).toMatchObject({ tipo: 'receber', valor: 15000, vencimento: HOJE, perfil: 'pessoal', baixas: [] });
+      expect(pix.obs).toBe('Veio do gerador de Pix.');
+      expect(rec).toMatchObject({ valor: 123456, contato: 'Padaria Pão Bom', forma: 'Pix' });
+      expect(rec.baixas).toMatchObject([{ data: '2026-09-30', valor: 123456 }]);
+      expect(await lerEntrada(page)).toBeNull();
+      // recarregar não importa de novo
+      await page.reload();
+      expect((await lerDb(page)).contas).toHaveLength(2);
+      // com o Control aberto, outra aba salva uma cobrança: chega sozinha, com Desfazer
+      const pagina2 = await context.newPage();
+      await pagina2.goto('/ferramentas/gerador-qr-code-pix.html');
+      await pagina2.evaluate(() => window.Warden.salvarNoControl({ origem: 'cobranca', tipo: 'receber', descricao: 'Mensalidade', valor: 18000, vencimento: '2026-10-10', contato: 'Carla Dias' }));
+      await expect(page.locator('#toast')).toContainText('1 lançamento chegou da Cobrança');
+      db = await lerDb(page);
+      expect(db.contas).toHaveLength(3);
+      expect(db.contas.find(c => c.descricao === 'Mensalidade')).toMatchObject({ perfil: 'negocio', contato: 'Carla Dias', obs: 'Veio do Warden Cobrança.' });
+      await page.locator('#toast button').click();   // Desfazer
+      await expect.poll(async () => (await lerDb(page)).contas.length).toBe(2);
+      await pagina2.close();
+      semErros(erros);
+    });
+  });
+
   // ---------- página /assinar.html e textos legais ----------
   test.describe('assinar', () => {
     test('assinar: preço, botão desabilitado sem checkoutUrl e habilitado com a URL; links de Termos e Privacidade', async ({ page }) => {
@@ -1154,7 +1271,16 @@ test.describe('control', () => {
       await expect(grupo(page, 'Atrasadas')).toContainText('Venceu dia 15/10');
     });
 
+    // conta quantas vezes o confete foi criado (ele some sozinho em 2,4 s; contar não depende do tempo)
+    const contarConfetes = page => page.addInitScript(() => {
+      window.__confetes = 0;
+      new MutationObserver(ms => ms.forEach(m => m.addedNodes.forEach(n => { if (n.classList && n.classList.contains('ctl-confete')) window.__confetes++; })))
+        .observe(document, { childList: true, subtree: true });   // o <html> ainda não existe quando este script roda
+    });
+    const confetes = page => page.evaluate(() => window.__confetes);
+
     test('cadastrar, editar e excluir conta fixa; confete uma vez por mês ao quitar tudo', async ({ page }) => {
+      await contarConfetes(page);
       const erros = await abrirCom(page, null, 'mes');
       await expect(page.locator('[data-novo]:visible')).toHaveCount(0);
       await page.locator('.ctl-vazio [data-acao="novo-modelo"]').click();
@@ -1186,14 +1312,15 @@ test.describe('control', () => {
       // quitou tudo: "Mês fechado!" e confete, uma vez por mês
       await doMes(page, 'Academia').locator('.ctl-check').click();
       await expect(page.locator('.ctl-mes-fim')).toContainText('Mês fechado!');
-      await expect(page.locator('.ctl-confete')).toHaveCount(1);
+      await expect.poll(() => confetes(page)).toBe(1);
       expect((await lerDb(page)).config.confeteMes).toBe('2026-10');
-      await expect(page.locator('.ctl-confete')).toHaveCount(0, { timeout: 4000 });
       await grupo(page, 'Pagas').locator('summary').click();
       await doMes(page, 'Academia').locator('.ctl-check').click();   // reabre
+      await expect(page.locator('.ctl-mes-fim')).toHaveCount(0);
       await doMes(page, 'Academia').locator('.ctl-check').click();   // quita de novo
-      await page.waitForTimeout(200);
-      await expect(page.locator('.ctl-confete')).toHaveCount(0);
+      await expect(page.locator('.ctl-mes-fim')).toContainText('Mês fechado!');
+      await page.waitForTimeout(300);
+      expect(await confetes(page)).toBe(1);   // não comemora de novo no mesmo mês
       // excluir a conta deste mês não faz ela voltar ao recarregar
       await doMes(page, 'Academia').locator('.ctl-linha-corpo').click();
       await page.locator('[data-acao="det-excluir"]').click();
@@ -1211,11 +1338,12 @@ test.describe('control', () => {
 
     test('sem animação com prefers-reduced-motion: nada de confete', async ({ page }) => {
       await page.emulateMedia({ reducedMotion: 'reduce' });
+      await contarConfetes(page);
       await abrirCom(page, base({ modelos: [modelo('m1', 'pagar', 'Aluguel', 180000, 5)] }), 'mes');
       await doMes(page, 'Aluguel').locator('.ctl-check').click();
       await expect(page.locator('.ctl-mes-fim')).toBeVisible();
-      await page.waitForTimeout(200);
-      await expect(page.locator('.ctl-confete')).toHaveCount(0);
+      await page.waitForTimeout(300);
+      expect(await confetes(page)).toBe(0);
       expect((await lerDb(page)).config.confeteMes).toBe('2026-10');
     });
   });

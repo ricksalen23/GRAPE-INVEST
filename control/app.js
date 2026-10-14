@@ -1399,6 +1399,25 @@
     avisarFimTeste();
   });
 
+  // ---------- "Salvar no Control": o que veio do Pix, do Recibo e da Cobrança ----------
+  const DE_ORIGEM = { pix: 'do Pix', recibo: 'do Recibo', cobranca: 'da Cobrança' };
+  /** importa a caixa de entrada (e já a esvazia, para nada entrar duas vezes); item inválido é descartado */
+  function importarDoSite() {
+    let bruto = null;
+    try { bruto = localStorage.getItem(N.CHAVE_ENTRADA); } catch (e) { return; }
+    if (bruto === null) return;
+    try { localStorage.removeItem(N.CHAVE_ENTRADA); } catch (e) { /* segue: no pior caso, importa de novo na próxima */ }
+    let lista;
+    try { lista = JSON.parse(bruto); } catch (e) { return; }
+    if (!Array.isArray(lista) || !lista.some(N.entradaValida)) return;
+    const { valor: r, acao } = mudar('Lançamentos do site', d => N.importarEntrada(d, lista));
+    const n = r.importadas.length, origens = Object.keys(r.porOrigem).map(o => DE_ORIGEM[o]);
+    const de = origens.length > 1 ? `${origens.slice(0, -1).join(', ')} e ${origens[origens.length - 1]}` : origens[0];
+    toast(`${n} ${n === 1 ? 'lançamento chegou' : 'lançamentos chegaram'} ${de}`, { desfazer: acao, ms: 6000 });
+  }
+  window.addEventListener('storage', e => { if (e.key === N.CHAVE_ENTRADA && e.newValue) importarDoSite(); });
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') importarDoSite(); });
+
   // recorrências até o horizonte + a lista do "Meu mês" do mês corrente (virada do mês = lista nova, desmarcada)
   function gerarTudo() {
     const r = ref();
@@ -1410,6 +1429,7 @@
   window.addEventListener('hashchange', rotaAtual);
   rotaAtual();
   avisarFimTeste();
+  importarDoSite();
 
   // para os testes e para as próximas etapas
   window.WardenControl = { get db() { return db; }, render, desfazer, toast, abrirLancamento, abrirDetalhe, enviarRelatorio, abrirPro };

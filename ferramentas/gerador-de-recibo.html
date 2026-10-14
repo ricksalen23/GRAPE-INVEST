@@ -176,6 +176,10 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9V3h10v6M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2"/><rect x="7" y="14" width="10" height="7"/></svg>
             Imprimir
           </button>
+          <button type="button" class="btn btn-secondary" id="btn-control" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 13h4l2 3h4l2-3h4"/><path d="M4 13 6.5 5h11L20 13v6H4z"/></svg>
+            Salvar no Control
+          </button>
         </div>
         <p class="rc-falta" id="falta" role="status"></p>
       </div>
@@ -312,6 +316,7 @@
 
     const f = pendencias(d);
     $('btn-pdf').disabled = $('btn-imprimir').disabled = f.length > 0;
+    $('btn-control').disabled = f.length > 0;
     $('falta').textContent = f.length ? `Para baixar, falta: ${f.join(', ')}.` : 'Recibo completo. Baixe o PDF ou imprima e assine.';
   }
 
@@ -351,6 +356,18 @@
   }
 
   const nomeArquivo = d => 'recibo-' + (d.pagNome || 'cliente').normalize('NFD').replace(/[^\w\s-]/g, '').trim().toLowerCase().replace(/\s+/g, '-').slice(0, 40) + '-' + d.data + '.pdf';
+
+  // "Salvar no Control": o recibo vira um recebimento já recebido (na data do recibo) no Warden Control
+  $('btn-control').addEventListener('click', () => {
+    const d = lerDados();
+    if (pendencias(d).length) return;
+    const ref = d.referente.charAt(0).toUpperCase() + d.referente.slice(1);
+    const r = Warden.salvarNoControl({
+      origem: 'recibo', tipo: 'receber', descricao: ref, valor: Math.round(d.valor * 100), vencimento: d.data, pagoEm: d.data,
+      contato: d.pagNome, forma: d.forma.charAt(0).toUpperCase() + d.forma.slice(1)
+    });
+    $('falta').textContent = !r.ok ? r.erro : r.repetido ? 'Este recibo já está esperando no Control.' : 'Salvo no Warden Control como recebido. Ele aparece lá quando você abrir o Control.';
+  });
 
   $('btn-pdf').addEventListener('click', () => {
     if (!window.jspdf) { $('falta').textContent = 'Não foi possível carregar o gerador de PDF. Verifique a conexão e recarregue a página, ou use Imprimir.'; return; }
