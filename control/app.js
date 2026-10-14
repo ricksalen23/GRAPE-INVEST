@@ -792,9 +792,9 @@
     $('#lanc-paga-rot').textContent = tipo === 'receber' ? 'Já recebi (dá baixa hoje)' : 'Já paguei (dá baixa hoje)';
     $('#lanc-contato-rot').textContent = tipo === 'receber' ? 'Quem vai pagar' : 'Para quem';
     $('#lanc-divida-bloco').hidden = tipo !== 'pagar';
-    $('#lanc-taxa-bloco').hidden = tipo !== 'pagar' || !$('#lanc-divida').checked;
-    $('#lanc-parcelas-bloco').hidden = rep !== 'parcelada';
-    $('#lanc-freq-bloco').hidden = rep !== 'recorrente';
+    revelar($('#lanc-taxa-bloco'), tipo === 'pagar' && $('#lanc-divida').checked);
+    revelar($('#lanc-parcelas-bloco'), rep === 'parcelada');
+    revelar($('#lanc-freq-bloco'), rep === 'recorrente');
     $('#lanc-valor-rot').textContent = rep === 'parcelada' ? 'Valor total' : 'Valor';
     const dica = $('#lanc-rep-dica'), v = lerDinheiro($('#lanc-valor')), n = Number($('#lanc-parcelas').value), venc = $('#lanc-venc').value;
     if (rep === 'parcelada' && v > 0 && n >= 2 && n <= 120) {
@@ -842,7 +842,7 @@
       $('#lanc-mais').open = false;
     }
     datalists(); atualizarFormLanc();
-    dlgLanc.showModal();
+    abrirModal(dlgLanc);
     setTimeout(() => $('#lanc-valor').focus(), 30);
   }
   formLanc.addEventListener('change', e => {
@@ -985,7 +985,9 @@
   // ---------- perguntas (confirmar / escolher / renomear) ----------
   const dlgConf = $('#dlg-confirmar');
   /** abre uma janela com botões; devolve a promessa do valor escolhido (null = cancelou). campo: { rotulo, valor } pede um texto. */
-  function perguntar({ titulo, texto = '', campo = null, botoes }) {
+  let perguntaAberta = null;   // { fim } da pergunta que está na tela
+  function perguntar({ titulo, texto = '', campo = null, botoes, cancelar = 'Cancelar' }) {
+    if (perguntaAberta) perguntaAberta.fim(null);
     return new Promise(resolve => {
       dlgConf.innerHTML = `<form method="dialog" novalidate>
         <div class="ctl-dlg-cab"><h2 id="conf-titulo">${esc(titulo)}</h2><button type="button" class="ctl-icone-btn" data-fechar aria-label="Fechar">${ic('x')}</button></div>
@@ -994,19 +996,75 @@
             ? `<div class="ctl-dinheiro grande"><span>R$</span><input id="conf-campo" type="text" inputmode="decimal" value="${esc(campo.valor || '')}" autocomplete="off"></div>`
             : `<input id="conf-campo" type="text" maxlength="60" value="${esc(campo.valor || '')}" autocomplete="off">`}</div>` : ''}
           <div class="ctl-escolhas">${botoes.map((b, i) => `<button type="${i === 0 ? 'submit' : 'button'}" class="btn ${b.classe || 'btn-secondary'}" data-v="${esc(b.valor)}">${esc(b.rotulo)}</button>`).join('')}
-            <button type="button" class="btn btn-secondary" data-fechar>Cancelar</button></div>
+            <button type="button" class="btn btn-secondary" data-fechar>${esc(cancelar)}</button></div>
         </div></form>`;
-      let resposta = null;
+      let feito = false;
+      const fim = v => {
+        if (feito) return;
+        feito = true;
+        dlgConf.removeEventListener('close', aoFechar);
+        if (perguntaAberta && perguntaAberta.fim === fim) perguntaAberta = null;
+        resolve(v);
+      };
+      // o evento close chega numa tarefa depois do close(): o de uma pergunta anterior pode chegar com esta já aberta
+      const aoFechar = () => { if (!dlgConf.open) fim(null); };
       dlgConf.querySelectorAll('[data-v]').forEach(b => b.addEventListener('click', ev => {
         ev.preventDefault();
-        resposta = campo ? { valor: b.dataset.v, texto: $('#conf-campo').value } : b.dataset.v;
+        fim(campo ? { valor: b.dataset.v, texto: $('#conf-campo').value } : b.dataset.v);
         dlgConf.close();
       }));
-      dlgConf.addEventListener('close', () => resolve(resposta), { once: true });
+      dlgConf.addEventListener('close', aoFechar);
+      perguntaAberta = { fim };
       dlgConf.showModal();
       if (campo) setTimeout(() => $('#conf-campo').select(), 30);
     });
   }
+
+  // ---------- janelas: abrir guardando o estado, não perder o que foi digitado, mostrar o campo que apareceu ----------
+  const fotoForm = f => JSON.stringify([...f.elements].filter(el => el.id || el.name)
+    .map(el => (el.type === 'checkbox' || el.type === 'radio' ? el.checked : el.value)));
+  /** abre a janela de formulário e guarda como ela começou (para saber se a pessoa digitou algo) */
+  function abrirModal(dlg) {
+    const f = $('form', dlg);
+    dlg.showModal();
+    if (f) dlg.dataset.foto = fotoForm(f);
+  }
+  function sujo(dlg) { const f = $('form', dlg); return !!(f && dlg.dataset.foto && fotoForm(f) !== dlg.dataset.foto); }
+  /** fechar sem salvar: com campos mudados, pergunta antes (Cancelar, X, fundo escuro e Esc) */
+  async function tentarFechar(dlg) {
+    if (!dlg || !dlg.open) return;
+    if (!sujo(dlg)) { dlg.close(); return; }
+    const r = await perguntar({ titulo: 'Descartar o que você digitou?', texto: 'O que você preencheu ainda não foi salvo.',
+      botoes: [{ rotulo: 'Descartar', valor: 'sim', classe: 'btn-perigo' }], cancelar: 'Continuar editando' });
+    if (r) dlg.close();
+  }
+  $$('.ctl-dlg').forEach(dlg => dlg.addEventListener('cancel', e => { if (sujo(dlg)) { e.preventDefault(); tentarFechar(dlg); } }));
+  /** rola o miolo da janela, suave, até o campo que acabou de aparecer (o rodapé não sai do lugar) */
+  function mostrarNoMiolo(el) {
+    const m = el && el.closest('.ctl-dlg-miolo');
+    if (!m || el.hidden) return;
+    const a = el.getBoundingClientRect(), b = m.getBoundingClientRect(), folga = 12;
+    const desce = a.bottom + folga - b.bottom, sobe = a.top - folga - b.top;
+    const delta = desce > 0 ? Math.min(desce, Math.max(0, sobe)) : 0;
+    if (delta > 0) m.scrollBy({ top: delta, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+  }
+  /** mostra/esconde um bloco; se ele acabou de aparecer, rola até ele */
+  function revelar(el, visivel) {
+    const apareceu = el.hidden && visivel;
+    el.hidden = !visivel;
+    if (apareceu) requestAnimationFrame(() => mostrarNoMiolo(el));
+  }
+  // teclado do celular: a altura visível vira a altura máxima das janelas, e a folha de baixo sobe acima do teclado
+  if (window.visualViewport) {
+    const vv = window.visualViewport, raiz = document.documentElement;
+    const medir = () => {
+      raiz.style.setProperty('--vv-h', vv.height + 'px');
+      raiz.style.setProperty('--teclado', Math.max(0, Math.round(window.innerHeight - vv.height - vv.offsetTop)) + 'px');
+    };
+    vv.addEventListener('resize', medir); vv.addEventListener('scroll', medir); medir();
+  }
+  // campo focado no celular (tela de toque): fica à vista dentro do miolo depois que o teclado abre
+  document.addEventListener('focusin', e => { if (matchMedia('(pointer: coarse)').matches && e.target.closest('.ctl-dlg-miolo') && e.target.matches('input, select, textarea')) setTimeout(() => mostrarNoMiolo(e.target.closest('.ctl-campo') || e.target), 250); });
 
   // ---------- ações ----------
   function baixarPeloCirculo(id) {
@@ -1130,15 +1188,18 @@
 
   document.addEventListener('click', e => {
     const fechar = e.target.closest('[data-fechar]');
-    if (fechar) { fechar.closest('dialog').close(); return; }
-    if (e.target.tagName === 'DIALOG') { e.target.close(); return; }   // clique no fundo escuro
+    if (fechar) { tentarFechar(fechar.closest('dialog')); return; }
+    if (e.target.tagName === 'DIALOG') { tentarFechar(e.target); return; }   // clique no fundo escuro
     const novo = e.target.closest('[data-novo]');
     if (novo) { abrirLancamento(); return; }
     const el = e.target.closest('[data-acao]');
     if (el && !el.disabled && ACOES[el.dataset.acao]) ACOES[el.dataset.acao](el);
   });
   dlgDet.addEventListener('close', () => { detalheId = null; });
-  document.addEventListener('toggle', e => { if (e.target.matches && e.target.matches('.ctl-mes-pagas')) estado.pagasAbertas = e.target.open; }, true);
+  document.addEventListener('toggle', e => {
+    if (e.target.matches && e.target.matches('.ctl-mes-pagas')) estado.pagasAbertas = e.target.open;
+    if (e.target.matches && e.target.matches('.ctl-dlg .ctl-mais') && e.target.open) requestAnimationFrame(() => mostrarNoMiolo(e.target));
+  }, true);
 
   // busca e categoria: só a lista é redesenhada (o campo não perde o foco)
   document.addEventListener('input', e => {
@@ -1189,7 +1250,7 @@
     limparErros(formSaldo);
     const si = db.config.saldoInicial, f = v => v ? (v < 0 ? '-' : '') + N.formatBRL(Math.abs(v), { semSimbolo: true }) : '';
     $('#saldo-pessoal').value = f(si.pessoal); $('#saldo-negocio').value = f(si.negocio);
-    dlgSaldo.showModal();
+    abrirModal(dlgSaldo);
     setTimeout(() => $('#saldo-pessoal').focus(), 30);
   }
   formSaldo.addEventListener('focusout', e => { if (e.target.matches('input')) formatarCampo(e.target, { negativo: true }); });
@@ -1319,7 +1380,7 @@
     $('#modelo-dia').value = m ? m.dia : Number(ref().slice(8));
     $('#modelo-variavel').checked = m ? m.variavel : false;
     $('#modelo-aviso').hidden = !m;
-    dlgModelo.showModal();
+    abrirModal(dlgModelo);
     setTimeout(() => $('#modelo-desc').focus(), 30);
   }
   formModelo.addEventListener('change', e => { if (e.target.name === 'modelo-tipo') categoriasModelo(e.target.value, $('#modelo-cat').value); });
@@ -1413,12 +1474,12 @@
     $('#divida-validade').value = d && d.proposta && d.proposta.validade ? d.proposta.validade : '';
     $('#divida-aviso').hidden = !d;
     atualizarFormDivida();
-    dlgDiv.showModal();
+    abrirModal(dlgDiv);
     setTimeout(() => { const el = foco === 'proposta' ? $('#divida-vista') : $('#divida-credor'); el.focus(); if (foco === 'proposta') el.scrollIntoView({ block: 'center' }); }, 30);
   }
   function atualizarFormDivida() {
     const total = lerDinheiro($('#divida-total')), parcela = lerDinheiro($('#divida-parcela')), temParcela = $('#divida-parcela').value.trim() !== '';
-    $('#divida-prazo-bloco').hidden = !temParcela;
+    revelar($('#divida-prazo-bloco'), temParcela);
     $('#divida-parcelas').disabled = $('#divida-semprazo').checked;
     const dica = $('#divida-dica');
     if (temParcela && total > 0 && parcela > 0 && !$('#divida-semprazo').checked && !$('#divida-parcelas').value) {
@@ -1430,7 +1491,7 @@
       const ok = vista < total;
       eco.classList.toggle('erro', !ok);
       eco.innerHTML = ok ? `Economia de <strong>${brl(total - vista)}</strong> (${pct(Math.round((total - vista) * 1000 / total) / 10)}) sobre o total devido.` : 'A proposta não é menor que o total devido.';
-      eco.hidden = false;
+      revelar(eco, true);
     } else eco.hidden = true;
   }
   formDiv.addEventListener('input', atualizarFormDivida);
@@ -1782,6 +1843,7 @@
     abrirLancamento();
     $('#lanc-valor').value = N.formatBRL(c, { semSimbolo: true });
     atualizarFormLanc();
+    dlgLanc.dataset.foto = fotoForm(formLanc);   // o valor veio da calculadora: fechar sem mexer não pergunta nada
   });
   calcAberta(!db.config.calcRecolhida);
   desenharCalc();

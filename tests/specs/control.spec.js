@@ -1598,6 +1598,105 @@ test.describe('control', () => {
     });
   });
 
+  // ---------- janelas: conteúdo rola por dentro, rodapé sempre visível, aviso ao fechar sem salvar ----------
+  test.describe('janelas', () => {
+    // preenche a dívida inteira (o formulário cresce ao digitar a parcela)
+    async function dividaCompleta(page) {
+      await page.locator('.ctl-div-nova').click();
+      await expect(page.locator('#dlg-divida')).toBeVisible();
+      await preencher(page, '#divida-credor', 'Banco Alfa');
+      await preencher(page, '#divida-total', '12.000');
+      await preencher(page, '#divida-parcela', '800');
+      // o campo que apareceu fica à vista dentro da janela
+      await expect(page.locator('#divida-parcelas')).toBeInViewport();
+      await preencher(page, '#divida-parcelas', '15');
+      await preencher(page, '#divida-dia', '10');
+      await preencher(page, '#divida-taxa', '2,5');
+      await preencher(page, '#divida-vista', '7.000');
+      await preencher(page, '#divida-validade', '2026-10-20');
+      await preencher(page, '#divida-obs', 'Contrato 123');
+    }
+    // o botão está inteiro dentro da tela, sem rolar a página
+    async function visivelSemRolar(page, sel) {
+      const btn = page.locator(sel), vp = page.viewportSize(), box = await btn.boundingBox();
+      expect(box.y).toBeGreaterThanOrEqual(0);
+      expect(box.y + box.height, `${sel} dentro da tela`).toBeLessThanOrEqual(vp.height);
+      expect(await page.evaluate(() => window.scrollY)).toBe(0);
+    }
+    for (const [nome, vp] of [['celular 390px', { width: 390, height: 844 }], ['janela baixa 1280x600', { width: 1280, height: 600 }]]) {
+      test.describe(nome, () => {
+        // rolagem instantânea: o teste confere ONDE o campo novo fica, sem depender do tempo da animação suave
+        test.use({ viewport: vp, reducedMotion: 'reduce' });
+        test(`janelas (${nome}): dívida completa, o miolo rola por dentro e o Salvar continua à vista`, async ({ page }) => {
+          const erros = await abrirCom(page, base({ config: PRO }), 'dividas');
+          await dividaCompleta(page);
+          const miolo = page.locator('#dlg-divida .ctl-dlg-miolo');
+          expect(await miolo.evaluate(m => m.scrollHeight > m.clientHeight)).toBe(true);   // o conteúdo é maior que a janela…
+          await visivelSemRolar(page, '#divida-salvar');                                   // …e o rodapé não sai da tela
+          await visivelSemRolar(page, '#dlg-divida [data-fechar].btn');
+          const dlgBox = await page.locator('#dlg-divida').boundingBox();
+          expect(dlgBox.height).toBeLessThanOrEqual(vp.height * 0.9 + 1);
+          await page.locator('#divida-salvar').click();
+          await expect(page.locator('#dlg-divida')).toBeHidden();
+          expect((await lerDb(page)).dividas[0]).toMatchObject({ credor: 'Banco Alfa', parcelas: 15, taxa: 250, obs: 'Contrato 123', proposta: { valor: 700000 } });
+          // o novo lançamento parcelado, com "Mais detalhes" aberto, também
+          await page.evaluate(() => window.WardenControl.abrirLancamento());
+          await page.locator('input[name="repeticao"][value="parcelada"]').check({ force: true });
+          await expect(page.locator('#lanc-parcelas')).toBeInViewport();
+          await page.locator('#lanc-mais summary').click();
+          await page.locator('#lanc-divida').check();
+          await expect(page.locator('#lanc-taxa')).toBeInViewport();
+          await visivelSemRolar(page, '#lanc-salvar');
+          semErros(erros);
+        });
+      });
+    }
+
+    test('janelas: fechar com dados não salvos pergunta antes; sem nada digitado, fecha direto', async ({ page }) => {
+      const erros = await abrirCom(page, base({ config: PRO }), 'dividas');
+      const dlg = page.locator('#dlg-divida'), conf = page.locator('#dlg-confirmar');
+      // nada digitado: fecha sem perguntar
+      await page.locator('.ctl-div-nova').click();
+      await dlg.getByRole('button', { name: 'Cancelar' }).click();
+      await expect(dlg).toBeHidden();
+      await expect(conf).toBeHidden();
+      // digitou: Cancelar pergunta; "Continuar editando" volta com tudo lá
+      await page.locator('.ctl-div-nova').click();
+      await preencher(page, '#divida-credor', 'Banco Alfa');
+      await dlg.getByRole('button', { name: 'Cancelar' }).click();
+      await expect(conf.locator('h2')).toHaveText('Descartar o que você digitou?');
+      await conf.getByRole('button', { name: 'Continuar editando' }).click();
+      await expect(dlg).toBeVisible();
+      await expect(page.locator('#divida-credor')).toHaveValue('Banco Alfa');
+      // o X e o Esc também perguntam
+      await dlg.getByRole('button', { name: 'Fechar' }).click();
+      await expect(conf).toBeVisible();
+      await conf.getByRole('button', { name: 'Continuar editando' }).click();
+      await page.locator('#divida-credor').press('Escape');
+      await expect(conf).toBeVisible();
+      await expect(dlg).toBeVisible();
+      // descartar fecha e não salva nada
+      await conf.getByRole('button', { name: 'Descartar' }).click();
+      await expect(dlg).toBeHidden();
+      expect((await lerDb(page)).dividas || []).toHaveLength(0);
+      // vale também para o novo lançamento
+      await page.evaluate(() => window.WardenControl.abrirLancamento());
+      await preencher(page, '#lanc-valor', '150');
+      await page.locator('#dlg-lanc').getByRole('button', { name: 'Cancelar' }).click();
+      await expect(conf.locator('h2')).toHaveText('Descartar o que você digitou?');
+      await conf.getByRole('button', { name: 'Descartar' }).click();
+      await expect(page.locator('#dlg-lanc')).toBeHidden();
+      // salvar não pergunta nada
+      await page.evaluate(() => window.WardenControl.abrirLancamento());
+      await preencher(page, '#lanc-valor', '150');
+      await preencher(page, '#lanc-desc', 'Aluguel');
+      await page.locator('#lanc-salvar').click();
+      await expect(page.locator('#dlg-lanc')).toBeHidden();
+      await expect(conf).toBeHidden();
+      semErros(erros);
+    });
+  });
+
   // ---------- mini calculadora da barra lateral (só desktop) ----------
   test.describe('calculadora', () => {
     // aperta as teclas na lógica pura e devolve { visor, centavos, erro }
@@ -1906,6 +2005,8 @@ test.describe('control', () => {
       await expect(dlg.locator('[data-campo="valor"]')).toHaveClass(/erro/);
       await expect(dlg.locator('[data-campo="dia"]')).toHaveClass(/erro/);
       await dlg.locator('.ctl-dlg-pe [data-fechar]').click();
+      await page.locator('#dlg-confirmar').getByRole('button', { name: 'Descartar' }).click();   // tinha coisa digitada
+      await expect(dlg).toBeHidden();
       // editar o modelo não mexe na conta deste mês
       await page.locator('[data-acao="modelo-editar"]').click();
       await preencher(page, '#modelo-valor', '120');
