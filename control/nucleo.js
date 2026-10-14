@@ -136,7 +136,7 @@
       versao: VERSAO, criadoEm: t, atualizadoEm: t,
       config: {
         saldoInicial: { pessoal: 0, negocio: 0 }, saldoDefinido: false,
-        perfil: 'tudo', primeirosPassosOcultos: false, confeteMes: null,
+        perfil: 'tudo', primeirosPassosOcultos: false, confeteMes: null, plano: { tipo: 'gratis', testeInicio: null },
         categorias: CATEGORIAS_PADRAO.map(c => ({ ...c }))
       },
       contas: [], recorrencias: [], modelos: []
@@ -215,6 +215,7 @@
         perfil: ['pessoal', 'negocio', 'tudo'].includes(cfg.perfil) ? cfg.perfil : 'tudo',
         primeirosPassosOcultos: !!cfg.primeirosPassosOcultos,
         confeteMes: /^\d{4}-\d{2}$/.test(cfg.confeteMes) ? cfg.confeteMes : null,
+        plano: limparPlano(cfg.plano),
         categorias: cats.length ? cats : base.config.categorias
       },
       contas: d.contas.map(limparConta).filter(Boolean),
@@ -679,6 +680,52 @@
     return '﻿' + [cab.join(';'), ...linhas].join('\r\n');
   }
 
+  // ---------- plano (DEMONSTRAÇÃO LOCAL) ----------
+  // TODO (Etapa 2 do projeto): o plano de verdade vem do servidor, liberado só por webhook verificado da Kiwify.
+  // Hoje config.plano é só uma demonstração neste aparelho: { tipo: 'gratis'|'pro', testeInicio: 'aaaa-mm-dd'|null }.
+  const DIAS_TESTE = 7;
+  const RECURSOS = {
+    gratis: { lancamentosMes: 30, perfis: 1, whatsapp: false, dicasDia: 1, csv: false, backup: true },
+    pro: { lancamentosMes: Infinity, perfis: 2, whatsapp: true, dicasDia: Infinity, csv: true, backup: true }
+  };
+  function limparPlano(p) {
+    p = p || {};
+    return { tipo: p.tipo === 'pro' ? 'pro' : 'gratis', testeInicio: dataValida(p.testeInicio) ? p.testeInicio : null };
+  }
+  /** { codigo: 'gratis'|'teste'|'pro', diasRestantes, testeUsado, testeFim (último dia do teste), recursos } */
+  function planoAtual(db, ref = hoje()) {
+    const p = limparPlano(db.config.plano);
+    let codigo = p.tipo === 'pro' ? 'pro' : 'gratis', diasRestantes = 0;
+    if (codigo === 'gratis' && p.testeInicio) {
+      const n = diffDias(p.testeInicio, ref);
+      if (n >= 0 && n < DIAS_TESTE) { codigo = 'teste'; diasRestantes = DIAS_TESTE - n; }
+    }
+    return {
+      codigo, diasRestantes, testeUsado: !!p.testeInicio, testeFim: p.testeInicio ? addDias(p.testeInicio, DIAS_TESTE - 1) : null,
+      recursos: RECURSOS[codigo === 'gratis' ? 'gratis' : 'pro']
+    };
+  }
+  function diaDe(iso) { const d = new Date(iso); return isNaN(d) ? null : hoje(d); }
+  /**
+   * lançamentos que a pessoa criou no mês 'aaaa-mm' (pela criadoEm, no fuso de SP), para o limite do grátis:
+   * um parcelamento conta 1 (grupoId); contas geradas por recorrência e pelo "Meu mês" não contam, mas criar a recorrência conta 1.
+   */
+  function lancamentosNoMes(db, ym = mesDe(hoje())) {
+    const grupos = new Set();
+    let n = 0;
+    for (const c of db.contas) {
+      if (c.modeloId || c.recorrenciaId) continue;
+      const d = diaDe(c.criadoEm);
+      if (!d || mesDe(d) !== ym) continue;
+      if (c.grupoId) { if (grupos.has(c.grupoId)) continue; grupos.add(c.grupoId); }
+      n++;
+    }
+    for (const r of db.recorrencias) { const d = diaDe(r.criadoEm); if (d && mesDe(d) === ym) n++; }
+    return n;
+  }
+  /** cabe mais um lançamento no plano de hoje? */
+  function podeLancar(db, ref = hoje()) { return lancamentosNoMes(db, mesDe(ref)) < planoAtual(db, ref).recursos.lancamentosMes; }
+
   function backup(db) { return { app: 'warden-control', versao: VERSAO, exportadoEm: agoraISO(), dados: db }; }
 
   window.ControlNucleo = {
@@ -689,6 +736,7 @@
     abatido, totalAbatido, totalMovido, restante, quitada, ultimaBaixa, status, rotuloStatus,
     validarLancamento, criarLancamento, gerarRecorrencias, acharConta,
     validarModelo, criarModelo, editarModelo, excluirModelo, gerarMes, contasMes, ajustarValor, darBaixa, baixaTotal, reabrir, removerBaixa, editarConta, excluir,
-    categoria, nomeCategoria, filtrar, saldoInicial, saldoAtual, serieFluxo, previsao, proximas, resumoMes, dadosRelatorio, textoRelatorio, csv
+    categoria, nomeCategoria, filtrar, saldoInicial, saldoAtual, serieFluxo, previsao, proximas, resumoMes, dadosRelatorio, textoRelatorio, csv,
+    DIAS_TESTE, RECURSOS, planoAtual, lancamentosNoMes, podeLancar
   };
 })();

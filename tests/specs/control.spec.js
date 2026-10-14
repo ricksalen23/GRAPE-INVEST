@@ -32,6 +32,8 @@ async function abrirCom(page, dados, tela = 'contas', opcoes) {
 }
 const lerDb = page => page.evaluate(k => JSON.parse(localStorage.getItem(k)), CHAVE);
 const linha = (page, desc) => page.locator('.ctl-linha', { has: page.locator('.ctl-linha-desc', { hasText: desc }) });
+// plano Pro (demonstração) para os testes que usam recursos do Pro
+const PRO = { plano: { tipo: 'pro', testeInicio: null } };
 const nucleo = (page, fn, ...args) => page.evaluate(([f, a]) => window.ControlNucleo[f](...a), [fn, args]);
 
 async function novoLancamento(page, { tipo = 'pagar', valor, descricao, vencimento, repeticao, parcelas, freq, jaPaga }) {
@@ -253,7 +255,7 @@ test.describe('control', () => {
   });
 
   test('perfis: Pessoal, Negócio e Tudo separam contas e saldo', async ({ page }) => {
-    await abrirCom(page, base({ saldo: { pessoal: 10000, negocio: 50000 }, contas: [
+    await abrirCom(page, base({ config: PRO, saldo: { pessoal: 10000, negocio: 50000 }, contas: [
       conta('p', 'pagar', 'Escola', 1000, '2026-10-10'), conta('n', 'pagar', 'Fornecedor', 2000, '2026-10-10', { perfil: 'negocio' })
     ] }), 'inicio');
     await expect(page.locator('[data-valor="saldo"]')).toHaveText('R$ 600,00');
@@ -314,7 +316,7 @@ test.describe('control', () => {
   });
 
   test('backup JSON (exportar e importar) e planilha CSV', async ({ page }) => {
-    await abrirCom(page, base({ contas: [conta('c1', 'pagar', 'Aluguel; sala "A"', 180000, '2026-10-05', { obs: 'linha 1' })] }), 'ajustes');
+    await abrirCom(page, base({ config: PRO, contas: [conta('c1', 'pagar', 'Aluguel; sala "A"', 180000, '2026-10-05', { obs: 'linha 1' })] }), 'ajustes');
     const [dl] = await Promise.all([page.waitForEvent('download'), page.locator('[data-acao="exportar-json"]').click()]);
     expect(dl.suggestedFilename()).toBe(`warden-control-backup-${HOJE}.json`);
     const backup = JSON.parse(require('fs').readFileSync(await dl.path(), 'utf8'));
@@ -358,7 +360,7 @@ test.describe('control', () => {
   // ---------- relatório: números, PDF, imagem, texto e WhatsApp ----------
   test.describe('relatório e envio', () => {
     const b = (data, valor) => [{ id: 'b' + data + valor, data, valor, desconto: 0, juros: 0 }];
-    const dados = () => base({ saldo: { pessoal: 100000, negocio: 0 }, contas: [
+    const dados = () => base({ config: PRO, saldo: { pessoal: 100000, negocio: 0 }, contas: [
       conta('sal', 'receber', 'Salário', 500000, '2026-10-01', { baixas: b('2026-10-01', 500000), categoriaId: 'cat_salario' }),
       conta('mer', 'pagar', 'Mercado', 80000, '2026-10-01', { baixas: b('2026-10-01', 80000), categoriaId: 'cat_alimentacao' }),
       conta('far', 'pagar', 'Farmácia', 20000, '2026-09-30', { baixas: b('2026-10-02', 20000), categoriaId: 'cat_saude' }),
@@ -512,7 +514,7 @@ test.describe('control', () => {
       // reserva baixa: saldo de hoje menor que a média de gastos dos meses anteriores
       const hist = [velha('ago', 'pagar', 'Ago', 200000, '2026-08-10', { baixas: bx('2026-08-10', 200000) }), velha('set', 'pagar', 'Set', 200000, '2026-09-10', { baixas: bx('2026-09-10', 200000) })];
       r = await regra(page, base({ saldo: { pessoal: 500000, negocio: 0 }, contas: hist }), 'reserva');
-      expect(r.texto).toBe('Seu saldo de hoje (R$ 1.000,00) não cobre um mês dos seus gastos, que ficam em média em R$ 2.000,00. Guardar um pouco todo mês cria uma reserva para imprevistos.');
+      expect(r.texto).toBe('Seu caixa (R$ 1.000,00) está mais apertado que a sua média de gastos do mês (R$ 2.000,00). Vale guardar um pouco este mês, no seu ritmo.');
       expect(r.rotulo).toBe('Calcular minha reserva');
       expect(await regra(page, base({ saldo: { pessoal: 1000000, negocio: 0 }, contas: hist }), 'reserva')).toBeNull();
       expect(await regra(page, base({ saldo: { pessoal: 0, negocio: 0 } }), 'reserva')).toBeNull();   // sem histórico, sem dica
@@ -527,7 +529,7 @@ test.describe('control', () => {
       expect(await regra(page, cat(60000), 'categoria')).toBeNull();
       // muitos dias sem lançar (conta gerada sozinha não conta como atividade)
       r = await regra(page, base({ contas: [velha('a', 'pagar', 'Aluguel', 1000, '2026-10-20'), conta('r', 'pagar', 'Gerada', 1000, '2026-10-25', { recorrenciaId: 'x', ocorrencia: '2026-10-25' })] }), 'sem-lancar');
-      expect(r.texto).toBe('Faz 12 dias que você não anota nada no Control. Gastos pequenos esquecidos somam rápido: anote o que entrou e saiu desde então.');
+      expect(r.texto).toBe('Faz 12 dias desde o último lançamento. Se algo entrou ou saiu nesse tempo, anotar agora deixa o seu saldo certinho.');
       expect(r.rotulo).toBe('Novo lançamento');
       expect(await regra(page, base({ contas: [conta('a', 'pagar', 'Aluguel', 1000, '2026-10-20')] }), 'sem-lancar')).toBeNull();
     });
@@ -609,7 +611,7 @@ test.describe('control', () => {
     test.describe('celular', () => {
       test.use({ viewport: { width: 390, height: 844 } });
       test('gaveta: começa fechada com selo, abre, a ação fecha e navega; Esc fecha', async ({ page }) => {
-        const erros = await abrirCom(page, base({ contas: [conta('f', 'pagar', 'Fornecedor', 50000, '2026-10-20'), conta('net', 'pagar', 'Internet', 11990, HOJE)] }), 'inicio');
+        const erros = await abrirCom(page, base({ config: PRO, contas: [conta('f', 'pagar', 'Fornecedor', 50000, '2026-10-20'), conta('net', 'pagar', 'Internet', 11990, HOJE)] }), 'inicio');
         const painel = page.locator('#orientador');
         await expect(painel).toBeHidden();
         await expect(page.locator('#ori-selo')).toHaveText('2');
@@ -633,6 +635,191 @@ test.describe('control', () => {
         expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
         semErros(erros);
       });
+    });
+  });
+
+  // ---------- plano: grátis, teste de 7 dias e Pro (demonstração local) ----------
+  test.describe('plano', () => {
+    const GRATIS = { plano: { tipo: 'gratis', testeInicio: null } };
+    const recorrencia = (id, criadoEm) => ({ id, tipo: 'pagar', descricao: 'Academia', valor: 9990, categoriaId: '', contato: '', forma: '', obs: '', perfil: 'pessoal',
+      freq: 'mensal', inicio: '2026-10-10', dia: 10, fim: null, excluidas: [], criadoEm });
+
+    test('grátis: 30 lançamentos no mês; o 31º abre o Pro sem perder o que foi digitado; parcela, recorrência e "Meu mês" contam certo', async ({ page }) => {
+      const soltas = Array.from({ length: 27 }, (_, i) => conta('s' + i, 'pagar', 'Conta ' + i, 1000, '2026-10-20'));
+      const venc = i => { const m = 9 + i; return `${2026 + Math.floor(m / 12)}-${String(m % 12 + 1).padStart(2, '0')}-15`; };   // 15/10/2026 a 15/09/2027
+      const parcelas = Array.from({ length: 12 }, (_, i) => conta('p' + i, 'pagar', 'Celular', 5000, venc(i), { grupoId: 'g1', parcela: { n: i + 1, total: 12 } }));
+      const antiga = conta('velha', 'pagar', 'De setembro', 1000, '2026-09-20', { criadoEm: '2026-09-15T12:00:00.000Z' });
+      const erros = await abrirCom(page, base({ config: GRATIS, contas: [...soltas, ...parcelas, antiga],
+        recorrencias: [recorrencia('r1', '2026-10-01T12:00:00.000Z')], modelos: [modelo('m1', 'pagar', 'Aluguel', 180000, 5)] }), 'contas');
+      // 27 soltas + 1 parcelamento de 12x + 1 recorrência = 29 (as geradas pela recorrência e pelo "Meu mês" não contam; a de setembro também não)
+      expect(await page.evaluate(() => window.ControlNucleo.lancamentosNoMes(window.WardenControl.db, '2026-10'))).toBe(29);
+      const db0 = await lerDb(page);
+      expect(db0.contas.some(c => c.recorrenciaId)).toBe(true);
+      expect(db0.contas.some(c => c.modeloId)).toBe(true);
+      // o 30º passa, com aviso de que era o último
+      await novoLancamento(page, { valor: '20', descricao: 'Trigésima', vencimento: HOJE });
+      await expect(page.locator('#toast')).toContainText('Era o último do grátis este mês');
+      const total = (await lerDb(page)).contas.length;
+      // o 31º: abre o Pro por cima e o formulário continua com o que foi digitado
+      await page.locator('[data-novo]:visible').first().click();
+      await preencher(page, '#lanc-valor', '12,50');
+      await preencher(page, '#lanc-desc', 'Padaria');
+      await page.locator('#lanc-salvar').click();
+      const pro = page.locator('#dlg-pro');
+      await expect(pro).toBeVisible();
+      await expect(pro.locator('[data-pro-motivo]')).toContainText('30 lançamentos deste mês');
+      await pro.getByRole('button', { name: 'Agora não' }).click();
+      await expect(pro).toBeHidden();
+      await expect(page.locator('#dlg-lanc')).toBeVisible();
+      await expect(page.locator('#lanc-desc')).toHaveValue('Padaria');
+      await expect(page.locator('#lanc-valor')).toHaveValue('12,50');
+      expect((await lerDb(page)).contas.length).toBe(total);
+      // testar o Pro ali mesmo e salvar o que estava digitado
+      await page.locator('#lanc-salvar').click();
+      await pro.getByRole('button', { name: 'Testar 7 dias grátis' }).click();
+      await expect(pro).toBeHidden();
+      await page.locator('#lanc-salvar').click();
+      await expect(page.locator('#dlg-lanc')).toBeHidden();
+      const db = await lerDb(page);
+      expect(db.contas.length).toBe(total + 1);
+      expect(db.config.plano).toEqual({ tipo: 'gratis', testeInicio: HOJE });
+      semErros(erros);
+    });
+
+    test('teste de 7 dias libera tudo; quando acaba, volta ao grátis sem apagar nada', async ({ page }) => {
+      await page.addInitScript(() => { window.open = u => { window.__aberto = u; return null; }; delete Navigator.prototype.share; delete Navigator.prototype.canShare; });
+      const erros = await abrirCom(page, base({ config: GRATIS, contas: [
+        conta('p', 'pagar', 'Escola', 1000, '2026-10-10'), conta('n', 'pagar', 'Fornecedor', 2000, '2026-10-12', { perfil: 'negocio' })] }), 'ajustes');
+      await expect(page.locator('.ctl-plano')).toHaveAttribute('data-plano', 'gratis');
+      await page.locator('.ctl-plano [data-acao="pro-teste"]').click();
+      await expect(page.locator('.ctl-plano')).toHaveAttribute('data-plano', 'teste');
+      await expect(page.locator('.ctl-plano')).toContainText('até 08/10/2026');
+      await expect(page.locator('#toast')).toContainText('Teste do Pro ativado');
+      // perfis, WhatsApp e CSV liberados
+      await page.locator('#perfil').selectOption('negocio');
+      await page.locator('a[href="#contas"]:visible').first().click();
+      await expect(page.locator('#tela .ctl-linha')).toHaveCount(1);
+      await page.locator('a[href="#relatorio"]:visible').first().click();
+      await page.locator('[data-canal="whatsapp"]').click();
+      await expect.poll(() => page.evaluate(() => window.__aberto || '')).toMatch(/^https:\/\/wa\.me\//);
+      // o último dia do teste é 08/10; no dia 09 volta ao grátis
+      const dias = await page.evaluate(() => ['2026-10-08', '2026-10-09'].map(d => window.ControlNucleo.planoAtual(window.WardenControl.db, d).codigo));
+      expect(dias).toEqual(['teste', 'gratis']);
+      await page.clock.setFixedTime(new Date('2026-10-09T12:00:00-03:00'));
+      await page.reload();
+      await expect(page.locator('#toast')).toContainText('Seu teste do Pro terminou. Seus dados continuam todos aqui');
+      await expect(page.locator('#perfil')).toHaveValue('tudo');
+      await page.locator('a[href="#contas"]:visible').first().click();
+      await expect(page.locator('#tela .ctl-linha')).toHaveCount(2);   // nada some: o Negócio aparece junto
+      expect((await lerDb(page)).contas).toHaveLength(2);
+      // de volta ao grátis: WhatsApp e CSV abrem o Pro (sem oferecer outro teste)
+      await page.locator('a[href="#relatorio"]:visible').first().click();
+      await page.evaluate(() => { window.__aberto = ''; });
+      await page.locator('[data-canal="whatsapp"]').click();
+      const pro = page.locator('#dlg-pro');
+      await expect(pro.locator('[data-pro-motivo]')).toContainText('relatório pelo WhatsApp é do Pro');
+      await expect(pro.getByRole('button', { name: 'Testar 7 dias grátis' })).toHaveCount(0);
+      await expect(pro.getByRole('link', { name: 'Assinar o Pro' })).toHaveAttribute('href', '/assinar.html');
+      expect(await page.evaluate(() => window.__aberto)).toBe('');
+      await pro.getByRole('button', { name: 'Agora não' }).click();
+      await page.locator('a[href="#ajustes"]:visible').first().click();
+      await page.locator('[data-acao="exportar-csv"]').click();
+      await expect(pro.locator('[data-pro-motivo]')).toContainText('planilha (CSV) é do Pro');
+      await pro.getByRole('button', { name: 'Agora não' }).click();
+      // o backup continua liberado
+      const [dl] = await Promise.all([page.waitForEvent('download'), page.locator('[data-acao="exportar-json"]').click()]);
+      expect(dl.suggestedFilename()).toContain('warden-control-backup');
+      semErros(erros);
+    });
+
+    test('grátis: 1 perfil e 1 dica do Orientador por dia; a demonstração do Pro libera tudo e o Desfazer não mexe no plano', async ({ page }) => {
+      const erros = await abrirCom(page, base({ config: GRATIS, contas: [
+        conta('luz', 'pagar', 'Luz', 15000, '2026-09-28'), conta('agua', 'pagar', 'Água', 9000, '2026-09-30'), conta('net', 'pagar', 'Internet', 11990, HOJE)] }), 'inicio');
+      const painel = page.locator('#orientador');
+      await expect(painel.locator('.ctl-ori-dica')).toHaveCount(1);
+      await expect(painel.locator('[data-dica="atrasadas"]')).toBeVisible();
+      await expect(painel.locator('.ctl-ori-mais')).toContainText('Tem mais 2 dicas para hoje no Pro');
+      expect((await lerDb(page)).config.dicaDoDia).toEqual({ data: HOJE, id: 'atrasadas' });
+      // resolveu a dica do dia: as outras não entram no lugar
+      await page.locator('a[href="#contas"]:visible').first().click();
+      await linha(page, 'Luz').locator('.ctl-check').click();
+      await linha(page, 'Água').locator('.ctl-check').click();
+      await expect(painel.locator('.ctl-ori-dica')).toHaveCount(0);
+      await expect(painel.locator('.ctl-ori-vazio')).toContainText('A dica de hoje já foi resolvida');
+      // 1 perfil: o seletor abre o Pro e fica em "Tudo"; o formulário não pergunta o perfil
+      await page.locator('#perfil').selectOption('negocio');
+      await expect(page.locator('#dlg-pro [data-pro-motivo]')).toContainText('Pessoal e Negócio é do Pro');
+      await expect(page.locator('#perfil')).toHaveValue('tudo');
+      await page.locator('#dlg-pro').getByRole('button', { name: 'Agora não' }).click();
+      await page.locator('[data-novo]:visible').first().click();
+      await expect(page.locator('#lanc-perfil-bloco')).toBeHidden();
+      await page.locator('#dlg-lanc [data-fechar]').first().click();
+      // demonstração: assinatura ativa libera tudo; o Desfazer de uma conta não volta o plano
+      await page.locator('a[href="#ajustes"]:visible').first().click();
+      await page.locator('.ctl-demo summary').click();
+      await page.locator('[data-acao="demo-pro"]').click();
+      await expect(page.locator('.ctl-plano')).toHaveAttribute('data-plano', 'pro');
+      await expect(painel.locator('.ctl-ori-dica')).toHaveCount(2);
+      await expect(painel.locator('.ctl-ori-mais')).toHaveCount(0);
+      await page.locator('#desfazer').click();   // desfaz a baixa da Água
+      expect((await lerDb(page)).config.plano.tipo).toBe('pro');
+      await page.locator('#perfil').selectOption('pessoal');
+      await expect(page.locator('#perfil')).toHaveValue('pessoal');
+      await expect(page.locator('#dlg-pro')).toBeHidden();
+      semErros(erros);
+    });
+
+    test('desktop: o Orientador abre na primeira visita e depois lembra a escolha (nem o Desfazer muda isso)', async ({ page }) => {
+      await abrirCom(page, base({ contas: [conta('luz', 'pagar', 'Luz', 15000, '2026-09-28')] }), 'contas');
+      const painel = page.locator('#orientador');
+      await expect(painel).toBeVisible();   // primeira visita
+      await linha(page, 'Luz').locator('.ctl-check').click();   // uma ação que entra no Desfazer
+      await painel.locator('[data-ori="fechar"]').click();
+      await page.locator('#desfazer').click();
+      await page.reload();
+      await expect(painel).toBeHidden();   // fechou: continua fechado
+      await page.locator('#btn-orientador').click();
+      await page.reload();
+      await expect(painel).toBeVisible();   // abriu de novo: continua aberto
+    });
+  });
+
+  // ---------- página /assinar.html e textos legais ----------
+  test.describe('assinar', () => {
+    test('assinar: preço, botão desabilitado sem checkoutUrl e habilitado com a URL; links de Termos e Privacidade', async ({ page }) => {
+      const erros = await abrir(page, '/assinar.html');
+      await expect(page.locator('[data-preco]')).toContainText('R$ 9,90');
+      const btn = page.locator('#assinar-btn');
+      await expect(btn).toBeDisabled();
+      await expect(btn).toHaveText('Assinatura em breve');
+      await expect(page.locator('#assinar-nota a[href="/termos.html"]')).toBeVisible();
+      await expect(page.locator('#assinar-nota a[href="/privacidade.html"]')).toBeVisible();
+      await expect(page.locator('#assinar-nota')).toContainText('processado pela Kiwify');
+      expect(await page.evaluate(() => window.WardenAssinar.PLANO)).toEqual({ preco: '9,90', checkoutUrl: '' });
+      await page.evaluate(() => window.WardenAssinar.aplicarPlano({ preco: '9,90', checkoutUrl: 'https://pay.kiwify.com.br/exemplo' }));
+      await expect(btn).toBeEnabled();
+      await expect(btn).toHaveAttribute('href', 'https://pay.kiwify.com.br/exemplo');
+      await expect(btn).toHaveText('Assinar por R$ 9,90/mês');
+      // link que não é https não vira botão
+      await page.evaluate(() => window.WardenAssinar.aplicarPlano({ preco: '9,90', checkoutUrl: 'javascript:alert(1)' }));
+      await expect(page.locator('#assinar-btn')).toBeDisabled();
+      // schema: WebPage com o Product (preço) dentro
+      const ld = await page.evaluate(() => JSON.parse(document.querySelector('script[type="application/ld+json"]').textContent));
+      expect(ld['@type']).toBe('WebPage');
+      expect(ld.mainEntity).toMatchObject({ '@type': 'Product', offers: { price: '9.90', priceCurrency: 'BRL' } });
+      semErros(erros);
+    });
+
+    test('assinar: Privacidade e Termos falam do pagamento pela Kiwify, dos dados no aparelho e das chaves do Control', async ({ request }) => {
+      const priv = await (await request.get('/privacidade.html')).text();
+      expect(priv).toContain('warden:control:v1');
+      expect(priv).toContain('warden:control-entrada');
+      expect(priv).toMatch(/pagamento do Pro é processado pela <strong>Kiwify<\/strong>/);
+      expect(priv).toContain('Tudo isso fica guardado só no navegador do seu aparelho');
+      const termos = await (await request.get('/termos.html')).text();
+      expect(termos).toContain('6. Warden Control e assinatura do Warden Pro');
+      expect(termos).toContain('O pagamento é processado pela <strong>Kiwify</strong>');
+      expect(termos).toContain('guarda as suas contas <strong>só no seu aparelho</strong>');
     });
   });
 

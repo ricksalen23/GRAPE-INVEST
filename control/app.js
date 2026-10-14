@@ -81,6 +81,13 @@
   ];
 
   // ---------- gravação, Desfazer, toast ----------
+  // estado da conta e escolhas de tela não voltam com o Desfazer nem com importar backup / apagar tudo
+  const PREFS_CONTA = ['plano', 'avisoFimTeste', 'orientadorAberto', 'orientadorVisto', 'dicaDoDia'];
+  const PREFS = [...PREFS_CONTA, 'perfil', 'primeirosPassosOcultos', 'confeteMes'];
+  function manter(novo, chaves) {
+    chaves.forEach(k => { if (db.config[k] !== undefined) novo.config[k] = db.config[k]; });
+    return novo;
+  }
   function gravar() {
     if (!N.salvar(db)) toast('Não consegui salvar neste navegador (modo anônimo ou sem espaço). Exporte um backup em Ajustes.');
   }
@@ -97,7 +104,7 @@
   }
   function substituirDb(rotulo, novo) {
     const antes = JSON.stringify(db);
-    db = novo;
+    db = manter(novo, PREFS_CONTA);
     const acao = ++seqAcao;
     pilha.push({ id: acao, rotulo, antes });
     gravar(); render();
@@ -107,7 +114,7 @@
     const topo = pilha[pilha.length - 1];
     if (!topo || (acao && topo.id !== acao)) return false;
     pilha.pop();
-    db = N.migrar(JSON.parse(topo.antes));
+    db = manter(N.migrar(JSON.parse(topo.antes)), PREFS);
     gravar(); render();
     toast(`Desfeito: ${topo.rotulo.toLowerCase()}`);
     return true;
@@ -127,8 +134,14 @@
   }
   function hideToast() { clearTimeout(toastTimer); $('#toast').classList.remove('on'); }
 
+  // ---------- plano (demonstração local; ver planoAtual no núcleo) ----------
+  const PRO = { nome: 'Warden Pro', preco: '9,90' };
+  const plano = () => N.planoAtual(db, ref());
+  const recursos = () => plano().recursos;
+
   // ---------- recortes por perfil ----------
-  const perfil = () => db.config.perfil;
+  // no grátis há 1 perfil: tudo aparece junto (nada fica escondido quando o teste do Pro acaba)
+  const perfil = () => (recursos().perfis > 1 ? db.config.perfil : 'tudo');
   const doPerfil = c => perfil() === 'tudo' || c.perfil === perfil();
   const contasPerfil = () => db.contas.filter(doPerfil);
   const nomePerfil = () => ({ tudo: 'Pessoal + Negócio', pessoal: 'Pessoal', negocio: 'Negócio' }[perfil()]);
@@ -493,12 +506,41 @@
       </div>`;
   }
 
+  function cartaoPlano() {
+    const p = plano(), r = ref(), lim = N.RECURSOS.gratis.lancamentosMes, usados = N.lancamentosNoMes(db, N.mesDe(r));
+    let corpo;
+    if (p.codigo === 'pro') {
+      corpo = `<p class="sub">Tudo liberado: lançamentos ilimitados, Pessoal + Negócio, relatório no WhatsApp, Orientador completo e planilha.</p>`;
+    } else if (p.codigo === 'teste') {
+      corpo = `<p class="sub">Tudo do Pro liberado até <strong>${N.dataBR(p.testeFim)}</strong> (${p.diasRestantes === 1 ? 'último dia' : `faltam ${p.diasRestantes} dias`}). Depois, se não assinar, volta para o grátis sem perder nada.</p>
+        <div class="ctl-acoes"><a class="btn btn-primary" href="/assinar.html">Assinar o Pro · R$ ${PRO.preco}/mês</a><button type="button" class="btn btn-secondary" data-acao="pro">Ver o que muda</button></div>`;
+    } else {
+      corpo = `<p class="sub">Até ${lim} lançamentos por mês, 1 perfil e 1 dica do Orientador por dia. Backup liberado.${p.testeUsado ? ` Seu teste do Pro terminou em ${N.dataBR(p.testeFim)}; seus dados continuam todos aqui.` : ''}</p>
+        <p class="ctl-plano-uso" data-plano-uso><strong>${Math.min(usados, lim)} de ${lim}</strong> lançamentos este mês</p>
+        <div class="ctl-progresso" role="progressbar" aria-label="Lançamentos do mês no plano grátis" aria-valuemin="0" aria-valuemax="${lim}" aria-valuenow="${Math.min(usados, lim)}"><span style="width:${Math.min(100, usados / lim * 100)}%"></span></div>
+        <div class="ctl-acoes">${p.testeUsado ? '' : '<button type="button" class="btn btn-primary" data-acao="pro-teste">Testar o Pro por 7 dias</button>'}
+          <button type="button" class="btn btn-secondary" data-acao="pro">Conhecer o Pro</button></div>`;
+    }
+    return `<div class="ctl-card largo ctl-plano" data-plano="${p.codigo}">
+      <div class="ctl-bloco-cab" style="margin:0"><h2>${{ gratis: 'Plano grátis', teste: 'Teste do Pro', pro: PRO.nome }[p.codigo]}</h2>${p.codigo === 'gratis' ? '' : '<span class="ctl-selo-pro">Pro</span>'}</div>
+      ${corpo}
+      <details class="ctl-mais ctl-demo"><summary><span>Demonstração do plano <span class="opc">(sem pagamento de verdade)</span></span>${ic('dir')}</summary>
+        <div><p class="ctl-dica">A assinatura ainda não está ligada a nenhum pagamento. Estes botões só mudam o plano neste aparelho, para você testar como fica.</p>
+          <div class="ctl-acoes" style="margin-top:0">
+            <button type="button" class="btn btn-secondary" data-acao="demo-pro">Simular assinatura ativa</button>
+            <button type="button" class="btn btn-secondary" data-acao="demo-gratis">Voltar ao grátis</button>
+            ${p.testeUsado && p.codigo !== 'pro' ? '<button type="button" class="btn btn-secondary" data-acao="demo-fim-teste">Encerrar o teste agora</button>' : ''}
+          </div></div></details>
+    </div>`;
+  }
+
   function telaAjustes() {
     document.body.setAttribute('data-sem-novo', '');
     const si = db.config.saldoInicial;
     const cats = [...db.config.categorias].sort((a, b) => a.tipo.localeCompare(b.tipo) || a.nome.localeCompare(b.nome));
-    return `${cabecalho('Ajustes', 'Saldo inicial, categorias e seus dados.')}
+    return `${cabecalho('Ajustes', 'Seu plano, saldo inicial, categorias e seus dados.')}
       <div class="ctl-ajustes">
+        ${cartaoPlano()}
         <div class="ctl-card"><h2>Saldo inicial</h2><p class="sub">Quanto você tinha quando começou a usar o Control. É a base do saldo de hoje.</p>
           <div class="ctl-saldo-pe" style="border-top:none;padding-top:0">
             <div><span class="ctl-rotulo">Pessoal</span><span class="v" data-saldo-ini="pessoal">${brl(si.pessoal)}</span></div>
@@ -510,7 +552,7 @@
           <div class="ctl-acoes">
             <button type="button" class="btn btn-secondary" data-acao="exportar-json">${ic('baixar')} Exportar backup</button>
             <button type="button" class="btn btn-secondary" data-acao="importar-json">${ic('subir')} Importar backup</button>
-            <button type="button" class="btn btn-secondary" data-acao="exportar-csv">${ic('tabela')} Planilha (CSV)</button>
+            <button type="button" class="btn btn-secondary" data-acao="exportar-csv">${ic('tabela')} Planilha (CSV)${recursos().csv ? '' : ' <span class="ctl-selo-pro">Pro</span>'}</button>
           </div>
         </div>
         <div class="ctl-card largo"><h2>Categorias</h2><p class="sub">Use os nomes que fazem sentido para você. Ao excluir uma categoria, as contas dela vão para "Outros".</p>
@@ -539,6 +581,10 @@
   }
   function barra() {
     $('#perfil').value = perfil();
+    const p = plano();
+    $('[data-plano-lateral]').innerHTML = p.codigo === 'pro' ? `<span class="ctl-selo-pro">Pro</span> ${PRO.nome}`
+      : p.codigo === 'teste' ? `<span class="ctl-selo-pro">Pro</span> Teste até ${N.dataCurta(p.testeFim)}`
+      : `Plano grátis · <button type="button" class="ctl-link" data-acao="pro">Conhecer o Pro</button>`;
     const topo = pilha[pilha.length - 1], btn = $('#desfazer');
     btn.hidden = !topo;
     if (topo) { btn.setAttribute('aria-label', `Desfazer: ${topo.rotulo}`); btn.title = `Desfazer: ${topo.rotulo}`; }
@@ -627,8 +673,10 @@
     $('#lanc-forma').innerHTML = '<option value="">Não informar</option>' + N.FORMAS.map(f => `<option>${esc(f)}</option>`).join('');
     const t = c ? c.tipo : (tipo || (estado.tela === 'contas' && estado.filtro.tipo !== 'todas' ? estado.filtro.tipo : 'pagar'));
     formLanc.querySelector(`input[name="tipo"][value="${t}"]`).checked = true;
-    const pf = c ? c.perfil : (perfil() === 'tudo' ? (db.config.ultimoPerfil || 'pessoal') : perfil());
+    const umPerfil = recursos().perfis < 2;
+    const pf = c ? c.perfil : umPerfil ? 'pessoal' : (perfil() === 'tudo' ? (db.config.ultimoPerfil || 'pessoal') : perfil());
     formLanc.querySelector(`input[name="perfil"][value="${pf}"]`).checked = true;
+    $('#lanc-perfil-bloco').hidden = umPerfil;
     preencherCategorias(t, c ? c.categoriaId : '');
     $('#lanc-titulo').textContent = c ? 'Editar conta' : 'Novo lançamento';
     $('#lanc-salvar').textContent = c ? 'Salvar alterações' : 'Salvar';
@@ -673,6 +721,8 @@
       if (primeiro) primeiro.focus();
       return;
     }
+    // limite do grátis: abre a vitrine do Pro por cima, sem fechar o formulário (nada do que foi digitado se perde)
+    if (!editandoId && !N.podeLancar(db, ref())) { abrirPro('lancar'); return; }
     try {
       if (editandoId) {
         const { acao } = mudar('Editar conta', d => N.editarConta(d, editandoId, dados, { aplicarSerie: $('#lanc-serie').checked }));
@@ -684,7 +734,8 @@
         const msg = dados.repeticao === 'parcelada' ? `${criadas.length} parcelas criadas`
           : dados.repeticao === 'recorrente' ? `Conta que se repete criada (${criadas.length} já na lista)`
           : dados.jaPaga ? (dados.tipo === 'receber' ? 'Lançado como recebido' : 'Lançado como pago') : 'Conta anotada';
-        toast(msg, { desfazer: acao });
+        const lim = recursos().lancamentosMes, resta = lim - N.lancamentosNoMes(db, N.mesDe(ref()));
+        toast(lim !== Infinity && resta <= 5 ? `${msg}. ${resta ? `Faltam ${resta} no grátis este mês` : 'Era o último do grátis este mês'}` : msg, { desfazer: acao });
       }
     } catch (err) {
       (err.erros || [{ campo: 'valor', msg: err.message }]).forEach(er => erroCampo(formLanc, er.campo, er.msg));
@@ -883,7 +934,7 @@
     mes: el => { estado.mesRel = N.addMesYM(estado.mesRel || N.mesDe(ref()), Number(el.dataset.v)); render(); },
     'exportar-json': () => { baixarArquivo(`warden-control-backup-${ref()}.json`, JSON.stringify(N.backup(db), null, 2), 'application/json'); toast('Backup exportado. Guarde o arquivo em um lugar seguro.'); },
     'importar-json': () => $('#arquivo-backup').click(),
-    'exportar-csv': () => { baixarArquivo(`warden-control-contas-${ref()}.csv`, N.csv(db, perfil(), ref()), 'text/csv;charset=utf-8'); toast('Planilha exportada.'); },
+    'exportar-csv': () => { if (!recursos().csv) { abrirPro('csv'); return; } baixarArquivo(`warden-control-contas-${ref()}.csv`, N.csv(db, perfil(), ref()), 'text/csv;charset=utf-8'); toast('Planilha exportada.'); },
     'apagar-tudo': async () => {
       const r = await perguntar({ titulo: 'Apagar todos os dados?', texto: 'Todas as contas, categorias e o saldo deste aparelho somem. Você ainda pode desfazer logo depois; depois disso, só com um backup.', botoes: [{ rotulo: 'Apagar tudo', valor: 'sim', classe: 'btn-perigo' }] });
       if (!r) return;
@@ -897,6 +948,12 @@
       try { await enviarRelatorio(el.dataset.canal); }
       finally { botoes.forEach(b => { b.disabled = false; }); el.removeAttribute('aria-busy'); }
     },
+    pro: el => abrirPro(el.dataset.motivo),
+    'pro-teste': () => mudarPlano(p => { p.testeInicio = ref(); }, `Teste do Pro ativado: tudo liberado até ${N.dataBR(N.addDias(ref(), N.DIAS_TESTE - 1))}.`),
+    // TODO (Etapa 2 do projeto): sair daqui. A assinatura de verdade é liberada pelo servidor (webhook verificado da Kiwify).
+    'demo-pro': () => mudarPlano(p => { p.tipo = 'pro'; }, 'Demonstração: assinatura do Pro ativa neste aparelho.'),
+    'demo-gratis': () => mudarPlano(p => { p.tipo = 'gratis'; }, 'Demonstração: de volta ao plano grátis. Nenhum dado foi apagado.'),
+    'demo-fim-teste': () => { mudarPlano(p => { p.tipo = 'gratis'; p.testeInicio = N.addDias(ref(), -N.DIAS_TESTE); }); avisarFimTeste(); },
     'novo-modelo': () => abrirModelo(),
     'modelo-editar': el => abrirModelo(el.dataset.id),
     'modelo-excluir': el => excluirModelo(el.dataset.id),
@@ -929,7 +986,10 @@
   });
   document.addEventListener('change', e => {
     if (e.target.id === 'filtro-cat') { estado.filtro.categoriaId = e.target.value; $('#lista-contas').innerHTML = listaContas(); }
-    if (e.target.id === 'perfil') { db.config.perfil = e.target.value; gravar(); render(); }
+    if (e.target.id === 'perfil') {
+      if (recursos().perfis < 2 && e.target.value !== 'tudo') { e.target.value = 'tudo'; abrirPro('perfis'); return; }
+      db.config.perfil = e.target.value; gravar(); render();
+    }
   });
   document.addEventListener('submit', e => {
     if (e.target.id !== 'form-cat') return;
@@ -984,6 +1044,52 @@
     toast('Saldo inicial salvo', { desfazer: acao });
   });
 
+  // ---------- Warden Pro: vitrine, teste de 7 dias e demonstração ----------
+  const MOTIVOS_PRO = {
+    lancar: 'Você chegou aos 30 lançamentos deste mês no plano grátis. O que você digitou continua aqui.',
+    perfis: 'Separar as contas em Pessoal e Negócio é do Pro.',
+    whatsapp: 'Mandar o relatório pelo WhatsApp é do Pro. PDF, imagem e texto continuam liberados.',
+    csv: 'A planilha (CSV) é do Pro. O backup continua liberado para todos.',
+    dicas: 'No grátis, o Orientador traz 1 dica por dia. No Pro, todas as dicas, sempre que aparecerem.'
+  };
+  const LINHAS_PRO = [
+    ['Lançamentos por mês', '30', 'Ilimitados'], ['Pessoal + Negócio', false, true], ['Relatório no WhatsApp', false, true],
+    ['Orientador', '1 dica por dia', 'Completo'], ['Planilha (CSV)', false, true], ['Backup', true, true]
+  ];
+  const celulaPro = v => v === true ? `${ic('check')}<span class="sr-only">Sim</span>` : v === false ? '<span aria-hidden="true">—</span><span class="sr-only">Não</span>' : esc(v);
+  function abrirPro(motivo = 'plano') {
+    const p = plano(), dlg = $('#dlg-pro');
+    const botoes = p.codigo === 'pro' ? ''
+      : p.codigo === 'gratis' && !p.testeUsado
+        ? `<button type="button" class="btn btn-primary" data-acao="pro-teste">Testar 7 dias grátis</button><a class="btn btn-secondary" href="/assinar.html">Assinar o Pro</a>`
+        : `<a class="btn btn-primary" href="/assinar.html">Assinar o Pro</a>`;
+    dlg.innerHTML = `
+      <div class="ctl-dlg-cab"><h2 id="pro-titulo">${PRO.nome}</h2><button type="button" class="ctl-icone-btn" data-fechar aria-label="Fechar">${ic('x')}</button></div>
+      <div class="ctl-dlg-miolo ctl-pro">
+        ${MOTIVOS_PRO[motivo] ? `<p class="ctl-pro-motivo" data-pro-motivo>${MOTIVOS_PRO[motivo]}</p>` : ''}
+        <p class="ctl-pro-preco"><strong class="ctl-num">R$ ${PRO.preco}</strong> por mês${p.codigo === 'teste' ? ` · <span>você está no teste até ${N.dataBR(p.testeFim)}</span>` : ''}</p>
+        <table class="ctl-pro-tabela"><thead><tr><th scope="col"><span class="sr-only">Recurso</span></th><th scope="col">Grátis</th><th scope="col">Pro</th></tr></thead>
+          <tbody>${LINHAS_PRO.map(([r, g, pr]) => `<tr><th scope="row">${r}</th><td>${celulaPro(g)}</td><td class="pro">${celulaPro(pr)}</td></tr>`).join('')}</tbody></table>
+        <p class="ctl-dica">Parcelamento conta como 1 lançamento; contas que se repetem e as do "Meu mês" não contam. Em qualquer plano, seus dados ficam neste aparelho.</p>
+      </div>
+      <div class="ctl-dlg-pe ctl-pro-pe">${botoes}<button type="button" class="btn btn-secondary" data-fechar>${p.codigo === 'pro' ? 'Fechar' : 'Agora não'}</button></div>`;
+    if (!dlg.open) dlg.showModal();
+  }
+  /** muda o plano de demonstração (não entra no Desfazer: é estado da conta, não dado) */
+  function mudarPlano(fn, msg) {
+    db.config.plano = { tipo: 'gratis', testeInicio: null, ...(db.config.plano || {}) };
+    fn(db.config.plano);
+    gravar(); render();
+    if ($('#dlg-pro').open) $('#dlg-pro').close();
+    if (msg) toast(msg, { ms: 5000 });
+  }
+  function avisarFimTeste() {
+    const p = plano(), inicio = db.config.plano && db.config.plano.testeInicio;
+    if (p.codigo !== 'gratis' || !p.testeUsado || db.config.avisoFimTeste === inicio) return;
+    db.config.avisoFimTeste = inicio; gravar();
+    toast('Seu teste do Pro terminou. Seus dados continuam todos aqui, no plano grátis.', { ms: 6000 });
+  }
+
   // ---------- relatório: enviar / baixar ----------
   /**
    * Envia ou baixa o relatório do mês que está na tela. canal: 'whatsapp' | 'compartilhar' | 'pdf' | 'imagem' | 'texto'.
@@ -995,6 +1101,7 @@
   async function enviarRelatorio(canal) {
     const R = window.ControlRelatorio, r = ref();
     const d = N.dadosRelatorio(db, perfil(), estado.mesRel || N.mesDe(r), r), texto = N.textoRelatorio(d);
+    if ((canal === 'whatsapp' || canal === 'compartilhar') && !recursos().whatsapp) { abrirPro('whatsapp'); return 'bloqueado'; }
     try {
       if (canal === 'texto') {
         const ok = await (await R.carregarKit()).copiarTexto(texto);
@@ -1033,8 +1140,10 @@
     formModelo.reset(); limparErros(formModelo);
     const tipo = m ? m.tipo : 'pagar';
     formModelo.querySelector(`input[name="modelo-tipo"][value="${tipo}"]`).checked = true;
-    const pf = m ? m.perfil : (perfil() === 'tudo' ? (db.config.ultimoPerfil || 'pessoal') : perfil());
+    const umPerfil = recursos().perfis < 2;
+    const pf = m ? m.perfil : umPerfil ? 'pessoal' : (perfil() === 'tudo' ? (db.config.ultimoPerfil || 'pessoal') : perfil());
     formModelo.querySelector(`input[name="modelo-perfil"][value="${pf}"]`).checked = true;
+    $('#modelo-perfil-bloco').hidden = umPerfil;
     categoriasModelo(tipo, m ? m.categoriaId : '');
     $('#modelo-titulo').textContent = m ? 'Editar conta fixa' : 'Nova conta fixa';
     $('#modelo-salvar').textContent = m ? 'Salvar alterações' : 'Salvar';
@@ -1109,9 +1218,19 @@
   const painelOri = $('#orientador'), fundoOri = $('#ori-fundo'), btnOri = $('#btn-orientador');
   const desktop = matchMedia('(min-width: 900px)');
   let acoesOri = new Map();
-  // Etapa 5: no plano grátis, O.LIMITE_GRATIS (1 dica por dia). Hoje tudo liberado.
-  const limiteDicas = () => Infinity;
   const ctxOri = () => O.contexto(db, perfil(), ref());
+  /**
+   * dicas que a pessoa vê hoje. No grátis, 1 por dia: a primeira que aparece no dia fica guardada em config.dicaDoDia
+   * e é a única do dia (se ela se resolver, as outras não entram no lugar). { lista, ocultas }
+   */
+  function dicasDeHoje(ctx) {
+    const todas = O.dicas(ctx), max = recursos().dicasDia;
+    if (max === Infinity) return { lista: todas, ocultas: 0 };
+    let reg = db.config.dicaDoDia;
+    if ((!reg || reg.data !== ctx.ref) && todas.length) { reg = { data: ctx.ref, id: todas[0].id }; db.config.dicaDoDia = reg; gravar(); }
+    const lista = reg && reg.data === ctx.ref ? todas.filter(d => d.id === reg.id).slice(0, max) : [];
+    return { lista, ocultas: todas.length - lista.length, resolvida: !!reg && reg.data === ctx.ref && !lista.length };
+  }
 
   /** quem executa as ações das dicas e das respostas */
   const apiOri = {
@@ -1126,7 +1245,7 @@
   };
 
   function desenharOrientador() {
-    const ctx = ctxOri(), lista = O.dicas(ctx, { limite: limiteDicas() });
+    const ctx = ctxOri(), { lista, ocultas, resolvida } = dicasDeHoje(ctx);
     // selo no botão: quantas dicas há hoje, até a pessoa abrir o painel
     const selo = $('#ori-selo');
     selo.hidden = estado.orientador || db.config.orientadorVisto === ref() || !lista.length;
@@ -1153,7 +1272,9 @@
         ${lista.length ? `<ul class="ctl-ori-dicas">${lista.map(d => `<li class="ctl-ori-dica ${d.tom}" data-dica="${esc(d.id)}">
             <span class="ic">${ic(icTom[d.tom])}</span>
             <div><p>${t(d.texto)}</p>${botaoAcao('dica-' + d.id, d.acao)}</div></li>`).join('')}</ul>`
-          : `<p class="ctl-ori-vazio">${ic('ok')} Nenhum alerta por aqui. Bom sinal!</p>`}
+          : `<p class="ctl-ori-vazio">${ic('ok')} ${resolvida ? 'A dica de hoje já foi resolvida. Amanhã tem outra.' : 'Nenhum alerta por aqui. Bom sinal!'}</p>`}
+        ${ocultas ? `<p class="ctl-ori-mais">${ocultas === 1 ? 'Tem mais 1 dica' : `Tem mais ${ocultas} dicas`} para hoje no Pro.
+          <button type="button" class="ctl-link" data-ori="pro">Conhecer o Pro</button></p>` : ''}
         <h3 class="ctl-rotulo">Pergunte</h3>
         <div class="ctl-ori-atalhos">${O.ATALHOS.map(a => `<button type="button" class="ctl-chip" data-ori="perguntar" data-id="${a.id}">${esc(a.pergunta)}</button>`).join('')}</div>
         <div class="ctl-ori-chat" aria-live="polite">${estado.chat.map((m, i) => `<div class="ctl-ori-msg ${m.quem}">
@@ -1209,6 +1330,7 @@
     if (tipo === 'fechar') fecharOrientador();
     else if (tipo === 'acao') { const fn = acoesOri.get(el.dataset.k); if (fn) fn(apiOri); }
     else if (tipo === 'perguntar') perguntarOri(el.textContent, el.dataset.id);
+    else if (tipo === 'pro') abrirPro('dicas');
   });
   painelOri.addEventListener('submit', e => {
     if (e.target.id !== 'ori-form') return;
@@ -1242,6 +1364,7 @@
     diaCarregado = ref();
     if (gerarTudo()) gravar();
     render();
+    avisarFimTeste();
   });
 
   // recorrências até o horizonte + a lista do "Meu mês" do mês corrente (virada do mês = lista nova, desmarcada)
@@ -1254,7 +1377,8 @@
   if (gerarTudo()) gravar();
   window.addEventListener('hashchange', rotaAtual);
   rotaAtual();
+  avisarFimTeste();
 
   // para os testes e para as próximas etapas
-  window.WardenControl = { get db() { return db; }, render, desfazer, toast, abrirLancamento, abrirDetalhe, enviarRelatorio };
+  window.WardenControl = { get db() { return db; }, render, desfazer, toast, abrirLancamento, abrirDetalhe, enviarRelatorio, abrirPro };
 })();

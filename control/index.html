@@ -31,6 +31,7 @@
     <div role="navigation" aria-label="Seções do Control" data-menu="lateral"></div>
     <div class="ctl-lateral-pe">
       <p><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Seus dados ficam só neste aparelho.</p>
+      <p class="ctl-lateral-plano" data-plano-lateral></p>
       <p><a href="/">Voltar ao site</a></p>
     </div>
   </aside>
@@ -109,7 +110,7 @@
           <select id="lanc-cat"></select>
         </div>
       </div>
-      <div class="ctl-campo">
+      <div class="ctl-campo" id="lanc-perfil-bloco">
         <span class="rot" id="lanc-perfil-rot">Perfil</span>
         <div class="ctl-pilulas" role="radiogroup" aria-labelledby="lanc-perfil-rot">
           <label><input type="radio" name="perfil" value="pessoal" checked><span>Pessoal</span></label>
@@ -201,7 +202,7 @@
         <label for="modelo-cat">Categoria</label>
         <select id="modelo-cat"></select>
       </div>
-      <div class="ctl-campo">
+      <div class="ctl-campo" id="modelo-perfil-bloco">
         <span class="rot" id="modelo-perfil-rot">Perfil</span>
         <div class="ctl-pilulas" role="radiogroup" aria-labelledby="modelo-perfil-rot">
           <label><input type="radio" name="modelo-perfil" value="pessoal" checked><span>Pessoal</span></label>
@@ -245,6 +246,8 @@
     </div>
   </form>
 </dialog>
+<!-- vitrine do Warden Pro (conteúdo montado pelo app.js; abre sem fechar o que estiver aberto embaixo) -->
+<dialog class="ctl-dlg" id="dlg-pro" aria-labelledby="pro-titulo"></dialog>
 <!-- confirmações e escolhas (conteúdo montado pelo app.js) -->
 <dialog class="ctl-dlg pequena" id="dlg-confirmar" aria-labelledby="conf-titulo"></dialog>
 <input type="file" id="arquivo-backup" accept="application/json,.json" hidden>

@@ -83,6 +83,7 @@
         <li><strong>As ferramentas gratuitas não enviam o que você digita para ninguém.</strong> Todo cálculo, PDF e QR Code é feito no seu navegador.</li>
         <li>Algumas preferências e caches ficam guardados <strong>no seu próprio aparelho</strong>, e você pode apagar quando quiser.</li>
         <li>No <strong>Warden Cobrança grátis</strong>, os clientes e as cobranças que você cadastra também ficam <strong>só no seu aparelho</strong>.</li>
+        <li>No <strong>Warden Control</strong>, as suas contas a pagar e a receber também ficam <strong>só no seu aparelho</strong>, no plano grátis e no <strong>Warden Pro</strong>. O pagamento do Pro é processado pela <strong>Kiwify</strong>.</li>
         <li>Para mostrar fontes, cotações e taxas, o site busca dados em <strong>serviços de terceiros</strong>, que recebem informações técnicas do seu acesso (como o endereço IP).</li>
         <li>O <strong>Control Finance</strong> é diferente: tem conta com login e guarda os seus dados no nosso servidor.</li>
         <li>Não vendemos dados, não exibimos anúncios e não usamos ferramentas de rastreamento ou de análise de público.</li>
@@ -99,6 +100,11 @@
       <p>No Warden Cobrança grátis você cadastra o nome do seu negócio, a sua chave Pix e os seus clientes (nome, WhatsApp e uma observação), e cria as cobranças (valor, descrição, vencimento e o histórico de lembretes e pagamentos). <strong>Tudo isso fica guardado só no navegador do seu aparelho</strong>; nada é enviado para a Warden. Você pode exportar um arquivo de backup e importá-lo em outro aparelho; esse arquivo fica com você.</p>
       <p>Ao tocar em "Enviar no WhatsApp", a mensagem (com o nome do cliente, o valor, o vencimento e o Pix copia e cola) vai para o WhatsApp, na conversa com o número do cliente, e é você quem decide enviar. Os dados dos seus clientes são de sua responsabilidade: cadastre apenas pessoas com quem você tem relação e que esperam ser cobradas, e apague o que não precisar mais (em Configurações, "Apagar todos os dados deste aparelho").</p>
 
+      <h2>Warden Control e Warden Pro: suas contas ficam no seu aparelho</h2>
+      <p>No Warden Control você anota as suas contas a pagar e a receber (descrição, valor, vencimento, categoria, contato, forma de pagamento e observação), os pagamentos e recebimentos, as contas fixas do "Meu mês", as categorias, o saldo inicial e algumas preferências. <strong>Tudo isso fica guardado só no navegador do seu aparelho</strong>; nada é enviado para a Warden. Você pode exportar um backup (e, no Pro, uma planilha) e importá-lo em outro aparelho; esses arquivos ficam com você. Como a Warden não tem cópia desses dados, não consegue recuperá-los se você limpar os dados do navegador ou trocar de aparelho sem backup.</p>
+      <p>As dicas do Orientador são calculadas no próprio aparelho, a partir dos seus lançamentos, sem inteligência artificial e sem enviar nada. Quando você manda o relatório do mês pelo WhatsApp ou pela opção de compartilhar do celular, o texto e a imagem vão para o aplicativo que você escolher, e é você quem decide enviar. Os lançamentos que você mandar para o Control a partir do gerador de Pix, do gerador de recibo ou do Warden Cobrança (botão "Salvar no Control") passam por uma caixa de entrada no próprio aparelho até o Control importá-los.</p>
+      <p>O <strong>Warden Pro</strong> é a assinatura mensal do Control. O pagamento é feito no checkout da <strong>Kiwify</strong>, que processa a compra e recebe os seus dados de pagamento diretamente, conforme a política dela; a Warden não recebe o número do seu cartão. Quando a assinatura estiver disponível, a Warden receberá da Kiwify só o necessário para liberar o Pro (como o e-mail usado na compra e a situação da assinatura). Assinar não envia as suas contas para nenhum servidor. O teste de 7 dias acontece dentro do próprio Control, sem cadastro e sem cartão.</p>
+
       <h2>O que fica salvo no seu aparelho</h2>
       <p>Para o site abrir mais rápido e lembrar algumas escolhas, guardamos estas informações no armazenamento local do navegador (<em>localStorage</em>). Elas ficam só no seu aparelho; não temos acesso a elas.</p>
       <div class="inst-tabela"><table>
@@ -109,6 +115,8 @@
           <tr><td>Número do último orçamento <code>warden:orcamento:ultimo</code></td><td>Numerar o próximo orçamento automaticamente</td><td>Até você apagar</td></tr>
           <tr><td>Nome, contato e logo de quem emite o orçamento <code>warden:orcamento:prestador</code></td><td>Preencher o gerador de orçamento da próxima vez</td><td>Até você apagar</td></tr>
           <tr><td>Clientes, cobranças e configurações do Warden Cobrança (nome do negócio, chave Pix, nome e WhatsApp dos clientes, valores, vencimentos e histórico) <code>warden:cobranca</code></td><td>O Warden Cobrança funcionar sem cadastro e sem servidor</td><td>Até você apagar em Configurações ou limpar os dados do site</td></tr>
+          <tr><td>Contas, pagamentos, contas fixas, categorias, saldo inicial, preferências e o plano do Warden Control <code>warden:control:v1</code></td><td>O Warden Control funcionar sem cadastro e sem servidor</td><td>Até você apagar em Ajustes ou limpar os dados do site</td></tr>
+          <tr><td>Lançamentos enviados ao Control pelo gerador de Pix, pelo gerador de recibo ou pelo Warden Cobrança <code>warden:control-entrada</code></td><td>Levar o lançamento até o Control, que importa e apaga a entrada ao abrir</td><td>Até o Control abrir e importar</td></tr>
           <tr><td>Nome e foto do login de demonstração da página inicial <code>wardenLoggedIn</code>, <code>wardenUserName</code>, <code>wardenUserPhoto</code></td><td>Mostrar seu nome e foto no topo do site (o login da página inicial ainda é uma demonstração e não envia nada)</td><td>Até você sair ou apagar</td></tr>
         </tbody>
       </table></div>
@@ -124,6 +132,7 @@
         <li><strong>AwesomeAPI</strong>: cotações de moedas e criptomoedas da faixa de cotações.</li>
         <li><strong>Banco Central do Brasil</strong>: Selic, CDI e IPCA usados nas ferramentas e na faixa.</li>
         <li><strong>WhatsApp</strong> (Meta): só quando você clica num botão ou link de WhatsApp.</li>
+        <li><strong>Kiwify</strong>: pagamento das assinaturas (Warden Pro e planos do Control Finance), só quando você vai pagar; a página de pagamento é da Kiwify.</li>
       </ul>
       <p>Nenhum desses serviços recebe o que você digita nas ferramentas.</p>
 
@@ -153,7 +162,7 @@
 
       <h2>Mudanças nesta política</h2>
       <p>Podemos atualizar esta política quando o site mudar. A versão em vigor é sempre a desta página, com a data abaixo.</p>
-      <p class="inst-atualizado">Última atualização: 5 de outubro de 2026.</p>
+      <p class="inst-atualizado">Última atualização: 13 de outubro de 2026.</p>
     </article>
   </div>
 </section>

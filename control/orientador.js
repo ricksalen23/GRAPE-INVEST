@@ -107,12 +107,13 @@
         : { rotulo: 'Ver próximas', executar: api => api.filtrar('semana') }
     },
     {
-      id: 'reserva', prioridade: 60, tom: 'aviso',
+      id: 'reserva', prioridade: 60, tom: 'info',
       quando: ctx => {
         const saldo = ctx.rel.saldoHoje;
         return ctx.mediaGastos > 0 && saldo < ctx.mediaGastos ? { saldo, media: ctx.mediaGastos } : null;
       },
-      texto: d => `Seu saldo de hoje (${brl(d.saldo)}) não cobre um mês dos seus gastos, que ficam em média em ${brl(d.media)}. Guardar um pouco todo mês cria uma reserva para imprevistos.`,
+      // tom de parceiro: sem alarme, sem cobrança, sem culpa
+      texto: d => `Seu caixa (${brl(d.saldo)}) está mais apertado que a sua média de gastos do mês (${brl(d.media)}). Vale guardar um pouco este mês, no seu ritmo.`,
       acao: { rotulo: 'Calcular minha reserva', executar: api => api.abrirLink('/ferramentas/reserva-de-emergencia.html') }
     },
     {
@@ -134,7 +135,7 @@
     {
       id: 'sem-lancar', prioridade: 40, tom: 'info',
       quando: ctx => ctx.diasSemLancar != null && ctx.diasSemLancar >= DIAS_SEM_LANCAR ? { dias: ctx.diasSemLancar } : null,
-      texto: d => `Faz ${d.dias} dias que você não anota nada no Control. Gastos pequenos esquecidos somam rápido: anote o que entrou e saiu desde então.`,
+      texto: d => `Faz ${d.dias} dias desde o último lançamento. Se algo entrou ou saiu nesse tempo, anotar agora deixa o seu saldo certinho.`,
       acao: { rotulo: 'Novo lançamento', executar: api => api.novo() }
     }
   ];
