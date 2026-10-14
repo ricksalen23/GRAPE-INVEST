@@ -520,6 +520,29 @@ body[data-ori-gaveta] { overflow: hidden; }
 .ctl-ori-mais { font-size: .84rem; color: var(--muted); line-height: 1.5; }
 .ctl-ori-mais .ctl-link { min-height: 32px; font-size: .84rem; }
 
+/* ===== DÍVIDA COM JUROS (formulário) ===== */
+.ctl-divida { display: grid; gap: 10px; }
+.ctl-taxa input { padding-left: 14px !important; padding-right: 96px !important; }
+.ctl-taxa span { left: auto; right: 14px; }
+
+/* ===== CONSULTAS DO ORIENTADOR ===== */
+.ctl-ori-consultas .ctl-chip { border-color: rgba(200,242,107,.35); }
+.ctl-consulta { display: grid; gap: 16px; }
+.ctl-consulta .ctl-form .btn { width: 100%; justify-content: center; }
+.ctl-consulta-res { display: grid; gap: 12px; }
+.ctl-consulta-res .ctl-pill { justify-self: start; font-size: .76rem; padding: 4px 10px; }
+.ctl-consulta-numeros { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.ctl-consulta-numeros > div { padding: 12px; border-radius: 12px; background: var(--ctl-cinza-bg); min-width: 0; }
+.ctl-consulta-numeros .ctl-rotulo { display: block; font-size: .62rem; letter-spacing: .08em; line-height: 1.3; }
+.ctl-consulta-numeros strong { display: block; margin-top: 6px; font-size: 1rem; white-space: normal; overflow-wrap: anywhere; }
+.ctl-consulta-texto { display: grid; gap: 10px; font-size: .94rem; line-height: 1.6; }
+.ctl-consulta-risco { padding: 12px 14px; border-radius: 12px; border: 1px solid var(--ctl-linha); background: var(--surface2); font-size: .9rem; line-height: 1.55; }
+.ctl-consulta-decisao { font-weight: 600; font-size: .98rem; }
+.ctl-consulta-aviso { font-size: .74rem; line-height: 1.5; color: var(--muted); padding-top: 10px; border-top: 1px solid var(--ctl-linha); }
+.ctl-consulta-erro { color: var(--ctl-vermelho); font-size: .9rem; }
+.ctl-consulta .ctl-acoes { margin-top: 0; }
+@media (max-width: 420px) { .ctl-consulta-numeros { grid-template-columns: 1fr 1fr; } .ctl-consulta-numeros > div:first-child { grid-column: 1 / -1; } }
+
 /* ===== PLANO / WARDEN PRO ===== */
 .ctl-selo-pro { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 99px; background: var(--accent); color: var(--accent-ink); font: 700 .66rem 'Inter', sans-serif; letter-spacing: .08em; text-transform: uppercase; vertical-align: 1px; }
 .btn .ctl-selo-pro { margin-left: 2px; }

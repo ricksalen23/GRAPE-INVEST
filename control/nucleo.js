@@ -154,6 +154,19 @@
     const juros = inteiro(b.juros) && b.juros > 0 ? b.juros : 0;
     return { id: txt(b.id, 60) || novoId('b'), data: b.data, valor: b.valor, desconto, juros, criadoEm: txt(b.criadoEm, 40) || agoraISO() };
   }
+  /**
+   * "dívida com juros" (cartão, empréstimo, financiamento): { taxa } com os juros AO MÊS em centésimos de ponto
+   * percentual (899 = 8,99% a.m.), ou taxa null quando a pessoa não sabe. Conta comum: divida = null.
+   */
+  function limparDivida(d) {
+    if (!d || typeof d !== 'object') return null;
+    return { taxa: inteiro(d.taxa) && d.taxa > 0 && d.taxa <= 10000 ? d.taxa : null };
+  }
+  /** "8,99" / "8.99%" / "8" → 899 (centésimos de ponto percentual); null se não entender */
+  function parseTaxa(texto) { return parseCentavos(String(texto == null ? '' : texto).replace(/%/g, '')); }
+  /** 899 → "8,99" ; 800 → "8" */
+  function formatTaxa(t) { return (t / 100).toFixed(2).replace('.', ',').replace(/,00$/, '').replace(/(,\d)0$/, '$1'); }
+
   function limparConta(c) {
     if (!c || !TIPOS.includes(c.tipo) || !inteiro(c.valor) || c.valor <= 0 || !dataValida(c.vencimento)) return null;
     const p = c.parcela && inteiro(c.parcela.n) && inteiro(c.parcela.total) && c.parcela.n >= 1 && c.parcela.n <= c.parcela.total
@@ -166,6 +179,7 @@
       recorrenciaId: c.recorrenciaId ? txt(c.recorrenciaId, 60) : null,
       ocorrencia: dataValida(c.ocorrencia) ? c.ocorrencia : null,
       modeloId: c.modeloId ? txt(c.modeloId, 60) : null,
+      divida: limparDivida(c.divida),
       baixas: Array.isArray(c.baixas) ? c.baixas.map(limparBaixa).filter(Boolean) : [],
       criadoEm: txt(c.criadoEm, 40) || agoraISO(), atualizadoEm: txt(c.atualizadoEm, 40) || agoraISO()
     };
@@ -278,7 +292,8 @@
       id: novoId('c'), tipo: dados.tipo, descricao: txt(dados.descricao, 120).trim() || 'Sem descrição', valor: dados.valor,
       vencimento: dados.vencimento, categoriaId: dados.categoriaId || '', contato: txt(dados.contato, 120).trim(),
       forma: txt(dados.forma, 40), obs: txt(dados.obs, 1000).trim(), perfil: PERFIS[dados.perfil] ? dados.perfil : 'pessoal',
-      grupoId: null, parcela: null, recorrenciaId: null, ocorrencia: null, modeloId: null, baixas: [], criadoEm: t, atualizadoEm: t
+      grupoId: null, parcela: null, recorrenciaId: null, ocorrencia: null, modeloId: null, divida: dados.tipo === 'pagar' ? limparDivida(dados.divida) : null,
+      baixas: [], criadoEm: t, atualizadoEm: t
     };
   }
 
@@ -292,6 +307,7 @@
     if (d.repeticao === 'parcelada' && !(inteiro(d.parcelas) && d.parcelas >= 2 && d.parcelas <= 120)) e.push({ campo: 'parcelas', msg: 'De 2 a 120 parcelas.' });
     if (d.repeticao === 'parcelada' && inteiro(d.valor) && inteiro(d.parcelas) && d.parcelas > 0 && d.valor < d.parcelas) e.push({ campo: 'valor', msg: 'O valor é pequeno demais para tantas parcelas.' });
     if (d.repeticao === 'recorrente' && !['mensal', 'semanal', 'anual'].includes(d.freq)) e.push({ campo: 'freq', msg: 'Escolha de quanto em quanto tempo repete.' });
+    if (d.divida && d.divida.taxa != null && !(inteiro(d.divida.taxa) && d.divida.taxa > 0 && d.divida.taxa <= 10000)) e.push({ campo: 'taxa', msg: 'Use só números, como 8,99 (até 100% ao mês).' });
     return e;
   }
 
@@ -501,6 +517,8 @@
     const campos = ['tipo', 'descricao', 'valor', 'vencimento', 'categoriaId', 'contato', 'forma', 'obs', 'perfil'];
     const limpo = contaBase(dados);
     campos.forEach(k => { c[k] = limpo[k]; });
+    // dívida com juros vale para o parcelamento inteiro
+    if ('divida' in dados) (c.grupoId ? db.contas.filter(o => o.grupoId === c.grupoId) : [c]).forEach(o => { o.divida = limpo.divida; });
     c.atualizadoEm = agoraISO();
     if (aplicarSerie && c.recorrenciaId) {
       const rec = db.recorrencias.find(r => r.id === c.recorrenciaId);
@@ -803,7 +821,7 @@
     abatido, totalAbatido, totalMovido, restante, quitada, ultimaBaixa, status, rotuloStatus,
     validarLancamento, criarLancamento, gerarRecorrencias, acharConta,
     validarModelo, criarModelo, editarModelo, excluirModelo, gerarMes, contasMes, ajustarValor,
-    CHAVE_ENTRADA, ORIGENS, entradaValida, importarEntrada, darBaixa, baixaTotal, reabrir, removerBaixa, editarConta, excluir,
+    CHAVE_ENTRADA, ORIGENS, entradaValida, importarEntrada, limparDivida, parseTaxa, formatTaxa, darBaixa, baixaTotal, reabrir, removerBaixa, editarConta, excluir,
     categoria, nomeCategoria, filtrar, saldoInicial, saldoAtual, serieFluxo, previsao, proximas, resumoMes, dadosRelatorio, textoRelatorio, saudeFinanceira, csv,
     DIAS_TESTE, RECURSOS, planoAtual, lancamentosNoMes, podeLancar
   };

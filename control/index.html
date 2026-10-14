@@ -155,6 +155,14 @@
             <label for="lanc-forma">Forma de pagamento</label>
             <select id="lanc-forma"></select>
           </div>
+          <div class="ctl-divida" id="lanc-divida-bloco">
+            <label class="ctl-marcar"><input type="checkbox" id="lanc-divida"> <span>É uma dívida com juros (cartão, empréstimo, financiamento)</span></label>
+            <div class="ctl-campo" data-campo="taxa" id="lanc-taxa-bloco" hidden>
+              <label for="lanc-taxa">Juros ao mês <span class="opc">(opcional)</span></label>
+              <div class="ctl-dinheiro ctl-taxa"><input id="lanc-taxa" type="text" inputmode="decimal" autocomplete="off" placeholder="Ex.: 8,99"><span>% ao mês</span></div>
+              <span class="msg">Está na fatura ou no contrato como "juros ao mês" ou "CET mensal".</span>
+            </div>
+          </div>
           <div class="ctl-campo">
             <label for="lanc-obs">Observação</label>
             <textarea id="lanc-obs" maxlength="1000" placeholder="Ex.: código do boleto, combinado com o cliente"></textarea>
@@ -251,6 +259,8 @@
 </dialog>
 <!-- vitrine do Warden Pro (conteúdo montado pelo app.js; abre sem fechar o que estiver aberto embaixo) -->
 <dialog class="ctl-dlg" id="dlg-pro" aria-labelledby="pro-titulo"></dialog>
+<!-- consultas do Orientador (conteúdo montado pelo app.js; contas no consultas.js) -->
+<dialog class="ctl-dlg" id="dlg-consulta" aria-labelledby="consulta-titulo"></dialog>
 <!-- confirmações e escolhas (conteúdo montado pelo app.js) -->
 <dialog class="ctl-dlg pequena" id="dlg-confirmar" aria-labelledby="conf-titulo"></dialog>
 <input type="file" id="arquivo-backup" accept="application/json,.json" hidden>
@@ -259,6 +269,7 @@
 <script src="/control/nucleo.js"></script>
 <script src="/control/relatorio.js"></script>
 <script src="/control/orientador.js"></script>
+<script src="/control/consultas.js"></script>
 <script src="/control/efeitos.js"></script>
 <script src="/control/app.js"></script>
 </body>

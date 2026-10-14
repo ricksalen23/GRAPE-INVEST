@@ -10,6 +10,8 @@
   const $$ = (s, el = document) => [...el.querySelectorAll(s)];
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const brl = (c, o) => N.formatBRL(c, o);
+  // texto com valores: "R$ 1.919,90" e "− R$ 10,00" não quebram de linha no meio
+  const semQuebra = s => esc(s).replace(/([−+]) R\$ /g, '$1&nbsp;R$$&nbsp;').replace(/R\$ /g, 'R$$&nbsp;');
   const ref = () => N.hoje();
 
   let db = N.carregar();
@@ -156,6 +158,7 @@
     const meta = [metaExtra || N.nomeCategoria(db, c.categoriaId)];
     if (c.contato) meta.push(c.contato);
     if (c.parcela) meta.push(`parcela ${c.parcela.n}/${c.parcela.total}`);
+    if (c.divida) meta.push(c.divida.taxa != null ? `dívida ${N.formatTaxa(c.divida.taxa)}% a.m.` : 'dívida');
     if (c.recorrenciaId) meta.push({ mensal: 'todo mês', semanal: 'toda semana', anual: 'todo ano' }[(db.recorrencias.find(r => r.id === c.recorrenciaId) || {}).freq] || 'repete');
     if (perfil() === 'tudo') meta.push(N.PERFIS[c.perfil]);
     const pct = c.valor ? Math.round(N.totalAbatido(c) / c.valor * 100) : 0;
@@ -675,6 +678,8 @@
     const tipo = val('tipo'), rep = val('repeticao');
     $('#lanc-paga-rot').textContent = tipo === 'receber' ? 'Já recebi (dá baixa hoje)' : 'Já paguei (dá baixa hoje)';
     $('#lanc-contato-rot').textContent = tipo === 'receber' ? 'Quem vai pagar' : 'Para quem';
+    $('#lanc-divida-bloco').hidden = tipo !== 'pagar';
+    $('#lanc-taxa-bloco').hidden = tipo !== 'pagar' || !$('#lanc-divida').checked;
     $('#lanc-parcelas-bloco').hidden = rep !== 'parcelada';
     $('#lanc-freq-bloco').hidden = rep !== 'recorrente';
     $('#lanc-valor-rot').textContent = rep === 'parcelada' ? 'Valor total' : 'Valor';
@@ -716,7 +721,9 @@
       $('#lanc-desc').value = c.descricao;
       $('#lanc-venc').value = c.vencimento;
       $('#lanc-contato').value = c.contato; $('#lanc-forma').value = c.forma; $('#lanc-obs').value = c.obs;
-      $('#lanc-mais').open = !!(c.contato || c.forma || c.obs);
+      $('#lanc-divida').checked = !!c.divida;
+      $('#lanc-taxa').value = c.divida && c.divida.taxa != null ? N.formatTaxa(c.divida.taxa) : '';
+      $('#lanc-mais').open = !!(c.contato || c.forma || c.obs || c.divida);
     } else {
       $('#lanc-venc').value = ref();
       $('#lanc-mais').open = false;
@@ -739,12 +746,15 @@
       tipo: val('tipo'), descricao: $('#lanc-desc').value, valor: valor == null ? NaN : valor, vencimento: $('#lanc-venc').value,
       categoriaId: $('#lanc-cat').value, perfil: val('perfil'), contato: $('#lanc-contato').value, forma: $('#lanc-forma').value, obs: $('#lanc-obs').value,
       repeticao: editandoId ? 'unica' : val('repeticao'), parcelas: Number($('#lanc-parcelas').value), freq: $('#lanc-freq').value,
-      jaPaga: !editandoId && $('#lanc-paga').checked, ref: ref()
+      jaPaga: !editandoId && $('#lanc-paga').checked, ref: ref(),
+      divida: val('tipo') === 'pagar' && $('#lanc-divida').checked
+        ? { taxa: $('#lanc-taxa').value.trim() ? (N.parseTaxa($('#lanc-taxa').value) ?? NaN) : null } : null
     };
     const erros = N.validarLancamento(dados);
     if (valor == null) erros.unshift({ campo: 'valor', msg: 'Não entendi esse valor. Use só números, como 1.250,90.' });
     if (erros.length) {
       erros.forEach(er => erroCampo(formLanc, er.campo, er.msg));
+      if (erros.some(er => er.campo === 'taxa')) $('#lanc-mais').open = true;
       const primeiro = $(`[data-campo="${erros[0].campo}"] input, [data-campo="${erros[0].campo}"] select`, formLanc);
       if (primeiro) primeiro.focus();
       return;
@@ -788,6 +798,7 @@
       c.contato && [c.tipo === 'receber' ? 'Quem paga' : 'Para quem', c.contato], c.forma && ['Forma de pagamento', c.forma],
       c.parcela && ['Parcela', `${c.parcela.n} de ${c.parcela.total}`],
       rec && ['Repete', { mensal: 'Todo mês', semanal: 'Toda semana', anual: 'Todo ano' }[rec.freq]],
+      c.divida && ['Dívida com juros', c.divida.taxa != null ? `${N.formatTaxa(c.divida.taxa)}% ao mês` : 'Juros não informados'],
       c.obs && ['Observação', c.obs, 'largo']
     ].filter(Boolean);
     const verbo = c.tipo === 'receber' ? 'recebimento' : 'pagamento';
@@ -1293,8 +1304,7 @@
     acoesOri = new Map();
     const botaoAcao = (chave, acao) => { acoesOri.set(chave, acao.executar); return `<button type="button" class="btn btn-secondary" data-ori="acao" data-k="${esc(chave)}">${esc(acao.rotulo)}</button>`; };
     const icTom = { alerta: 'alerta', aviso: 'relogio', info: 'lampada' };
-    // "R$ 1.919,90" e "− R$ 10,00" não quebram de linha no meio
-    const t = s => esc(s).replace(/([−+]) R\$ /g, '$1&nbsp;R$$&nbsp;').replace(/R\$ /g, 'R$$&nbsp;');
+    const t = semQuebra;
     painelOri.innerHTML = `
       <div class="ctl-ori-cab"><h2 id="ori-titulo" tabindex="-1">${ic('lampada')} Orientador</h2>
         <button type="button" class="ctl-icone-btn" data-ori="fechar" aria-label="Fechar o Orientador">${ic('x')}</button></div>
@@ -1307,6 +1317,8 @@
           : `<p class="ctl-ori-vazio">${ic('ok')} ${resolvida ? 'A dica de hoje já foi resolvida. Amanhã tem outra.' : 'Nenhum alerta por aqui. Bom sinal!'}</p>`}
         ${ocultas ? `<p class="ctl-ori-mais">${ocultas === 1 ? 'Tem mais 1 dica' : `Tem mais ${ocultas} dicas`} para hoje no Pro.
           <button type="button" class="ctl-link" data-ori="pro">Conhecer o Pro</button></p>` : ''}
+        <h3 class="ctl-rotulo">Consultas com os seus números</h3>
+        <div class="ctl-ori-atalhos ctl-ori-consultas">${window.ControlConsultas.CONSULTAS.map(q => `<button type="button" class="ctl-chip" data-ori="consulta" data-id="${q.id}">${esc(q.pergunta)}</button>`).join('')}</div>
         <h3 class="ctl-rotulo">Pergunte</h3>
         <div class="ctl-ori-atalhos">${O.ATALHOS.map(a => `<button type="button" class="ctl-chip" data-ori="perguntar" data-id="${a.id}">${esc(a.pergunta)}</button>`).join('')}</div>
         <div class="ctl-ori-chat" aria-live="polite">${estado.chat.map((m, i) => `<div class="ctl-ori-msg ${m.quem}">
@@ -1363,6 +1375,7 @@
     else if (tipo === 'acao') { const fn = acoesOri.get(el.dataset.k); if (fn) fn(apiOri); }
     else if (tipo === 'perguntar') perguntarOri(el.textContent, el.dataset.id);
     else if (tipo === 'pro') abrirPro('dicas');
+    else if (tipo === 'consulta') { fecharOriCelular(); abrirConsulta(el.dataset.id); }
   });
   painelOri.addEventListener('submit', e => {
     if (e.target.id !== 'ori-form') return;
@@ -1380,6 +1393,84 @@
   });
   estado.orientador = desktop.matches && db.config.orientadorAberto !== false;
   if (estado.orientador) db.config.orientadorVisto = ref();
+
+  // ---------- Consultas do Orientador (números no consultas.js; aqui só a janela) ----------
+  const CQ = window.ControlConsultas, dlgCons = $('#dlg-consulta');
+  const consulta = { id: null, cdi: null };
+  const CLASSE_SITUACAO = { folga: 'paga', limite: 'hoje', vermelho: 'atrasada' };
+  function camposConsulta(id) {
+    const valor = rot => `<div class="ctl-campo"><label for="cons-valor">${rot}</label><div class="ctl-dinheiro"><span>R$</span><input id="cons-valor" type="text" inputmode="decimal" autocomplete="off" placeholder="0,00"></div></div>`;
+    if (id === 'parcela') return `<form class="ctl-form" id="form-consulta" novalidate><div class="duas">${valor('Valor da parcela')}
+      <div class="ctl-campo"><label for="cons-parcelas">Número de parcelas</label><input id="cons-parcelas" type="number" inputmode="numeric" min="1" max="120" value="10"></div></div>
+      <button type="submit" class="btn btn-primary">Analisar com os meus números</button></form>`;
+    if (id === 'gasto') return `<form class="ctl-form" id="form-consulta" novalidate>${valor('Quanto quer gastar')}<button type="submit" class="btn btn-primary">Analisar com os meus números</button></form>`;
+    if (id === 'quitar') return `<form class="ctl-form" id="form-consulta" novalidate><div class="ctl-campo" id="cons-divida-campo" hidden><label for="cons-divida">Qual dívida</label><select id="cons-divida"></select></div></form>`;
+    return '';
+  }
+  function destaquesConsulta(r) {
+    const n = r.numeros;
+    if (!r.suficiente || !n) return [];
+    const meses = m => (m == null ? 'não termina' : `${m} ${m === 1 ? 'mês' : 'meses'}`);
+    // uma função por consulta: só a da consulta aberta é calculada (os números de cada uma são diferentes)
+    return {
+      parcela: () => [['Da sobra do mês', n.pctSobra != null ? `${n.pctSobra}%` : '—'], ['Menor saldo', brl(n.menorSaldo)], ['Saldo em 90 dias', brl(n.saldos[2].com)]],
+      dividas: () => [['Total das dívidas', brl(n.total)], ['Juros mais altos primeiro', n.caminhos ? meses(n.caminhos.custo.meses) : '—'], ['Menores primeiro', n.caminhos ? meses(n.caminhos.menores.meses) : '—']],
+      quitar: () => [['Juros da dívida no mês', brl(n.custoMes)], ['Guardado renderia', brl(n.rendeMes)], ['Folga em 90 dias', brl(n.folga)]],
+      gasto: () => [['Fim do mês com o gasto', brl(n.fimCom)], ['Menor saldo do mês', brl(n.menorCom)], ['Ainda vence no mês', brl(n.aPagar)]]
+    }[r.id]();
+  }
+  function mostrarConsulta(r) {
+    const alvo = $('#consulta-res');
+    if (!alvo) return;
+    if (r.erro) { alvo.innerHTML = `<p class="ctl-consulta-erro" role="alert">${esc(r.erro)}</p>`; return; }
+    const d = destaquesConsulta(r);
+    alvo.innerHTML = `<div class="ctl-consulta-res" data-situacao="${r.suficiente ? r.situacao : 'sem-dados'}">
+      ${r.suficiente ? `<span class="ctl-pill ${CLASSE_SITUACAO[r.situacao]}" data-consulta-situacao>${esc(r.rotuloSituacao)}</span>` : ''}
+      ${d.length ? `<div class="ctl-consulta-numeros">${d.map(([k, v]) => `<div><span class="ctl-rotulo">${k}</span><strong class="ctl-num">${semQuebra(v)}</strong></div>`).join('')}</div>` : ''}
+      <div class="ctl-consulta-texto">${r.paragrafos.map(p => `<p>${semQuebra(p)}</p>`).join('')}</div>
+      ${r.risco ? `<p class="ctl-consulta-risco">${semQuebra(r.risco)}</p>` : ''}
+      ${r.decisao ? `<p class="ctl-consulta-decisao" data-consulta-decisao>${esc(r.decisao)}</p>` : ''}
+      ${r.links.length ? `<div class="ctl-acoes">${r.links.map(l => `<a class="btn btn-secondary" href="${esc(l.href)}">${esc(l.rotulo)}</a>`).join('')}</div>` : ''}
+      <p class="ctl-consulta-aviso" data-consulta-aviso>${esc(r.aviso)}</p>
+    </div>`;
+    // na comparação com a dívida, a pessoa escolhe qual dívida
+    const sel = $('#cons-divida');
+    if (sel && r.opcoes) {
+      $('#cons-divida-campo').hidden = r.opcoes.length < 2;
+      sel.innerHTML = r.opcoes.map(o => `<option value="${esc(o.id)}">${esc(o.nome)} · ${esc(brl(o.total))}${o.taxa != null ? ` · ${N.formatTaxa(o.taxa)}% a.m.` : ''}</option>`).join('');
+      sel.value = r.escolhida || '';
+    }
+  }
+  function entradaConsulta(id) {
+    if (id === 'parcela') return { valor: lerDinheiro($('#cons-valor')), parcelas: Number($('#cons-parcelas').value) };
+    if (id === 'gasto') return { valor: lerDinheiro($('#cons-valor')) };
+    if (id === 'quitar') return { divida: ($('#cons-divida') || {}).value || null, cdiAnual: consulta.cdi };
+    return {};
+  }
+  function analisarConsulta() {
+    if (!consulta.id) return;
+    mostrarConsulta(CQ.consultar(consulta.id, db, perfil(), ref(), entradaConsulta(consulta.id)));
+  }
+  /** CDI de hoje, das mesmas taxas do Banco Central que o site usa (o kit das ferramentas vem sob demanda) */
+  async function cdiDeHoje() {
+    if (consulta.cdi) return;
+    try { const W = await window.ControlRelatorio.carregarKit(); consulta.cdi = (await W.getTaxasBCB()).cdi; } catch (e) { consulta.cdi = null; }
+  }
+  async function abrirConsulta(id) {
+    const q = CQ.CONSULTAS.find(x => x.id === id);
+    if (!q) return;
+    consulta.id = id;
+    dlgCons.innerHTML = `<div class="ctl-dlg-cab"><h2 id="consulta-titulo">${esc(q.pergunta)}</h2><button type="button" class="ctl-icone-btn" data-fechar aria-label="Fechar">${ic('x')}</button></div>
+      <div class="ctl-dlg-miolo ctl-consulta">${camposConsulta(id)}<div id="consulta-res" aria-live="polite"></div></div>`;
+    if (!dlgCons.open) dlgCons.showModal();
+    if (id === 'parcela' || id === 'gasto') { setTimeout(() => $('#cons-valor') && $('#cons-valor').focus(), 30); return; }
+    if (id === 'quitar') { $('#consulta-res').innerHTML = '<p class="ctl-dica">Buscando a taxa do CDI de hoje…</p>'; await cdiDeHoje(); }
+    analisarConsulta();
+  }
+  dlgCons.addEventListener('submit', e => { if (e.target.id !== 'form-consulta') return; e.preventDefault(); analisarConsulta(); });
+  dlgCons.addEventListener('change', e => { if (e.target.id === 'cons-divida') analisarConsulta(); });
+  dlgCons.addEventListener('focusout', e => { if (e.target.id === 'cons-valor') formatarCampo(e.target); });
+  dlgCons.addEventListener('close', () => { consulta.id = null; });
 
   // atalhos: N = novo lançamento, Ctrl/Cmd+Z = desfazer (fora de campos de texto)
   document.addEventListener('keydown', e => {
@@ -1432,5 +1523,5 @@
   importarDoSite();
 
   // para os testes e para as próximas etapas
-  window.WardenControl = { get db() { return db; }, render, desfazer, toast, abrirLancamento, abrirDetalhe, enviarRelatorio, abrirPro };
+  window.WardenControl = { get db() { return db; }, render, desfazer, toast, abrirLancamento, abrirDetalhe, enviarRelatorio, abrirPro, abrirConsulta };
 })();

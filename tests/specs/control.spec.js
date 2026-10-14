@@ -1076,6 +1076,234 @@ test.describe('control', () => {
     });
   });
 
+  // ---------- Consultas do Orientador (análises com os números do próprio usuário) ----------
+  test.describe('consultas', () => {
+    const bx = (data, valor) => [{ id: 'b' + data + valor, data, valor, desconto: 0, juros: 0 }];
+    // agosto e setembro: recebe `entra` e paga `sai` em cada mês (sobra média = entra − sai)
+    const historico = (entra, sai) => ['2026-08', '2026-09'].flatMap(m => [
+      conta('r' + m, 'receber', 'Salário ' + m, entra, m + '-05', { baixas: bx(m + '-05', entra) }),
+      conta('p' + m, 'pagar', 'Contas ' + m, sai, m + '-10', { baixas: bx(m + '-10', sai) })]);
+    const AVISO = 'Isto é uma análise dos seus próprios números, não é recomendação de investimento nem consultoria financeira.';
+    const PROIBIDO = /(faça|não faça|vale a pena|você deve|deveria|recomendo|recomendamos|o ideal é)/i;
+    const consultar = (page, id, d, entrada = {}) => page.evaluate(([id, d, e]) =>
+      window.ControlConsultas.consultar(id, window.ControlNucleo.migrar(d), 'tudo', '2026-10-02', e), [id, d, entrada]);
+    // regra de tom em toda resposta: nada de mandar, aviso sempre, "a decisão é sua" quando há análise
+    const tom = r => {
+      [...r.paragrafos, r.risco || ''].forEach(t => expect(t, t).not.toMatch(PROIBIDO));
+      expect(r.aviso).toBe(AVISO);
+      expect(r.decisao).toBe(r.suficiente ? 'A decisão é sua.' : null);
+      if (r.suficiente) expect(r.risco).toMatch(/^O risco: /);
+    };
+    const semNada = () => { const d = base(); d.config.saldoDefinido = false; return d; };
+    const dividas = () => [
+      conta('cartao', 'pagar', 'Cartão', 300000, '2026-10-15', { divida: { taxa: 899 } }),
+      ...Array.from({ length: 6 }, (_, i) => conta('emp' + i, 'pagar', 'Empréstimo', 100000, `2026-${String(10 + i > 12 ? i - 2 : 10 + i).padStart(2, '0')}-20`.replace(/^2026-0(\d)/, '2027-0$1'),
+        { grupoId: 'gemp', parcela: { n: i + 1, total: 6 }, divida: { taxa: 250 } })),
+      conta('loja', 'pagar', 'Loja', 50000, '2026-09-20')   // atrasada, sem taxa
+    ];
+
+    test('consultas: "Essa parcela cabe no meu bolso?" com sobra boa, no limite, no vermelho e sem dados', async ({ page }) => {
+      await abrirCom(page, base(), 'inicio');
+      // sobra boa: R$ 2.000/mês, saldo de hoje R$ 4.000; 10x de R$ 300 a partir de 02/11
+      let r = await consultar(page, 'parcela', base({ contas: historico(500000, 300000) }), { valor: 30000, parcelas: 10 });
+      expect(r).toMatchObject({ suficiente: true, situacao: 'folga', rotuloSituacao: 'Com folga' });
+      expect(r.numeros).toMatchObject({ sobraMedia: 200000, mesesSobra: 2, pctSobra: 15, total: 300000, primeira: '2026-11-02', menorSaldo: 340000, menorData: '2026-12-02' });
+      expect(r.numeros.saldos.map(s => [s.dias, s.data, s.sem, s.com])).toEqual([[30, '2026-11-01', 400000, 400000], [60, '2026-12-01', 400000, 370000], [90, '2026-12-31', 400000, 340000]]);
+      expect(r.paragrafos.join(' ')).toContain('A parcela ocuparia 15% dessa sobra.');
+      expect(r.paragrafos.join(' ')).toContain('O momento mais apertado seria em 02/12, com R$ 3.400,00 de saldo. Nesse ponto, a folga seria de R$ 3.400,00.');
+      tom(r);
+      // no limite: sobra R$ 500/mês, parcela de R$ 400 (80%)
+      r = await consultar(page, 'parcela', base({ contas: historico(350000, 300000) }), { valor: 40000, parcelas: 6 });
+      expect(r).toMatchObject({ situacao: 'limite', numeros: { pctSobra: 80, menorSaldo: 20000 } });
+      tom(r);
+      // no vermelho: sai mais do que entra
+      r = await consultar(page, 'parcela', base({ saldo: { pessoal: 500000, negocio: 0 }, contas: historico(200000, 300000) }), { valor: 20000, parcelas: 3 });
+      expect(r).toMatchObject({ situacao: 'vermelho', numeros: { sobraMedia: -100000, pctSobra: null } });
+      expect(r.paragrafos.join(' ')).toContain('saiu mais do que entrou: em média R$ 1.000,00 a menos por mês');
+      tom(r);
+      // sem dados: diz o que falta e como anotar
+      r = await consultar(page, 'parcela', base(), { valor: 20000, parcelas: 3 });
+      expect(r.suficiente).toBe(false);
+      expect(r.paragrafos[0]).toBe('Ainda não dá para responder com os seus números.');
+      expect(r.paragrafos.join(' ')).toContain('Falta um mês completo com o que entrou e o que saiu');
+      tom(r);
+      // entrada inválida
+      r = await consultar(page, 'parcela', base({ contas: historico(500000, 300000) }), { valor: 0, parcelas: 3 });
+      expect(r.erro).toContain('Informe o valor da parcela');
+    });
+
+    test('consultas: "Como saio das dívidas?" com dois caminhos, no limite, no vermelho e sem dados', async ({ page }) => {
+      await abrirCom(page, base(), 'inicio');
+      let r = await consultar(page, 'dividas', base({ contas: [...historico(500000, 300000), ...dividas()] }));
+      expect(r).toMatchObject({ suficiente: true, situacao: 'folga', rotuloSituacao: 'Prazo curto' });
+      expect(r.numeros).toMatchObject({ total: 950000, atrasadas: 1, semTaxa: 1, sobraMedia: 200000 });
+      expect(r.numeros.dividas.map(d => [d.nome, d.total, d.taxa, d.contas])).toEqual([['Cartão', 300000, 899, 1], ['Empréstimo', 600000, 250, 6], ['Loja', 50000, null, 1]]);
+      const { custo, menores } = r.numeros.caminhos;
+      expect(custo.ordem).toEqual(['Cartão', 'Empréstimo', 'Loja']);
+      expect(menores.ordem).toEqual(['Loja', 'Cartão', 'Empréstimo']);
+      expect(custo.meses).toBeLessThanOrEqual(24);
+      expect(custo.juros).toBeLessThan(menores.juros);   // maior custo primeiro paga menos juros
+      expect(menores.primeira).toEqual({ nome: 'Loja', mes: 1 });   // e a menor sai da lista logo
+      const texto = r.paragrafos.join(' ');
+      expect(texto).toContain('Quitar primeiro as de juros mais altos');
+      expect(texto).toContain('Quitar primeiro as menores');
+      expect(texto).toContain('falta a taxa de juros');
+      tom(r);
+      // no limite: uma dívida grande a 1% ao mês e sobra de R$ 300 → mais de 2 anos
+      r = await consultar(page, 'dividas', base({ contas: [...historico(330000, 300000), conta('fin', 'pagar', 'Financiamento', 800000, '2026-10-20', { divida: { taxa: 100 } })] }));
+      expect(r.situacao).toBe('limite');
+      expect(r.numeros.caminhos.custo.meses).toBeGreaterThan(24);
+      tom(r);
+      // no vermelho: sem sobra por mês…
+      r = await consultar(page, 'dividas', base({ contas: [...historico(200000, 300000), ...dividas()] }));
+      expect(r).toMatchObject({ situacao: 'vermelho', numeros: { caminhos: null } });
+      expect(r.paragrafos.join(' ')).toContain('não há valor livre para abater as dívidas');
+      tom(r);
+      // …ou juros maiores que a sobra: não termina
+      r = await consultar(page, 'dividas', base({ contas: [...historico(330000, 300000), conta('agi', 'pagar', 'Agiota', 500000, '2026-10-20', { divida: { taxa: 1000 } })] }));
+      expect(r.situacao).toBe('vermelho');
+      expect(r.paragrafos.join(' ')).toContain('as dívidas não terminam');
+      tom(r);
+      // sem dados: sem dívidas / com dívidas mas sem mês completo
+      r = await consultar(page, 'dividas', base());
+      expect(r.suficiente).toBe(false);
+      expect(r.paragrafos.join(' ')).toContain('Não há contas atrasadas nem contas marcadas como dívida.');
+      tom(r);
+      r = await consultar(page, 'dividas', base({ contas: dividas() }));
+      expect(r.suficiente).toBe(false);
+      expect(r.paragrafos.join(' ')).toContain('Falta um mês completo');
+      tom(r);
+    });
+
+    test('consultas: "Quito a dívida ou guardo o dinheiro?" compara com o CDI e pede a taxa quando falta', async ({ page }) => {
+      await abrirCom(page, base(), 'inicio');
+      const cartao = () => conta('cartao', 'pagar', 'Cartão', 300000, '2026-10-15', { divida: { taxa: 899 } });
+      const rende = Math.round(300000 * (Math.pow(1.1365, 1 / 12) - 1));
+      // folga cobre a dívida
+      let r = await consultar(page, 'quitar', base({ saldo: { pessoal: 1000000, negocio: 0 }, contas: [cartao()] }), { cdiAnual: 13.65 });
+      expect(r).toMatchObject({ suficiente: true, situacao: 'folga', numeros: { custoMes: 26970, rendeMes: rende, diferencaMes: 26970 - rende, folga: 700000, pctQuitavel: 100 } });
+      expect(r.paragrafos.join(' ')).toContain('Num mês, isso soma cerca de R$ 269,70 de juros.');
+      expect(r.paragrafos.join(' ')).toContain('cobriria a dívida inteira');
+      expect(r.links).toEqual([{ rotulo: 'Simular em vários meses na calculadora de juros compostos', href: '/ferramentas/juros-compostos.html' }]);
+      tom(r);
+      // no limite: a folga cobre só uma parte
+      r = await consultar(page, 'quitar', base({ saldo: { pessoal: 400000, negocio: 0 }, contas: [cartao()] }), { cdiAnual: 13.65 });
+      expect(r).toMatchObject({ situacao: 'limite', numeros: { folga: 100000, pctQuitavel: 33 } });
+      tom(r);
+      // no vermelho: sem folga
+      r = await consultar(page, 'quitar', base({ saldo: { pessoal: 100000, negocio: 0 }, contas: [cartao()] }), { cdiAnual: 13.65 });
+      expect(r).toMatchObject({ situacao: 'vermelho', rotuloSituacao: 'Sem folga', numeros: { folga: -200000 } });
+      tom(r);
+      // sem dados: sem dívida; dívida sem taxa → diz onde achar
+      r = await consultar(page, 'quitar', base(), { cdiAnual: 13.65 });
+      expect(r.suficiente).toBe(false);
+      tom(r);
+      r = await consultar(page, 'quitar', base({ contas: [conta('loja', 'pagar', 'Loja', 50000, '2026-09-20')] }), { cdiAnual: 13.65 });
+      expect(r.suficiente).toBe(false);
+      expect(r.paragrafos.join(' ')).toContain('Falta a taxa de juros de "Loja".');
+      expect(r.paragrafos.join(' ')).toContain('fatura');
+      tom(r);
+      // com duas dívidas, dá para escolher qual comparar
+      r = await consultar(page, 'quitar', base({ saldo: { pessoal: 1000000, negocio: 0 }, contas: [cartao(), conta('emp', 'pagar', 'Empréstimo', 200000, '2026-10-20', { divida: { taxa: 250 } })] }), { cdiAnual: 13.65, divida: 'emp' });
+      expect(r.numeros.nome).toBe('Empréstimo');
+      expect(r.opcoes.map(o => o.nome)).toEqual(['Cartão', 'Empréstimo']);
+    });
+
+    test('consultas: "Posso gastar R$ X este mês?" com folga, no limite, no vermelho e sem dados', async ({ page }) => {
+      await abrirCom(page, base(), 'inicio');
+      const d = () => base({ saldo: { pessoal: 500000, negocio: 0 }, contas: [conta('alu', 'pagar', 'Aluguel', 180000, '2026-10-05')] });
+      let r = await consultar(page, 'gasto', d(), { valor: 50000 });
+      expect(r).toMatchObject({ suficiente: true, situacao: 'folga', numeros: { aPagar: 180000, fimSem: 320000, fimCom: 270000, menorCom: 270000, menorData: '2026-10-05' } });
+      expect(r.paragrafos.join(' ')).toContain('Até o fim do mês (31/10), ainda vencem R$ 1.800,00 a pagar.');
+      tom(r);
+      r = await consultar(page, 'gasto', d(), { valor: 300000 });
+      expect(r).toMatchObject({ situacao: 'limite', numeros: { menorCom: 20000 } });
+      tom(r);
+      r = await consultar(page, 'gasto', d(), { valor: 400000 });
+      expect(r).toMatchObject({ situacao: 'vermelho', numeros: { menorCom: -80000 } });
+      tom(r);
+      r = await consultar(page, 'gasto', semNada(), { valor: 10000 });
+      expect(r.suficiente).toBe(false);
+      expect(r.paragrafos.join(' ')).toContain('Falta saber quanto você tem hoje.');
+      tom(r);
+      // com contas mas sem saldo inicial: analisa e avisa
+      const s = d(); s.config.saldoDefinido = false;
+      r = await consultar(page, 'gasto', s, { valor: 1000 });
+      expect(r.suficiente).toBe(true);
+      expect(r.paragrafos.join(' ')).toContain('O saldo inicial ainda não foi informado');
+      // ponto da IA marcado: hoje não escreve nada
+      expect(await page.evaluate(() => window.ControlConsultas.escreverComIA({}))).toBeNull();
+    });
+
+    test('dívida com juros: marcar no lançamento (vale para o parcelamento), validar a taxa e mostrar no detalhe', async ({ page }) => {
+      const erros = await abrirCom(page, base(), 'contas');
+      await page.locator('.ctl-vazio [data-acao="novo"][data-tipo="pagar"]').click();
+      await preencher(page, '#lanc-valor', '900');
+      await preencher(page, '#lanc-desc', 'Cartão Nubank');
+      await page.locator('input[name="repeticao"][value="parcelada"]').check({ force: true });
+      await preencher(page, '#lanc-parcelas', '3');
+      await page.locator('#lanc-mais summary').click();
+      await expect(page.locator('#lanc-taxa-bloco')).toBeHidden();
+      await page.locator('#lanc-divida').check();
+      await expect(page.locator('#lanc-taxa-bloco')).toBeVisible();
+      await preencher(page, '#lanc-taxa', 'abc');
+      await page.locator('#lanc-salvar').click();
+      await expect(page.locator('[data-campo="taxa"]')).toHaveClass(/erro/);
+      await preencher(page, '#lanc-taxa', '8,99');
+      await page.locator('#lanc-salvar').click();
+      await expect(page.locator('#dlg-lanc')).toBeHidden();
+      let db = await lerDb(page);
+      expect(db.contas.map(c => c.divida)).toEqual([{ taxa: 899 }, { taxa: 899 }, { taxa: 899 }]);
+      await expect(linha(page, 'Cartão Nubank').first().locator('.ctl-linha-meta')).toContainText('dívida 8,99% a.m.');
+      await linha(page, 'Cartão Nubank').first().locator('.ctl-linha-corpo').click();
+      await expect(page.locator('.ctl-det-info')).toContainText('8,99% ao mês');
+      // tirar a marca numa parcela tira de todas; conta a receber não mostra a opção
+      await page.locator('[data-acao="det-editar"]').click();
+      await page.locator('#lanc-divida').uncheck();
+      await page.locator('#lanc-salvar').click();
+      db = await lerDb(page);
+      expect(db.contas.map(c => c.divida)).toEqual([null, null, null]);
+      await page.locator('[data-novo]:visible').first().click();
+      await page.locator('input[name="tipo"][value="receber"]').check({ force: true });
+      await expect(page.locator('#lanc-divida-bloco')).toBeHidden();
+      semErros(erros);
+    });
+
+    test('consultas na tela: atalhos no Orientador abrem a análise com números, situação, decisão e aviso', async ({ page }) => {
+      const erros = await abrirCom(page, base({ saldo: { pessoal: 1000000, negocio: 0 }, contas: [...historico(500000, 300000),
+        conta('cartao', 'pagar', 'Cartão', 300000, '2026-10-15', { divida: { taxa: 899 } })] }), 'inicio');
+      const painel = page.locator('#orientador'), dlg = page.locator('#dlg-consulta');
+      await painel.getByRole('button', { name: 'Essa parcela cabe no meu bolso?' }).click();
+      await expect(dlg).toBeVisible();
+      await preencher(page, '#cons-valor', '300');
+      await preencher(page, '#cons-parcelas', '10');
+      await dlg.getByRole('button', { name: 'Analisar com os meus números' }).click();
+      await expect(dlg.locator('[data-consulta-situacao]')).toHaveText('Com folga');
+      await expect(dlg.locator('.ctl-consulta-numeros')).toContainText('15%');
+      await expect(dlg.locator('[data-consulta-decisao]')).toHaveText('A decisão é sua.');
+      await expect(dlg.locator('[data-consulta-aviso]')).toHaveText(AVISO);
+      await dlg.locator('[data-fechar]').click();
+      // quitar ou guardar: usa o CDI do Banco Central (13,65% ao ano nos testes) e leva à calculadora de juros compostos
+      await painel.getByRole('button', { name: 'Quito a dívida ou guardo o dinheiro?' }).click();
+      await expect(dlg.locator('.ctl-consulta-texto')).toContainText('13,65% ao ano');
+      await expect(dlg.getByRole('link', { name: /juros compostos/ })).toHaveAttribute('href', '/ferramentas/juros-compostos.html');
+      await dlg.locator('[data-fechar]').click();
+      // dívidas e gasto
+      await painel.getByRole('button', { name: 'Como saio das dívidas?' }).click();
+      await expect(dlg.locator('.ctl-consulta-texto')).toContainText('Quitar primeiro as de juros mais altos');
+      await dlg.locator('[data-fechar]').click();
+      await painel.getByRole('button', { name: 'Posso gastar R$ X este mês?' }).click();
+      // saldo R$ 14.000 (10.000 + 4.000 de sobra) − cartão R$ 3.000 = R$ 11.000: gastar R$ 9.000 deixa R$ 2.000 (no limite); R$ 12.000, falta
+      await preencher(page, '#cons-valor', '9.000');
+      await dlg.getByRole('button', { name: 'Analisar com os meus números' }).click();
+      await expect(dlg.locator('[data-consulta-situacao]')).toHaveText('No limite');
+      await preencher(page, '#cons-valor', '12.000');
+      await dlg.getByRole('button', { name: 'Analisar com os meus números' }).click();
+      await expect(dlg.locator('[data-consulta-situacao]')).toHaveText('No vermelho');
+      semErros(erros);
+    });
+  });
+
   // ---------- página /assinar.html e textos legais ----------
   test.describe('assinar', () => {
     test('assinar: preço, botão desabilitado sem checkoutUrl e habilitado com a URL; links de Termos e Privacidade', async ({ page }) => {
