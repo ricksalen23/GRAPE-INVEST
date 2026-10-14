@@ -36,6 +36,17 @@ const linha = (page, desc) => page.locator('.ctl-linha', { has: page.locator('.c
 const PRO = { plano: { tipo: 'pro', testeInicio: null } };
 const nucleo = (page, fn, ...args) => page.evaluate(([f, a]) => window.ControlNucleo[f](...a), [fn, args]);
 
+// área Dívidas: o caso real do dono (4 dívidas, 3 propostas de desconto, renda de R$ 2.431,50)
+const divida = (id, credor, total, extra = {}) => ({ id, credor, total, parcela: null, parcelas: null, dia: null, taxa: null, obs: '', perfil: 'pessoal',
+  proposta: null, pagoAntes: 0, excluidas: [], quitadaEm: null, criadoEm: '2026-10-01T12:00:00.000Z', ...extra });
+const CASO_REAL = () => [
+  divida('dA', 'Banco Alfa', 1200000, { parcela: 80000, parcelas: 15, dia: 10, proposta: { valor: 700000, validade: '2026-10-06' } }),   // vence em 4 dias
+  divida('dB', 'Loja Beta', 165000),                                                                                                     // à vista, sem desconto
+  divida('dC', 'Cartão Gama', 914188, { parcela: 41554, parcelas: 22, dia: 15, proposta: { valor: 814500, validade: '2026-11-30' } }),
+  divida('dD', 'Financeira Delta', 1378748, { parcela: 33628, parcelas: 41, dia: 20, proposta: { valor: 1056800, validade: '2026-12-31' } })
+];
+const comDividas = (extra = {}) => ({ ...base({ config: { ...PRO, rendaMensal: 243150 } }), dividas: CASO_REAL(), ...extra });
+
 async function novoLancamento(page, { tipo = 'pagar', valor, descricao, vencimento, repeticao, parcelas, freq, jaPaga }) {
   await page.locator('[data-novo]:visible, [data-acao="novo"]:visible').first().click();
   const dlg = page.locator('#dlg-lanc');
@@ -946,7 +957,7 @@ test.describe('control', () => {
           conta('c2', 'receber', 'Cliente', 50000, '2026-10-12')] }), 'inicio');
         await expect(page.locator('.ctl-esqueleto')).toHaveCount(0);
         await expect(page.locator('.ctl-aurora')).toHaveCount(1);
-        for (const t of ['inicio', 'mes', 'contas', 'fluxo', 'relatorio', 'ajustes']) {
+        for (const t of ['inicio', 'mes', 'contas', 'dividas', 'fluxo', 'relatorio', 'ajustes']) {
           await page.locator(`.ctl-inferior a[href="#${t}"]`).click();
           await page.waitForTimeout(500);
           expect(await page.evaluate(() => document.documentElement.scrollWidth), `tela ${t}`).toBeLessThanOrEqual(390);
@@ -1175,6 +1186,45 @@ test.describe('control', () => {
       tom(r);
     });
 
+    test('consultas: "Como saio das dívidas?" com o cadastro de Dívidas: pagando normal e qual proposta à vista economiza mais', async ({ page }) => {
+      await abrirCom(page, base(), 'inicio');
+      let r = await consultar(page, 'dividas', comDividas());
+      expect(r).toMatchObject({ suficiente: true, situacao: 'limite', rotuloSituacao: 'Prazo longo' });
+      expect(r.numeros).toMatchObject({ modo: 'cadastradas', dividas: 4, total: 3657936, compromisso: 155182, renda: 243150, sobra: 87968, fonteSobra: 'renda',
+        normal: { meses: 41, custo: 3657936, semFim: [], avista: [{ nome: 'Loja Beta', valor: 165000 }] } });
+      // maior economia primeiro; meses para juntar o valor à vista com R$ 879,68 por mês
+      expect(r.numeros.opcoes.map(o => [o.nome, o.vista, o.economia, o.pct, o.mesesJuntar, o.libera, o.venceAntes])).toEqual([
+        ['Banco Alfa', 700000, 500000, 41.7, 8, 80000, true],
+        ['Financeira Delta', 1056800, 321948, 23.4, 13, 33628, true],
+        ['Cartão Gama', 814500, 99688, 10.9, 10, 41554, true],
+        ['Loja Beta', 165000, 0, 0, 2, 0, false]]);
+      expect(r.numeros.melhor).toMatchObject({ nome: 'Banco Alfa', economia: 500000 });
+      const texto = r.paragrafos.join(' ');
+      expect(texto).toContain('Você tem 4 dívidas em aberto, somando R$ 36.579,36. As parcelas somam R$ 1.551,82 por mês.');
+      expect(texto).toContain('Pagando normal, a última parcela sai daqui a 41 meses e o custo total fica em R$ 36.579,36. "Loja Beta" não tem parcelas: são R$ 1.650,00 à vista, sem data marcada.');
+      expect(texto).toContain('Com a renda de R$ 2.431,50, sobram R$ 879,68 por mês depois das parcelas.');
+      expect(texto).toContain('"Banco Alfa": à vista por R$ 7.000,00 (proposta até 06/10). Economiza R$ 5.000,00 (41,7%) em relação a pagar as parcelas até o fim. Juntando a sobra, leva 8 meses; depois, libera R$ 800,00 por mês. A proposta vale até 06/10, antes de dar para juntar esse valor.');
+      expect(texto).toContain('Pelos números, a escolha que mais economiza é "Banco Alfa": R$ 5.000,00 a menos.');
+      tom(r);
+      // a renda não cobre as parcelas: vermelho
+      r = await consultar(page, 'dividas', comDividas({ config: { ...PRO, rendaMensal: 150000 } }));
+      expect(r).toMatchObject({ situacao: 'vermelho', rotuloSituacao: 'Sem folga para as dívidas', numeros: { sobra: -5182 } });
+      expect(r.paragrafos.join(' ')).toContain('A renda de R$ 1.500,00 não cobre as parcelas: faltam R$ 51,82 por mês.');
+      tom(r);
+      // sem renda e sem histórico: diz o que falta; com histórico, usa a sobra média
+      r = await consultar(page, 'dividas', { ...comDividas(), config: { ...base().config, ...PRO } });
+      expect(r.suficiente).toBe(false);
+      expect(r.paragrafos.join(' ')).toContain('Falta a sua renda mensal');
+      tom(r);
+      r = await consultar(page, 'dividas', { ...comDividas(), config: { ...base().config, ...PRO }, contas: historico(500000, 300000) });
+      expect(r.numeros).toMatchObject({ fonteSobra: 'historico', sobra: 200000 });
+      expect(r.paragrafos.join(' ')).toContain('A renda mensal não foi informada em Dívidas, então a conta usa essa média.');
+      tom(r);
+      // "Quito ou guardo" também enxerga as dívidas cadastradas (pelo que falta hoje)
+      r = await consultar(page, 'quitar', comDividas(), { cdiAnual: 13.65 });
+      expect(r.opcoes.map(o => [o.nome, o.total]).sort()).toEqual([['Banco Alfa', 1200000], ['Cartão Gama', 914188], ['Financeira Delta', 1378748], ['Loja Beta', 165000]]);
+    });
+
     test('consultas: "Quito a dívida ou guardo o dinheiro?" compara com o CDI e pede a taxa quando falta', async ({ page }) => {
       await abrirCom(page, base(), 'inicio');
       const cartao = () => conta('cartao', 'pagar', 'Cartão', 300000, '2026-10-15', { divida: { taxa: 899 } });
@@ -1243,7 +1293,7 @@ test.describe('control', () => {
       await expect(chips).toHaveText(['Essa parcela cabe no meu bolso?']);
       await expect(vitrine).toHaveCount(3);
       await expect(vitrine.locator('strong')).toHaveText(['Como saio das dívidas?', 'Quito a dívida ou guardo o dinheiro?', 'Posso gastar R$ X este mês?']);
-      await expect(painel.locator('[data-vitrine="dividas"] p')).toHaveText('Monta um plano de saída das suas dívidas usando a sua sobra real.');
+      await expect(painel.locator('[data-vitrine="dividas"] p')).toHaveText('Mostra quanto tempo e quanto custa pagar normal e qual proposta à vista economiza mais com a sua sobra.');
       await expect(vitrine.getByRole('button', { name: /^Ver no Pro/ })).toHaveCount(3);
       // a liberada abre normalmente
       await chips.first().click();
@@ -1288,7 +1338,7 @@ test.describe('control', () => {
       await expect(page.locator('#lanc-taxa-bloco')).toBeVisible();
       await preencher(page, '#lanc-taxa', 'abc');
       await page.locator('#lanc-salvar').click();
-      await expect(page.locator('[data-campo="taxa"]')).toHaveClass(/erro/);
+      await expect(page.locator('#dlg-lanc [data-campo="taxa"]')).toHaveClass(/erro/);
       await preencher(page, '#lanc-taxa', '8,99');
       await page.locator('#lanc-salvar').click();
       await expect(page.locator('#dlg-lanc')).toBeHidden();
@@ -1341,6 +1391,210 @@ test.describe('control', () => {
       await dlg.getByRole('button', { name: 'Analisar com os meus números' }).click();
       await expect(dlg.locator('[data-consulta-situacao]')).toHaveText('No vermelho');
       semErros(erros);
+    });
+  });
+
+  // ---------- Dívidas (área do Pro): cadastro + resumo; as parcelas entram no fluxo e no "Meu mês" ----------
+  test.describe('dividas', () => {
+    const cartao = (page, credor) => page.locator('.ctl-div', { has: page.locator('h3', { hasText: credor }) });
+
+    test('dívidas: o caso real — resumo, ordem pela maior economia e proposta que vence em 7 dias em destaque', async ({ page }) => {
+      const erros = await abrirCom(page, comDividas(), 'dividas');
+      const res = page.locator('[data-dividas="resumo"]');
+      await expect(res.locator('[data-div="total"]')).toHaveText('R$ 36.579,36');
+      await expect(res.locator('[data-div="vista"]')).toHaveText('R$ 27.363,00');
+      await expect(res.locator('[data-div="economia"]')).toHaveText('R$ 9.216,36');
+      await expect(res.locator('[data-div="economia-pct"]')).toHaveText('25,2% do total');
+      await expect(res.locator('[data-div="compromisso"]')).toHaveText('R$ 1.551,82');
+      await expect(res.locator('[data-div="pct-renda"]')).toHaveText('63,8% da renda');
+      await expect(res.locator('[data-div="sobra"]')).toHaveText('R$ 879,68');
+      await expect(res.locator('[data-div="renda"]')).toHaveText('R$ 2.431,50');
+      // maior economia primeiro (R$ 5.000 · R$ 3.219,48 · R$ 996,88 · sem desconto)
+      await expect(page.locator('.ctl-div h3')).toHaveText(['Banco Alfa', 'Financeira Delta', 'Cartão Gama', 'Loja Beta']);
+      await expect(cartao(page, 'Banco Alfa').locator('[data-div-eco]')).toHaveText('Economia de R$ 5.000,00 (41,7%)');
+      await expect(cartao(page, 'Financeira Delta').locator('[data-div-eco]')).toHaveText('Economia de R$ 3.219,48 (23,4%)');
+      await expect(cartao(page, 'Cartão Gama').locator('[data-div-eco]')).toHaveText('Economia de R$ 996,88 (10,9%)');
+      await expect(cartao(page, 'Loja Beta').locator('.ctl-div-proposta')).toContainText('Sem desconto');
+      await expect(cartao(page, 'Banco Alfa')).toContainText('Parcela R$ 800,00 · dia 10 · faltam 15');
+      // a proposta que vence em até 7 dias fica em destaque (cartão e aviso no topo); as outras, não
+      await expect(cartao(page, 'Banco Alfa')).toHaveClass(/vencendo/);
+      await expect(cartao(page, 'Banco Alfa').locator('[data-proposta-vence]')).toHaveText('Vence em 4 dias');
+      await expect(page.locator('.ctl-div.vencendo')).toHaveCount(1);
+      await expect(page.locator('[data-div-vencendo]')).toContainText('A proposta de Banco Alfa vence em 4 dias (06/10)');
+      // os mesmos números no núcleo
+      const r = await page.evaluate(() => window.ControlNucleo.resumoDividas(window.WardenControl.db, 'tudo', '2026-10-02'));
+      expect(r).toMatchObject({ totalDevido: 3657936, totalVista: 2736300, economia: 921636, pctEconomia: 25.2, compromisso: 155182, renda: 243150, pctRenda: 63.8, sobra: 87968 });
+      // a proposta vencida não entra no total à vista
+      await page.clock.setFixedTime(new Date('2026-10-07T12:00:00-03:00'));
+      await page.reload();
+      await expect(page.locator('[data-div="vista"]')).toHaveText('R$ 32.363,00');
+      await expect(cartao(page, 'Banco Alfa').locator('.ctl-div-proposta')).toContainText('A proposta de R$ 7.000,00 venceu em 06/10/2026');
+      await expect(page.locator('[data-div-vencendo]')).toHaveCount(0);
+      semErros(erros);
+    });
+
+    test('dívidas: as parcelas entram sozinhas no fluxo e no "Meu mês", sem duplicar e sem contar no limite do grátis', async ({ page }) => {
+      const erros = await abrirCom(page, comDividas(), 'mes');
+      let db = await lerDb(page);
+      const geradas = db.contas.filter(c => c.dividaId);
+      // até 31/12 (hoje + 90 dias): 3 parcelas de cada dívida com parcela; a "à vista" não gera nada
+      expect(geradas.map(c => [c.descricao, c.vencimento, c.valor]).sort()).toEqual([
+        ['Banco Alfa', '2026-10-10', 80000], ['Banco Alfa', '2026-11-10', 80000], ['Banco Alfa', '2026-12-10', 80000],
+        ['Cartão Gama', '2026-10-15', 41554], ['Cartão Gama', '2026-11-15', 41554], ['Cartão Gama', '2026-12-15', 41554],
+        ['Financeira Delta', '2026-10-20', 33628], ['Financeira Delta', '2026-11-20', 33628], ['Financeira Delta', '2026-12-20', 33628]]);
+      expect(geradas.every(c => c.tipo === 'pagar' && c.categoriaId === 'cat_dividas')).toBe(true);
+      expect(await page.evaluate(() => window.ControlNucleo.lancamentosNoMes(window.WardenControl.db, '2026-10'))).toBe(0);
+      await page.reload();
+      expect((await lerDb(page)).contas).toHaveLength(9);
+      // "Meu mês": as parcelas de outubro, com o número da parcela
+      await expect(page.locator('.ctl-mes .ctl-linha-desc')).toHaveText(['Banco Alfa', 'Cartão Gama', 'Financeira Delta']);
+      await expect(doMes(page, 'Banco Alfa')).toContainText('parcela 1/15 da dívida');
+      await expect(page.locator('[data-mes="progresso"]')).toHaveText('0 de 3 pagas · faltam R$ 1.551,82');
+      // pagar a parcela abate do que falta e do prazo
+      await doMes(page, 'Banco Alfa').locator('.ctl-check').click();
+      await page.locator('.ctl-lateral a[href="#dividas"]').click();
+      await expect(cartao(page, 'Banco Alfa').locator('[data-div-devido]')).toHaveText('R$ 11.200,00');
+      await expect(cartao(page, 'Banco Alfa')).toContainText('faltam 14');
+      await expect(page.locator('[data-div="total"]')).toHaveText('R$ 35.779,36');
+      // fluxo: as parcelas estão nos próximos movimentos
+      await page.locator('.ctl-lateral a[href="#fluxo"]').click();
+      await page.locator('[data-acao="periodo"][data-v="90"]').click();
+      await expect(page.locator('.ctl-mov .ctl-linha-desc', { hasText: 'Cartão Gama' })).toHaveCount(3);
+      // excluir uma parcela: ela não volta ao recarregar
+      await page.locator('.ctl-lateral a[href="#contas"]').click();
+      await linha(page, 'Financeira Delta').first().locator('.ctl-linha-corpo').click();
+      await expect(page.locator('.ctl-det-info')).toContainText('Parcela 1/41 da dívida (Financeira Delta, em Dívidas)');
+      await page.locator('[data-acao="det-excluir"]').click();
+      await page.locator('#dlg-confirmar').getByRole('button', { name: 'Excluir' }).click();
+      await expect.poll(async () => (await lerDb(page)).contas.filter(c => c.dividaId === 'dD').length).toBe(2);
+      await page.reload();
+      db = await lerDb(page);
+      expect(db.contas.filter(c => c.dividaId === 'dD').map(c => c.vencimento)).toEqual(['2026-11-20', '2026-12-20']);
+      expect(db.dividas.find(d => d.id === 'dD').excluidas).toEqual(['2026-10-20']);
+      semErros(erros);
+    });
+
+    test('dívidas: cadastrar com proposta (economia na hora), validar, editar, quitar e excluir, com Desfazer', async ({ page }) => {
+      const erros = await abrirCom(page, base({ config: PRO }), 'dividas');
+      await expect(page.locator('.ctl-vazio h2')).toHaveText('Suas dívidas num lugar só');
+      await expect(page.locator('[data-novo]:visible')).toHaveCount(0);   // aqui o botão é "Nova dívida"
+      await page.locator('.ctl-div-nova').click();
+      const dlg = page.locator('#dlg-divida');
+      await expect(dlg).toBeVisible();
+      await expect(page.locator('#divida-origem-bloco')).toBeHidden();
+      await preencher(page, '#divida-credor', 'Banco Alfa');
+      await preencher(page, '#divida-total', '12.000');
+      await expect(page.locator('#divida-prazo-bloco')).toBeHidden();
+      await preencher(page, '#divida-parcela', '800');
+      await expect(page.locator('#divida-prazo-bloco')).toBeVisible();
+      await expect(page.locator('#divida-dica')).toContainText('15 parcelas');
+      await preencher(page, '#divida-parcelas', '15');
+      await preencher(page, '#divida-dia', '10');
+      await preencher(page, '#divida-vista', '13.000');
+      await expect(page.locator('#divida-eco')).toHaveText('A proposta não é menor que o total devido.');
+      await page.locator('#divida-salvar').click();
+      await expect(dlg.locator('[data-campo="proposta"]')).toHaveClass(/erro/);
+      await preencher(page, '#divida-vista', '7.000');
+      await expect(page.locator('#divida-eco')).toHaveText('Economia de R$ 5.000,00 (41,7%) sobre o total devido.');
+      await preencher(page, '#divida-validade', '2026-10-20');
+      await page.locator('#divida-salvar').click();
+      await expect(dlg).toBeHidden();
+      let db = await lerDb(page);
+      expect(db.dividas[0]).toMatchObject({ credor: 'Banco Alfa', total: 1200000, parcela: 80000, parcelas: 15, dia: 10, inicio: '2026-10-10', proposta: { valor: 700000, validade: '2026-10-20' } });
+      expect(db.contas.map(c => c.vencimento)).toEqual(['2026-10-10', '2026-11-10', '2026-12-10']);
+      await expect(page.locator('[data-div="pct-renda"]')).toHaveText('Informe a renda para ver o peso');
+      // renda mensal
+      await page.locator('[data-dividas="resumo"] [data-acao="renda"]').click();
+      await preencher(page, '#conf-campo', '2.431,50');
+      await page.locator('#dlg-confirmar').getByRole('button', { name: 'Salvar renda' }).click();
+      await expect(page.locator('[data-div="sobra"]')).toHaveText('R$ 1.631,50');
+      // editar: parcela e prazo novos refazem as parcelas em aberto
+      await cartao(page, 'Banco Alfa').getByRole('button', { name: 'Editar Banco Alfa' }).click();
+      await expect(page.locator('#divida-total')).toHaveValue('12.000,00');
+      await expect(page.locator('#divida-parcelas')).toHaveValue('15');
+      await preencher(page, '#divida-parcela', '1.000');
+      await preencher(page, '#divida-parcelas', '12');
+      await page.locator('#divida-salvar').click();
+      await expect(dlg).toBeHidden();
+      db = await lerDb(page);
+      expect(db.contas.map(c => [c.vencimento, c.valor])).toEqual([['2026-10-10', 100000], ['2026-11-10', 100000], ['2026-12-10', 100000]]);
+      await expect(cartao(page, 'Banco Alfa')).toContainText('Parcela R$ 1.000,00 · dia 10 · faltam 12');
+      // quitei: com o valor da proposta, as parcelas saem e o pagamento entra pago hoje
+      await cartao(page, 'Banco Alfa').getByRole('button', { name: 'Quitei Banco Alfa' }).click();
+      await expect(page.locator('#conf-campo')).toHaveValue('7.000,00');
+      await page.locator('#dlg-confirmar').getByRole('button', { name: 'Quitei' }).click();
+      await expect(page.locator('.ctl-div-quitadas')).toContainText('Quitada em 02/10/2026');
+      await expect(page.locator('[data-div="total"]')).toHaveText('R$ 0,00');
+      db = await lerDb(page);
+      expect(db.contas.map(c => [c.descricao, c.valor, c.baixas.length])).toEqual([['Quitação: Banco Alfa', 700000, 1]]);
+      // Desfazer volta tudo
+      await page.locator('#toast button').click();
+      await expect(page.locator('.ctl-div h3')).toHaveText(['Banco Alfa']);
+      expect((await lerDb(page)).contas).toHaveLength(3);
+      // excluir: sai o cadastro e as parcelas sem baixa
+      await cartao(page, 'Banco Alfa').getByRole('button', { name: 'Excluir Banco Alfa' }).click();
+      await page.locator('#dlg-confirmar').getByRole('button', { name: 'Excluir' }).click();
+      await expect.poll(async () => (await lerDb(page)).dividas.length).toBe(0);
+      expect((await lerDb(page)).contas).toHaveLength(0);
+      semErros(erros);
+    });
+
+    test('dívidas: nasce de uma conta marcada como dívida, sem duplicar as parcelas', async ({ page }) => {
+      const emp = [1, 2, 3].map(n => conta('e' + n, 'pagar', 'Empréstimo Zeta', 50000, `2026-${9 + n}-20`, { grupoId: 'gz', parcela: { n, total: 3 }, divida: { taxa: 250 } }));
+      const erros = await abrirCom(page, base({ config: PRO, contas: emp }), 'dividas');
+      await expect(page.locator('[data-div-de-conta]')).toContainText('Você tem 1 conta marcada como dívida');
+      await page.locator('.ctl-div-nova').click();
+      await expect(page.locator('#divida-origem-bloco')).toBeVisible();
+      await page.locator('#divida-origem').selectOption('e1');
+      await expect(page.locator('#divida-credor')).toHaveValue('Empréstimo Zeta');
+      await expect(page.locator('#divida-total')).toHaveValue('1.500,00');
+      await expect(page.locator('#divida-parcela')).toHaveValue('500,00');
+      await expect(page.locator('#divida-parcelas')).toHaveValue('3');
+      await expect(page.locator('#divida-dia')).toHaveValue('20');
+      await expect(page.locator('#divida-taxa')).toHaveValue('2,5');
+      await page.locator('#divida-salvar').click();
+      await expect(page.locator('#dlg-divida')).toBeHidden();
+      const db = await lerDb(page);
+      expect(db.contas.map(c => [c.descricao, c.vencimento, c.valor, !!c.dividaId])).toEqual([
+        ['Empréstimo Zeta', '2026-10-20', 50000, true], ['Empréstimo Zeta', '2026-11-20', 50000, true], ['Empréstimo Zeta', '2026-12-20', 50000, true]]);
+      expect(db.dividas[0]).toMatchObject({ credor: 'Empréstimo Zeta', total: 150000, parcelas: 3, taxa: 250, origem: 'gz' });
+      await expect(page.locator('[data-div-de-conta]')).toHaveCount(0);
+      semErros(erros);
+    });
+
+    test('dívidas: no grátis é vitrine do Pro; o teste de 7 dias libera a área', async ({ page }) => {
+      const erros = await abrirCom(page, base(), 'dividas');
+      const vit = page.locator('[data-dividas="vitrine"]');
+      await expect(vit).toBeVisible();
+      await expect(vit.locator('.ctl-selo-pro')).toHaveText('Pro');
+      await expect(vit).toContainText('quanto as parcelas somam por mês, o peso delas na sua renda e quanto sobra');
+      await expect(page.locator('.ctl-lateral a[href="#dividas"]')).toHaveAttribute('aria-current', 'page');
+      await vit.getByRole('button', { name: 'Conhecer o Pro' }).click();
+      const pro = page.locator('#dlg-pro');
+      await expect(pro.locator('[data-pro-motivo]')).toContainText('A área Dívidas é do Pro');
+      await expect(pro.locator('.ctl-pro-tabela')).toContainText('Dívidas e propostas de desconto');
+      await pro.getByRole('button', { name: 'Agora não' }).click();
+      await page.evaluate(() => window.WardenControl.abrirDivida());
+      await expect(pro).toBeVisible();
+      await expect(page.locator('#dlg-divida')).toBeHidden();
+      await pro.getByRole('button', { name: 'Testar 7 dias grátis' }).click();
+      await expect(vit).toHaveCount(0);
+      await expect(page.locator('.ctl-div-nova')).toBeVisible();
+      semErros(erros);
+    });
+
+    test.describe('celular (390px)', () => {
+      test.use({ viewport: { width: 390, height: 844 } });
+      test('dívidas no celular: resumo e lista sem passar da largura da tela; consulta pelo botão da área', async ({ page }) => {
+        const erros = await abrirCom(page, comDividas(), 'dividas');
+        await expect(page.locator('.ctl-inferior a[href="#dividas"]')).toHaveAttribute('aria-current', 'page');
+        await expect(page.locator('[data-div="sobra"]')).toHaveText('R$ 879,68');
+        expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+        await page.getByRole('button', { name: 'Como saio das dívidas?' }).click();
+        await expect(page.locator('#dlg-consulta [data-consulta-situacao]')).toHaveText('Prazo longo');
+        await expect(page.locator('#dlg-consulta .ctl-consulta-numeros')).toContainText('41 meses');
+        semErros(erros);
+      });
     });
   });
 
@@ -1706,7 +1960,7 @@ test.describe('control', () => {
       await expect(page.locator('.ctl-lateral')).toBeHidden();
       await expect(page.locator('.ctl-fab')).toBeVisible();
       await expect(page.locator('[data-novo]:visible')).toHaveCount(1);
-      for (const t of ['inicio', 'mes', 'contas', 'fluxo', 'relatorio', 'ajustes']) {
+      for (const t of ['inicio', 'mes', 'contas', 'dividas', 'fluxo', 'relatorio', 'ajustes']) {
         await page.locator(`.ctl-inferior a[href="#${t}"]`).click();
         await expect(page.locator(`.ctl-inferior a[href="#${t}"]`)).toHaveAttribute('aria-current', 'page');
         const largura = await page.evaluate(() => document.documentElement.scrollWidth);

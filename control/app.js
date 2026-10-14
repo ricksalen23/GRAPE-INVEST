@@ -1,6 +1,6 @@
 /*
  * WARDEN CONTROL — telas e interações. Regras e contas ficam no nucleo.js (window.ControlNucleo).
- * Telas por hash: #inicio, #mes, #contas, #fluxo, #relatorio, #ajustes. Tudo é redesenhado a partir do `db` depois de cada mudança.
+ * Telas por hash: #inicio, #mes, #contas, #dividas, #fluxo, #relatorio, #ajustes. Tudo é redesenhado a partir do `db` depois de cada mudança.
  * Toda mudança passa por mudar()/substituirDb(): guardam uma cópia antes (pilha do Desfazer), gravam e redesenham.
  */
 (function () {
@@ -69,7 +69,8 @@
     mensagem: '<path d="M20 12a8 8 0 0 1-11.6 7.1L4 20l1-4.2A8 8 0 1 1 20 12z"/>',
     imagem: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/>',
     copiar: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>',
-    calendario: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="m9 15 2 2 4-4"/>'
+    calendario: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="m9 15 2 2 4-4"/>',
+    divida: '<path d="M19 5 5 19"/><circle cx="7" cy="7" r="2.5"/><circle cx="17" cy="17" r="2.5"/>'
   };
   const ic = (nome, extra = '') => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ${extra}>${P[nome] || P.ponto}</svg>`;
 
@@ -77,6 +78,7 @@
     { id: 'inicio', nome: 'Início', icone: 'casa' },
     { id: 'mes', nome: 'Meu mês', icone: 'calendario' },
     { id: 'contas', nome: 'Contas', icone: 'lista' },
+    { id: 'dividas', nome: 'Dívidas', icone: 'divida' },
     { id: 'fluxo', nome: 'Fluxo de caixa', curto: 'Fluxo', icone: 'grafico' },
     { id: 'relatorio', nome: 'Relatório', icone: 'documento' },
     { id: 'ajustes', nome: 'Ajustes', icone: 'ajustes' }
@@ -159,6 +161,7 @@
     if (c.contato) meta.push(c.contato);
     if (c.parcela) meta.push(`parcela ${c.parcela.n}/${c.parcela.total}`);
     if (c.divida) meta.push(c.divida.taxa != null ? `dívida ${N.formatTaxa(c.divida.taxa)}% a.m.` : 'dívida');
+    if (c.dividaId) meta.push(rotuloParcelaDivida(c));
     if (c.recorrenciaId) meta.push({ mensal: 'todo mês', semanal: 'toda semana', anual: 'todo ano' }[(db.recorrencias.find(r => r.id === c.recorrenciaId) || {}).freq] || 'repete');
     if (perfil() === 'tudo') meta.push(N.PERFIS[c.perfil]);
     const pct = c.valor ? Math.round(N.totalAbatido(c) / c.valor * 100) : 0;
@@ -177,6 +180,15 @@
         </span>
       </button>
     </li>`;
+  }
+
+  /** "parcela 3/15 da dívida" (pelo mês desde o início do cadastro) ou só "parcela da dívida" */
+  function rotuloParcelaDivida(c) {
+    const d = (db.dividas || []).find(x => x.id === c.dividaId);
+    if (!c.ocorrencia) return 'quitação da dívida';
+    if (!d || d.parcelas == null || !d.inicio || c.ocorrencia < d.inicio) return 'parcela da dívida';
+    const mes = iso => Number(iso.slice(0, 4)) * 12 + Number(iso.slice(5, 7));
+    return `parcela ${mes(c.ocorrencia) - mes(d.inicio) + 1}/${d.parcelas} da dívida`;
   }
 
   /** extrato agrupado por dia (atrasadas juntas no topo). modo 'pagas' agrupa pela data da baixa. */
@@ -337,8 +349,10 @@
   function telaMes() {
     const r = ref(), ym = N.mesDe(r), nomeMes = N.nomeMes(ym).replace(/^./, l => l.toUpperCase());
     const modelos = db.modelos.filter(doPerfil);
-    document.body.toggleAttribute('data-sem-novo', !modelos.length);
-    if (!modelos.length) {
+    const todas = N.contasMes(db, perfil(), ym).sort((a, b) => a.vencimento.localeCompare(b.vencimento) || a.descricao.localeCompare(b.descricao));
+    const temDividas = todas.some(c => c.dividaId);
+    document.body.toggleAttribute('data-sem-novo', !modelos.length && !temDividas);
+    if (!modelos.length && !temDividas) {
       return `${cabecalho('Meu mês', nomeMes)}
         <div class="ctl-vazio"><div class="ic">${ic('calendario')}</div>
           <h2>Suas contas fixas, prontas todo mês</h2>
@@ -346,11 +360,10 @@
           <div class="ctl-vazio-botoes um"><button type="button" class="btn btn-primary" data-acao="novo-modelo">${ic('mais')} Cadastrar conta fixa</button></div>
         </div>`;
     }
-    const todas = N.contasMes(db, perfil(), ym).sort((a, b) => a.vencimento.localeCompare(b.vencimento) || a.descricao.localeCompare(b.descricao));
     const pagas = todas.filter(N.quitada), abertas = todas.filter(c => !N.quitada(c));
     const semana = N.addDias(r, 7);
     // de meses anteriores, só o que ficou em aberto (o mês passado em si fica intacto; a conta não some da lista)
-    const antigas = contasPerfil().filter(c => c.modeloId && c.ocorrencia && N.mesDe(c.ocorrencia) < ym && !N.quitada(c))
+    const antigas = contasPerfil().filter(c => (c.modeloId || c.dividaId) && c.ocorrencia && N.mesDe(c.ocorrencia) < ym && !N.quitada(c))
       .sort((a, b) => a.vencimento.localeCompare(b.vencimento));
     const grupos = [
       ['Atrasadas', [...antigas, ...abertas.filter(c => c.vencimento < r)], 'atrasadas'],
@@ -364,7 +377,7 @@
     const variavel = c => (db.modelos.find(m => m.id === c.modeloId) || {}).variavel;
     const lista = itens => `<div class="ctl-extrato"><ul>${itens.map(c => linha(c, {
       hojeRef: r, icone: true, pilula: pilulaMes(c, r), acaoCorpo: 'mes-abrir', carimbo: c.id === carimbar,
-      meta: variavel(c) && !N.quitada(c) ? 'ajustar valor' : ''
+      meta: variavel(c) && !N.quitada(c) ? 'ajustar valor' : c.dividaId ? rotuloParcelaDivida(c) : ''
     })).join('')}</ul></div>`;
 
     return `${cabecalho('Meu mês', nomeMes)}
@@ -381,7 +394,7 @@
       </div>
       <div class="ctl-card ctl-modelos">
         <div class="ctl-bloco-cab" style="margin:0"><h2>Contas fixas</h2><button type="button" class="btn btn-secondary" data-acao="novo-modelo">${ic('mais')} Nova</button></div>
-        <p class="sub">Cadastradas uma vez, viram um item novo, desmarcado, todo mês. Mudar aqui vale para os próximos meses.</p>
+        <p class="sub">Cadastradas uma vez, viram um item novo, desmarcado, todo mês. Mudar aqui vale para os próximos meses.${temDividas ? ' As parcelas das dívidas entram sozinhas, a partir do cadastro em Dívidas.' : ''}</p>
         <ul class="ctl-cats">${[...modelos].sort((a, b) => a.dia - b.dia || a.descricao.localeCompare(b.descricao)).map(m => `<li>
           <span class="ic">${ic((N.categoria(db, m.categoriaId) || {}).icone)}</span>
           <span class="nome">${esc(m.descricao)}<small>${m.tipo === 'receber' ? '+ ' : ''}${brl(m.valor)} · todo dia ${m.dia}${m.variavel ? ' · varia' : ''}</small></span>
@@ -535,11 +548,111 @@
       </div>`;
   }
 
+  // ---------- Dívidas (área do Pro): cadastro + resumo; as contas ficam no núcleo ----------
+  const pct = v => N.formatPct(v);
+  function vitrineDividas() {
+    const p = plano(), salvas = (db.dividas || []).filter(d => !d.quitadaEm).length;
+    return `${cabecalho('Dívidas', 'O que você deve, as propostas de desconto e quanto as parcelas pesam no mês.')}
+      <div class="ctl-vazio ctl-div-vitrine" data-dividas="vitrine">
+        <div class="ic">${ic('divida')}</div>
+        <span class="ctl-selo-pro">Pro</span>
+        <h2>Todas as suas dívidas num lugar só</h2>
+        <p>Anote cada dívida uma vez: com quem é, quanto falta, a parcela e as propostas de desconto para quitar à vista. O Control mostra:</p>
+        <ul>
+          <li>o total devido hoje e quanto seria à vista com os descontos;</li>
+          <li>quanto você economiza, em reais e em porcentagem;</li>
+          <li>quanto as parcelas somam por mês, o peso delas na sua renda e quanto sobra;</li>
+          <li>as propostas que vencem nos próximos 7 dias;</li>
+          <li>as parcelas entrando sozinhas no fluxo de caixa e no "Meu mês".</li>
+        </ul>
+        ${salvas ? `<p class="ctl-dica" data-dividas-salvas>Suas ${salvas === 1 ? 'dívida continua salva' : `${salvas} dívidas continuam salvas`}, e as parcelas seguem em Contas, no Fluxo e no "Meu mês".</p>` : ''}
+        <div class="ctl-vazio-botoes">
+          ${p.testeUsado ? '' : '<button type="button" class="btn btn-primary" data-acao="pro-teste">Testar 7 dias grátis</button>'}
+          <button type="button" class="btn btn-secondary" data-acao="pro" data-motivo="dividas">Conhecer o Pro</button>
+        </div>
+      </div>`;
+  }
+  /** "Parcela R$ 800,00 · dia 10 · faltam 15" / "Sem parcela (à vista)" */
+  function linhaParcela(x) {
+    if (!x.parcela) return 'Sem parcela (à vista)';
+    const prazo = x.semPrazo ? 'sem prazo' : `${x.faltam === 1 ? 'falta 1' : `faltam ${x.faltam}`}`;
+    return `Parcela ${brl(x.parcela)} · dia ${x.dia} · ${prazo}${x.taxa != null ? ` · ${N.formatTaxa(x.taxa)}% a.m.` : ''}`;
+  }
+  function cartaoDivida(x) {
+    const pr = x.proposta;
+    let proposta;
+    if (pr && !pr.vencida) {
+      const prazo = pr.venceEm == null ? '' : pr.venceEm === 0 ? 'Vence hoje' : `Vence em ${pr.venceEm} ${pr.venceEm === 1 ? 'dia' : 'dias'}`;
+      proposta = `<p>À vista por <strong class="ctl-num">${brl(x.vista)}</strong>${pr.validade ? ` até ${N.dataBR(pr.validade).slice(0, 5)}` : ''}
+          ${pr.vencendo ? `<span class="ctl-pill hoje" data-proposta-vence>${prazo}</span>` : ''}</p>
+        <p class="eco" data-div-eco>Economia de <strong class="ctl-num">${brl(x.economia)}</strong> (${pct(x.pctEconomia)})</p>`;
+    } else if (pr) proposta = `<p class="sem">A proposta de ${brl(pr.valor)} venceu em ${N.dataBR(pr.validade)}. Ela não entra no total à vista.</p>`;
+    else proposta = `<p class="sem">${x.parcela ? 'Sem proposta de desconto anotada.' : 'Sem desconto: o valor à vista é o que falta.'}</p>`;
+    return `<li class="ctl-card ctl-div${pr && pr.vencendo ? ' vencendo' : ''}" data-divida="${esc(x.id)}">
+      <div class="ctl-div-topo">
+        <div class="nome"><h3>${esc(x.credor)}</h3><p>${esc(linhaParcela(x))}${perfil() === 'tudo' ? ` · ${N.PERFIS[x.perfil]}` : ''}</p></div>
+        <div class="dir"><span class="ctl-rotulo">Falta</span><strong class="ctl-num" data-div-devido>${brl(x.devido)}</strong></div>
+      </div>
+      <div class="ctl-div-proposta">${proposta}</div>
+      <div class="ctl-div-acoes">
+        <button type="button" class="btn btn-secondary" data-acao="divida-proposta" data-id="${esc(x.id)}" aria-label="${pr ? 'Proposta de' : 'Anotar proposta de'} ${esc(x.credor)}">Proposta</button>
+        <button type="button" class="btn btn-secondary" data-acao="divida-editar" data-id="${esc(x.id)}" aria-label="Editar ${esc(x.credor)}">${ic('lapis')} Editar</button>
+        <button type="button" class="btn btn-secondary" data-acao="divida-quitar" data-id="${esc(x.id)}" aria-label="Quitei ${esc(x.credor)}">${ic('check')} Quitei</button>
+        <button type="button" class="ctl-icone-btn" data-acao="divida-excluir" data-id="${esc(x.id)}" aria-label="Excluir ${esc(x.credor)}">${ic('lixo')}</button>
+      </div>
+    </li>`;
+  }
+  function telaDividas() {
+    document.body.setAttribute('data-sem-novo', '');
+    if (!recursos().dividas) return vitrineDividas();
+    const r = ref(), res = N.resumoDividas(db, perfil(), r), daConta = N.contasParaDivida(db, perfil());
+    const cab = `<div class="ctl-tela-cab"><div><h1>Dívidas</h1><p>O que você deve, as propostas de desconto e quanto as parcelas pesam no mês.</p></div>
+      <button type="button" class="btn btn-primary ctl-div-nova" data-acao="divida-nova">${ic('mais')} Nova dívida</button></div>`;
+    const deContas = daConta.length ? `<p class="ctl-dica" data-div-de-conta>${daConta.length === 1 ? 'Você tem 1 conta marcada como dívida' : `Você tem ${daConta.length} contas marcadas como dívida`}; dá para começar o cadastro por ${daConta.length === 1 ? 'ela' : 'elas'} em "Nova dívida".</p>` : '';
+    if (!res.lista.length && !res.quitadas.length) {
+      return `${cab}<div class="ctl-vazio"><div class="ic">${ic('divida')}</div>
+        <h2>Suas dívidas num lugar só</h2>
+        <p>Anote cada dívida uma vez: com quem é, quanto falta, a parcela e as propostas de desconto. As parcelas entram sozinhas no fluxo de caixa e no "Meu mês".</p>
+        <div class="ctl-vazio-botoes um"><button type="button" class="btn btn-primary" data-acao="divida-nova">${ic('mais')} Cadastrar dívida</button></div>
+        ${deContas}</div>`;
+    }
+    const semRenda = res.renda == null;
+    const usoRenda = semRenda ? 0 : Math.min(100, res.pctRenda);
+    const resumo = `<div class="ctl-saldo ctl-div-resumo" data-dividas="resumo">
+        <span class="ctl-rotulo">Total devido hoje · ${esc(nomePerfil())}</span>
+        <div class="ctl-num g" data-div="total" data-contar="${res.totalDevido}" data-chave="div-total">${brl(res.totalDevido)}</div>
+        <div class="ctl-div-grade">
+          <div><span class="ctl-rotulo">À vista com os descontos</span><span class="v ctl-num" data-div="vista">${brl(res.totalVista)}</span></div>
+          <div class="eco"><span class="ctl-rotulo">Economia</span><span class="v ctl-num" data-div="economia">${brl(res.economia)}</span><small data-div="economia-pct">${pct(res.pctEconomia)} do total</small></div>
+          <div><span class="ctl-rotulo">Parcelas por mês</span><span class="v ctl-num" data-div="compromisso">${brl(res.compromisso)}</span><small data-div="pct-renda">${semRenda ? 'Informe a renda para ver o peso' : `${pct(res.pctRenda)} da renda`}</small></div>
+          <div><span class="ctl-rotulo">Sobra por mês depois das parcelas</span>${semRenda ? `<button type="button" class="ctl-link" data-acao="renda">Informar renda mensal</button>`
+            : `<span class="v ctl-num${res.sobra < 0 ? ' neg' : ''}" data-div="sobra">${brl(res.sobra)}</span>`}</div>
+        </div>
+        ${semRenda ? '' : `<div class="ctl-div-barra" role="img" aria-label="As parcelas ocupam ${pct(res.pctRenda)} da renda mensal"><span style="width:${usoRenda}%"></span></div>
+        <p class="ctl-div-renda">Renda mensal <strong class="ctl-num" data-div="renda">${brl(res.renda)}</strong> <button type="button" class="ctl-link" data-acao="renda">Alterar</button></p>`}
+      </div>`;
+    const alerta = res.vencendo.length ? `<div class="ctl-alerta aviso" data-div-vencendo>${ic('relogio')}<div>${res.vencendo.map(x => {
+        const n = x.proposta.venceEm;
+        return `<p>A proposta de <strong>${esc(x.credor)}</strong> ${n === 0 ? 'vence hoje' : `vence em ${n} ${n === 1 ? 'dia' : 'dias'} (${N.dataBR(x.proposta.validade).slice(0, 5)})`}: ${semQuebra(brl(x.vista))} à vista.</p>`;
+      }).join('')}</div></div>` : '';
+    const consulta = recursos().consultasPro && res.lista.length
+      ? `<div class="ctl-acoes"><button type="button" class="btn btn-secondary" data-acao="consulta" data-id="dividas">${ic('lampada')} Como saio das dívidas?</button></div>` : '';
+    return `${cab}${resumo}${alerta}${consulta}
+      <div class="ctl-bloco"><div class="ctl-bloco-cab"><h2>Em aberto</h2><span class="ctl-rotulo">Maior economia primeiro</span></div>
+        ${res.lista.length ? `<ul class="ctl-div-lista">${res.lista.map(cartaoDivida).join('')}</ul>` : `<div class="ctl-alerta ok">${ic('ok')}<p>Nenhuma dívida em aberto.</p></div>`}
+        <p class="ctl-dica" style="margin-top:10px">As parcelas entram sozinhas em Contas, no Fluxo de caixa e no "Meu mês", até ${N.HORIZONTE_DIAS} dias à frente. Proposta vencida não entra no total à vista.</p>
+        ${deContas}
+      </div>
+      ${res.quitadas.length ? `<details class="ctl-bloco ctl-div-quitadas"><summary class="ctl-bloco-cab"><h2>Quitadas</h2><span class="ctl-rotulo">${res.quitadas.length} ${ic('dir')}</span></summary>
+        <ul class="ctl-cats">${res.quitadas.map(x => `<li><span class="ic">${ic('check')}</span><span class="nome">${esc(x.credor)}<small>${x.quitadaEm ? `Quitada em ${N.dataBR(x.quitadaEm)}` : 'Parcelas pagas'}</small></span>
+          <button type="button" class="ctl-icone-btn" data-acao="divida-excluir" data-id="${esc(x.id)}" aria-label="Excluir ${esc(x.credor)}">${ic('lixo')}</button></li>`).join('')}</ul></details>` : ''}`;
+  }
+
   function cartaoPlano() {
     const p = plano(), r = ref(), lim = N.RECURSOS.gratis.lancamentosMes, usados = N.lancamentosNoMes(db, N.mesDe(r));
     let corpo;
     if (p.codigo === 'pro') {
-      corpo = `<p class="sub">Tudo liberado: lançamentos ilimitados, Pessoal + Negócio, relatório no WhatsApp, Orientador completo com as 4 consultas e planilha.</p>`;
+      corpo = `<p class="sub">Tudo liberado: lançamentos ilimitados, Pessoal + Negócio, Dívidas, relatório no WhatsApp, Orientador completo com as 4 consultas e planilha.</p>`;
     } else if (p.codigo === 'teste') {
       corpo = `<p class="sub">Tudo do Pro liberado até <strong>${N.dataBR(p.testeFim)}</strong> (${p.diasRestantes === 1 ? 'último dia' : `faltam ${p.diasRestantes} dias`}). Depois, se não assinar, volta para o grátis sem perder nada.</p>
         <div class="ctl-acoes"><a class="btn btn-primary" href="/assinar.html">Assinar o Pro · R$ ${PRO.preco}/mês</a><button type="button" class="btn btn-secondary" data-acao="pro">Ver o que muda</button></div>`;
@@ -601,7 +714,7 @@
   }
 
   // ---------- desenho geral ----------
-  const RENDER = { inicio: telaInicio, mes: telaMes, contas: telaContas, fluxo: telaFluxo, relatorio: telaRelatorio, ajustes: telaAjustes };
+  const RENDER = { inicio: telaInicio, mes: telaMes, contas: telaContas, dividas: telaDividas, fluxo: telaFluxo, relatorio: telaRelatorio, ajustes: telaAjustes };
 
   function menu() {
     const item = (t, cls) => `<a href="#${t.id}" class="${cls}"${estado.tela === t.id ? ' aria-current="page"' : ''}>${ic(t.icone)}<span>${t.nome}</span></a>`;
@@ -798,6 +911,7 @@
       c.contato && [c.tipo === 'receber' ? 'Quem paga' : 'Para quem', c.contato], c.forma && ['Forma de pagamento', c.forma],
       c.parcela && ['Parcela', `${c.parcela.n} de ${c.parcela.total}`],
       rec && ['Repete', { mensal: 'Todo mês', semanal: 'Toda semana', anual: 'Todo ano' }[rec.freq]],
+      c.dividaId && ['Dívida', `${rotuloParcelaDivida(c).replace(/^./, l => l.toUpperCase())}${(db.dividas || []).some(x => x.id === c.dividaId) ? ` (${(db.dividas.find(x => x.id === c.dividaId)).credor}, em Dívidas)` : ''}`],
       c.divida && ['Dívida com juros', c.divida.taxa != null ? `${N.formatTaxa(c.divida.taxa)}% ao mês` : 'Juros não informados'],
       c.obs && ['Observação', c.obs, 'largo']
     ].filter(Boolean);
@@ -993,6 +1107,13 @@
     'demo-pro': () => mudarPlano(p => { p.tipo = 'pro'; }, 'Demonstração: assinatura do Pro ativa neste aparelho.'),
     'demo-gratis': () => mudarPlano(p => { p.tipo = 'gratis'; }, 'Demonstração: de volta ao plano grátis. Nenhum dado foi apagado.'),
     'demo-fim-teste': () => { mudarPlano(p => { p.tipo = 'gratis'; p.testeInicio = N.addDias(ref(), -N.DIAS_TESTE); }); avisarFimTeste(); },
+    'divida-nova': () => abrirDivida(),
+    'divida-editar': el => abrirDivida({ id: el.dataset.id }),
+    'divida-proposta': el => abrirDivida({ id: el.dataset.id, foco: 'proposta' }),
+    'divida-quitar': el => quitarDivida(el.dataset.id),
+    'divida-excluir': el => excluirDivida(el.dataset.id),
+    renda: () => informarRenda(),
+    consulta: el => abrirConsulta(el.dataset.id),
     'novo-modelo': () => abrirModelo(),
     'modelo-editar': el => abrirModelo(el.dataset.id),
     'modelo-excluir': el => excluirModelo(el.dataset.id),
@@ -1057,6 +1178,7 @@
     if (!r) return;
     N.gerarRecorrencias(novo, ref());
     N.gerarMes(novo, N.mesDe(ref()));
+    N.gerarDividas(novo, ref());
     const acao = substituirDb('Importar backup', novo);
     toast('Backup importado', { desfazer: acao });
   });
@@ -1090,11 +1212,12 @@
     whatsapp: 'Mandar o relatório pelo WhatsApp é do Pro. PDF, imagem e texto continuam liberados.',
     csv: 'A planilha (CSV) é do Pro. O backup continua liberado para todos.',
     dicas: 'No grátis, o Orientador traz 1 dica por dia. No Pro, todas as dicas, sempre que aparecerem.',
+    dividas: 'A área Dívidas é do Pro: o total devido, as propostas de desconto, a economia e quanto as parcelas pesam na sua renda.',
     consultas: 'No grátis, a consulta "Essa parcela cabe no meu bolso?" é liberada. No Pro, as quatro: também o plano de saída das dívidas, quitar ou guardar e quanto dá para gastar no mês.'
   };
   const LINHAS_PRO = [
     ['Lançamentos por mês', '30', 'Ilimitados'], ['Pessoal + Negócio', false, true], ['Relatório no WhatsApp', false, true],
-    ['Orientador', '1 dica por dia', 'Completo'], ['Consultas com os seus números', '1 de 4', 'As 4'], ['Planilha (CSV)', false, true], ['Backup', true, true]
+    ['Dívidas e propostas de desconto', false, true], ['Orientador', '1 dica por dia', 'Completo'], ['Consultas com os seus números', '1 de 4', 'As 4'], ['Planilha (CSV)', false, true], ['Backup', true, true]
   ];
   const celulaPro = v => v === true ? `${ic('check')}<span class="sr-only">Sim</span>` : v === false ? '<span aria-hidden="true">—</span><span class="sr-only">Não</span>' : esc(v);
   function abrirPro(motivo = 'plano') {
@@ -1257,6 +1380,143 @@
     } catch (err) { toast(err.message, { ms: 5000 }); }
   }
 
+  // ---------- Dívidas: cadastro, proposta, quitar, excluir, renda ----------
+  const dlgDiv = $('#dlg-divida'), formDiv = $('#form-divida');
+  let editandoDividaId = null;
+  function preencherDivida(x) {
+    $('#divida-credor').value = x.credor || '';
+    $('#divida-total').value = x.total ? N.formatBRL(x.total, { semSimbolo: true }) : '';
+    $('#divida-parcela').value = x.parcela ? N.formatBRL(x.parcela, { semSimbolo: true }) : '';
+    $('#divida-semprazo').checked = !!x.parcela && x.parcelas == null;
+    $('#divida-parcelas').value = x.parcelas != null ? x.parcelas : '';
+    $('#divida-dia').value = x.dia || Number(ref().slice(8));
+    $('#divida-taxa').value = x.taxa != null ? N.formatTaxa(x.taxa) : '';
+    $('#divida-obs').value = x.obs || '';
+    formDiv.querySelector(`input[name="divida-perfil"][value="${x.perfil || 'pessoal'}"]`).checked = true;
+  }
+  function abrirDivida({ id = null, foco = null } = {}) {
+    if (!recursos().dividas) { abrirPro('dividas'); return; }
+    const d = id ? db.dividas.find(x => x.id === id) : null, info = d ? N.infoDivida(db, d, ref()) : null;
+    editandoDividaId = d ? d.id : null;
+    formDiv.reset(); limparErros(formDiv);
+    $('#divida-titulo').textContent = d ? 'Editar dívida' : 'Nova dívida';
+    $('#divida-salvar').textContent = d ? 'Salvar alterações' : 'Salvar';
+    const umPerfil = recursos().perfis < 2;
+    $('#divida-perfil-bloco').hidden = umPerfil;
+    const daConta = d ? [] : N.contasParaDivida(db, perfil());
+    $('#divida-origem-bloco').hidden = !daConta.length;
+    $('#divida-origem').innerHTML = '<option value="">Não, é uma dívida nova</option>' + daConta.map(c =>
+      `<option value="${esc(c.id)}">${esc(c.nome)} · ${esc(brl(c.total))}${c.parcelas > 1 ? ` em ${c.parcelas} parcelas` : ''}</option>`).join('');
+    const pf = umPerfil ? 'pessoal' : (perfil() === 'tudo' ? (db.config.ultimoPerfil || 'pessoal') : perfil());
+    preencherDivida(d ? { ...d, total: info.devido, parcelas: info.faltam } : { perfil: pf });
+    $('#divida-vista').value = d && d.proposta ? N.formatBRL(d.proposta.valor, { semSimbolo: true }) : '';
+    $('#divida-validade').value = d && d.proposta && d.proposta.validade ? d.proposta.validade : '';
+    $('#divida-aviso').hidden = !d;
+    atualizarFormDivida();
+    dlgDiv.showModal();
+    setTimeout(() => { const el = foco === 'proposta' ? $('#divida-vista') : $('#divida-credor'); el.focus(); if (foco === 'proposta') el.scrollIntoView({ block: 'center' }); }, 30);
+  }
+  function atualizarFormDivida() {
+    const total = lerDinheiro($('#divida-total')), parcela = lerDinheiro($('#divida-parcela')), temParcela = $('#divida-parcela').value.trim() !== '';
+    $('#divida-prazo-bloco').hidden = !temParcela;
+    $('#divida-parcelas').disabled = $('#divida-semprazo').checked;
+    const dica = $('#divida-dica');
+    if (temParcela && total > 0 && parcela > 0 && !$('#divida-semprazo').checked && !$('#divida-parcelas').value) {
+      dica.innerHTML = `${brl(total)} ÷ ${brl(parcela)}: <strong>${Math.ceil(total / parcela)} parcelas</strong>. Confira no contrato ou no boleto quantas faltam.`;
+      dica.hidden = false;
+    } else dica.hidden = true;
+    const vista = lerDinheiro($('#divida-vista')), eco = $('#divida-eco');
+    if ($('#divida-vista').value.trim() && total > 0 && vista > 0) {
+      const ok = vista < total;
+      eco.classList.toggle('erro', !ok);
+      eco.innerHTML = ok ? `Economia de <strong>${brl(total - vista)}</strong> (${pct(Math.round((total - vista) * 1000 / total) / 10)}) sobre o total devido.` : 'A proposta não é menor que o total devido.';
+      eco.hidden = false;
+    } else eco.hidden = true;
+  }
+  formDiv.addEventListener('input', atualizarFormDivida);
+  formDiv.addEventListener('change', e => {
+    if (e.target.id === 'divida-origem' && e.target.value) {
+      const dd = N.dadosDeConta(db, e.target.value);
+      if (dd) { preencherDivida(dd); $('#divida-validade').value = ''; $('#divida-vista').value = ''; }
+    }
+    atualizarFormDivida();
+  });
+  formDiv.addEventListener('focusout', e => { if (['divida-total', 'divida-parcela', 'divida-vista'].includes(e.target.id)) formatarCampo(e.target); });
+  formDiv.addEventListener('submit', e => {
+    e.preventDefault();
+    limparErros(formDiv);
+    const total = lerDinheiro($('#divida-total')), temParcela = $('#divida-parcela').value.trim() !== '', temVista = $('#divida-vista').value.trim() !== '';
+    const parcela = temParcela ? lerDinheiro($('#divida-parcela')) : null, vista = temVista ? lerDinheiro($('#divida-vista')) : null;
+    const validade = $('#divida-validade').value;
+    const dados = {
+      credor: $('#divida-credor').value, total: total == null || !$('#divida-total').value.trim() ? NaN : total,
+      parcela: temParcela ? (parcela == null ? NaN : parcela) : null,
+      parcelas: $('#divida-semprazo').checked ? null : Number($('#divida-parcelas').value), dia: Number($('#divida-dia').value),
+      taxa: $('#divida-taxa').value.trim() ? (N.parseTaxa($('#divida-taxa').value) ?? NaN) : null,
+      perfil: (formDiv.querySelector('input[name="divida-perfil"]:checked') || {}).value, obs: $('#divida-obs').value,
+      proposta: temVista || validade ? { valor: vista == null ? NaN : vista, validade: validade || null } : null,
+      origem: editandoDividaId ? null : $('#divida-origem').value || null
+    };
+    const erros = N.validarDivida(dados);
+    if (erros.length) {
+      erros.forEach(er => erroCampo(formDiv, er.campo, er.msg));
+      const primeiro = $(`[data-campo="${erros[0].campo}"] input`, formDiv);
+      if (primeiro) primeiro.focus();
+      return;
+    }
+    try {
+      if (editandoDividaId) {
+        const { acao } = mudar('Editar dívida', d => N.editarDivida(d, editandoDividaId, dados, ref()));
+        dlgDiv.close();
+        toast('Dívida atualizada', { desfazer: acao });
+      } else {
+        const { valor: d, acao } = mudar('Nova dívida', db2 => { db2.config.ultimoPerfil = dados.perfil; return N.criarDivida(db2, dados, ref()); });
+        dlgDiv.close();
+        toast(d.parcela ? 'Dívida anotada. As parcelas já estão no fluxo de caixa.' : 'Dívida anotada', { desfazer: acao });
+      }
+    } catch (err) {
+      (err.erros || [{ campo: 'total', msg: err.message }]).forEach(er => erroCampo(formDiv, er.campo, er.msg));
+    }
+  });
+  async function quitarDivida(id) {
+    const d = db.dividas.find(x => x.id === id);
+    if (!d) return;
+    const x = N.infoDivida(db, d, ref());
+    const r = await perguntar({
+      titulo: `Quitar ${d.credor}`,
+      texto: `Anote quanto você pagou para quitar tudo${x.vista < x.devido ? ` (a proposta é de <strong>${brl(x.vista)}</strong>)` : ''}. As parcelas em aberto saem do fluxo e o pagamento entra como pago hoje.`,
+      campo: { rotulo: 'Valor pago', valor: N.formatBRL(x.vista, { semSimbolo: true }), dinheiro: true },
+      botoes: [{ rotulo: 'Quitei', valor: 'ok', classe: 'btn-primary' }]
+    });
+    if (!r) return;
+    const v = N.parseCentavos(r.texto);
+    if (v == null || v <= 0) { toast('Não entendi esse valor. Use só números, como 1.250,90.'); return; }
+    const { acao } = mudar('Quitar dívida', db2 => N.quitarDivida(db2, id, { valor: v, data: ref() }));
+    toast(`${d.credor}: quitada`, { desfazer: acao });
+  }
+  async function excluirDivida(id) {
+    const d = db.dividas.find(x => x.id === id);
+    if (!d) return;
+    const r = await perguntar({ titulo: 'Excluir dívida?', texto: `<strong>${esc(d.credor)}</strong> sai de Dívidas, e as parcelas que ainda não foram pagas saem do fluxo. As já pagas continuam em Contas.`, botoes: [{ rotulo: 'Excluir', valor: 'sim', classe: 'btn-perigo' }] });
+    if (!r) return;
+    const { acao } = mudar('Excluir dívida', db2 => N.excluirDivida(db2, id));
+    toast('Dívida excluída', { desfazer: acao });
+  }
+  async function informarRenda() {
+    const atual = db.config.rendaMensal;
+    const r = await perguntar({
+      titulo: 'Renda mensal',
+      texto: 'Quanto entra por mês, somando salário, vendas e outras entradas. É a base para ver o peso das parcelas e quanto sobra.',
+      campo: { rotulo: 'Renda por mês', valor: atual ? N.formatBRL(atual, { semSimbolo: true }) : '', dinheiro: true },
+      botoes: [{ rotulo: 'Salvar renda', valor: 'ok', classe: 'btn-primary' }]
+    });
+    if (!r) return;
+    const v = r.texto.trim() ? N.parseCentavos(r.texto) : null;
+    if (r.texto.trim() && (v == null || v <= 0)) { toast('Não entendi esse valor. Use só números, como 2.500,00.'); return; }
+    const { acao } = mudar('Renda mensal', db2 => { db2.config.rendaMensal = v; });
+    toast(v ? `Renda mensal: ${brl(v)}` : 'Renda mensal apagada', { desfazer: acao });
+  }
+
   // ---------- Orientador (painel lateral no desktop, gaveta no celular) ----------
   const O = window.ControlOrientador;
   const painelOri = $('#orientador'), fundoOri = $('#ori-fundo'), btnOri = $('#btn-orientador');
@@ -1416,7 +1676,9 @@
     // uma função por consulta: só a da consulta aberta é calculada (os números de cada uma são diferentes)
     return {
       parcela: () => [['Da sobra do mês', n.pctSobra != null ? `${n.pctSobra}%` : '—'], ['Menor saldo', brl(n.menorSaldo)], ['Saldo em 90 dias', brl(n.saldos[2].com)]],
-      dividas: () => [['Total das dívidas', brl(n.total)], ['Juros mais altos primeiro', n.caminhos ? meses(n.caminhos.custo.meses) : '—'], ['Menores primeiro', n.caminhos ? meses(n.caminhos.menores.meses) : '—']],
+      dividas: () => (n.modo === 'cadastradas'
+        ? [['Pagando normal', n.normal.meses != null ? meses(n.normal.meses) : 'não termina'], ['Custo total', n.normal.custo != null ? brl(n.normal.custo) : '—'], ['Maior economia à vista', n.melhor ? brl(n.melhor.economia) : '—']]
+        : [['Total das dívidas', brl(n.total)], ['Juros mais altos primeiro', n.caminhos ? meses(n.caminhos.custo.meses) : '—'], ['Menores primeiro', n.caminhos ? meses(n.caminhos.menores.meses) : '—']]),
       quitar: () => [['Juros da dívida no mês', brl(n.custoMes)], ['Guardado renderia', brl(n.rendeMes)], ['Folga em 90 dias', brl(n.folga)]],
       gasto: () => [['Fim do mês com o gasto', brl(n.fimCom)], ['Menor saldo do mês', brl(n.menorCom)], ['Ainda vence no mês', brl(n.aPagar)]]
     }[r.id]();
@@ -1561,10 +1823,10 @@
   window.addEventListener('storage', e => { if (e.key === N.CHAVE_ENTRADA && e.newValue) importarDoSite(); });
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') importarDoSite(); });
 
-  // recorrências até o horizonte + a lista do "Meu mês" do mês corrente (virada do mês = lista nova, desmarcada)
+  // recorrências e parcelas das dívidas até o horizonte + a lista do "Meu mês" do mês corrente (virada do mês = lista nova, desmarcada)
   function gerarTudo() {
     const r = ref();
-    return N.gerarRecorrencias(db, r).length + N.gerarMes(db, N.mesDe(r)).length;
+    return N.gerarRecorrencias(db, r).length + N.gerarMes(db, N.mesDe(r)).length + N.gerarDividas(db, r).length;
   }
 
   // ---------- início ----------
@@ -1575,5 +1837,5 @@
   importarDoSite();
 
   // para os testes e para as próximas etapas
-  window.WardenControl = { get db() { return db; }, render, desfazer, toast, abrirLancamento, abrirDetalhe, enviarRelatorio, abrirPro, abrirConsulta };
+  window.WardenControl = { get db() { return db; }, render, desfazer, toast, abrirLancamento, abrirDetalhe, enviarRelatorio, abrirPro, abrirConsulta, abrirDivida };
 })();

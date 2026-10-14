@@ -25,6 +25,7 @@
     mes: { texto: 'Falta um mês completo com o que entrou e o que saiu para saber quanto costuma sobrar por mês.', comoAnotar: 'Anotando os recebimentos e os pagamentos deste mês e marcando cada um quando acontecer, no começo do mês que vem a conta já sai.' },
     saldo: { texto: 'Falta saber quanto você tem hoje.', comoAnotar: 'Em Ajustes, informe o saldo inicial (o que tem no banco e em dinheiro) e anote o que ainda vence este mês.' },
     dividas: { texto: 'Não há contas atrasadas nem contas marcadas como dívida.', comoAnotar: 'Se você tem cartão, empréstimo ou financiamento, anote como conta a pagar e marque "É uma dívida com juros" em "Mais detalhes", com os juros ao mês se souber.' },
+    renda: { texto: 'Falta a sua renda mensal para saber quanto sobra depois das parcelas.', comoAnotar: 'Em Dívidas, toque em "Informar renda mensal" e coloque quanto entra por mês (salário, vendas e outras entradas).' },
     taxa: nome => ({ texto: `Falta a taxa de juros de "${nome}".`, comoAnotar: 'Ela aparece na fatura ou no contrato como "juros ao mês", "taxa de juros mensal" ou "CET mensal" (no cartão, fica perto do valor do rotativo e do parcelamento da fatura). Abra a conta, toque em "Editar" e preencha "Juros ao mês".' })
   };
 
@@ -43,11 +44,17 @@
   const menorPonto = pontos => pontos.reduce((m, p) => (p.saldo < m.saldo ? p : m), pontos[0]);
   const temContas = (db, perfil) => db.contas.some(doPerfil(perfil));
 
-  /** dívidas: contas a pagar em aberto marcadas como dívida + as atrasadas; parcelas do mesmo parcelamento viram uma só */
+  /**
+   * dívidas: as cadastradas em Dívidas (pelo que falta hoje) + contas a pagar em aberto marcadas como dívida + as atrasadas;
+   * parcelas do mesmo parcelamento viram uma só. As parcelas geradas pelas Dívidas já estão no cadastro.
+   */
   function listaDividas(db, perfil, ref) {
     const grupos = new Map();
+    for (const x of N.resumoDividas(db, perfil, ref).lista) {
+      grupos.set('dv:' + x.id, { id: 'dv:' + x.id, nome: x.credor, total: x.devido, taxa: x.taxa, divida: true, atrasada: false, contas: 0 });
+    }
     for (const c of db.contas.filter(doPerfil(perfil))) {
-      if (c.tipo !== 'pagar' || N.quitada(c) || !(c.divida || c.vencimento < ref)) continue;
+      if (c.tipo !== 'pagar' || c.dividaId || N.quitada(c) || !(c.divida || c.vencimento < ref)) continue;
       const chave = c.grupoId || c.id;
       const g = grupos.get(chave) || { id: chave, nome: c.descricao, total: 0, taxa: null, divida: false, atrasada: false, contas: 0 };
       g.total += N.restante(c); g.contas++;
@@ -118,6 +125,8 @@
   }
   function calcularDividas(db, perfil, ref) {
     const base = { id: 'dividas' };
+    // com dívidas cadastradas na área Dívidas, a consulta usa o cadastro (parcelas, prazos e propostas de desconto)
+    if (N.resumoDividas(db, perfil, ref).lista.length) return calcularDividasCadastradas(db, perfil, ref);
     const lista = listaDividas(db, perfil, ref);
     if (!lista.length) return { ...base, suficiente: false, faltas: [FALTA.dividas] };
     const sobra = sobraMedia(db, perfil, ref);
@@ -134,7 +143,72 @@
     const situacao = !c || c.custo.meses == null ? 'vermelho' : c.custo.meses > 24 ? 'limite' : 'folga';
     return { ...base, suficiente: true, situacao, faltas: [], numeros };
   }
+  /**
+   * com o cadastro de Dívidas: pagando normal (quanto tempo e quanto custa) e, usando a sobra do mês para juntar e quitar
+   * UMA dívida à vista, quanto cada escolha economiza (contra as parcelas que faltam) e em quantos meses dá para juntar.
+   * Sobra = renda informada − parcelas; sem renda, a sobra média dos meses anteriores; sem nenhuma, falta dado.
+   */
+  function calcularDividasCadastradas(db, perfil, ref) {
+    const base = { id: 'dividas' }, res = N.resumoDividas(db, perfil, ref), lista = res.lista;
+    let sobra = null, fonteSobra = null, mesesSobra = 0;
+    if (res.sobra != null) { sobra = res.sobra; fonteSobra = 'renda'; }
+    else { const h = sobraMedia(db, perfil, ref); if (h) { sobra = h.valor; fonteSobra = 'historico'; mesesSobra = h.meses; } }
+    const semFim = lista.filter(x => x.normal.semFim).map(x => x.credor);
+    const normal = {
+      meses: semFim.length ? null : lista.reduce((m, x) => Math.max(m, x.normal.meses || 0), 0),
+      custo: semFim.length ? null : lista.reduce((s, x) => s + x.normal.custo, 0),
+      semFim, avista: lista.filter(x => x.normal.avista).map(x => ({ nome: x.credor, valor: x.devido }))
+    };
+    // dá para quitar à vista: as que têm proposta válida e as que não têm parcela (o valor cheio)
+    const opcoes = lista.filter(x => (x.proposta && !x.proposta.vencida) || !x.parcela).map(x => {
+      const economia = x.normal.custo != null ? x.normal.custo - x.vista : null;
+      const mesesJuntar = sobra > 0 ? Math.ceil(x.vista / sobra) : null;
+      const validade = x.proposta && !x.proposta.vencida ? x.proposta.validade : null;
+      return {
+        id: x.id, nome: x.credor, vista: x.vista, proposta: !!(x.proposta && !x.proposta.vencida), validade, economia,
+        pct: economia != null && x.normal.custo ? Math.round(economia * 1000 / x.normal.custo) / 10 : null, mesesJuntar, libera: x.parcela || 0,
+        venceAntes: !!(validade && mesesJuntar != null && N.addMeses(ref, mesesJuntar) > validade)
+      };
+    }).sort((a, b) => (b.economia ?? -1) - (a.economia ?? -1) || (a.mesesJuntar ?? 1e9) - (b.mesesJuntar ?? 1e9));
+    const melhor = opcoes.find(o => o.economia > 0) || null;
+    const numeros = { modo: 'cadastradas', dividas: lista.length, total: res.totalDevido, compromisso: res.compromisso, renda: res.renda,
+      sobra, fonteSobra, mesesSobra, normal, opcoes, melhor };
+    if (sobra == null) return { ...base, suficiente: false, faltas: [FALTA.renda], numeros };
+    const situacao = sobra <= 0 || semFim.length ? 'vermelho' : normal.meses > 24 ? 'limite' : 'folga';
+    return { ...base, suficiente: true, situacao, faltas: [], numeros,
+      rotulos: { folga: 'Prazo curto', limite: 'Prazo longo', vermelho: 'Sem folga para as dívidas' } };
+  }
+  function redigirDividasCadastradas(r) {
+    const n = r.numeros, p = [], nm = x => `"${x}"`;
+    p.push(`Você tem ${plural(n.dividas, 'dívida', 'dívidas')} em aberto, somando ${brl(n.total)}.${n.compromisso ? ` As parcelas somam ${brl(n.compromisso)} por mês.` : ''}`);
+    const avista = n.normal.avista.length ? ` ${n.normal.avista.map(a => `${nm(a.nome)} não tem parcelas: são ${brl(a.valor)} à vista, sem data marcada`).join('; ')}.` : '';
+    if (n.normal.semFim.length) p.push(`Pagando normal, ${n.normal.semFim.map(nm).join(', ')} não ${n.normal.semFim.length === 1 ? 'termina' : 'terminam'}: os juros de cada mês são maiores que a parcela.${avista}`);
+    else if (n.normal.meses) p.push(`Pagando normal, a última parcela sai daqui a ${plural(n.normal.meses, 'mês', 'meses')} e o custo total fica em ${brl(n.normal.custo)}.${avista}`);
+    else p.push(`Nenhuma delas tem parcelas: o total à vista é ${brl(n.normal.custo)}.${avista}`);
+    if (n.fonteSobra === 'renda') p.push(n.sobra > 0 ? `Com a renda de ${brl(n.renda)}, sobram ${brl(n.sobra)} por mês depois das parcelas.`
+      : `A renda de ${brl(n.renda)} não cobre as parcelas: faltam ${brl(-n.sobra)} por mês.`);
+    else p.push(n.sobra > 0 ? `Nos últimos ${plural(n.mesesSobra, 'mês', 'meses')}, sobraram em média ${brl(n.sobra)} por mês. A renda mensal não foi informada em Dívidas, então a conta usa essa média.`
+      : `Nos últimos ${plural(n.mesesSobra, 'mês', 'meses')}, saiu mais do que entrou: em média ${brl(-n.sobra)} a menos por mês.`);
+    if (n.sobra > 0 && n.opcoes.length) {
+      p.push('Usando essa sobra para juntar e quitar uma dívida à vista:');
+      n.opcoes.forEach(o => {
+        const de = o.proposta ? ` (proposta${o.validade ? ` até ${dm(o.validade)}` : ' sem validade anotada'})` : ' (sem desconto)';
+        const eco = o.economia == null ? 'Pagando só a parcela, ela não termina, então a economia não dá para medir.'
+          : o.economia > 0 ? `Economiza ${brl(o.economia)} (${N.formatPct(o.pct)}) em relação a pagar as parcelas até o fim.` : 'Não tem desconto: o valor é o mesmo.';
+        p.push(`${nm(o.nome)}: à vista por ${brl(o.vista)}${de}. ${eco} Juntando a sobra, leva ${plural(o.mesesJuntar, 'mês', 'meses')}${o.libera ? `; depois, libera ${brl(o.libera)} por mês` : ''}.${o.venceAntes ? ` A proposta vale até ${dm(o.validade)}, antes de dar para juntar esse valor.` : ''}`);
+      });
+      p.push(n.melhor ? `Pelos números, a escolha que mais economiza é ${nm(n.melhor.nome)}: ${brl(n.melhor.economia)} a menos.` : 'Pelos números, nenhuma das opções à vista tem desconto.');
+      p.push('Conta simplificada: a sobra guardada todo mês, sem rendimento, as parcelas pagas em dia enquanto isso e a proposta pelo mesmo valor até lá.');
+    } else if (n.sobra > 0) {
+      p.push('Nenhuma dívida tem proposta de quitação registrada. Em Dívidas, dá para anotar o valor à vista e a validade de cada proposta para comparar.');
+    }
+    const risco = r.situacao === 'vermelho'
+      ? 'O risco: sem sobra depois das parcelas, qualquer imprevisto vira atraso, e atraso soma multa e juros.'
+      : 'O risco: proposta de desconto tem prazo e pode mudar até você juntar o valor; e guardar toda a sobra deixa pouco espaço para imprevistos.';
+    return { paragrafos: p, risco, links: [] };
+  }
   function redigirDividas(r) {
+    if (r.numeros.modo === 'cadastradas') return redigirDividasCadastradas(r);
     const n = r.numeros, p = [];
     p.push(`Você tem ${plural(n.dividas.length, 'dívida', 'dívidas')} em aberto, somando ${brl(n.total)}${n.atrasadas ? `, ${n.atrasadas === 1 ? 'uma delas atrasada' : `${n.atrasadas} delas atrasadas`}` : ''}.`);
     if (n.semTaxa) p.push(`Para ${n.semTaxa === 1 ? 'uma delas' : `${n.semTaxa} delas`} falta a taxa de juros; sem ela, a conta trata essa dívida como sem juros, então o tempo real pode ser maior. A taxa aparece na fatura ou no contrato como "juros ao mês" ou "CET mensal".`);
@@ -230,7 +304,7 @@
     // plano: 'gratis' = liberada para todos; 'pro' = no grátis aparece em vitrine com o `resumo` (o que ela responde)
     { id: 'parcela', plano: 'gratis', pergunta: 'Essa parcela cabe no meu bolso?', calcular: calcularParcela, redigir: redigirParcela },
     // nas consultas de dívida, a situação fala do prazo e da folga (o mesmo "com folga" da parcela confundiria)
-    { id: 'dividas', plano: 'pro', pergunta: 'Como saio das dívidas?', resumo: 'Monta um plano de saída das suas dívidas usando a sua sobra real.',
+    { id: 'dividas', plano: 'pro', pergunta: 'Como saio das dívidas?', resumo: 'Mostra quanto tempo e quanto custa pagar normal e qual proposta à vista economiza mais com a sua sobra.',
       calcular: calcularDividas, redigir: redigirDividas,
       rotulos: { folga: 'Prazo curto', limite: 'Prazo longo', vermelho: 'Sem prazo com a sobra atual' } },
     { id: 'quitar', plano: 'pro', pergunta: 'Quito a dívida ou guardo o dinheiro?', resumo: 'Compara os juros da sua dívida com o que o mesmo dinheiro renderia guardado.',
@@ -242,7 +316,7 @@
   /** completa o resultado com o texto fixo (ou o que falta), a decisão e o aviso */
   function redigir(r) {
     const q = CONSULTAS.find(c => c.id === r.id);
-    const comum = { titulo: q.pergunta, aviso: AVISO, rotuloSituacao: r.situacao ? (q.rotulos || SITUACAO)[r.situacao] : null };
+    const comum = { titulo: q.pergunta, aviso: AVISO, rotuloSituacao: r.situacao ? (r.rotulos || q.rotulos || SITUACAO)[r.situacao] : null };
     if (r.erro) return { ...r, ...comum, paragrafos: [], risco: null, decisao: null, links: [] };
     if (!r.suficiente) {
       return { ...r, ...comum, paragrafos: ['Ainda não dá para responder com os seus números.', ...r.faltas.map(f => `${f.texto} ${f.comoAnotar}`)], risco: null, decisao: null, links: [] };

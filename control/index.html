@@ -263,6 +263,94 @@
   </form>
 </dialog>
 
+<!-- dívida (área Dívidas, do Pro): nova / editar / proposta de quitação -->
+<dialog class="ctl-dlg" id="dlg-divida" aria-labelledby="divida-titulo">
+  <form method="dialog" id="form-divida" novalidate>
+    <div class="ctl-dlg-cab">
+      <h2 id="divida-titulo">Nova dívida</h2>
+      <button type="button" class="ctl-icone-btn" data-fechar aria-label="Fechar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="ctl-dlg-miolo ctl-form">
+      <div class="ctl-campo" id="divida-origem-bloco" hidden>
+        <label for="divida-origem">Começar de uma conta marcada como dívida? <span class="opc">(opcional)</span></label>
+        <select id="divida-origem"></select>
+        <span class="msg">As parcelas em aberto dessa conta passam a vir daqui, sem duplicar.</span>
+      </div>
+      <div class="ctl-campo" data-campo="credor">
+        <label for="divida-credor">Com quem é a dívida</label>
+        <input id="divida-credor" type="text" maxlength="120" autocomplete="off" placeholder="Ex.: Banco, cartão, loja, empréstimo">
+        <span class="msg"></span>
+      </div>
+      <div class="duas">
+        <div class="ctl-campo" data-campo="total">
+          <label for="divida-total">Total devido hoje</label>
+          <div class="ctl-dinheiro"><span>R$</span><input id="divida-total" type="text" inputmode="decimal" autocomplete="off" placeholder="0,00"></div>
+          <span class="msg"></span>
+        </div>
+        <div class="ctl-campo" data-campo="parcela">
+          <label for="divida-parcela">Parcela mensal <span class="opc">(opcional)</span></label>
+          <div class="ctl-dinheiro"><span>R$</span><input id="divida-parcela" type="text" inputmode="decimal" autocomplete="off" placeholder="Sem parcela"></div>
+          <span class="msg"></span>
+        </div>
+      </div>
+      <div id="divida-prazo-bloco" hidden>
+        <div class="duas">
+          <div class="ctl-campo" data-campo="parcelas">
+            <label for="divida-parcelas">Parcelas que faltam</label>
+            <input id="divida-parcelas" type="number" inputmode="numeric" min="1" max="600">
+            <span class="msg"></span>
+          </div>
+          <div class="ctl-campo" data-campo="dia">
+            <label for="divida-dia">Vence todo dia</label>
+            <input id="divida-dia" type="number" inputmode="numeric" min="1" max="31">
+            <span class="msg"></span>
+          </div>
+        </div>
+        <label class="ctl-marcar"><input type="checkbox" id="divida-semprazo"> <span>Sem prazo (pago a parcela até acabar)</span></label>
+        <p class="ctl-dica" id="divida-dica" hidden></p>
+      </div>
+      <div class="ctl-campo" data-campo="taxa">
+        <label for="divida-taxa">Juros ao mês <span class="opc">(opcional)</span></label>
+        <div class="ctl-dinheiro ctl-taxa"><input id="divida-taxa" type="text" inputmode="decimal" autocomplete="off" placeholder="Ex.: 8,99"><span>% ao mês</span></div>
+        <span class="msg">Está na fatura ou no contrato como "juros ao mês" ou "CET mensal".</span>
+      </div>
+      <div class="ctl-campo" id="divida-perfil-bloco">
+        <span class="rot" id="divida-perfil-rot">Perfil</span>
+        <div class="ctl-pilulas" role="radiogroup" aria-labelledby="divida-perfil-rot">
+          <label><input type="radio" name="divida-perfil" value="pessoal" checked><span>Pessoal</span></label>
+          <label><input type="radio" name="divida-perfil" value="negocio"><span>Negócio</span></label>
+        </div>
+      </div>
+      <div class="ctl-div-form-proposta" id="divida-proposta-bloco">
+        <span class="rot">Proposta de quitação <span class="opc">(opcional)</span></span>
+        <p class="ctl-dica">Se ofereceram desconto para pagar tudo de uma vez, anote aqui o valor e até quando vale.</p>
+        <div class="duas">
+          <div class="ctl-campo" data-campo="proposta">
+            <label for="divida-vista">Valor para quitar à vista</label>
+            <div class="ctl-dinheiro"><span>R$</span><input id="divida-vista" type="text" inputmode="decimal" autocomplete="off" placeholder="0,00"></div>
+            <span class="msg"></span>
+          </div>
+          <div class="ctl-campo" data-campo="validade">
+            <label for="divida-validade">Vale até</label>
+            <input id="divida-validade" type="date">
+            <span class="msg"></span>
+          </div>
+        </div>
+        <p class="ctl-ajuste-res" id="divida-eco" aria-live="polite" hidden></p>
+      </div>
+      <div class="ctl-campo">
+        <label for="divida-obs">Observação</label>
+        <textarea id="divida-obs" maxlength="1000" placeholder="Ex.: número do contrato, telefone do credor"></textarea>
+      </div>
+      <p class="ctl-dica" id="divida-aviso" hidden>Mudou a parcela, o dia ou o prazo? As parcelas de hoje em diante que ainda não foram pagas são refeitas; as pagas e as atrasadas ficam como estão.</p>
+    </div>
+    <div class="ctl-dlg-pe">
+      <button type="button" class="btn btn-secondary" data-fechar>Cancelar</button>
+      <button type="submit" class="btn btn-primary" id="divida-salvar">Salvar</button>
+    </div>
+  </form>
+</dialog>
+
 <!-- detalhe de uma conta (conteúdo montado pelo app.js) -->
 <dialog class="ctl-dlg" id="dlg-detalhe" aria-labelledby="det-titulo"></dialog>
 <!-- saldo inicial -->

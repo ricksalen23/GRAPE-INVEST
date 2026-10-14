@@ -124,7 +124,8 @@
     ['saude', 'Saúde', 'pagar', 'coracao'], ['educacao', 'Educação', 'pagar', 'livro'],
     ['lazer', 'Lazer', 'pagar', 'estrela'], ['cartao', 'Cartão de crédito', 'pagar', 'cartao'],
     ['assinaturas', 'Assinaturas', 'pagar', 'repetir'], ['impostos', 'Impostos e taxas', 'pagar', 'documento'],
-    ['fornecedores', 'Fornecedores', 'pagar', 'caixa'], ['outros-pagar', 'Outros gastos', 'pagar', 'ponto'],
+    ['fornecedores', 'Fornecedores', 'pagar', 'caixa'], ['dividas', 'Dívidas e empréstimos', 'pagar', 'cartao'],
+    ['outros-pagar', 'Outros gastos', 'pagar', 'ponto'],
     ['salario', 'Salário', 'receber', 'carteira'], ['vendas', 'Vendas', 'receber', 'sacola'],
     ['servicos', 'Serviços prestados', 'receber', 'ferramenta'], ['aluguel-receber', 'Aluguel recebido', 'receber', 'casa'],
     ['outros-receber', 'Outras entradas', 'receber', 'ponto']
@@ -139,7 +140,7 @@
         perfil: 'tudo', primeirosPassosOcultos: false, confeteMes: null, plano: { tipo: 'gratis', testeInicio: null },
         categorias: CATEGORIAS_PADRAO.map(c => ({ ...c }))
       },
-      contas: [], recorrencias: [], modelos: []
+      contas: [], recorrencias: [], modelos: [], dividas: []
     };
   }
 
@@ -179,6 +180,7 @@
       recorrenciaId: c.recorrenciaId ? txt(c.recorrenciaId, 60) : null,
       ocorrencia: dataValida(c.ocorrencia) ? c.ocorrencia : null,
       modeloId: c.modeloId ? txt(c.modeloId, 60) : null,
+      dividaId: c.dividaId ? txt(c.dividaId, 60) : null,
       divida: limparDivida(c.divida),
       baixas: Array.isArray(c.baixas) ? c.baixas.map(limparBaixa).filter(Boolean) : [],
       criadoEm: txt(c.criadoEm, 40) || agoraISO(), atualizadoEm: txt(c.atualizadoEm, 40) || agoraISO()
@@ -230,11 +232,13 @@
         primeirosPassosOcultos: !!cfg.primeirosPassosOcultos,
         confeteMes: /^\d{4}-\d{2}$/.test(cfg.confeteMes) ? cfg.confeteMes : null,
         plano: limparPlano(cfg.plano),
+        rendaMensal: inteiro(cfg.rendaMensal) && cfg.rendaMensal > 0 ? cfg.rendaMensal : null,
         categorias: cats.length ? cats : base.config.categorias
       },
       contas: d.contas.map(limparConta).filter(Boolean),
       recorrencias: Array.isArray(d.recorrencias) ? d.recorrencias.map(limparRecorrencia).filter(Boolean) : [],
-      modelos: Array.isArray(d.modelos) ? d.modelos.map(limparModelo).filter(Boolean) : []
+      modelos: Array.isArray(d.modelos) ? d.modelos.map(limparModelo).filter(Boolean) : [],
+      dividas: Array.isArray(d.dividas) ? d.dividas.map(limparRegistroDivida).filter(Boolean) : []
     };
   }
 
@@ -292,7 +296,7 @@
       id: novoId('c'), tipo: dados.tipo, descricao: txt(dados.descricao, 120).trim() || 'Sem descrição', valor: dados.valor,
       vencimento: dados.vencimento, categoriaId: dados.categoriaId || '', contato: txt(dados.contato, 120).trim(),
       forma: txt(dados.forma, 40), obs: txt(dados.obs, 1000).trim(), perfil: PERFIS[dados.perfil] ? dados.perfil : 'pessoal',
-      grupoId: null, parcela: null, recorrenciaId: null, ocorrencia: null, modeloId: null, divida: dados.tipo === 'pagar' ? limparDivida(dados.divida) : null,
+      grupoId: null, parcela: null, recorrenciaId: null, ocorrencia: null, modeloId: null, dividaId: null, divida: dados.tipo === 'pagar' ? limparDivida(dados.divida) : null,
       baixas: [], criadoEm: t, atualizadoEm: t
     };
   }
@@ -441,9 +445,269 @@
     c.valor = valor; c.atualizadoEm = agoraISO();
     return c;
   }
-  /** contas geradas por modelo no mês 'aaaa-mm' */
+  /** contas do "Meu mês" em 'aaaa-mm': as geradas pelos modelos e as parcelas das dívidas */
   function contasMes(db, perfil, ym) {
-    return db.contas.filter(doPerfil(perfil)).filter(c => c.modeloId && c.ocorrencia && mesDe(c.ocorrencia) === ym);
+    return db.contas.filter(doPerfil(perfil)).filter(c => (c.modeloId || c.dividaId) && c.ocorrencia && mesDe(c.ocorrencia) === ym);
+  }
+
+
+  // ---------- Dívidas (área do Pro): registro + resumo com os números da própria pessoa (não é calculadora) ----------
+  /*
+   * db.dividas: [{ id, credor, total (centavos devidos quando foi informado), parcela (centavos | null = sem parcela: à vista ou em aberto),
+   *   parcelas (quantas faltam a partir de `inicio` | null = sem prazo), dia (1–31), inicio ('aaaa-mm-dd' da 1ª parcela gerada),
+   *   taxa (juros ao mês em centésimos de ponto | null), obs, perfil, proposta: { valor, validade | null } | null,
+   *   pagoAntes (o que já tinha sido pago nas parcelas quando o total foi informado), excluidas: ['aaaa-mm-dd'], quitadaEm, origem,
+   *   criadoEm, atualizadoEm }]
+   * As parcelas viram contas a pagar normais com dividaId + ocorrencia (como as recorrências), geradas até hoje + 90 dias:
+   * entram em Contas, no Fluxo, no Relatório e no "Meu mês". Devido hoje = total − o que foi pago nas parcelas depois disso.
+   */
+  /** primeira data com o dia `dia` a partir de ref (inclusive); dia 31 vira o último dia do mês */
+  function proximaData(dia, ref) {
+    const { a, m } = partes(ref), este = `${a}-${pad(m)}-${pad(Math.min(dia, diasNoMes(a, m)))}`;
+    return este >= ref ? este : addMeses(`${a}-${pad(m)}-01`, 1, dia);
+  }
+  function limparRegistroDivida(d) {
+    if (!d || !inteiro(d.total) || d.total <= 0) return null;
+    const parcela = inteiro(d.parcela) && d.parcela > 0 ? d.parcela : null;
+    const dia = parcela ? (inteiro(d.dia) && d.dia >= 1 && d.dia <= 31 ? d.dia : 1) : null;
+    const p = d.proposta && inteiro(d.proposta.valor) && d.proposta.valor > 0
+      ? { valor: d.proposta.valor, validade: dataValida(d.proposta.validade) ? d.proposta.validade : null } : null;
+    return {
+      id: txt(d.id, 60) || novoId('d'), credor: txt(d.credor, 120) || 'Sem nome', total: d.total, parcela,
+      parcelas: parcela && inteiro(d.parcelas) && d.parcelas >= 1 && d.parcelas <= 600 ? d.parcelas : null, dia,
+      inicio: parcela ? (dataValida(d.inicio) ? d.inicio : proximaData(dia, hoje())) : null,
+      taxa: inteiro(d.taxa) && d.taxa > 0 && d.taxa <= 10000 ? d.taxa : null, obs: txt(d.obs, 1000), perfil: PERFIS[d.perfil] ? d.perfil : 'pessoal',
+      proposta: p, pagoAntes: inteiro(d.pagoAntes) && d.pagoAntes > 0 ? d.pagoAntes : 0,
+      excluidas: Array.isArray(d.excluidas) ? d.excluidas.filter(dataValida) : [],
+      quitadaEm: dataValida(d.quitadaEm) ? d.quitadaEm : null, origem: d.origem ? txt(d.origem, 60) : null,
+      criadoEm: txt(d.criadoEm, 40) || agoraISO(), atualizadoEm: txt(d.atualizadoEm, 40) || agoraISO()
+    };
+  }
+  /** erros de uma dívida digitada (lista de { campo, msg }); parcela null = sem parcela; parcelas null = sem prazo */
+  function validarDivida(d) {
+    const e = [];
+    if (!txt(d.credor).trim()) e.push({ campo: 'credor', msg: 'Diga com quem é a dívida (ex.: banco, cartão, loja).' });
+    if (!inteiro(d.total) || d.total <= 0) e.push({ campo: 'total', msg: 'Digite quanto falta pagar hoje.' });
+    if (d.parcela != null) {
+      if (!inteiro(d.parcela) || d.parcela <= 0) e.push({ campo: 'parcela', msg: 'Digite o valor da parcela, ou deixe em branco se não tem parcela.' });
+      else if (inteiro(d.total) && d.parcela > d.total) e.push({ campo: 'parcela', msg: 'A parcela não pode ser maior que o total devido.' });
+      if (!inteiro(d.dia) || d.dia < 1 || d.dia > 31) e.push({ campo: 'dia', msg: 'Escolha um dia de 1 a 31.' });
+      if (d.parcelas != null && !(inteiro(d.parcelas) && d.parcelas >= 1 && d.parcelas <= 600)) e.push({ campo: 'parcelas', msg: 'De 1 a 600 parcelas, ou marque "Sem prazo".' });
+    }
+    if (d.taxa != null && !(inteiro(d.taxa) && d.taxa > 0 && d.taxa <= 10000)) e.push({ campo: 'taxa', msg: 'Use só números, como 8,99 (até 100% ao mês).' });
+    if (d.proposta) {
+      if (!inteiro(d.proposta.valor) || d.proposta.valor <= 0) e.push({ campo: 'proposta', msg: 'Digite o valor para quitar à vista.' });
+      else if (inteiro(d.total) && d.proposta.valor >= d.total) e.push({ campo: 'proposta', msg: 'Para ter desconto, a proposta precisa ser menor que o total devido.' });
+      if (d.proposta.validade != null && !dataValida(d.proposta.validade)) e.push({ campo: 'validade', msg: 'Escolha até quando a proposta vale.' });
+    }
+    return e;
+  }
+  function camposDivida(dados) {
+    const parcela = dados.parcela == null ? null : dados.parcela;
+    return {
+      credor: txt(dados.credor, 120).trim(), total: dados.total, parcela, parcelas: parcela ? dados.parcelas ?? null : null,
+      dia: parcela ? dados.dia : null, taxa: dados.taxa ?? null, obs: txt(dados.obs, 1000).trim(), perfil: PERFIS[dados.perfil] ? dados.perfil : 'pessoal',
+      proposta: dados.proposta ? { valor: dados.proposta.valor, validade: dataValida(dados.proposta.validade) ? dados.proposta.validade : null } : null
+    };
+  }
+  const catDividas = db => (db.config.categorias.some(c => c.id === 'cat_dividas') ? 'cat_dividas' : '');
+  const parcelasDa = (db, id) => db.contas.filter(c => c.dividaId === id && c.ocorrencia);
+  /** dinheiro que já saiu nas parcelas geradas desta dívida */
+  function pagoNaDivida(db, id) { return parcelasDa(db, id).reduce((s, c) => s + totalMovido(c), 0); }
+  /** quanto falta pagar hoje: o total informado − o que foi pago nas parcelas depois disso (0 se quitada) */
+  function devidoHoje(db, d) { return d.quitadaEm ? 0 : Math.max(0, d.total - (pagoNaDivida(db, d.id) - d.pagoAntes)); }
+  /** quantas parcelas faltam (null = sem prazo): as do prazo informado − as já quitadas desde o início */
+  function parcelasFaltam(db, d) {
+    if (!d.parcela || d.parcelas == null) return null;
+    return Math.max(0, d.parcelas - parcelasDa(db, d.id).filter(c => c.ocorrencia >= d.inicio && quitada(c)).length);
+  }
+
+  /**
+   * Gera as parcelas das dívidas até ref + 90 dias, sem duplicar (chave = dívida + data original). Respeita o prazo,
+   * as parcelas excluídas e a quitação. Sem prazo: gera enquanto ainda há o que pagar. Devolve as contas novas.
+   */
+  function gerarDividas(db, ref = hoje()) {
+    const ate = addDias(ref, HORIZONTE_DIAS), novas = [];
+    const existentes = new Set(db.contas.filter(c => c.dividaId && c.ocorrencia).map(c => c.dividaId + '|' + c.ocorrencia));
+    for (const d of db.dividas || []) {
+      if (d.quitadaEm || !d.parcela || !d.inicio) continue;
+      const excl = new Set(d.excluidas);
+      // sem prazo: só até cobrir o que falta (sem contar juros), contando as parcelas que já estão na lista em aberto
+      let resta = d.parcelas == null ? devidoHoje(db, d) - parcelasDa(db, d.id).filter(c => !quitada(c)).reduce((s, c) => s + restante(c), 0) : Infinity;
+      for (let k = 0; k < (d.parcelas ?? 600); k++) {
+        const data = addMeses(d.inicio, k, d.dia);
+        if (data > ate) break;
+        const chave = d.id + '|' + data;
+        if (existentes.has(chave) || excl.has(data)) continue;
+        if (resta <= 0) break;
+        const c = {
+          ...contaBase({ tipo: 'pagar', descricao: d.credor, valor: d.parcela, vencimento: data, categoriaId: catDividas(db), perfil: d.perfil }),
+          dividaId: d.id, ocorrencia: data
+        };
+        db.contas.push(c); novas.push(c); existentes.add(chave);
+        resta -= d.parcela;
+      }
+    }
+    return novas;
+  }
+
+  /**
+   * dados para começar uma dívida a partir de uma conta marcada como dívida (ou de um parcelamento inteiro):
+   * só as contas em aberto e sem baixa entram (são elas que a dívida passa a gerar). null se não houver nenhuma.
+   */
+  function dadosDeConta(db, contaId) {
+    const c = acharConta(db, contaId);
+    if (!c || c.tipo !== 'pagar' || c.dividaId) return null;
+    const grupo = c.grupoId ? db.contas.filter(o => o.grupoId === c.grupoId) : [c];
+    const abertas = grupo.filter(o => !o.baixas.length).sort((a, b) => a.vencimento.localeCompare(b.vencimento));
+    if (!abertas.length) return null;
+    const primeira = c.grupoId ? [...grupo].sort((a, b) => (a.parcela ? a.parcela.n : 0) - (b.parcela ? b.parcela.n : 0))[0] : c;
+    return {
+      origem: c.id, credor: c.descricao, total: abertas.reduce((s, o) => s + o.valor, 0), parcela: abertas[abertas.length - 1].valor,
+      parcelas: abertas.length, dia: partes(primeira.vencimento).d, inicio: abertas[0].vencimento,
+      taxa: c.divida ? c.divida.taxa : null, perfil: c.perfil, obs: c.obs
+    };
+  }
+  /** contas a pagar marcadas como dívida que ainda podem virar um cadastro em Dívidas (parcelamento = uma só) */
+  function contasParaDivida(db, perfil = 'tudo') {
+    const vistos = new Set(), lista = [];
+    for (const c of db.contas.filter(doPerfil(perfil))) {
+      if (c.tipo !== 'pagar' || !c.divida || c.dividaId) continue;
+      const chave = c.grupoId || c.id;
+      if (vistos.has(chave)) continue;
+      vistos.add(chave);
+      const dd = dadosDeConta(db, c.id);
+      if (dd) lista.push({ id: c.id, nome: c.descricao, total: dd.total, parcelas: dd.parcelas });
+    }
+    return lista;
+  }
+
+  function criarDivida(db, dados, ref = hoje()) {
+    const erros = validarDivida(dados);
+    if (erros.length) throw Object.assign(new Error(erros[0].msg), { erros });
+    const t = agoraISO();
+    const d = limparRegistroDivida({ ...camposDivida(dados), id: novoId('d'), inicio: null, criadoEm: t, atualizadoEm: t });
+    // nasce de uma conta marcada como dívida: as contas dela em aberto e sem baixa saem, e as parcelas passam a vir daqui
+    let inicio = null;
+    if (dados.origem) {
+      const dd = dadosDeConta(db, dados.origem), c = acharConta(db, dados.origem);
+      if (dd && c) {
+        const grupo = c.grupoId ? db.contas.filter(o => o.grupoId === c.grupoId) : [c];
+        const sai = new Set(grupo.filter(o => !o.baixas.length).map(o => o.id));
+        db.contas = db.contas.filter(o => !sai.has(o.id));
+        d.origem = c.grupoId || c.id;
+        if (d.parcela && d.dia === dd.dia) inicio = dd.inicio;
+      }
+    }
+    d.inicio = d.parcela ? inicio || proximaData(d.dia, ref) : null;
+    db.dividas.push(d);
+    gerarDividas(db, ref);
+    return d;
+  }
+  /**
+   * edita. Mudou parcela, dia ou prazo: as parcelas de hoje em diante em aberto e sem baixa saem e são geradas de novo
+   * (as atrasadas e as pagas ficam). O total digitado é o que falta hoje: o que já foi pago nas parcelas fica de fora dele.
+   */
+  function editarDivida(db, id, dados, ref = hoje()) {
+    const d = (db.dividas || []).find(x => x.id === id);
+    if (!d) throw new Error('Dívida não encontrada.');
+    const erros = validarDivida(dados);
+    if (erros.length) throw Object.assign(new Error(erros[0].msg), { erros });
+    const novo = camposDivida(dados);
+    const refazer = novo.parcela !== d.parcela || novo.dia !== d.dia || novo.parcelas !== parcelasFaltam(db, d);
+    if (novo.total !== devidoHoje(db, d)) d.pagoAntes = pagoNaDivida(db, d.id);
+    else novo.total = d.total;   // o total não mudou: continua descontando o que for pago
+    if (!refazer) novo.parcelas = d.parcelas;   // o prazo guardado conta desde o início, não desde hoje
+    Object.assign(d, novo, { atualizadoEm: agoraISO() });
+    const abertas = parcelasDa(db, d.id).filter(c => !c.baixas.length && c.vencimento >= ref);
+    if (refazer) {
+      const sai = new Set(abertas.map(c => c.id));
+      db.contas = db.contas.filter(c => !sai.has(c.id));
+      d.excluidas = [];
+      if (d.parcela) {
+        let ini = proximaData(d.dia, ref);
+        // a parcela deste mês já existe (paga ou atrasada): as que faltam começam no mês seguinte
+        if (parcelasDa(db, d.id).some(c => mesDe(c.ocorrencia) === mesDe(ini))) ini = addMeses(ini, 1, d.dia);
+        d.inicio = ini;   // o prazo digitado (as que faltam) conta a partir daqui
+      } else d.inicio = null;
+    } else {
+      abertas.forEach(c => { c.descricao = d.credor; c.perfil = d.perfil; c.atualizadoEm = agoraISO(); });
+    }
+    gerarDividas(db, ref);
+    return d;
+  }
+  /** apaga o cadastro e as parcelas ainda sem baixa; as pagas ficam no histórico. Devolve quantas contas saíram. */
+  function excluirDivida(db, id) {
+    const antes = db.contas.length;
+    db.dividas = (db.dividas || []).filter(d => d.id !== id);
+    db.contas = db.contas.filter(c => !(c.dividaId === id && c.ocorrencia && !c.baixas.length));
+    return antes - db.contas.length;
+  }
+  /** quitou (com ou sem desconto): as parcelas sem baixa saem e o pagamento entra como uma conta paga na data */
+  function quitarDivida(db, id, { valor, data } = {}) {
+    const d = (db.dividas || []).find(x => x.id === id);
+    if (!d) throw new Error('Dívida não encontrada.');
+    if (!inteiro(valor) || valor <= 0) throw new Error('Digite quanto você pagou para quitar.');
+    if (!dataValida(data)) throw new Error('Escolha a data do pagamento.');
+    db.contas = db.contas.filter(c => !(c.dividaId === id && c.ocorrencia && !c.baixas.length));
+    const c = { ...contaBase({ tipo: 'pagar', descricao: `Quitação: ${d.credor}`, valor, vencimento: data, categoriaId: catDividas(db), perfil: d.perfil }), dividaId: d.id };
+    c.baixas.push({ id: novoId('b'), data, valor, desconto: 0, juros: 0, criadoEm: agoraISO() });
+    db.contas.push(c);
+    d.quitadaEm = data; d.atualizadoEm = agoraISO();
+    return c;
+  }
+
+  /** 25.2 → "25,2%"; 10 → "10%" */
+  function formatPct(v) { return v == null ? '—' : String(v.toFixed(1)).replace('.', ',').replace(/,0$/, '') + '%'; }
+  const pctDe = (parte, todo) => (todo > 0 ? Math.round(parte * 1000 / todo) / 10 : null);
+  /**
+   * pagando só as parcelas: { meses, custo } que ainda saem do bolso. Sem parcela: o valor inteiro, sem data (meses null).
+   * Sem prazo: juros ao mês sobre o que falta até zerar; se a parcela não cobre os juros, { semFim: true }.
+   */
+  function pagandoNormal(d, devido, faltam) {
+    if (!d.parcela) return { meses: null, custo: devido, avista: true };
+    if (faltam != null) return { meses: faltam, custo: faltam ? d.parcela * faltam : devido };
+    const i = (d.taxa || 0) / 10000;
+    let saldo = devido, meses = 0, custo = 0;
+    while (saldo > 0 && meses < 600) {
+      const comJuros = Math.round(saldo * (1 + i)), v = Math.min(d.parcela, comJuros);
+      if (comJuros - v >= saldo) return { meses: null, custo: null, semFim: true };
+      saldo = comJuros - v; custo += v; meses++;
+    }
+    return saldo > 0 ? { meses: null, custo: null, semFim: true } : { meses, custo };
+  }
+  /** uma dívida com os números do dia: devido, à vista (com a proposta válida), economia, parcelas que faltam, pagando normal */
+  function infoDivida(db, d, ref = hoje()) {
+    const devido = devidoHoje(db, d), faltam = parcelasFaltam(db, d);
+    let proposta = null;
+    if (d.proposta) {
+      const venceEm = d.proposta.validade ? diffDias(ref, d.proposta.validade) : null, vencida = venceEm != null && venceEm < 0;
+      proposta = { valor: d.proposta.valor, validade: d.proposta.validade, venceEm, vencida, vencendo: venceEm != null && venceEm >= 0 && venceEm <= 7 };
+    }
+    const vista = proposta && !proposta.vencida ? Math.min(proposta.valor, devido) : devido;
+    return {
+      id: d.id, credor: d.credor, perfil: d.perfil, taxa: d.taxa, parcela: d.parcela, dia: d.dia, faltam, semPrazo: !!d.parcela && d.parcelas == null,
+      devido, vista, economia: devido - vista, pctEconomia: pctDe(devido - vista, devido), proposta, obs: d.obs,
+      normal: pagandoNormal(d, devido, faltam), quitadaEm: d.quitadaEm, ativa: !d.quitadaEm && devido > 0
+    };
+  }
+  /**
+   * resumo da área Dívidas. Lista em ordem de maior economia da proposta (depois, maior dívida).
+   * Compromisso mensal = soma das parcelas das dívidas ativas que ainda têm parcela; sobra = renda − compromisso.
+   * Proposta vencida não entra no total à vista.
+   */
+  function resumoDividas(db, perfil = 'tudo', ref = hoje()) {
+    const todas = (db.dividas || []).filter(doPerfil(perfil)).map(d => infoDivida(db, d, ref));
+    const lista = todas.filter(x => x.ativa).sort((a, b) => b.economia - a.economia || b.devido - a.devido || a.credor.localeCompare(b.credor));
+    const soma = k => lista.reduce((s, x) => s + x[k], 0);
+    const totalDevido = soma('devido'), totalVista = soma('vista');
+    const compromisso = lista.filter(x => x.parcela && x.faltam !== 0).reduce((s, x) => s + x.parcela, 0);
+    const renda = inteiro(db.config.rendaMensal) && db.config.rendaMensal > 0 ? db.config.rendaMensal : null;
+    return {
+      lista, quitadas: todas.filter(x => !x.ativa), totalDevido, totalVista, economia: totalDevido - totalVista, pctEconomia: pctDe(totalDevido - totalVista, totalDevido),
+      compromisso, renda, pctRenda: renda ? pctDe(compromisso, renda) : null, sobra: renda != null ? renda - compromisso : null,
+      vencendo: lista.filter(x => x.proposta && x.proposta.vencendo)
+    };
   }
 
   // ---------- "Salvar no Control": caixa de entrada vinda do Pix, do Recibo e da Cobrança ----------
@@ -543,6 +807,11 @@
       // a conta do mês saiu: o "Meu mês" não gera de novo neste mês
       const mod = (db.modelos || []).find(m => m.id === c.modeloId);
       if (mod && !mod.excluidos.includes(mesDe(c.ocorrencia))) mod.excluidos.push(mesDe(c.ocorrencia));
+    }
+    if (c.dividaId && c.ocorrencia) {
+      // a parcela saiu: a dívida não gera de novo esta data
+      const dv = (db.dividas || []).find(x => x.id === c.dividaId);
+      if (dv && !dv.excluidas.includes(c.ocorrencia)) dv.excluidas.push(c.ocorrencia);
     }
     if (c.recorrenciaId) {
       const rec = db.recorrencias.find(r => r.id === c.recorrenciaId);
@@ -771,8 +1040,9 @@
   const DIAS_TESTE = 7;
   const RECURSOS = {
     // consultasPro: as consultas do Orientador marcadas como 'pro' (no grátis, só a da parcela)
-    gratis: { lancamentosMes: 30, perfis: 1, whatsapp: false, dicasDia: 1, csv: false, backup: true, consultasPro: false },
-    pro: { lancamentosMes: Infinity, perfis: 2, whatsapp: true, dicasDia: Infinity, csv: true, backup: true, consultasPro: true }
+    // dividas: a área Dívidas (no grátis, vitrine; o que já foi cadastrado no teste continua gerando as parcelas)
+    gratis: { lancamentosMes: 30, perfis: 1, whatsapp: false, dicasDia: 1, csv: false, backup: true, consultasPro: false, dividas: false },
+    pro: { lancamentosMes: Infinity, perfis: 2, whatsapp: true, dicasDia: Infinity, csv: true, backup: true, consultasPro: true, dividas: true }
   };
   function limparPlano(p) {
     p = p || {};
@@ -794,13 +1064,13 @@
   function diaDe(iso) { const d = new Date(iso); return isNaN(d) ? null : hoje(d); }
   /**
    * lançamentos que a pessoa criou no mês 'aaaa-mm' (pela criadoEm, no fuso de SP), para o limite do grátis:
-   * um parcelamento conta 1 (grupoId); contas geradas por recorrência e pelo "Meu mês" não contam, mas criar a recorrência conta 1.
+   * um parcelamento conta 1 (grupoId); contas geradas por recorrência, pelo "Meu mês" e pelas Dívidas não contam, mas criar a recorrência conta 1.
    */
   function lancamentosNoMes(db, ym = mesDe(hoje())) {
     const grupos = new Set();
     let n = 0;
     for (const c of db.contas) {
-      if (c.modeloId || c.recorrenciaId) continue;
+      if (c.modeloId || c.recorrenciaId || c.dividaId) continue;
       const d = diaDe(c.criadoEm);
       if (!d || mesDe(d) !== ym) continue;
       if (c.grupoId) { if (grupos.has(c.grupoId)) continue; grupos.add(c.grupoId); }
@@ -822,6 +1092,8 @@
     abatido, totalAbatido, totalMovido, restante, quitada, ultimaBaixa, status, rotuloStatus,
     validarLancamento, criarLancamento, gerarRecorrencias, acharConta,
     validarModelo, criarModelo, editarModelo, excluirModelo, gerarMes, contasMes, ajustarValor,
+    validarDivida, criarDivida, editarDivida, excluirDivida, quitarDivida, gerarDividas, devidoHoje, parcelasFaltam, dadosDeConta, contasParaDivida,
+    infoDivida, resumoDividas, pagandoNormal, formatPct,
     CHAVE_ENTRADA, ORIGENS, entradaValida, importarEntrada, limparDivida, parseTaxa, formatTaxa, darBaixa, baixaTotal, reabrir, removerBaixa, editarConta, excluir,
     categoria, nomeCategoria, filtrar, saldoInicial, saldoAtual, serieFluxo, previsao, proximas, resumoMes, dadosRelatorio, textoRelatorio, saudeFinanceira, csv,
     DIAS_TESTE, RECURSOS, planoAtual, lancamentosNoMes, podeLancar
