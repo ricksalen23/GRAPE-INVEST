@@ -16,7 +16,7 @@ const COLUNAS_ESPERADAS = {
   'Dívidas': ['Plano de quitação', 'Juros do cartão', 'À vista ou parcelado?', 'Custo real em horas'],
   'Planejamento': ['Reserva de emergência', 'Regra 50-30-20', 'Meta mensal', 'Aposentadoria']
 };
-const WARDEN = ['Warden Cobrança', 'Control Finance', 'Sobre', 'Contato', 'Política de Privacidade', 'Termos de Uso'];
+const WARDEN = ['Warden Cobrança', 'Control Finance', 'Sobre', 'Central de ajuda', 'Contato', 'Política de Privacidade', 'Termos de Uso'];
 
 const lerRodape = page => page.evaluate(() => {
   const f = document.querySelectorAll('footer.rodape');

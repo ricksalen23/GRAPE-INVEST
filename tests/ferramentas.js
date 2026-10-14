@@ -43,9 +43,10 @@ const INSTITUCIONAIS = [
   { slug: 'contato', url: '/contato.html', nome: 'Contato', tipo: 'institucional' },
   { slug: 'privacidade', url: '/privacidade.html', nome: 'Política de Privacidade', tipo: 'institucional' },
   { slug: 'termos', url: '/termos.html', nome: 'Termos de Uso', tipo: 'institucional' },
-  { slug: 'assinar', url: '/assinar.html', nome: 'Warden Pro', tipo: 'institucional' }
+  { slug: 'assinar', url: '/assinar.html', nome: 'Warden Pro', tipo: 'institucional' },
+  { slug: 'ajuda', url: '/ajuda/', nome: 'Central de ajuda', tipo: 'institucional' }
 ];
-// páginas para os testes de página (SEO, celular, faixa, rodapé): a home, o Warden Cobrança, as 29 ferramentas e as 5 institucionais
+// páginas para os testes de página (SEO, celular, faixa, rodapé): a home, o Warden Cobrança, as 29 ferramentas e as 6 institucionais
 const PAGINAS = [{ slug: 'home', url: '/index.html', nome: 'Home' }, { slug: 'cobranca', url: '/cobranca/', nome: 'Warden Cobrança' }, ...FERRAMENTAS, ...INSTITUCIONAIS];
 
 module.exports = { FERRAMENTAS, PAGINAS, INSTITUCIONAIS };

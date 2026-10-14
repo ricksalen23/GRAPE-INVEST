@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Central de ajuda do Warden Control | Warden</title>
+<meta name="description" content="Passo a passo do Warden Control: anotar contas, saldo, Meu mês, dívidas, relatório, plano Pro, backup dos seus dados e problemas comuns. Com o Bip.">
+<link rel="canonical" href="https://wardenfinance.com.br/ajuda/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Central de ajuda | Warden">
+<meta property="og:description" content="Respostas curtas, passo a passo, para usar o Warden Control sem complicação.">
+<meta property="og:url" content="https://wardenfinance.com.br/ajuda/">
+<meta property="og:image" content="https://wardenfinance.com.br/ajuda/bip.png">
+<meta name="theme-color" content="#000000">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/warden.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "Central de ajuda",
+  "description": "Passo a passo do Warden Control: contas, saldo, Meu mês, dívidas, relatório, plano Pro, backup dos dados e problemas comuns.",
+  "url": "https://wardenfinance.com.br/ajuda/",
+  "inLanguage": "pt-BR",
+  "isPartOf": {
+    "@type": "WebSite",
+    "name": "Warden",
+    "url": "https://wardenfinance.com.br/"
+  },
+  "breadcrumb": {
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Início", "item": "https://wardenfinance.com.br/" },
+      { "@type": "ListItem", "position": 2, "name": "Central de ajuda", "item": "https://wardenfinance.com.br/ajuda/" }
+    ]
+  }
+}
+</script>
+<style>
+  /* ===== topo: título + busca ao lado do Bip ===== */
+  .aj-hero { display: grid; gap: 20px; align-items: center; }
+  .aj-hero .tool-head { margin-bottom: 0; }
+  .aj-busca { margin-top: 22px; max-width: 560px; }
+  .aj-busca label { display: block; font-size: .86rem; font-weight: 600; margin-bottom: 8px; }
+  .aj-busca-campo { position: relative; }
+  .aj-busca-campo svg { position: absolute; left: 16px; top: 50%; width: 20px; height: 20px; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+  .aj-busca input {
+    width: 100%; min-height: 54px; padding: 14px 16px 14px 48px; border-radius: 14px; border: 1px solid var(--border);
+    background: var(--surface); color: var(--text); font: 500 1rem 'Inter', sans-serif;
+  }
+  .aj-busca input::placeholder { color: var(--muted); }
+  .aj-busca input::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; }   /* o × azul do navegador foge da cor da marca; Esc limpa */
+  .aj-busca input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-color: transparent; }
+  .aj-status { min-height: 1.4em; margin-top: 10px; font-size: .88rem; color: var(--muted); }
+  .aj-status strong { color: var(--text); }
+
+  /* ===== o Bip: bloco de altura limitada; imagem estática até o 3D carregar (ou no lugar dele) ===== */
+  .aj-bip { order: -1; margin: 0; display: grid; justify-items: center; gap: 6px; }
+  .aj-bip-palco {
+    position: relative; width: 100%; height: 190px; border-radius: 22px; overflow: hidden;
+    background: radial-gradient(60% 70% at 50% 45%, rgba(200,242,107,.10), rgba(200,242,107,0) 70%), #0A0A08;
+    border: 1px solid var(--border);
+  }
+  .aj-bip-palco img, .aj-bip-palco canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .aj-bip-palco img { object-fit: contain; padding: 8px 0; }
+  .aj-bip-palco canvas { opacity: 0; cursor: grab; touch-action: pan-y; transition: opacity .5s ease; }
+  .aj-bip-palco canvas:active { cursor: grabbing; }
+  .aj-bip[data-bip="3d"] canvas { opacity: 1; }
+  .aj-bip[data-bip="3d"] img { visibility: hidden; }
+  .aj-bip-nome { font-family: 'Fraunces', serif; font-weight: 600; font-size: 1rem; }
+  .aj-bip-nome span { color: var(--accent); }
+  .aj-bip-dica { font-size: .74rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+  .aj-bip:not([data-bip="3d"]) .aj-bip-dica { display: none; }
+  @media (min-width: 860px) {
+    .aj-hero { grid-template-columns: minmax(0, 1.25fr) minmax(0, .75fr); gap: 40px; }
+    .aj-bip { order: 0; }
+    .aj-bip-palco { height: 340px; }
+  }
+
+  /* ===== assuntos e artigos ===== */
+  .aj-indice { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+  .aj-indice a {
+    display: inline-flex; align-items: center; min-height: 40px; padding: 8px 14px; border-radius: 99px; border: 1px solid var(--border);
+    color: var(--text); text-decoration: none; font-size: .88rem; font-weight: 500;
+  }
+  .aj-indice a:hover { border-color: var(--accent); }
+  .aj-indice a:focus-visible, .aj-artigo summary:focus-visible, .aj-corpo a:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
+  .aj-conteudo .section-inner { max-width: 860px; }
+  /* a busca esconde artigos: sem isto, o navegador "segue" um artigo e a página pula, tirando o campo de busca da tela */
+  .aj-conteudo { overflow-anchor: none; }
+  .aj-grupo { margin-top: 40px; scroll-margin-top: calc(var(--topo-h) + 16px); }
+  .aj-grupo > h2 { font-family: 'Fraunces', serif; font-weight: 600; font-size: clamp(1.4rem, 2.4vw, 1.8rem); line-height: 1.25; margin-bottom: 4px; }
+  .aj-grupo > p { color: var(--muted); font-size: .94rem; margin-bottom: 10px; }
+  .aj-artigo { border-bottom: 1px solid var(--border); scroll-margin-top: calc(var(--topo-h) + 16px); }
+  .aj-artigo summary { list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 0; cursor: pointer; border-radius: 4px; }
+  .aj-artigo summary::-webkit-details-marker { display: none; }
+  .aj-artigo summary h3 { font-size: 1rem; font-weight: 600; line-height: 1.45; }
+  .aj-artigo summary::after { content: '+'; flex-shrink: 0; font-size: 1.3rem; line-height: 1; color: var(--accent); transition: transform .18s ease; }
+  .aj-artigo[open] summary::after { transform: rotate(45deg); }
+  .aj-corpo { padding: 0 0 20px; color: var(--muted); font-size: .97rem; line-height: 1.7; }
+  .aj-corpo > * + * { margin-top: 10px; }
+  .aj-corpo ol, .aj-corpo ul { padding-left: 22px; display: grid; gap: 6px; }
+  .aj-corpo strong { color: var(--text); font-weight: 600; }
+  .aj-corpo a { color: var(--text); text-underline-offset: 3px; }
+  .aj-corpo a:hover { color: var(--accent); }
+  .aj-corpo .aj-nota { padding: 10px 14px; border-radius: 12px; background: var(--surface); border: 1px solid var(--border); font-size: .9rem; }
+  .aj-corpo .aj-link { display: inline-block; font-size: .8rem; color: var(--muted); }
+  .aj-vazio { margin-top: 32px; padding: 20px; border-radius: 16px; border: 1px dashed var(--border); color: var(--muted); }
+  .aj-vazio a { color: var(--text); }
+  .aj-final { margin-top: 56px; padding: 28px 24px; border-radius: 20px; background: var(--surface); border: 1px solid var(--border); }
+  .aj-final h2 { font-family: 'Fraunces', serif; font-weight: 600; font-size: 1.5rem; margin-bottom: 6px; }
+  .aj-final p { color: var(--muted); line-height: 1.6; }
+  .aj-final .btn { margin-top: 16px; min-height: 48px; text-decoration: none; }
+  @media (prefers-reduced-motion: reduce) {
+    .aj-artigo summary::after, .aj-bip-palco canvas { transition: none; }
+  }
+</style>
+</head>
+<body>
+<script src="/assets/nav.js"></script>
+
+<section class="tool-top">
+  <div class="section-inner">
+    <div class="aj-hero">
+      <div>
+        <header class="tool-head">
+          <div class="tool-crumbs" role="navigation" aria-label="Você está em"><a href="/">Início</a><span aria-hidden="true">/</span><span>Central de ajuda</span></div>
+          <h1 class="tool-title">Central de ajuda</h1>
+          <p class="tool-lead">Respostas curtas, passo a passo, para usar o Warden Control sem complicação.</p>
+        </header>
+        <form class="aj-busca" role="search" id="aj-busca" novalidate>
+          <label for="aj-q">Buscar na ajuda</label>
+          <div class="aj-busca-campo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            <input id="aj-q" type="search" autocomplete="off" placeholder="Ex.: backup, dívida, saldo inicial" aria-describedby="aj-status">
+          </div>
+          <p class="aj-status" id="aj-status" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+      <!-- o Bip: a imagem aparece sempre primeiro; o 3D (three.js) só carrega depois do conteúdo, e só em aparelhos que aguentam -->
+      <figure class="aj-bip" id="aj-bip" data-bip="imagem">
+        <div class="aj-bip-palco">
+          <img src="/ajuda/bip.png" width="480" height="480" alt="Bip, o ajudante da Warden: um robozinho branco e arredondado, com olhos, antena e anel no peito em verde-limão, flutuando sobre uma pequena chama.">
+          <canvas aria-hidden="true"></canvas>
+          <span class="sr-only" id="aj-bip-desc" hidden>Bip, o ajudante da Warden: um robozinho branco e arredondado, com olhos, antena e anel no peito em verde-limão, que flutua sobre uma pequena chama e acena.</span>
+        </div>
+        <figcaption class="aj-bip-nome">Bip<span>,</span> o ajudante da Warden</figcaption>
+        <p class="aj-bip-dica" aria-hidden="true">Arraste para girar · toque para acenar</p>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<section class="tool-prose-section aj-conteudo">
+  <div class="section-inner">
+    <div class="aj-indice" role="navigation" aria-label="Assuntos da ajuda">
+      <a href="#comecar">Começar</a><a href="#meu-mes">Meu mês</a><a href="#dividas">Dívidas</a><a href="#relatorio">Relatório</a>
+      <a href="#orientador">Orientador e consultas</a><a href="#plano">Plano e assinatura</a><a href="#seus-dados">Seus dados</a><a href="#problemas">Problemas comuns</a>
+    </div>
+
+    <!-- 1. Começar -->
+    <div class="aj-grupo" id="comecar" data-grupo>
+      <h2>Começar</h2>
+      <p>O básico para colocar as contas em ordem.</p>
+      <details class="aj-artigo" id="o-que-e-o-control" data-chaves="app aplicativo para que serve control finance">
+        <summary><h3>O que é o Warden Control</h3></summary>
+        <div class="aj-corpo">
+          <p>É o lugar para anotar o que você tem a pagar e a receber. Ele lembra os vencimentos, soma tudo e mostra quanto vai sobrar.</p>
+          <ul>
+            <li><strong>Início:</strong> o saldo de hoje e o que vence nos próximos 7 dias.</li>
+            <li><strong>Meu mês:</strong> as contas fixas, para ir marcando o que já pagou.</li>
+            <li><strong>Contas:</strong> a lista de tudo, com filtros e busca.</li>
+            <li><strong>Fluxo de caixa:</strong> quanto você vai ter daqui a 30, 60 e 90 dias.</li>
+            <li><strong>Relatório:</strong> o resumo do mês, em PDF, imagem ou texto.</li>
+          </ul>
+          <p>Não precisa de cadastro. Tudo fica salvo no seu aparelho.</p>
+          <a class="aj-link" href="#o-que-e-o-control">Link para este artigo</a>
+        </div>
+      </details>
+      <details class="aj-artigo" id="primeira-conta" data-chaves="novo lancamento anotar criar conta pagar receber boleto parcelada repete">
+        <summary><h3>Como anotar a primeira conta</h3></summary>
+        <div class="aj-corpo">
+          <ol>
+            <li>Toque em <strong>Novo lançamento</strong> (no celular, é o botão verde embaixo).</li>
+            <li>Escolha <strong>A pagar</strong> ou <strong>A receber</strong>.</li>
+            <li>Digite o valor e dê um nome, como "Aluguel".</li>
+            <li>Confira a data de vencimento.</li>
+            <li>Se for em parcelas, escolha <strong>Parcelada</strong>. Se repete todo mês, escolha <strong>Repete</strong>.</li>
+            <li>Toque em <strong>Salvar</strong>.</li>
+          </ol>
+          <p class="aj-nota">Já pagou? Marque "Já paguei" antes de salvar. A conta entra como paga hoje.</p>
+          <a class="aj-link" href="#primeira-conta">Link para este artigo</a>
+        </div>
+      </details>
+      <details class="aj-artigo" id="saldo-inicial" data-chaves="saldo banco dinheiro quanto tenho negativo cheque especial">
+        <summary><h3>Como colocar o saldo inicial</h3></summary>
+        <div class="aj-corpo">
+          <p>O saldo inicial é quanto você tem hoje. É dele que o Control parte para calcular o resto.</p>
+          <ol>
+            <li>Abra <strong>Ajustes</strong>.</li>
+            <li>Toque em <strong>Alterar saldo inicial</strong>.</li>
+            <li>Some o que tem no banco, na carteira digital e em dinheiro, e digite o total.</li>
+            <li>Toque em <strong>Salvar saldo</strong>.</li>
+          </ol>
+          <p>Está no negativo, no cheque especial? Use o sinal de menos, assim: -350,00.</p>
+          <a class="aj-link" href="#saldo-inicial">Link para este artigo</a>
+        </div>
+      </details>
+      <details class="aj-artigo" id="baixa-um-toque" data-chaves="baixa pagar paguei recebi marcar circulo quitar parcial desconto juros">
+        <summary><h3>Dar baixa em 1 toque</h3></summary>
+        <div class="aj-corpo">
+          <p>"Dar baixa" é marcar que o dinheiro já saiu ou entrou.</p>
+          <ol>
+            <li>Ache a conta na lista.</li>
+            <li>Toque no <strong>círculo</strong> do lado esquerdo.</li>
+            <li>Pronto: ela fica paga com a data de hoje.</li>
+          </ol>
+          <p>Tocou sem querer? Toque no círculo de novo para reabrir.</p>
+          <p>Pagou só uma parte, com desconto ou com juros? Toque no nome da conta e escolha <strong>Dar baixa com ajustes</strong>.</p>
+          <a class="aj-link" href="#baixa-um-toque">Link para este artigo</a>
+        </div>
+      </details>
+      <details class="aj-artigo" id="desfazer" data-chaves="desfazer voltar errei apaguei sem querer ctrl z">
+        <summary><h3>Como desfazer</h3></summary>
+        <div class="aj-corpo">
+          <p>Quase tudo dá para desfazer logo depois.</p>
+          <ul>
+            <li>Depois de uma mudança, aparece um aviso embaixo com o botão <strong>Desfazer</strong>. Ele fica uns segundos na tela.</li>
+            <li>Passou o aviso? Use o botão <strong>Desfazer</strong> no topo. Ele volta a última mudança.</li>
+            <li>No computador, também vale Ctrl + Z.</li>
+          </ul>
+          <p class="aj-nota">O Desfazer vale enquanto a página está aberta. Fechou ou recarregou, ele recomeça.</p>
+          <a class="aj-link" href="#desfazer">Link para este artigo</a>
+        </div>
+      </details>
+    </div>
+
+    <!-- 2. Meu mês -->
+    <div class="aj-grupo" id="meu-mes" data-grupo>
+      <h2>Meu mês</h2>
+      <p>As contas que se repetem todo mês, numa lista para ir marcando.</p>
+      <details class="aj-artigo" id="conta-fixa" data-chaves="conta fixa aluguel internet salario todo mes cadastrar">
+        <summary><h3>Cadastrar uma conta fixa</h3></summary>
+        <div class="aj-corpo">
+          <ol>
+            <li>Abra <strong>Meu mês</strong>.</li>
+            <li>Toque em <strong>Cadastrar conta fixa</strong> (ou <strong>Nova</strong>, se já tiver alguma).</li>
+            <li>Escolha se é a pagar ou a receber.</li>
+            <li>Dê um nome, o valor de sempre e o dia em que vence.</li>
+            <li>Toque em <strong>Salvar</strong>.</li>
+          </ol>
+          <p>Ela já entra na lista deste mês. Nos próximos meses, aparece sozinha, desmarcada.</p>
+          <p>Contas fixas não contam no limite do plano grátis.</p>
+          <a class="aj-link" href="#conta-fixa">Link para este artigo</a>
+        </div>
+      </details>
+      <details class="aj-artigo" id="valor-variavel" data-chaves="luz agua gas valor muda variavel ajustar conta de luz">
+        <summary><h3>Valor que muda todo mês (luz, água)</h3></summary>
+        <div class="aj-corpo">
+          <ol>
+            <li>Ao cadastrar a conta fixa, marque <strong>O valor muda todo mês</strong>.</li>
+            <li>Todo mês, o Control sugere o valor do mês anterior.</li>
+            <li>A conta chegou diferente? Toque nela no Meu mês e digite o valor certo.</li>
+          </ol>
+          <p>O ajuste muda só aquele mês. Os outros continuam como estão.</p>
+          <a class="aj-link" href="#valor-variavel">Link para este artigo</a>
+        </div>
+      </details>
+      <details class="aj-artigo" id="virada-do-mes" data-chaves="virada novo mes comeca dia primeiro atrasada mes passado">
+        <summary><h3>O que acontece na virada do mês</h3></summary>
+        <div class="aj-corpo">
+          <ul>
+            <li>No dia 1º, a lista do mês novo aparece sozinha, com tudo desmarcado.</li>
+            <li>O mês que passou fica como estava. Nada é apagado.</li>
+            <li>Ficou alguma conta sem pagar? Ela aparece em <strong>Atrasadas</strong>, no topo do Meu mês.</li>
+            <li>Conta que vence dia 31, em mês mais curto, vence no último dia do mês.</li>
+          </ul>
+          <a class="aj-link" href="#virada-do-mes">Link para este artigo</a>
+        </div>
+      </details>
+    </div>
+
+    <!-- 3. Dívidas -->
+    <div class="aj-grupo" id="dividas" data-grupo>
+      <h2>Dívidas</h2>
+      <p>Tudo o que você deve num lugar só. A área Dívidas faz parte do Warden Pro.</p>
+      <details class="aj-artigo" id="cadastrar-divida" data-chaves="divida emprestimo cartao financiamento parcela credor cadastrar">
+        <summary><h3>Cadastrar uma dívida</h3></summary>
+        <div class="aj-corpo">
+          <ol>
+            <li>Abra <strong>Dívidas</strong> e toque em <strong>Nova dívida</strong>.</li>
+            <li>Diga com quem é a dívida e quanto falta pagar hoje.</li>
+            <li>Tem parcela? Digite o valor, quantas faltam e o dia do vencimento. Não sabe quantas faltam? Marque <strong>Sem prazo</strong>.</li>
+            <li>Sabe os juros ao mês? Anote também. É opcional.</li>
+            <li>Toque em <strong>Salvar</strong>.</li>
+          </ol>
+          <p>As parcelas entram sozinhas em Contas, no Fluxo de caixa e no Meu mês. Você não precisa lançar de novo.</p>
+          <p>Já tinha anotado a dívida como conta? Ao criar a dívida, escolha essa conta em "Começar de uma conta marcada como dívida". Nada fica duplicado.</p>
+          <a class="aj-link" href="#cadastrar-divida">Link para este artigo</a>
+        </div>
+      </details>
+      <details class="aj-artigo" id="proposta-desconto" data-chaves="proposta desconto quitar a vista acordo negociar validade economia">
+        <summary><h3>Registrar uma proposta de quitação com desconto</h3></summary>
+        <div class="aj-corpo">
+          <p>Quando o credor oferece desconto para pagar tudo de uma vez, anote a proposta.</p>
+          <ol>
+            <li>Na dívida, toque em <strong>Anotar proposta</strong> (ou <strong>Proposta</strong>).</li>
+            <li>Digite o valor para quitar à vista.</li>
+            <li>Coloque até quando a proposta vale.</li>
+            <li>Toque em <strong>Salvar</strong>.</li>
+          </ol>
+          <p>O Control mostra a economia em reais e em porcentagem. Se a proposta vence nos próximos 7 dias, ela fica em destaque.</p>
+          <p>Quitou? Toque em <strong>Quitei</strong> e confirme quanto pagou. As parcelas em aberto saem da lista.</p>
+          <a class="aj-link" href="#proposta-desconto">Link para este artigo</a>
+        </div>
+      </details>
+      <details class="aj-artigo" id="numeros-do-resumo" data-chaves="resumo total devido a vista economia parcelas por mes renda sobra numeros significa">
+        <summary><h3>O que significa cada número do resumo</h3></summary>
+        <div class="aj-corpo">
+          <ul>
+            <li><strong>Total devido hoje:</strong> a soma do que falta pagar em todas as dívidas.</li>
+            <li><strong>À vista com os descontos:</strong> quanto seria para quitar tudo hoje, usando as propostas anotadas. Proposta vencida não entra.</li>
+            <li><strong>Economia:</strong> a diferença entre os dois, em reais e em porcentagem.</li>
+            <li><strong>Parcelas por mês:</strong> a soma de todas as parcelas. Ao lado, quanto isso pesa na sua renda.</li>
+            <li><strong>Sobra por mês depois das parcelas:</strong> sua renda menos as parcelas.</li>
+          </ul>
+          <p>Para ver o peso na renda e a sobra, toque em <strong>Informar renda mensal</strong>.</p>
+          <a class="aj-link" href="#numeros-do-resumo">Link para este artigo</a>
+        </div>
+      </details>
+    </div>
+
+    <!-- 4. Relatório -->
+    <div class="aj-grupo" id="relatorio" data-grupo>
+      <h2>Relatório</h2>
+      <p>O resumo do mês para guardar ou mandar para alguém.</p>
+      <details class="aj-artigo" id="gerar-pdf" data-chaves="pdf relatorio baixar imprimir arquivo imagem copiar texto">
+        <summary><h3>Gerar o PDF</h3></summary>
+        <div class="aj-corpo">
+          <ol>
+            <li>Abra <strong>Relatório</strong>.</li>
+            <li>Use as setas para escolher o mês.</li>
+            <li>Toque em <strong>PDF</strong>. O arquivo é baixado no aparelho.</li>
+          </ol>
+          <p>Também dá para baixar como <strong>Imagem</strong> ou copiar o texto. Isso vale no plano grátis.</p>
+          <a class="aj-link" href="#gerar-pdf">Link para este artigo</a>
+        </div>
+      </details>
+      <details class="aj-artigo" id="whatsapp" data-chaves="whatsapp enviar mandar compartilhar socio relatorio zap">
+        <summary><h3>Mandar pelo WhatsApp</h3></summary>
+        <div class="aj-corpo">
+          <ol>
+            <li>Abra <strong>Relatório</strong> e escolha o mês.</li>
+            <li>Toque em <strong>Enviar pelo WhatsApp</strong>.</li>
+            <li>No celular, abre a tela de compartilhar com a imagem e o texto. No computador, abre o WhatsApp com o texto pronto.</li>
+            <li>Escolha o contato e envie.</li>
+          </ol>
+          <p>Enviar pelo WhatsApp é do Warden Pro. No grátis, copie o texto e cole na conversa.</p>
+          <a class="aj-link" href="#whatsapp">Link para este artigo</a>
+        </div>
+      </details>
+    </div>
+
+    <!-- 5. Orientador e consultas -->
+    <div class="aj-grupo" id="orientador" data-grupo>
+      <h2>Orientador e consultas</h2>
+      <p>Dicas e análises feitas com os seus próprios números.</p>
+      <details class="aj-artigo" id="o-que-o-orientador-faz" data-chaves="orientador dicas lampada consultas parcela cabe no bolso gastar">
+        <summary><h3>O que o Orientador faz</h3></summary>
+        <div class="aj-corpo">
+          <p>Toque em <strong>Orientador</strong> (o ícone de lâmpada, no topo). Ele mostra:</p>
+          <ul>
+            <li><strong>Dicas do dia:</strong> contas atrasadas, o que vence logo, um gasto acima do normal.</li>
+            <li><strong>Consultas:</strong> respostas a perguntas como "Essa parcela cabe no meu bolso?", usando o que você anotou.</li>
+            <li><strong>Perguntas rápidas:</strong> como está o mês, o que vence na semana, onde mais gastou.</li>
+          </ul>
+          <p>Tudo é calculado no seu aparelho. Nenhum dado é enviado.</p>
+          <a class="aj-link" href="#o-que-o-orientador-faz">Link para este artigo</a>
+        </div>
+      </details>
+      <details class="aj-artigo" id="nao-e-consultoria" data-chaves="consultoria recomendacao investimento conselho decisao financeira">
+        <summary><h3>Por que não é consultoria financeira</h3></summary>
+        <div class="aj-corpo">
+          <p>O Orientador não diz o que você deve fazer. Ele mostra o que os seus números dizem e qual é o risco.</p>
+          <p>Ele não conhece a sua vida inteira: só o que está anotado no Control. Por isso, a decisão é sempre sua.</p>
+          <p>Para decidir sobre investimentos ou dívidas grandes, converse com um profissional.</p>
+          <a class="aj-link" href="#nao-e-consultoria">Link para este artigo</a>
+        </div>
+      </details>
+    </div>
+
+    <!-- 6. Plano e assinatura -->
+    <div class="aj-grupo" id="plano" data-grupo>
+      <h2>Plano e assinatura</h2>
+      <p>O que é grátis, o que é do Warden Pro e como funciona a assinatura.</p>
+      <details class="aj-artigo" id="gratis-e-pro" data-chaves="gratis pro preco limite 30 lancamentos o que muda diferenca assinatura">
+        <summary><h3>O que é grátis e o que é do Pro</h3></summary>
+        <div class="aj-corpo">
+          <p><strong>No grátis:</strong> até 30 lançamentos por mês, contas fixas, fluxo de caixa, relatório em PDF, imagem e texto, backup, 1 dica do Orientador por dia e a consulta da parcela.</p>
+          <p><strong>No Pro (R$ 9,90 por mês):</strong> lançamentos sem limite, Pessoal e Negócio separados, a área Dívidas, relatório pelo WhatsApp, Orientador completo com as 4 consultas e planilha (CSV).</p>
+          <p class="aj-nota">Parcelamento conta como 1 lançamento. Contas que se repetem, as do Meu mês e as parcelas das dívidas não contam.</p>
+          <p><a href="/assinar.html">Ver o Warden Pro</a></p>
+          <a class="aj-link" href="#gratis-e-pro">Link para este artigo</a>
+        </div>
+      </details>
+      <details class="aj-artigo" id="testar-7-dias" data-chaves="testar teste gratis 7 dias experimentar">
+        <summary><h3>Como testar o Pro por 7 dias</h3></summary>
+        <div class="aj-corpo">
+          <ol>
+            <li>Abra <strong>Ajustes</strong>.</li>
+            <li>No cartão do plano, toque em <strong>Testar o Pro por 7 dias</strong>.</li>
+          </ol>
+          <p>Não pede cartão. Durante 7 dias, tudo do Pro fica liberado.</p>
+          <p>Quando o teste acaba, o Control volta ao grátis. Nada do que você anotou é apagado.</p>
+          <a class="aj-link" href="#testar-7-dias">Link para este artigo</a>
+        </div>
+      </details>
+      <details class="aj-artigo" id="cancelar" data-chaves="cancelar assinatura reembolso kiwify parar de pagar">
+        <summary><h3>Como cancelar</h3></summary>
+        <div class="aj-corpo">
+          <p>O pagamento do Pro é feito pela Kiwify. Para cancelar a renovação:</p>
+          <ol>
+            <li>Abra o e-mail de compra que a Kiwify mandou e siga o link para gerenciar a assinatura.</li>
+            <li>Não achou o e-mail? <a href="/contato.html">Fale com a gente</a> que ajudamos.</li>
+          </ol>
+          <p>Ao cancelar, o Control volta ao grátis. Nada do que você anotou é apagado.</p>
+          <p>Desistiu em até 7 dias depois da compra? Você tem direito ao reembolso. Veja os <a href="/termos.html">Termos de Uso</a>.</p>
+          <a class="aj-link" href="#cancelar">Link para este artigo</a>
+        </div>
+      </details>
+    </div>
+
+    <!-- 7. Seus dados -->
+    <div class="aj-grupo" id="seus-dados" data-grupo>
+      <h2>Seus dados</h2>
+      <p>Onde ficam as suas contas e como não perder nada.</p>
+      <details class="aj-artigo" id="onde-ficam" data-chaves="dados onde ficam aparelho navegador seguranca privacidade nuvem servidor">
+        <summary><h3>Onde ficam os seus dados</h3></summary>
+        <div class="aj-corpo">
+          <p>Tudo fica guardado no navegador deste aparelho. Nada vai para um servidor.</p>
+          <ul>
+            <li>Outro aparelho ou outro navegador não vê as suas contas.</li>
+            <li>Na janela anônima, nada fica salvo.</li>
+            <li>Limpar os dados do navegador apaga as contas.</li>
+          </ul>
+          <p>Por isso, faça backup de vez em quando. Mais detalhes na <a href="/privacidade.html">Política de Privacidade</a>.</p>
+          <a class="aj-link" href="#onde-ficam">Link para este artigo</a>
+        </div>
+      </details>
+      <details class="aj-artigo" id="fazer-backup" data-chaves="backup exportar copia de seguranca salvar arquivo json">
+        <summary><h3>Como fazer backup</h3></summary>
+        <div class="aj-corpo">
+          <ol>
+            <li>Abra <strong>Ajustes</strong>.</li>
+            <li>Em "Seus dados", toque em <strong>Exportar backup</strong>.</li>
+            <li>Um arquivo é baixado. Guarde em lugar seguro, como o seu e-mail ou um drive.</li>
+          </ol>
+          <p>O backup é liberado no grátis e no Pro.</p>
+          <a class="aj-link" href="#fazer-backup">Link para este artigo</a>
+        </div>
+      </details>
+      <details class="aj-artigo" id="restaurar" data-chaves="restaurar importar backup recuperar outro aparelho celular novo">
+        <summary><h3>Como restaurar um backup</h3></summary>
+        <div class="aj-corpo">
+          <ol>
+            <li>Abra <strong>Ajustes</strong>.</li>
+            <li>Toque em <strong>Importar backup</strong> e escolha o arquivo.</li>
+            <li>Confira e confirme.</li>
+          </ol>
+          <p class="aj-nota">O backup substitui tudo o que está no aparelho agora. Dá para desfazer logo depois, se precisar.</p>
+          <a class="aj-link" href="#restaurar">Link para este artigo</a>
+        </div>
+      </details>
+      <details class="aj-artigo" id="apagar-tudo" data-chaves="apagar tudo recomecar zerar limpar excluir dados">
+        <summary><h3>Como apagar tudo</h3></summary>
+        <div class="aj-corpo">
+          <ol>
+            <li>Antes, faça um backup, se quiser guardar alguma coisa.</li>
+            <li>Abra <strong>Ajustes</strong>.</li>
+            <li>No fim da página, toque em <strong>Apagar todos os dados</strong> e confirme.</li>
+          </ol>
+          <p>Dá para desfazer logo depois. Fechou a página, só com o backup.</p>
+          <a class="aj-link" href="#apagar-tudo">Link para este artigo</a>
+        </div>
+      </details>
+    </div>
+
+    <!-- 8. Problemas comuns -->
+    <div class="aj-grupo" id="problemas" data-grupo>
+      <h2>Problemas comuns</h2>
+      <p>O que fazer quando algo não sai como esperado.</p>
+      <details class="aj-artigo" id="trocar-de-celular" data-chaves="perdi meus dados trocar de celular celular novo sumiu sumiram contas">
+        <summary><h3>"Perdi meus dados ao trocar de celular"</h3></summary>
+        <div class="aj-corpo">
+          <p>Os dados ficam no aparelho antigo. Eles não passam sozinhos para o novo.</p>
+          <ol>
+            <li>Ainda tem o celular antigo? Abra o Control nele e faça um <a href="#fazer-backup">backup</a>.</li>
+            <li>Mande o arquivo para o celular novo (por e-mail, por exemplo).</li>
+            <li>No celular novo, <a href="#restaurar">restaure o backup</a>.</li>
+          </ol>
+          <p>Sem o aparelho antigo e sem backup, não tem como recuperar. Para não passar por isso, faça backup de vez em quando.</p>
+          <a class="aj-link" href="#trocar-de-celular">Link para este artigo</a>
+        </div>
+      </details>
+      <details class="aj-artigo" id="app-nao-abre" data-chaves="nao abre travou erro tela branca carregando nao funciona">
+        <summary><h3>"O app não abre"</h3></summary>
+        <div class="aj-corpo">
+          <ol>
+            <li>Recarregue a página.</li>
+            <li>Confira se você não está numa janela anônima.</li>
+            <li>Atualize o navegador ou tente outro (Chrome, Safari, Edge ou Firefox).</li>
+          </ol>
+          <p>Continua igual? <a href="/contato.html">Fale com a gente</a> e conte qual celular e navegador você usa.</p>
+          <a class="aj-link" href="#app-nao-abre">Link para este artigo</a>
+        </div>
+      </details>
+      <details class="aj-artigo" id="valor-errado" data-chaves="valor errado saiu errado centavos virgula ponto corrigir editar baixa errada">
+        <summary><h3>"O valor saiu errado"</h3></summary>
+        <div class="aj-corpo">
+          <p>Use a vírgula para os centavos: <strong>1.500,50</strong> é mil e quinhentos reais e cinquenta centavos. <strong>1.500</strong> é mil e quinhentos.</p>
+          <p>Para corrigir:</p>
+          <ol>
+            <li>Toque no nome da conta.</li>
+            <li>Toque em <strong>Editar</strong>, ajuste o valor e salve.</li>
+          </ol>
+          <p>A baixa saiu errada? No mesmo lugar, remova a baixa (o X ao lado dela) ou toque em <strong>Reabrir</strong>.</p>
+          <a class="aj-link" href="#valor-errado">Link para este artigo</a>
+        </div>
+      </details>
+    </div>
+
+    <p class="aj-vazio" id="aj-vazio" hidden>Nada por aqui com essas palavras. Tente outras, como "backup" ou "saldo", ou <a href="/contato.html">fale com a gente</a>.</p>
+
+    <div class="aj-final" id="nao-achou">
+      <h2>Não achou?</h2>
+      <p>Mande a sua dúvida para a gente. Respondemos em dias úteis.</p>
+      <a class="btn btn-primary" href="/contato.html">Falar com a Warden</a>
+    </div>
+  </div>
+</section>
+
+<script>
+/* ===== busca e acordeão (tudo local) ===== */
+(function () {
+  'use strict';
+  const semAcento = s => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  const campo = document.getElementById('aj-q'), status = document.getElementById('aj-status'), vazio = document.getElementById('aj-vazio');
+  const artigos = [...document.querySelectorAll('.aj-artigo')];
+  const grupos = [...document.querySelectorAll('[data-grupo]')];
+  const texto = new Map(artigos.map(a => [a, semAcento(a.textContent + ' ' + (a.dataset.chaves || ''))]));
+
+  function filtrar() {
+    const q = semAcento(campo.value).trim(), palavras = q.split(/\s+/).filter(Boolean);
+    let n = 0;
+    artigos.forEach(a => {
+      const ok = !palavras.length || palavras.every(p => texto.get(a).includes(p));
+      a.hidden = !ok;
+      if (ok) n++;
+    });
+    grupos.forEach(g => { g.hidden = !g.querySelector('.aj-artigo:not([hidden])'); });
+    vazio.hidden = n > 0;
+    document.querySelector('.aj-indice').hidden = palavras.length > 0;
+    status.textContent = !palavras.length ? '' : n === 0 ? 'Nenhum artigo encontrado.' : n === 1 ? '1 artigo encontrado.' : `${n} artigos encontrados.`;
+  }
+  campo.addEventListener('input', filtrar);
+  document.getElementById('aj-busca').addEventListener('submit', e => {
+    e.preventDefault();
+    const primeiro = artigos.find(a => !a.hidden);
+    if (primeiro && campo.value.trim()) { primeiro.open = true; primeiro.querySelector('summary').focus(); }
+  });
+
+  // link direto: #ancora abre o artigo e leva até ele
+  function abrirDoEndereco() {
+    const id = decodeURIComponent(location.hash.slice(1));
+    const el = id && document.getElementById(id);
+    if (!el || !el.matches('.aj-artigo')) return;
+    if (el.hidden) { campo.value = ''; filtrar(); }
+    el.open = true;
+    el.scrollIntoView({ block: 'start' });
+  }
+  // abrir/fechar atualiza o endereço (dá para copiar e mandar o link do artigo)
+  artigos.forEach(a => a.addEventListener('toggle', () => {
+    if (a.open) history.replaceState(null, '', '#' + a.id);
+    else if (location.hash === '#' + a.id) history.replaceState(null, '', location.pathname + location.search);
+  }));
+  addEventListener('hashchange', abrirDoEndereco);
+  abrirDoEndereco();
+  window.WardenAjuda = { filtrar };
+})();
+
+/* ===== o Bip em 3D: só nesta página, carregado depois do conteúdo e só em aparelhos que aguentam ===== */
+(function () {
+  'use strict';
+  const fig = document.getElementById('aj-bip');
+  const THREE_URL = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+  const con = navigator.connection || {};
+  // fica na imagem estática: menos movimento, economia de dados, pouca memória, conexão lenta ou sem WebGL
+  function motivoImagem() {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return 'movimento-reduzido';
+    if (con.saveData) return 'economia-de-dados';
+    if (/(^|-)2g$/.test(con.effectiveType || '')) return 'conexao-lenta';
+    if (navigator.deviceMemory && navigator.deviceMemory < 4) return 'pouca-memoria';
+    try { const c = document.createElement('canvas'); if (!(c.getContext('webgl') || c.getContext('experimental-webgl'))) return 'sem-webgl'; }
+    catch (e) { return 'sem-webgl'; }
+    return null;
+  }
+  const motivo = motivoImagem();
+  if (motivo) { fig.dataset.motivo = motivo; return; }
+
+  function iniciar() {
+    const s = document.createElement('script');
+    s.src = THREE_URL; s.async = true;
+    s.onload = () => { try { montar(); } catch (e) { fig.dataset.motivo = 'erro'; } };
+    s.onerror = () => { fig.dataset.motivo = 'sem-rede'; };   // continua a imagem; a página funciona igual
+    document.head.appendChild(s);
+  }
+  const ocioso = fn => ('requestIdleCallback' in window ? requestIdleCallback(fn, { timeout: 2500 }) : setTimeout(fn, 300));
+  if (document.readyState === 'complete') ocioso(iniciar); else addEventListener('load', () => ocioso(iniciar), { once: true });
+
+  // cena adaptada do robozinho.html: cores da Warden (corpo claro, detalhes escuros, brilho em verde-limão)
+  function montar() {
+    const T = window.THREE, cv = fig.querySelector('canvas'), palco = fig.querySelector('.aj-bip-palco');
+    const ACENTO = 0xC8F26B, ACENTO_FORTE = 0xA9E03A;
+    const R = new T.WebGLRenderer({ canvas: cv, antialias: true, alpha: true });
+    R.setPixelRatio(Math.min(devicePixelRatio, 2));
+    const S = new T.Scene(), C = new T.PerspectiveCamera(35, 1, .1, 100);
+    C.position.set(0, 1.2, 9); C.lookAt(0, .6, 0);
+    S.add(new T.HemisphereLight(0xf3f1ea, 0x1a1a14, .75));
+    const key = new T.DirectionalLight(0xffffff, .9); key.position.set(4, 6, 5); S.add(key);
+    const rim = new T.PointLight(ACENTO, .7, 20); rim.position.set(-4, 2, -3); S.add(rim);
+
+    const corpo = new T.MeshStandardMaterial({ color: 0xf3f1ea, roughness: .35, metalness: .12 });
+    const escuro = new T.MeshStandardMaterial({ color: 0x141412, roughness: .3, metalness: .45 });
+    const brilho = () => new T.MeshStandardMaterial({ color: ACENTO, emissive: ACENTO_FORTE, emissiveIntensity: 1.2 });
+    const olhoMat = brilho(), anelMat = brilho(), lampadaMat = brilho();
+
+    const bot = new T.Group(); S.add(bot);
+    const head = new T.Mesh(new T.SphereGeometry(1.15, 48, 48), corpo); head.scale.set(1.1, .92, 1); head.position.y = 1.5; bot.add(head);
+    const visor = new T.Mesh(new T.SphereGeometry(1.16, 48, 48, Math.PI * .12, Math.PI * .76, Math.PI * .3, Math.PI * .38), escuro);
+    visor.scale.set(1.1, .93, 1.01); visor.position.y = 1.5; bot.add(visor);
+    const eyes = [];
+    [-.38, .38].forEach(x => { const e = new T.Mesh(new T.SphereGeometry(.15, 24, 24), olhoMat); e.scale.set(1, 1.4, .6); e.position.set(x, 1.55, 1.16); bot.add(e); eyes.push(e); });
+    const ant = new T.Mesh(new T.CylinderGeometry(.04, .04, .5, 12), escuro); ant.position.y = 2.75; bot.add(ant);
+    const bulb = new T.Mesh(new T.SphereGeometry(.14, 24, 24), lampadaMat); bulb.position.y = 3.05; bot.add(bulb);
+    [-1, 1].forEach(s => { const ear = new T.Mesh(new T.CylinderGeometry(.28, .28, .2, 32), escuro); ear.rotation.z = Math.PI / 2; ear.position.set(s * 1.27, 1.5, 0); bot.add(ear); });
+    const torso = new T.Mesh(new T.SphereGeometry(.8, 48, 48), corpo); torso.scale.set(1, 1.05, .9); torso.position.y = -.05; bot.add(torso);
+    const badge = new T.Mesh(new T.CircleGeometry(.36, 48), escuro); badge.position.set(0, 0, .735); bot.add(badge);
+    const ring = new T.Mesh(new T.TorusGeometry(.36, .035, 12, 48), anelMat); ring.position.set(0, 0, .735); bot.add(ring);
+    // a marca no peito (a mesma do robozinho.html), acesa em verde-limão
+    const logoImg = new Image(), logoTex = new T.Texture(logoImg);
+    logoImg.onload = () => { logoTex.needsUpdate = true; };
+    logoImg.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAAAAAB5Gfe6AAAEX0lEQVR42u3bX2iVdRjA8ef82SHsIi+KuomCggIvugi6SHKKF4puwTq7kajcaTatkImalxkVXSSGJOmFf6IVUY1GjQiRjSVYbiEngzaD1KnNsTOcy7Vxtr07v27XjINu7/t7n7fn+70b23l/5/nsvO9533N4RYiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiP5npZa+hWw6tmdfCVy8AI+uWrliWSZGgLmp306f+iOm1bNr20pOQaWP12TjmP/x9sApKWh/zP/8+WGnqGt53/O3TDtVTW9d5CCZxT3s9QM5Xe9mmXVjP3tcrkHZ/98558oN/t4GH+p5WOEpzWDtFU+7QHr/Go3ndMvv6fT0CljZndMIIOXVvYv4by5ioa0655e7tokXgEfWa72wWfegF4Cn79UK8MAzXgBq9V7brvICsEIvwBNeAO7WC7D8zse58wvJdErTyCM35z2d1GCmEj2AqvmP7J2a/9SCwMMrQFHB2+9UlrqNJAPc3HEshM+1kjv/tcIJsQxwrqkYxmbSSZ3/ZH0o8ycWoC1/VQwDVN57eSKkTSXyGDC161Bo20oiQGnLt2IZ4Pzm3hC3lrxjwKkNYc6fPICvnrskhgHcgZeuh7vFZB0DKnv2hb3JZL0CbhwX2wCVrHGACAIAAAAAAAAAvY2O2gYYbCiaBvhpw+kaywBf1g9YPga4fS9ej34VvZfDk7sP+VhGLcDQlu/FMkCx8Ivp84DOjZ7mVwpwcNOw5TPB6d3bJ70tpvAYMPLq1x5X0wfQ39Rn+mKoq87r/OoAjuYviWGAYG/LX56XVHUMGGtt876mJoCLhR/8L6poFzhTF8P8igC+eHZADAO4918YjWVhJceAv/d8FNPKOgDGCx1xLa1iF/i9Ibb5VQB0ru0RywCzO4bENEAlENsA8d6Ew5ejAAAAAAAAAODxuudH2wB/NnaYBijWdeUsA3TWnzN9DDi4aUgMA5R9ful72/n7SKz0WrvGt0FvAAOFM6bPA7o36pzfF8Cnvr/01QUw925hXOupsI9jwETrMRHDAFeaT4plgL6mftNXgx11quePGsB98Pyo6vkj3gXKb3woYhhgeNs3Yhng18JZsQzQvfmq/vkjPAgezydh/sgAgjdfGU/C/FHtAjdaPxExDHChuUcsAww09idl/miOAZ8lZ/5oAObEOEDKOoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAggGcdYCKs74LTFgHOGsdoMc6QO+wcYChE8YB5HDZOEDf58YB3FsXjJ8KX26ZtA0gXa2zxi+Gjmwv2waQw43njV8Of7d6/4RpABnZWXv08n//KlPtcbf8Mlf1Dpt/3dZWE/7NOEu5ba7YfP9T659clrkFsVTtUaWF+87MTLU/v3jfvB/Gwj/2Lp00lV0IkJqtdttYpmbhBwoz1T5hyKXd7f4pERERERERERERERERERERERERERERERERiYj8AymZoagMIbp5AAAAAElFTkSuQmCC';
+    const logo = new T.Mesh(new T.PlaneGeometry(.52, .52), new T.MeshStandardMaterial({ color: ACENTO, emissive: ACENTO_FORTE, emissiveIntensity: 1.1, alphaMap: logoTex, transparent: true }));
+    logo.position.set(0, 0, .745); bot.add(logo);
+    const arms = [];
+    [-1, 1].forEach(s => {
+      const g = new T.Group(); g.position.set(s * .85, .25, 0);
+      const a = new T.Mesh(new T.SphereGeometry(.22, 24, 24), corpo); a.scale.set(.8, 1.6, .8); a.position.y = -.35; g.add(a);
+      const h = new T.Mesh(new T.SphereGeometry(.15, 20, 20), escuro); h.position.y = -.72; g.add(h);
+      g.rotation.z = s * .35; bot.add(g); arms.push(g);
+    });
+    const thr = new T.Mesh(new T.ConeGeometry(.3, .35, 32), escuro); thr.rotation.x = Math.PI; thr.position.y = -.95; bot.add(thr);
+    const flame = new T.Mesh(new T.ConeGeometry(.2, .7, 24, 1, true), new T.MeshBasicMaterial({ color: ACENTO, transparent: true, opacity: .55 }));
+    flame.rotation.x = Math.PI; flame.position.y = -1.45; bot.add(flame);
+    const shadow = new T.Mesh(new T.CircleGeometry(1.1, 48), new T.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: .35 }));
+    shadow.rotation.x = -Math.PI / 2; shadow.position.y = -2.6; S.add(shadow);
+    const pts = new T.BufferGeometry(), N = 90, pos = new Float32Array(N * 3);
+    for (let i = 0; i < N; i++) { pos[i * 3] = (Math.random() - .5) * 14; pos[i * 3 + 1] = (Math.random() - .5) * 8; pos[i * 3 + 2] = (Math.random() - .5) * 8 - 3; }
+    pts.setAttribute('position', new T.BufferAttribute(pos, 3));
+    S.add(new T.Points(pts, new T.PointsMaterial({ color: 0x8a887e, size: .04 })));
+
+    // interação: arrastar gira, tocar acena (a rolagem vertical da página continua valendo no celular)
+    let rotY = -.35, vel = 0, drag = false, lx = 0, moved = 0, wave = 1;   // acena ao carregar
+    cv.addEventListener('pointerdown', e => { drag = true; lx = e.clientX; moved = 0; cv.setPointerCapture(e.pointerId); });
+    cv.addEventListener('pointermove', e => { if (!drag) return; const d = e.clientX - lx; lx = e.clientX; moved += Math.abs(d); vel = d * .008; rotY += vel; });
+    cv.addEventListener('pointerup', () => { drag = false; if (moved < 5) wave = 1; });
+    cv.addEventListener('pointercancel', () => { drag = false; });
+
+    // tamanho do bloco (não da tela): a câmera recua quando o bloco é estreito, para o Bip caber inteiro
+    function medir() {
+      const w = palco.clientWidth, h = palco.clientHeight;
+      if (!w || !h) return;
+      R.setSize(w, h, false); C.aspect = w / h;
+      C.position.z = C.aspect < 1.1 ? 10 / Math.max(.55, C.aspect) : 10;
+      C.updateProjectionMatrix();
+    }
+    new ResizeObserver(medir).observe(palco); medir();
+
+    // só desenha quando o bloco está na tela e a aba está visível
+    let visivel = true, rodando = false, t = 0;
+    new IntersectionObserver(es => { visivel = es[0].isIntersecting; if (visivel) comecar(); }).observe(palco);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) comecar(); });
+    function comecar() { if (!rodando && visivel && !document.hidden) { rodando = true; requestAnimationFrame(loop); } }
+    function loop() {
+      if (!visivel || document.hidden) { rodando = false; return; }
+      t += .016;
+      if (!drag) { rotY += vel; vel *= .94; rotY += .002; }
+      bot.rotation.y = rotY;
+      const f = Math.sin(t * 1.6) * .25; bot.position.y = f + .2; bot.rotation.z = Math.sin(t * 1.1) * .04;
+      shadow.scale.setScalar(1 - f * .4); shadow.material.opacity = .3 - f * .15;
+      flame.scale.y = 1 + Math.sin(t * 25) * .15;
+      lampadaMat.emissiveIntensity = .6 + Math.sin(t * 4) * .5;
+      const piscar = (t % 4 < .12) ? .1 : 1.4; eyes.forEach(e => { e.scale.y = piscar; });
+      if (wave > 0) { wave -= .012; const k = Math.sin((1 - wave) * Math.PI); arms[1].rotation.z = .35 + k * 2.2 + Math.sin(t * 14) * .25 * k; }
+      else arms[1].rotation.z = .35 + Math.sin(t * 1.6) * .08;
+      arms[0].rotation.z = -.35 - Math.sin(t * 1.6) * .08;
+      R.render(S, C);
+      requestAnimationFrame(loop);
+    }
+    R.render(S, C);
+    fig.dataset.bip = '3d';
+    document.getElementById('aj-bip-desc').hidden = false;   // o canvas é escondido dos leitores de tela; a descrição fica no lugar da imagem
+    comecar();
+  }
+})();
+</script>
+</body>
+</html>

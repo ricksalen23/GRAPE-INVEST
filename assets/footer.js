@@ -60,6 +60,7 @@ const FOOTER_CONFIG = { instagram: "", tiktok: "", youtube: "", whatsapp: "55649
           <li><a href="/cobranca/">Warden Cobrança</a></li>
           <li><a href="/app.html" data-control-finance>Control Finance</a></li>
           <li><a href="/sobre.html">Sobre</a></li>
+          <li><a href="/ajuda/">Central de ajuda</a></li>
           <li><a href="/contato.html">Contato</a></li>
           <li><a href="/privacidade.html">Política de Privacidade</a></li>
           <li><a href="/termos.html">Termos de Uso</a></li>

@@ -738,6 +738,9 @@
             <button type="button" class="ctl-icone-btn" data-acao="cat-renomear" data-id="${esc(c.id)}" aria-label="Renomear ${esc(c.nome)}">${ic('lapis')}</button>
             <button type="button" class="ctl-icone-btn" data-acao="cat-excluir" data-id="${esc(c.id)}" aria-label="Excluir ${esc(c.nome)}">${ic('lixo')}</button></li>`).join('')}</ul>
         </div>
+        <div class="ctl-card" data-ajuda><h2>Ajuda</h2><p class="sub">Passo a passo de cada parte do Control: contas, Meu mês, dívidas, relatório, plano e backup.</p>
+          <div class="ctl-acoes"><a class="btn btn-secondary" href="/ajuda/">${ic('lampada')} Central de ajuda</a></div>
+        </div>
         <div class="ctl-card ctl-perigo largo"><h2>Recomeçar do zero</h2><p class="sub">Apaga todas as contas, categorias e o saldo deste aparelho. Exporte um backup antes.</p>
           <div class="ctl-acoes"><button type="button" class="btn btn-perigo" data-acao="apagar-tudo">${ic('lixo')} Apagar todos os dados</button></div>
         </div>
