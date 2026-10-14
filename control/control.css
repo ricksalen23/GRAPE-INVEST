@@ -623,6 +623,10 @@ body[data-ori-gaveta] { overflow: hidden; }
 .ctl-saude-txt li svg { width: 14px; height: 14px; flex-shrink: 0; color: var(--subtle); }
 .ctl-saude-txt li.ok { color: var(--text); }
 .ctl-saude-txt li.ok svg { color: var(--accent); }
+.ctl-saude-txt li.neutro svg { color: var(--muted); }
+.ctl-saude-aviso { margin-top: 10px; font-size: .72rem; line-height: 1.45; color: var(--muted); }
+.ctl-saude-vazio { margin-top: 4px; font-size: .95rem; line-height: 1.5; }
+.ctl-saude.vazio .ctl-anel { width: 72px; height: 72px; }
 @media (min-width: 640px) { .ctl-saude-txt ul { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 18px; } }
 
 /* micro-interações: aperto nos botões */

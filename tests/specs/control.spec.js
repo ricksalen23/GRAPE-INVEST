@@ -858,13 +858,18 @@ test.describe('control', () => {
         conta('luz', 'pagar', 'Luz', 15000, '2026-09-28'),                                                 // 1 atrasada
         conta('sal', 'receber', 'Salário', 500000, '2026-10-05')
       ] }), 'inicio');
-      // saldo hoje: 1.000 − 2.000 = −1.000 → folga 0; 1 atrasada → 20; fim do mês: −1.000 − 150 + 5.000 > 0 → 30; fica negativo hoje → fluxo 0
+      // 1 atrasada → 20; outubro sem movimento → resultado 0, no azul → 30; saldo hoje 1.000 − 2.000 = −1.000 → 0;
+      // caixa: média de 1 mês (setembro, R$ 2.000) e saldo negativo → 0. O salário de 05/10 (futuro) não entra em nada.
       const s = await page.evaluate(() => window.ControlNucleo.saudeFinanceira(window.WardenControl.db, 'tudo', '2026-10-02'));
-      expect(s.itens.map(i => [i.id, i.pontos])).toEqual([['em-dia', 20], ['fim-mes', 30], ['fluxo', 0], ['folga', 0]]);
-      expect(s).toMatchObject({ pontos: 50, rotulo: 'Pede atenção' });
+      expect(s.itens.map(i => [i.id, i.estado, i.pontos])).toEqual([['em-dia', 'nao', 20], ['resultado', 'ok', 30], ['saldo', 'nao', 0], ['folga', 'nao', 0]]);
+      expect(s).toMatchObject({ suficiente: true, pontos: 50, rotulo: 'Pede atenção' });
       await expect(page.locator('.ctl-anel')).toHaveAttribute('aria-label', 'Saúde financeira: 50 de 100, Pede atenção');
       await expect(page.locator('.ctl-anel-num strong')).toHaveText('50');
+      await expect(page.locator('[data-criterio="folga"]')).toHaveText('Caixa cobre um mês de gastos (média de 1 mês)');
       await expect(page.locator('.ctl-saude li.ok')).toHaveCount(1);
+      // "score" só aparece no aviso de que o indicador não tem relação com score de crédito
+      await expect(page.locator('[data-saude-aviso]')).toHaveText('Indicador do Warden. Não tem relação com Serasa, SPC ou score de crédito.');
+      expect(await page.evaluate(() => (document.body.innerText.match(/score/gi) || []).length)).toBe(1);
       // brilho: passa o mouse no cartão do saldo
       const card = page.locator('.ctl-saldo');
       const box = await card.boundingBox();
@@ -872,6 +877,64 @@ test.describe('control', () => {
       await page.mouse.move(box.x + 120, box.y + 60);
       await expect(card).toHaveClass(/aceso/);
       await expect.poll(() => card.evaluate(el => el.style.getPropertyValue('--mx'))).toBe('120px');
+      semErros(erros);
+    });
+
+    test('saúde financeira: anotar conta futura nunca baixa o indicador', async ({ page }) => {
+      const bx = (data, valor) => [{ id: 'b' + data + valor, data, valor, desconto: 0, juros: 0 }];
+      const erros = await abrirCom(page, base({ saldo: { pessoal: 300000, negocio: 0 }, contas: [
+        conta('ago', 'pagar', 'Agosto', 100000, '2026-08-10', { baixas: bx('2026-08-10', 100000) }),
+        conta('set', 'pagar', 'Setembro', 100000, '2026-09-10', { baixas: bx('2026-09-10', 100000) }),
+        conta('sal', 'receber', 'Salário', 400000, '2026-10-01', { baixas: bx('2026-10-01', 400000) })
+      ] }), 'inicio');
+      const antes = await page.evaluate(() => window.ControlNucleo.saudeFinanceira(window.WardenControl.db, 'tudo', '2026-10-02'));
+      expect(antes.pontos).toBe(100);
+      // contas futuras de todo tipo: enorme ainda este mês, no mês que vem, parcelada e que se repete
+      const depois = await page.evaluate(() => {
+        const N = window.ControlNucleo, d = JSON.parse(JSON.stringify(window.WardenControl.db));
+        N.criarLancamento(d, { tipo: 'pagar', descricao: 'Reforma', valor: 99999900, vencimento: '2026-10-30', repeticao: 'unica', ref: '2026-10-02' });
+        N.criarLancamento(d, { tipo: 'pagar', descricao: 'IPTU', valor: 500000, vencimento: '2026-11-10', repeticao: 'parcelada', parcelas: 10, ref: '2026-10-02' });
+        N.criarLancamento(d, { tipo: 'pagar', descricao: 'Academia', valor: 15000, vencimento: '2026-10-03', repeticao: 'recorrente', freq: 'mensal', ref: '2026-10-02' });
+        N.criarLancamento(d, { tipo: 'receber', descricao: 'Cliente', valor: 1000, vencimento: '2026-10-20', repeticao: 'unica', ref: '2026-10-02' });
+        return N.saudeFinanceira(d, 'tudo', '2026-10-02');
+      });
+      expect(depois.pontos).toBe(antes.pontos);
+      expect(depois.itens).toEqual(antes.itens);
+      // e pela tela: anotar uma conta futura deixa o anel no mesmo número
+      await expect(page.locator('.ctl-anel-num strong')).toHaveText('100');
+      await novoLancamento(page, { valor: '9.000', descricao: 'Viagem', vencimento: '2026-10-25' });
+      await page.locator('a[href="#inicio"]:visible').first().click();
+      await expect(page.locator('.ctl-anel-num strong')).toHaveText('100');
+      // só o que já venceu pesa: no dia seguinte ao vencimento, a conta atrasada tira 10
+      const atrasou = await page.evaluate(() => window.ControlNucleo.saudeFinanceira(window.WardenControl.db, 'tudo', '2026-10-26'));
+      expect(atrasou.itens.find(i => i.id === 'em-dia').pontos).toBe(20);
+      semErros(erros);
+    });
+
+    test('saúde financeira: sem dados suficientes mostra o convite; caixa neutro sem mês completo; média só dos meses que existem', async ({ page }) => {
+      const bx = (data, valor) => [{ id: 'b' + data + valor, data, valor, desconto: 0, juros: 0 }];
+      const erros = await abrirCom(page, null, 'inicio');
+      const cartao = page.locator('.ctl-saude');
+      await expect(cartao).toHaveAttribute('data-saude', 'sem-dados');
+      await expect(cartao).toContainText('Ainda não dá para calcular. Anote suas contas do mês.');
+      await expect(cartao.locator('.ctl-anel-num')).toHaveCount(0);
+      await expect(cartao.locator('[data-saude-aviso]')).toBeVisible();
+      const calc = d => page.evaluate(([d]) => window.ControlNucleo.saudeFinanceira(window.ControlNucleo.migrar(d), 'tudo', '2026-10-02'), [d]);
+      // só contas futuras (nenhum dinheiro mexeu ainda): ainda sem dados
+      expect(await calc(base({ contas: [conta('a', 'pagar', 'Aluguel', 180000, '2026-10-05')] }))).toEqual({ suficiente: false });
+      // só movimento neste mês: o critério do caixa fica neutro (não tira pontos)
+      let s = await calc(base({ saldo: { pessoal: 0, negocio: 0 }, contas: [conta('s', 'receber', 'Salário', 400000, '2026-10-01', { baixas: bx('2026-10-01', 400000) })] }));
+      expect(s.itens.find(i => i.id === 'folga')).toMatchObject({ estado: 'neutro', pontos: 20 });
+      expect(s.pontos).toBe(100);
+      // começou em agosto: julho não existe para a média → média de 2 meses (R$ 1.500 e R$ 500 = R$ 1.000)
+      s = await calc(base({ saldo: { pessoal: 250000, negocio: 0 }, contas: [
+        conta('ago', 'pagar', 'Agosto', 150000, '2026-08-10', { baixas: bx('2026-08-10', 150000) }),
+        conta('set', 'pagar', 'Setembro', 50000, '2026-09-10', { baixas: bx('2026-09-10', 50000) })] }));
+      expect(s.itens.find(i => i.id === 'folga')).toMatchObject({ meses: 2, media: 100000, texto: 'Caixa cobre um mês de gastos (média de 2 meses)', pontos: 10 });
+      // na tela, anotar e pagar uma conta passa a mostrar o número
+      await novoLancamento(page, { tipo: 'receber', valor: '100', descricao: 'Venda', vencimento: HOJE, jaPaga: true });
+      await expect(cartao).toHaveAttribute('data-saude', '100');
+      await expect(page.locator('.ctl-anel-num strong')).toHaveText('100');
       semErros(erros);
     });
 

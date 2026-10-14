@@ -240,16 +240,26 @@
     return `<div class="ctl-tela-cab"><div><h1>${titulo}</h1>${sub ? `<p>${sub}</p>` : ''}</div></div>`;
   }
 
-  /** anel de saúde financeira (0 a 100) com os 4 critérios logo ao lado */
+  /** anel de saúde financeira (0 a 100) com os 4 critérios ao lado; sem dados suficientes, só o convite para anotar */
+  const AVISO_SAUDE = 'Indicador do Warden. Não tem relação com Serasa, SPC ou score de crédito.';
   function cartaoSaude(s) {
-    return `<div class="ctl-card ctl-saude">
+    const aviso = `<p class="ctl-saude-aviso" data-saude-aviso>${AVISO_SAUDE}</p>`;
+    if (!s.suficiente) {
+      return `<div class="ctl-card ctl-saude vazio" data-saude="sem-dados">
+        <div class="ctl-anel" aria-hidden="true"><svg viewBox="0 0 120 120"><circle class="trilho" cx="60" cy="60" r="50"/></svg></div>
+        <div class="ctl-saude-txt"><span class="ctl-rotulo">Saúde financeira</span>
+          <p class="ctl-saude-vazio">Ainda não dá para calcular. Anote suas contas do mês.</p>${aviso}</div>
+      </div>`;
+    }
+    const icone = { ok: ic('check', 'stroke-width="3"'), nao: ic('ponto'), neutro: ic('relogio') };
+    return `<div class="ctl-card ctl-saude" data-saude="${s.pontos}">
       <div class="ctl-anel" data-anel="${s.pontos}" role="img" aria-label="Saúde financeira: ${s.pontos} de 100, ${esc(s.rotulo)}">
         <svg viewBox="0 0 120 120" aria-hidden="true"><circle class="trilho" cx="60" cy="60" r="50"/>
           <circle class="arco" cx="60" cy="60" r="50" pathLength="100" stroke-dasharray="${s.pontos} 100" transform="rotate(-90 60 60)"/></svg>
         <span class="ctl-anel-num" aria-hidden="true"><strong data-contar="${s.pontos}" data-formato="int" data-chave="saude">${s.pontos}</strong><small>de 100</small></span>
       </div>
       <div class="ctl-saude-txt"><span class="ctl-rotulo">Saúde financeira</span><h2 data-saude-rotulo>${esc(s.rotulo)}</h2>
-        <ul>${s.itens.map(i => `<li class="${i.ok ? 'ok' : ''}">${ic(i.ok ? 'check' : 'ponto', i.ok ? 'stroke-width="3"' : '')}<span>${esc(i.texto)}</span></li>`).join('')}</ul></div>
+        <ul>${s.itens.map(i => `<li class="${i.estado}" data-criterio="${i.id}">${icone[i.estado]}<span>${esc(i.texto)}</span></li>`).join('')}</ul>${aviso}</div>
     </div>`;
   }
 
@@ -288,7 +298,7 @@
           <div><span class="ctl-rotulo">Previsto em ${N.dataCurta(fim)}</span><span class="v${pFim.saldo < 0 ? ' ctl-num neg' : ''}" data-contar="${pFim.saldo}" data-chave="inicio-fim">${brl(pFim.saldo)}</span></div>
         </div>
       </div>
-      ${saude ? cartaoSaude(saude) : ''}
+      ${cartaoSaude(saude)}
       ${alertaNegativo(serie)}
       ${primeirosPassos()}
       ${temContas ? lista : `<div class="ctl-bloco">${vazio()}</div>`}`;

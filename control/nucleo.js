@@ -630,31 +630,42 @@
   const NOME_PERFIL = { tudo: 'Pessoal + Negócio', pessoal: 'Pessoal', negocio: 'Negócio' };
 
   /**
-   * saúde financeira de 0 a 100 (o anel do Início), com 4 critérios simples de explicar:
-   * contas em dia (30; −10 por atrasada), mês fecha no azul (30), saldo positivo nos próximos 90 dias (20),
-   * caixa cobre um mês de gastos (20, proporcional; sem histórico, basta o saldo estar positivo).
-   * null sem contas. { pontos, rotulo, itens: [{ id, texto, ok, pontos }] }
+   * "Saúde financeira" de 0 a 100 (o anel do Início). Indicador do próprio Warden, sem relação com birôs de crédito.
+   * Só pesa o que já aconteceu: anotar uma conta futura nunca baixa o indicador. Pesos fixos:
+   *   contas em dia 30 (−10 por conta atrasada) · mês no azul até agora 30 (recebido − pago no mês, até hoje) ·
+   *   saldo de hoje positivo 20 · caixa cobre um mês de gastos 20 (proporcional à média de pagamentos dos meses
+   *   anteriores que existem de fato, até 3; sem nenhum mês completo para comparar, fica neutro: não tira pontos).
+   * Sem dados suficientes (nenhuma conta ou nenhum dinheiro que já entrou/saiu): { suficiente: false }.
+   * Senão: { suficiente: true, pontos, rotulo, itens: [{ id, texto, estado: 'ok'|'nao'|'neutro', pontos }] }
    */
   function saudeFinanceira(db, perfil = 'tudo', ref = hoje()) {
     const contas = db.contas.filter(doPerfil(perfil));
-    if (!contas.length) return null;
-    const atrasadas = contas.filter(c => !quitada(c) && c.vencimento < ref).length;
-    const serie = serieFluxo(db, perfil, HORIZONTE_DIAS, ref);
-    const fimMes = serie.pontos[diffDias(ref, fimDoMes(ref))].saldo;
+    const baixas = contas.flatMap(c => c.baixas.filter(b => b.data <= ref).map(b => ({ ...b, tipo: c.tipo })));
+    if (!contas.length || !baixas.length) return { suficiente: false };
     const ym = mesDe(ref);
-    const hist = [1, 2, 3].map(k => resumoMes(db, perfil, addMesYM(ym, -k)).pago).filter(v => v > 0);
-    const media = hist.length ? hist.reduce((s, v) => s + v, 0) / hist.length : 0;
+    const atrasadas = contas.filter(c => !quitada(c) && c.vencimento < ref).length;
+    const resultado = baixas.filter(b => mesDe(b.data) === ym).reduce((s, b) => s + (b.tipo === 'receber' ? b.valor : -b.valor), 0);
     const saldo = saldoAtual(db, perfil, ref);
+    // meses anteriores (até 3) a partir do primeiro mês em que o dinheiro mexeu; um mês sem pagamento entra como zero
+    const primeiro = baixas.reduce((m, b) => (mesDe(b.data) < m ? mesDe(b.data) : m), ym);
+    const meses = [1, 2, 3].map(k => addMesYM(ym, -k)).filter(m => m >= primeiro);
+    const pagos = meses.map(m => baixas.filter(b => b.tipo === 'pagar' && mesDe(b.data) === m).reduce((s, b) => s + b.valor, 0));
+    const media = meses.length ? pagos.reduce((s, v) => s + v, 0) / meses.length : 0;
+    let folga;
+    if (!meses.length) folga = { id: 'folga', texto: 'Caixa x gastos: ainda falta um mês completo para comparar', estado: 'neutro', pontos: 20 };
+    else {
+      const fonte = `média de ${meses.length} ${meses.length === 1 ? 'mês' : 'meses'}`;
+      const p = media > 0 ? Math.round(20 * Math.max(0, Math.min(1, saldo / media))) : (saldo >= 0 ? 20 : 0);
+      folga = { id: 'folga', texto: `Caixa cobre um mês de gastos (${fonte})`, estado: p === 20 ? 'ok' : 'nao', pontos: p, meses: meses.length, media: Math.round(media) };
+    }
     const itens = [
-      { id: 'em-dia', texto: 'Contas em dia', ok: !atrasadas, pontos: Math.max(0, 30 - atrasadas * 10) },
-      { id: 'fim-mes', texto: 'Mês fecha no azul', ok: fimMes >= 0, pontos: fimMes >= 0 ? 30 : 0 },
-      { id: 'fluxo', texto: 'Saldo positivo nos próximos 90 dias', ok: !serie.negativo, pontos: serie.negativo ? 0 : 20 },
-      media
-        ? { id: 'folga', texto: 'Caixa cobre um mês de gastos', ok: saldo >= media, pontos: Math.round(20 * Math.max(0, Math.min(1, saldo / media))) }
-        : { id: 'folga', texto: 'Caixa positivo', ok: saldo > 0, pontos: saldo > 0 ? 20 : 0 }
+      { id: 'em-dia', texto: 'Contas em dia', estado: atrasadas ? 'nao' : 'ok', pontos: Math.max(0, 30 - atrasadas * 10) },
+      { id: 'resultado', texto: 'Mês no azul até agora', estado: resultado >= 0 ? 'ok' : 'nao', pontos: resultado >= 0 ? 30 : 0 },
+      { id: 'saldo', texto: 'Saldo de hoje positivo', estado: saldo >= 0 ? 'ok' : 'nao', pontos: saldo >= 0 ? 20 : 0 },
+      folga
     ];
     const pontos = itens.reduce((s, i) => s + i.pontos, 0);
-    return { pontos, rotulo: pontos >= 80 ? 'Ótima' : pontos >= 60 ? 'Boa' : pontos >= 40 ? 'Pede atenção' : 'Apertada', itens };
+    return { suficiente: true, pontos, rotulo: pontos >= 80 ? 'Ótima' : pontos >= 60 ? 'Boa' : pontos >= 40 ? 'Pede atenção' : 'Apertada', itens };
   }
 
   /**
