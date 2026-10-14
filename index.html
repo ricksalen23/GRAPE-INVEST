@@ -9,12 +9,12 @@
 <script>
   /* ===== HERO EM VÍDEO (veja "Hero em vídeo" no CLAUDE.md) =====
      ativo: false → a seção não existe na página. Arquivos em /assets/video/ (caminhos absolutos).
-     titulo: opcional; se preenchido, vira o <h1> da home. destaque: trecho do título em verde-limão.
+     titulo: opcional; se preenchido, vira o <h1> da home. destaque: trecho do título em verde-limão ("" = título todo na cor clara).
      desktop: telas acima de 768px; mobile: até 768px (vídeo vertical). Só a versão da tela é baixada. */
   const HERO_VIDEO = {
     ativo: true,
     titulo: "Bem-vindo à Warden Finance.",
-    destaque: "Warden Finance",
+    destaque: "",
     desktop: { webm: "/assets/video/hero-1080.webm", mp4: "/assets/video/hero-1080.mp4", poster: "/assets/video/hero-poster.jpg" },
     mobile: { webm: "/assets/video/hero-mobile.webm", mp4: "/assets/video/hero-mobile.mp4", poster: "/assets/video/hero-poster-mobile.jpg" }
   };

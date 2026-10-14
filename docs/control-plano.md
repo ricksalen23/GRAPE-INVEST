@@ -27,11 +27,11 @@ Este arquivo é a fonte da verdade para continuar o trabalho em outra conversa: 
 | 5. Plano e assinatura (demonstração) | **Concluída** (+ ajuste do modal do Pro pedido pelo dono: um botão principal "Testar 7 dias grátis", "Assinar o Pro"/"Agora não" como links, "menos de R$ 0,34 por dia", `COPY_TESTE` em `/assets/warden-pro.js`) |
 | 6. Efeitos visuais | **Concluída** |
 | 7. "Salvar no Control" | **Concluída** |
-| Fechamento | próximo |
+| Fechamento | **Concluído** — bateria completa: 445 de 445 testes passando (13/10/2026); screenshots finais em `tests/capturas/control/final/` |
 
 ### Arquivos
 
-- `control/index.html` — esqueleto: barra lateral (desktop), barra do topo (logo no celular, seletor de perfil, Desfazer, "Novo lançamento" no desktop), `<main id="tela">`, navegação inferior + botão flutuante (celular), toast, janelas `<dialog>` (`#dlg-lanc` novo/editar, `#dlg-detalhe`, `#dlg-saldo`, `#dlg-confirmar`). `noindex` enquanto não for lançado.
+- `control/index.html` — esqueleto: barra lateral (desktop), barra do topo (logo no celular, seletor de perfil, Desfazer, "Novo lançamento" no desktop), `<main id="tela">`, navegação inferior + botão flutuante (celular), toast, janelas `<dialog>` (`#dlg-lanc` novo/editar, `#dlg-modelo` conta fixa, `#dlg-detalhe`, `#dlg-saldo`, `#dlg-pro` vitrine do Pro, `#dlg-confirmar`), o painel `<aside id="orientador">`, o esqueleto inicial e o botão "Orientador" na barra. Scripts nesta ordem: `/assets/warden-pro.js`, `nucleo.js`, `relatorio.js`, `orientador.js`, `efeitos.js`, `app.js`. `noindex` enquanto não for lançado.
 - `control/control.css` — estilos do app (prefixo `.ctl-`), mobile-first; desktop a partir de 900px.
 - `control/nucleo.js` — **regras sem tela** em `window.ControlNucleo`: datas, dinheiro, migração/validação, status, criar/editar/baixar/excluir, recorrências, fluxo, resumo do mês, CSV, backup. Regra nova de dinheiro/data entra aqui.
 - `control/app.js` — telas e interações; expõe `window.WardenControl = { db, render, desfazer, toast, abrirLancamento, abrirDetalhe }` (testes e próximas etapas).
@@ -84,7 +84,8 @@ Este arquivo é a fonte da verdade para continuar o trabalho em outra conversa: 
                    freq, inicio, dia, fim, excluidas: [], criadoEm }],
   modelos: [{ id, tipo, descricao, valor, dia, categoriaId, perfil, variavel, ativo, excluidos: ['aaaa-mm'], criadoEm }]
 }
-// config também tem confeteMes: 'aaaa-mm' | null
+// config também tem: confeteMes 'aaaa-mm'|null, plano { tipo: 'gratis'|'pro', testeInicio }, avisoFimTeste,
+//                     orientadorAberto, orientadorVisto, dicaDoDia { data, id }, ultimoPerfil
 ```
 
 Conta gerada pelo "Meu mês": `modeloId` + `ocorrencia` (a data original). Campo novo de etapa futura: adicionar em `limparConta`/`migrar` no núcleo e no `dbVazio()`. Se a estrutura mudar de forma incompatível, subir para `versao: 2`, com migração da v1.
@@ -215,18 +216,29 @@ Conta gerada pelo "Meu mês": `modeloId` + `ocorrencia` (a data original). Campo
 - Em cada uma das 3 páginas, o botão grava a entrada certa; Juros compostos não tem o botão.
 - O Control importa ao abrir, não importa duas vezes e descarta item inválido.
 
-## Fechamento
+## Fechamento (concluído)
 
-- Testes Playwright da área (`control.spec.js`) passando.
-- Screenshots em 390px e 1440px.
-- `CLAUDE.md` atualizado (Control no "O que já existe", inclusive a regra "commit + push a cada etapa").
-- Resumo curto com os **TODOs da Etapa 2 do projeto**: servidor seguro, login, webhook Kiwify verificado, WhatsApp automático.
+- Bateria completa (site + Control) rodada uma vez em 13/10/2026: **445 de 445 testes passando** (13 arquivos, 7,2 min). Rodou com `--reporter=line`, então o `tests/RELATORIO.md` não foi regenerado nessa rodada; na próxima tarefa que pedir a bateria, use `npm test` (que gera o relatório).
+- Screenshots finais de todas as telas em 390px e 1440px em `tests/capturas/control/final/` (fora do git), com o conjunto de dados de exemplo.
+- `CLAUDE.md` atualizado: Control no "O que já existe" (telas, arquivos, dados, como abrir no Live Server), regra de commit + push a cada etapa.
+- No mesmo fechamento, a pedido do dono: o título do hero da home ficou todo na cor clara (`destaque: ""` no `HERO_VIDEO`).
+
+## Pendentes — Etapa 2 do projeto (servidor e lançamento)
+
+Hoje o Control é 100% local: dados no aparelho, plano Pro em demonstração. Antes de cobrar de verdade e de abrir para o público:
+
+1. **Servidor seguro.** API própria (HTTPS, sem reaproveitar nada do backend antigo do Control Finance), com banco de dados, backup e registro de acesso. Os dados continuam podendo ficar no aparelho; o servidor guarda a conta, o plano e, se a pessoa quiser, a sincronização (o modelo de dados já tem ids e datas em todo registro, e `versao` para migrar).
+2. **Login.** Conta com e-mail (link mágico ou senha + recuperação), sessão segura (cookie `HttpOnly`/`Secure`), e só então o plano passa a valer em mais de um aparelho. Substituir o login simulado (`localStorage`) do site.
+3. **Webhook da Kiwify verificado.** A liberação do Pro só pelo servidor, a partir do webhook da Kiwify com assinatura conferida (e consulta à API da Kiwify em caso de dúvida), tratando compra, renovação, cancelamento, reembolso e atraso. Então: preencher `checkoutUrl` em `/assinar.html`, apagar a área "Demonstração do plano" de Ajustes (`demo-pro`/`demo-gratis`/`demo-fim-teste` no `app.js`) e fazer `planoAtual` ler o plano vindo do servidor (TODO marcado no `nucleo.js`). O teste de 7 dias também passa a ser registrado no servidor (hoje é por aparelho). Conferir `COPY_TESTE` (`/assets/warden-pro.js`), Termos e Privacidade contra as regras configuradas na Kiwify; revisar com advogado.
+4. **WhatsApp automático.** Envio do relatório mensal (e, se fizer sentido, lembretes de vencimento) pela API oficial do WhatsApp Business, a partir do servidor, com número confirmado e consentimento da pessoa (TODO em `enviarRelatorio` no `app.js`). Atualizar a Política de Privacidade (dados que passam a sair do aparelho).
+5. **Orientador com IA (opcional).** `responderComIA()` no `orientador.js` (TODO): perguntas livres respondidas por IA no servidor, mandando só a pergunta e um resumo, nunca a chave no navegador.
+6. **Ligar o Control ao menu do site.** Hoje o menu e o rodapé ainda apontam para `/app.html` (Control Finance antigo) e `/control/` está com `noindex` e fora do sitemap. Passo a passo abaixo; fazer só quando o dono pedir, de preferência junto com o lançamento do Pro.
 
 ## Como ligar ao menu (quando o dono pedir)
 
 1. Em `/assets/nav.js`, trocar `href="/app.html"` por `href="/control/"` nos links com `data-control-finance` (nav e menu mobile; linhas ~232 e ~263) e ajustar o tratamento de clique em `data-control-finance` (hoje chama `abrirControlFinance` da home, que pede login).
 2. Em `/assets/footer.js`, o mesmo link (linha ~61).
 3. Renomear o texto "Control Finance" para "Warden Control", se for o nome final.
-4. No `/control/index.html`, tirar o `noindex`; incluir `/control/` (e `/assinar.html`) no `sitemap.xml`.
+4. No `/control/index.html`, tirar o `noindex` e incluir `/control/` no `sitemap.xml` (a `/assinar.html` já está). Atenção: o teste de sitemap (`rodape.spec.js`) compara o sitemap com `PAGINAS` de `tests/ferramentas.js`, e os testes de página esperam o `nav.js` (menu hambúrguer, faixa, rodapé), que o Control não carrega de propósito: acrescentar `/control/` como exceção no teste do sitemap, e não em `PAGINAS`.
 5. Decidir o destino do `app.html` antigo (redirecionar para `/control/` ou remover).
 6. Rodar os testes de `home`, `rodape` e `control`.
